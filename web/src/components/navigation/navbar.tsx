@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { ThemeToggle } from "@/theme/ThemeToggle";
 
 export default function Navbar() {
   const { theme, systemTheme } = useTheme();
@@ -56,7 +57,7 @@ export default function Navbar() {
     </div>
   </div>
 
-  {/* Optional: right-side cluster (theme toggle, etc.) */}
+  {/* right-side cluster (theme toggle, etc.) */}
   <div className="ml-auto flex items-center gap-3">
     <form
       role="search"
@@ -70,7 +71,7 @@ export default function Navbar() {
         className="h-10 rounded-lg border-border/80 bg-muted/40 pl-9 pr-4 text-sm shadow-sm transition focus-visible:ring-2 focus-visible:ring-primary/50"
       />
     </form>
-    {/* <ThemeToggle /> */}
+    <ThemeToggle />
   </div>
 </nav>
 
