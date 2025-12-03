@@ -1,32 +1,41 @@
 import { notFound } from "next/navigation";
-import { getClassBySlug } from "@/lib/strapiSdk/classes";
+import { getClassBySlug } from "@/lib/payloadSdk/classes";
 
 type Params = Promise<{ classSlug: string }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
+// --- Metadata ---
 export async function generateMetadata(props: {
-    params: Params
-    searchParams: SearchParams
-}){
-  const params = await props.params
-  const { classSlug } = await params;
-  const entity = await getClassBySlug(classSlug);
-  const title = entity?.attributes?.title ?? "Class";
-  return { title: `${title} • Engineering Learning` };
-}
-
-export default async function ClassPage(props: {
-    params: Params
-    searchParams: SearchParams
+  params: Params;
+  searchParams: SearchParams;
 }) {
-  const params = await props.params
-  const { classSlug } = await params;
-  const entity = await getClassBySlug(classSlug)
-  if (!entity?.attributes) return notFound();
+  const { classSlug } = await props.params;
 
-  const c = entity.attributes;
-  return <article>{c.title}</article>;
+  const c = await getClassBySlug(classSlug);
+  const title = c?.title ?? "Class";
+
+  return {
+    title: `${title} • Engineering Learning`,
+  };
 }
 
-export const revalidate = 60;
+// --- Page ---
+export default async function ClassPage(props: {
+  params: Params;
+  searchParams: SearchParams;
+}) {
+  const { classSlug } = await props.params;
 
+  const c = await getClassBySlug(classSlug);
+
+  if (!c) return notFound();
+
+  return (
+    <article>
+      <h1 className="text-3xl font-bold">{c.title}</h1>
+    </article>
+  );
+}
+
+// ISR (revalidate every 60s)
+export const revalidate = 60;

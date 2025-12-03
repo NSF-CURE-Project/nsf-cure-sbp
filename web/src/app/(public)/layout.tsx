@@ -1,3 +1,4 @@
+// src/app/(public)/layout.tsx
 import React from "react";
 import { cookies } from "next/headers";
 
@@ -8,7 +9,17 @@ import {
 
 import AppSidebar from "@/components/admin-panel/sidebar";
 import Footer from "@/components/Footer";
-import { getClassesTree } from "@/lib/strapiSdk/root";
+
+import { getClassesTree } from "@/lib/payloadSdk/classes";
+import type {
+  ClassDoc,
+  ChapterDoc,
+  LessonDoc,
+} from "@/lib/payloadSdk/types";
+
+// Ensure this layout is always rendered on the server with fresh data
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function RootLayout({
   children,
@@ -19,13 +30,17 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
 
-  const classes = await getClassesTree();
+  const payloadClasses = await getClassesTree();
+
+  // ------ NORMALIZE FOR SIDEBAR (Strapi-style shape) ------
+  const sidebarClasses = normalizeClassesForSidebar(payloadClasses);
 
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider defaultOpen={defaultOpen}>
       <div className="min-h-dvh bg-background text-foreground flex">
         {/* LEFT: Salimi sidebar with your dynamic items */}
-        <AppSidebar classes={classes} />
+        {/* `as any` because AppSidebar's props are still typed as old ClassItem[] */}
+        <AppSidebar classes={sidebarClasses as any} />
 
         {/* RIGHT: main content (no TOC) lives in SidebarInset */}
         <SidebarInset className="flex-1">
@@ -50,4 +65,65 @@ export default async function RootLayout({
       </div>
     </SidebarProvider>
   );
+}
+
+/**
+ * Map Payload classes → old sidebar ClassItem shape:
+ * {
+ *   slug, title,
+ *   modules: [
+ *     { slug, title, lessons: [{ slug, title }] }
+ *   ]
+ * }
+ */
+function normalizeClassesForSidebar(classes: ClassDoc[]) {
+  return classes.map((cls: ClassDoc) => {
+    const c: any = cls;
+
+    const title =
+      typeof c.title === "string" && c.title.trim()
+        ? c.title
+        : "Untitled class";
+
+    const slug = typeof c.slug === "string" ? c.slug : "";
+
+    const chapters: ChapterDoc[] = Array.isArray(c.chapters)
+      ? (c.chapters as ChapterDoc[])
+      : [];
+
+    const modules = chapters.map((ch: any) => {
+      const chapterTitle =
+        typeof ch?.title === "string" && ch.title.trim()
+          ? ch.title
+          : "Untitled chapter";
+
+      const chapterSlug = typeof ch?.slug === "string" ? ch.slug : "";
+
+      const rawLessons: LessonDoc[] = Array.isArray(ch?.lessons)
+        ? (ch.lessons as LessonDoc[])
+        : [];
+
+      const lessons = rawLessons
+        .map((l: any) => ({
+          title:
+            typeof l?.title === "string" && l.title.trim()
+              ? l.title
+              : "Untitled lesson",
+          slug: typeof l?.slug === "string" ? l.slug : "",
+        }))
+        .filter((l) => l.slug); // drop invalid entries
+
+      return {
+        title: chapterTitle,
+        slug: chapterSlug,
+        lessons,
+      };
+    });
+
+    return {
+      title,
+      slug,
+      modules,
+    };
+  });
 }

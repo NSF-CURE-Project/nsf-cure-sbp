@@ -2,12 +2,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SafeHtml } from "@/components/ui/safeHtml";
+import { getChapterBySlug } from "@/lib/payloadSdk/chapters";
+import type { ChapterDoc, LessonDoc } from "@/lib/payloadSdk/types";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
-
-const STRAPI_URL = process.env.STRAPI_URL ?? "http://localhost:1337";
-const PUB = process.env.NODE_ENV === "production" ? "live" : "preview";
 
 type RouteParams = { classSlug: string; chapterSlug: string };
 type PageProps = {
@@ -15,25 +14,8 @@ type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-/** Build Strapi query for a single module by slug (only real fields + valid populate). */
-function buildModuleUrl(chapterSlug: string) {
-  const url = new URL(`${STRAPI_URL}/api/modules`);
-
-  url.searchParams.set("filters[slug][$eq]", chapterSlug);
-  url.searchParams.set("publicationState", PUB);
-
-  // scalar fields only
-  url.searchParams.set("fields", "title,slug,objective");
-
-  // ONLY relations + allowed keys; no 'order' anywhere
-  url.searchParams.set("populate[class][fields]", "slug");
-  url.searchParams.set("populate[lessons][fields]", "title,slug");
-
-  return url.toString();
-}
-
 type NormalizedLesson = { title: string; slug: string };
-type NormalizedModule = {
+type NormalizedChapter = {
   title: string;
   slug: string;
   classSlug: string | null;
@@ -41,91 +23,89 @@ type NormalizedModule = {
   lessons: NormalizedLesson[];
 };
 
-function normalizeModule(item: any): NormalizedModule | null {
-  if (!item) return null;
+function getChapterClassSlug(chapter: ChapterDoc | null): string | null {
+  if (!chapter) return null;
+  const c: any = chapter;
 
-  // Strapi v4 uses { data: [...], attributes: {...} }; v5 can be flat
-  const a = "attributes" in item ? item.attributes ?? {} : item;
+  if (c.class && typeof c.class === "object" && "slug" in c.class) {
+    return c.class.slug as string;
+  }
 
-  // class relation (v4 nested .data.attributes.slug OR v5 .class.slug)
-  const classSlug =
-    a?.class?.data?.attributes?.slug ??
-    a?.class?.attributes?.slug ?? // in case the relation came populated as an entity
-    a?.class?.slug ??
-    null;
+  return null;
+}
 
-  // lessons relation (array of entities or entities.data)
-  const rawLessons = a?.lessons?.data ?? a?.lessons ?? [];
-  const lessons: NormalizedLesson[] = (Array.isArray(rawLessons) ? rawLessons : []).map(
-    (l: any) => {
-      const la = "attributes" in l ? l.attributes ?? {} : l ?? {};
-      return {
-        title: typeof la.title === "string" ? la.title : "Untitled lesson",
-        slug: typeof la.slug === "string" ? la.slug : "",
-      };
-    }
-  );
+function normalizeChapter(chapter: ChapterDoc | null): NormalizedChapter | null {
+  if (!chapter) return null;
+
+  const c: any = chapter;
+
+  const title =
+    typeof c.title === "string" && c.title.trim()
+      ? c.title
+      : "Untitled chapter";
+  const slug = typeof c.slug === "string" ? c.slug : "";
+
+  const objective =
+    typeof c.objective === "string" ? (c.objective as string) : null;
+
+  const classSlug = getChapterClassSlug(chapter);
+
+  const rawLessons = Array.isArray(c.lessons) ? (c.lessons as LessonDoc[]) : [];
+  const lessons: NormalizedLesson[] = rawLessons
+    .map((l: any) => ({
+      title:
+        typeof l?.title === "string" && l.title.trim()
+          ? l.title
+          : "Untitled lesson",
+      slug: typeof l?.slug === "string" ? l.slug : "",
+    }))
+    .filter((l) => l.slug); // drop empty slugs
 
   return {
-    title: typeof a.title === "string" ? a.title : "Untitled chapter",
-    slug: typeof a.slug === "string" ? a.slug : "",
+    title,
+    slug,
     classSlug,
-    objective: typeof a.objective === "string" ? a.objective : null,
+    objective,
     lessons,
   };
 }
 
-async function fetchModule(classSlug: string, chapterSlug: string) {
-  const url = buildModuleUrl(chapterSlug);
+async function fetchChapterForClass(classSlug: string, chapterSlug: string) {
+  const chapter = await getChapterBySlug(chapterSlug);
+  const normalized = normalizeChapter(chapter);
 
-  let raw = "";
-  let status = 0;
+  if (!normalized) return { mod: null as NormalizedChapter | null, raw: chapter };
 
-  try {
-    const res = await fetch(url, { cache: "no-store" });
-    status = res.status;
-    raw = await res.text().catch(() => "");
-    if (!res.ok) {
-      return { mod: null as NormalizedModule | null, debug: { status, url, raw } };
-    }
-  } catch (e) {
-    return { mod: null as NormalizedModule | null, debug: { status, url, raw: String(e) } };
-  }
+  const matchesClass =
+    normalized.classSlug &&
+    normalized.classSlug.toLowerCase() === classSlug.toLowerCase();
 
-  let json: any = {};
-  try {
-    json = JSON.parse(raw || "{}");
-  } catch {
-    // leave json as {}
-  }
-
-  const item = Array.isArray(json?.data) ? json.data[0] : null;
-  const mod = normalizeModule(item);
-
-  // Ensure the module actually belongs to this class
-  const ok = !!mod; //
-
-  return { mod: ok ? mod : null, debug: { url, raw } };
+  return {
+    mod: matchesClass ? normalized : null,
+    raw: chapter,
+  };
 }
 
-export default async function ChapterOverviewPage({ params, searchParams }: PageProps) {
+export default async function ChapterOverviewPage({
+  params,
+  searchParams,
+}: PageProps) {
   const { classSlug, chapterSlug } = await params;
   const sp = (await searchParams) ?? {};
   const DEBUG = "debug" in sp;
 
-  const { mod, debug } = await fetchModule(classSlug, chapterSlug);
+  const { mod, raw } = await fetchChapterForClass(classSlug, chapterSlug);
 
   if (!mod) {
     if (DEBUG) {
       return (
         <pre className="p-4 text-xs border rounded max-w-3xl mx-auto my-8 whitespace-pre-wrap">
-{`DEBUG: No module matched
+{`DEBUG: No chapter matched
 classSlug: ${classSlug}
 chapterSlug: ${chapterSlug}
-Query URL: ${debug.url}
 
-Raw:
-${debug.raw?.slice(0, 2000) ?? "(no body)"}`}
+Raw chapter doc from Payload:
+${JSON.stringify(raw, null, 2).slice(0, 4000)}`}
         </pre>
       );
     }

@@ -19,6 +19,13 @@ const nextConfig: NextConfig = {
         port: "1337",
         pathname: "/uploads/**",
       },
+      // Payload local media (admin)
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "3000",
+        pathname: "/api/media/**",
+      },
       // Optional: add your production Strapi domain later
       // {
       //   protocol: "https",

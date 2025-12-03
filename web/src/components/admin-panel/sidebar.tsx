@@ -7,10 +7,13 @@ import {
 } from "@/components/ui/sidebar";
 
 import SidebarClient from "@/components/navigation/SidebarClient";
-import type { ClassItem } from "@/lib/strapiSdk/types";
+
+type LessonNav = { slug: string; title: string };
+type ModuleNav = { slug: string; title: string; lessons: LessonNav[] };
+type ClassNav = { slug: string; title: string; modules: ModuleNav[] };
 
 type AppSidebarProps = {
-  classes: ClassItem[];
+  classes: ClassNav[];
 };
 
 export default function AppSidebar({ classes }: AppSidebarProps) {

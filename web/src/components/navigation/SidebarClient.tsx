@@ -164,7 +164,7 @@ export default function SidebarClient({ classes }: Props) {
                 aria-expanded={classOpen}
                 aria-controls={`panel-class-${cSlug}`}
                 onClick={() => toggleClass(cSlug)}
-                className="group flex w-full items-center justify-between gap-2 px-4 py-2 text-base font-semibold text-primary transition-colors hover:bg-primary/10 hover:text-primary"
+                className="group flex w-full items-start justify-between gap-2 px-4 py-2 text-base font-semibold text-primary transition-colors hover:bg-primary/10 hover:text-primary"
               >
                 <span>{getClassTitle(cls)}</span>
                 <ChevronRight
@@ -223,7 +223,7 @@ export default function SidebarClient({ classes }: Props) {
                             aria-controls={`panel-ch-${chKey}`}
                             onClick={() => toggleChapter(cSlug, chSlug)}
                             className={[
-                              "group flex w-full items-center justify-between gap-2 px-2 py-1 font-medium rounded-md transition-colors",
+                              "group flex w-full items-start justify-between gap-2 px-2 py-1 font-medium rounded-md transition-colors text-left",
                               "hover:bg-accent/25 hover:text-accent-foreground",
                             ].join(" ")}
                           >

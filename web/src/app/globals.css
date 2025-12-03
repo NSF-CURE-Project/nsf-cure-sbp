@@ -119,6 +119,18 @@ body[data-toc="closed"] #layout {
 
 /* ---------- Base layer: apply tokens & global tweaks ---------- */
 @layer base {
+  /* Force list markers to use the foreground color (helps prose) */
+  :root .prose ul,
+  :root .prose ol {
+    list-style-position: inside;
+  }
+  :root .prose li::marker {
+    color: hsl(var(--foreground));
+  }
+  .dark .prose li::marker {
+    color: hsl(var(--foreground));
+  }
+
   /* Ensure no default borders appear anywhere */
   * {
     border-width: 0;

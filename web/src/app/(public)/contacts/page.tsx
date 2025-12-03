@@ -1,149 +1,123 @@
 // src/app/(public)/contact-us/page.tsx
 import Image from "next/image";
+import {
+  getContactPage,
+  type ContactPageData,
+  type ContactPerson,
+} from "@/lib/payloadSdk/contacts";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
 
-const STRAPI_URL = process.env.STRAPI_URL ?? "http://localhost:1337";
-const IS_PROD = process.env.NODE_ENV === "production";
-const PUB = IS_PROD ? "live" : "preview";
+const BASE_URL = process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "";
 
-// Type for each contact
-type Contact = {
-  id: number;
-  name: string;
-  title?: string;
-  phone?: string;
-  email?: string;
-  photo?: string | null;
-};
-
-// Build API URL
-function buildUrl() {
-  const url = new URL(`${STRAPI_URL}/api/contacts`);
-  url.searchParams.set("publicationState", PUB);
-  url.searchParams.set("populate[photo][fields][0]", "url");
-  url.searchParams.set("fields[0]", "name");
-  url.searchParams.set("fields[1]", "title");
-  url.searchParams.set("fields[2]", "phone");
-  url.searchParams.set("fields[3]", "email");
-  return url.toString();
-}
-
-// Normalize Strapi response
-function normalizeContact(item: any): Contact {
-  if (!item) return { id: 0, name: "Unknown" };
-
-  // Strapi v5 (flat)
-  if (!("attributes" in item)) {
-    return {
-      id: item.id ?? 0,
-      name: item.name ?? "Unnamed",
-      title: item.title ?? "",
-      phone: item.phone ?? "",
-      email: item.email ?? "",
-      photo: absUrl(item.photo?.url ?? null),
-    };
-  }
-
-  // Strapi v4 (nested)
-  const a = item.attributes ?? {};
-  return {
-    id: item.id ?? 0,
-    name: a.name ?? "Unnamed",
-    title: a.title ?? "",
-    phone: a.phone ?? "",
-    email: a.email ?? "",
-    photo: absUrl(a.photo?.data?.attributes?.url ?? null),
-  };
-}
-
-// Helper for absolute URLs
-function absUrl(u?: string | null) {
-  return u ? (u.startsWith("http") ? u : `${STRAPI_URL}${u}`) : null;
+function buildImageUrl(photo?: ContactPerson["photo"]): string | null {
+  const url = typeof photo === "string" ? photo : photo?.url;
+  if (!url) return null;
+  return url.startsWith("http") ? url : `${BASE_URL}${url}`;
 }
 
 export default async function ContactUsPage() {
-  const res = await fetch(buildUrl(), { cache: "no-store" });
+  const data: ContactPageData | null = await getContactPage().catch(() => null);
+  const contacts = data?.contacts ?? [];
 
-  if (!res.ok) {
-    return (
-      <main className="max-w-2xl mx-auto py-12 px-6 text-center text-red-600">
-        Failed to load contacts (HTTP {res.status})
-      </main>
-    );
-  }
+  const staffContacts = contacts.filter(
+    (c) => (c.category ?? "").toLowerCase() === "staff"
+  );
+  const technicalContacts = contacts.filter(
+    (c) => (c.category ?? "").toLowerCase() === "technical"
+  );
+  const otherContacts = contacts.filter(
+    (c) => !["staff", "technical"].includes((c.category ?? "").toLowerCase())
+  );
 
-  const json = await res.json();
-  const contacts = Array.isArray(json?.data)
-    ? json.data.map(normalizeContact)
-    : [];
+  const sections = [
+    { label: "Staff Contact Information", items: staffContacts },
+    { label: "Technical Staff Contact Information", items: technicalContacts },
+    { label: "Other Contacts", items: otherContacts },
+  ].filter((s) => s.items.length > 0);
 
   return (
-    <main className="max-w-6xl mx-auto py-12 px-6">
-      <h1 className="text-4xl font-bold text-center mb-10">Contact Us</h1>
+    <main className="max-w-6xl mx-auto pt-6 pb-10 px-6">
+      <div className="max-w-4xl">
+        <h1 className="text-4xl font-bold mb-3">
+          {data?.heroTitle ?? "Contact Us"}
+        </h1>
+        {data?.heroIntro && (
+          <p className="text-muted-foreground max-w-2xl mb-8 leading-7">
+            {data.heroIntro}
+          </p>
+        )}
+      </div>
 
       {contacts.length === 0 ? (
         <p className="text-center text-muted-foreground">
           No contact information available.
         </p>
       ) : (
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {contacts.map((person: Contact) => (
-            <div
-              key={person.id}
-              className="rounded-lg border border-border/40 bg-muted/20 backdrop-blur-sm p-6 flex flex-col items-center text-center hover:shadow-md transition-all duration-200 hover:bg-muted/30"
-            >
-              {/* Photo */}
-              {person.photo ? (
-                <div className="w-32 h-32 relative mb-4">
-                  <Image
-                    src={person.photo}
-                    alt={person.name}
-                    fill
-                    className="object-cover rounded-full border border-border/40"
-                  />
-                </div>
-              ) : (
-                <div className="w-32 h-32 mb-4 rounded-full bg-muted flex items-center justify-center text-3xl">
-                  👤
-                </div>
-              )}
+        <div className="space-y-10">
+          {sections.map((section, idx) => (
+            <section key={idx} className="space-y-4">
+              <h2 className="text-lg font-semibold tracking-tight text-foreground/90">
+                {section.label}
+              </h2>
+              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                {section.items.map((person, i) => {
+                  const photoUrl = buildImageUrl(person.photo);
+                  return (
+                    <div
+                      key={person.id ?? `${idx}-${i}`}
+                      className="rounded-lg border border-border/40 bg-muted/20 backdrop-blur-sm p-6 flex flex-col items-center text-center hover:shadow-md transition-all duration-200 hover:bg-muted/30"
+                    >
+                      {photoUrl ? (
+                        <div className="w-32 h-32 relative mb-4">
+                          <Image
+                            src={photoUrl}
+                            alt={person.name}
+                            fill
+                            className="object-cover rounded-full border border-border/40"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-32 h-32 mb-4 rounded-full bg-muted flex items-center justify-center text-3xl">
+                          👤
+                        </div>
+                      )}
 
-              {/* Name */}
-              <h2 className="text-xl font-semibold mb-1">{person.name}</h2>
+                      <h3 className="text-xl font-semibold mb-1">{person.name}</h3>
 
-              {/* Title */}
-              {person.title && (
-                <p className="text-sm font-bold text-foreground mb-2">
-                  {person.title}
-                </p>
-              )}
+                      {person.title && (
+                        <p className="text-sm font-bold text-foreground mb-2">
+                          {person.title}
+                        </p>
+                      )}
 
-              {/* Email */}
-              {person.email && (
-                <p className="text-sm text-muted-foreground">
-                  <a
-                    href={`mailto:${person.email}`}
-                    className="hover:text-foreground transition-colors"
-                  >
-                    {person.email}
-                  </a>
-                </p>
-              )}
+                      {person.email && (
+                        <p className="text-sm text-muted-foreground">
+                          <a
+                            href={`mailto:${person.email}`}
+                            className="hover:text-foreground transition-colors"
+                          >
+                            {person.email}
+                          </a>
+                        </p>
+                      )}
 
-              {/* Phone */}
-              {person.phone && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  <a
-                    href={`tel:${person.phone}`}
-                    className="hover:text-foreground transition-colors"
-                  >
-                    {person.phone}
-                  </a>
-                </p>
-              )}
-            </div>
+                      {person.phone && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          <a
+                            href={`tel:${person.phone}`}
+                            className="hover:text-foreground transition-colors"
+                          >
+                            {person.phone}
+                          </a>
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
           ))}
         </div>
       )}

@@ -1,94 +1,75 @@
 import React from "react";
 import { ThemedButton } from "@/components/ui/ThemedButton";
-import type { BlocksContent } from "@strapi/blocks-react-renderer";
-import dynamicImport from "next/dynamic";
+import { PayloadRichText as RichText } from "@/components/ui/payloadRichText";
+import { getHomePage, type HomePageData } from "@/lib/payloadSdk/home";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
 
-const STRAPI_URL = process.env.STRAPI_URL ?? "http://localhost:1337";
-const IS_PROD = process.env.NODE_ENV === "production";
-const PUB = IS_PROD ? "live" : "preview";
-
-// Client RichText (dynamic, but no ssr:false in a Server Component)
-const RichText = dynamicImport(
-  () => import("@/components/ui/richText").then((m) => m.RichText)
-);
-
-type HomePageFields = {
-  overview: BlocksContent | null;
-  missionStatement: BlocksContent | null;
-  goals: BlocksContent | null;
-};
-
-async function getHomePage(): Promise<HomePageFields | null> {
-  const url = new URL("/api/home-pages", STRAPI_URL);
-  url.searchParams.set("publicationState", PUB);
-  url.searchParams.set("populate", "*");
-
-  const res = await fetch(url.toString(), { cache: "no-store" });
-  if (!res.ok) return null;
-
-  const json = await res.json();
-  const first = Array.isArray(json?.data) ? json.data[0] : null;
-  if (!first) return null;
-
-  return {
-    overview: (first.overview ?? null) as BlocksContent | null,
-    missionStatement: (first.missionStatement ?? null) as BlocksContent | null,
-    goals: (first.goals ?? null) as BlocksContent | null,
-  };
-}
-
 export default async function Landing() {
-  const home = await getHomePage();
+  const home: HomePageData | null = await getHomePage().catch(() => null);
 
   return (
     <div className="mx-auto w-full max-w-[var(--content-max)] px-6">
       <header>
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
-          NSF CURE Summer Bridge Program
+          {home?.heroTitle ?? "NSF CURE Summer Bridge Program"}
         </h1>
 
-        {home?.overview ? (
-          <RichText
-            content={home.overview}
-            className="mt-3 text-muted-foreground leading-7"
-          />
-        ) : (
-          <p className="mt-3 text-muted-foreground">
-            Welcome to NSF CURE Engineering Supplemental Materials...
+        {home?.heroSubtitle && (
+          <p className="mt-3 text-muted-foreground leading-7">
+            {home.heroSubtitle}
           </p>
         )}
       </header>
 
-      {/* Hidden H2 so TOC has a top-level "Getting Started" anchor */}
-      <h2 id="getting-started" className="sr-only">
-        Getting Started
-      </h2>
-
       <section className="mt-6">
-        <ThemedButton href="/materials">Getting Started</ThemedButton>
+        <ThemedButton href={home?.heroButtonHref ?? "/resources"}>
+          {home?.heroButtonLabel ?? "Getting Started"}
+        </ThemedButton>
       </section>
 
       <section className="mt-10 space-y-10">
-        {home?.missionStatement && (
+        {home?.purposeBody && (
           <div>
             <h2 className="text-2xl font-semibold mb-3">
-              Our Purpose at NSF CURE SBP
+              {home.purposeTitle ?? "Our Purpose at NSF CURE SBP"}
             </h2>
-            <RichText content={home.missionStatement} className="leading-7" />
+            <RichText
+              content={home.purposeBody}
+              className="prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
+            />
           </div>
         )}
 
-        {home?.goals && (
+        {(home?.goalsIntroRich || home?.goalsIntro || home?.goals?.length) && (
           <div>
-            <h2 className="text-2xl font-semibold mb-3">Program Goals</h2>
-            <RichText content={home.goals} className="leading-7" />
+            <h2 className="text-2xl font-semibold mb-3">
+              {home.goalsTitle ?? "Program Goals"}
+            </h2>
+
+            {home.goalsIntroRich ? (
+              <RichText
+                content={home.goalsIntroRich}
+                className="prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
+              />
+            ) : home.goalsIntro ? (
+              <RichText
+                content={home.goalsIntro}
+                className="prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
+              />
+            ) : null}
+
+            {home.goals?.length ? (
+              <ul className="list-disc pl-6 mt-3 space-y-1">
+                {home.goals.map((g, i) => (
+                  <li key={g.id ?? i}>{g.item}</li>
+                ))}
+              </ul>
+            ) : null}
           </div>
         )}
       </section>
     </div>
   );
 }
-
