@@ -12,8 +12,6 @@ export default function Footer() {
           <ul className="space-y-2">
             <li><Link href="/" className="hover:underline">Home</Link></li>
             <li><Link href="/classes" className="hover:underline">Classes</Link></li>
-            <li><Link href="/materials" className="hover:underline">Learning Materials</Link></li>
-            <li><Link href="/projects" className="hover:underline">Student Projects</Link></li>
           </ul>
         </div>
 
@@ -21,8 +19,6 @@ export default function Footer() {
         <div>
           <h3 className="font-semibold text-foreground mb-3">Resources</h3>
           <ul className="space-y-2">
-            <li><Link href="/about" className="hover:underline">About the NSF CURE</Link></li>
-            <li><Link href="/faculty" className="hover:underline">Faculty & Mentors</Link></li>
             <li><Link href="/faq" className="hover:underline">FAQ</Link></li>
             <li><Link href="/contacts" className="hover:underline">Contact Us</Link></li>
           </ul>

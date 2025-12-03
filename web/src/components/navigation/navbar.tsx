@@ -14,7 +14,7 @@ export default function Navbar() {
   const cppLogo =
     effectiveTheme === "dark"
       ? "/assets/logos/cpp_yellow.png"
-      : "/assets/logos/cpp_yellow.png";
+      : "/assets/logos/cpp_green.png";
 
   const nsfLogo =
   effectiveTheme === "dark"

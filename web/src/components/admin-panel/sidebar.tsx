@@ -21,8 +21,8 @@ export default function AppSidebar({ classes }: AppSidebarProps) {
     <Sidebar className="w-64 border-r bg-background min-h-dvh h-full flex flex-col">
       {/* Inner scrollable content of the shell */}
       <SidebarContent className="px-0 py-4 flex-1">
-        <div className="px-4 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Topics
+        <div className="px-4 pb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Study Topics
         </div>
         <SidebarClient classes={classes} />
       </SidebarContent>
