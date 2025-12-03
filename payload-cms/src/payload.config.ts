@@ -14,6 +14,7 @@ import { Lessons } from './collections/Lessons';
 import { HomePage } from './globals/HomePage';
 import { ResourcesPage } from './globals/ResourcesPage';
 import { ContactPage } from './globals/ContactPage';
+import { GettingStarted } from './globals/GettingStarted';
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
   path: '@/views/StaffDashboardView#default',
@@ -44,7 +45,7 @@ export default buildConfig({
   },
 
   collections: [Classes, Chapters, Lessons, Users, Media],
-  globals: [HomePage, ResourcesPage, ContactPage],
+  globals: [HomePage, ResourcesPage, ContactPage, GettingStarted],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

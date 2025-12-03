@@ -32,7 +32,7 @@ export const HomePage: GlobalConfig = {
       name: "heroButtonHref",
       type: "text",
       label: "Hero button link",
-      defaultValue: "/resources",
+      defaultValue: "/getting-started",
     },
 
     // “OUR PURPOSE” SECTION
@@ -74,6 +74,30 @@ export const HomePage: GlobalConfig = {
       ],
     },
 
-    // You can add more sections later (testimonials, timeline, etc.)
+    // GETTING STARTED SECTION
+    {
+      name: "gettingStartedTitle",
+      type: "text",
+      label: "Getting Started heading",
+      defaultValue: "Getting Started",
+    },
+    {
+      name: "gettingStartedBody",
+      type: "richText",
+      label: "Getting Started content",
+    },
+    {
+      name: "gettingStartedSteps",
+      type: "array",
+      label: "Getting Started steps",
+      fields: [
+        {
+          name: "step",
+          type: "text",
+          label: "Step text",
+          required: true,
+        },
+      ],
+    },
   ],
 };

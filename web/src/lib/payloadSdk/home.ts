@@ -12,6 +12,9 @@ export type HomePageData = {
   goalsIntro?: any; // legacy plain string
   goalsIntroRich?: any; // richText JSON
   goals?: { id?: string; item: string }[];
+  gettingStartedTitle?: string;
+  gettingStartedBody?: any; // richText JSON
+  gettingStartedSteps?: { id?: string; step: string }[];
 };
 
 export async function getHomePage(): Promise<HomePageData> {

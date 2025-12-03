@@ -23,12 +23,6 @@ export default async function Landing() {
         )}
       </header>
 
-      <section className="mt-6">
-        <ThemedButton href={home?.heroButtonHref ?? "/resources"}>
-          {home?.heroButtonLabel ?? "Getting Started"}
-        </ThemedButton>
-      </section>
-
       <section className="mt-10 space-y-10">
         {home?.purposeBody && (
           <div>
@@ -70,6 +64,34 @@ export default async function Landing() {
           </div>
         )}
       </section>
+
+      {home?.gettingStartedBody ||
+      home?.gettingStartedSteps?.length ||
+      home?.gettingStartedTitle ? (
+        <section className="mt-12 space-y-3">
+          <h2 className="text-2xl font-semibold">
+            {home?.gettingStartedTitle ?? "Getting Started"}
+          </h2>
+          {home?.gettingStartedBody && (
+            <RichText
+              content={home.gettingStartedBody}
+              className="prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
+            />
+          )}
+          {home?.gettingStartedSteps?.length ? (
+            <ul className="list-decimal pl-6 space-y-1 text-muted-foreground">
+              {home.gettingStartedSteps.map((s, idx) => (
+                <li key={s.id ?? idx}>{s.step}</li>
+              ))}
+            </ul>
+          ) : null}
+          <div className="pt-2">
+            <ThemedButton href={home?.heroButtonHref ?? "/getting-started"}>
+              {home?.heroButtonLabel ?? "Getting Started"}
+            </ThemedButton>
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

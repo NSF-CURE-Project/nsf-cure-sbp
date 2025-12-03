@@ -97,11 +97,13 @@ export interface Config {
     'home-page': HomePage;
     'resources-page': ResourcesPage;
     'contact-page': ContactPage;
+    'getting-started': GettingStarted;
   };
   globalsSelect: {
     'home-page': HomePageSelect<false> | HomePageSelect<true>;
     'resources-page': ResourcesPageSelect<false> | ResourcesPageSelect<true>;
     'contact-page': ContactPageSelect<false> | ContactPageSelect<true>;
+    'getting-started': GettingStartedSelect<false> | GettingStartedSelect<true>;
   };
   locale: null;
   user: User & {
@@ -545,6 +547,28 @@ export interface HomePage {
         id?: string | null;
       }[]
     | null;
+  gettingStartedTitle?: string | null;
+  gettingStartedBody?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  gettingStartedSteps?:
+    | {
+        step: string;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -597,6 +621,59 @@ export interface ContactPage {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "getting-started".
+ */
+export interface GettingStarted {
+  id: number;
+  title: string;
+  intro?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  steps?:
+    | {
+        heading: string;
+        description?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        id?: string | null;
+      }[]
+    | null;
+  resources?:
+    | {
+        label: string;
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home-page_select".
  */
 export interface HomePageSelect<T extends boolean = true> {
@@ -612,6 +689,14 @@ export interface HomePageSelect<T extends boolean = true> {
     | T
     | {
         item?: T;
+        id?: T;
+      };
+  gettingStartedTitle?: T;
+  gettingStartedBody?: T;
+  gettingStartedSteps?:
+    | T
+    | {
+        step?: T;
         id?: T;
       };
   updatedAt?: T;
@@ -661,6 +746,31 @@ export interface ContactPageSelect<T extends boolean = true> {
         phone?: T;
         email?: T;
         photo?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "getting-started_select".
+ */
+export interface GettingStartedSelect<T extends boolean = true> {
+  title?: T;
+  intro?: T;
+  steps?:
+    | T
+    | {
+        heading?: T;
+        description?: T;
+        id?: T;
+      };
+  resources?:
+    | T
+    | {
+        label?: T;
+        url?: T;
         id?: T;
       };
   updatedAt?: T;
