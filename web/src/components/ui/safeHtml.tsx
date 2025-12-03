@@ -10,7 +10,8 @@ export function SafeHtml({
   html: string | null | undefined;
   className?: string;
 }) {
-  const safe = DOMPurify.sanitize(html ?? "");
+  const safe =
+    typeof window === "undefined" ? html ?? "" : DOMPurify.sanitize(html ?? "");
   return (
     <div
       className={className}

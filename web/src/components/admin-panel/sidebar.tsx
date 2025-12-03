@@ -18,11 +18,9 @@ type AppSidebarProps = {
 
 export default function AppSidebar({ classes }: AppSidebarProps) {
   return (
-    <Sidebar
-      className="w-64 border-r bg-background"
-    >
+    <Sidebar className="w-64 border-r bg-background min-h-dvh h-full flex flex-col">
       {/* Inner scrollable content of the shell */}
-      <SidebarContent className="px-0 py-4">
+      <SidebarContent className="px-0 py-4 flex-1">
         <div className="px-4 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Topics
         </div>
