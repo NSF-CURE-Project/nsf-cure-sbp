@@ -17,7 +17,9 @@ export type HomePageData = {
   gettingStartedSteps?: { id?: string; step: string }[];
 };
 
-export async function getHomePage(): Promise<HomePageData> {
-  const data = await payload.get<HomePageData>("/globals/home-page");
+export async function getHomePage(options?: { draft?: boolean }): Promise<HomePageData> {
+  const data = await payload.get<HomePageData>("/globals/home-page", {
+    draft: options?.draft,
+  });
   return data;
 }

@@ -1,5 +1,6 @@
 // src/app/(public)/contact-us/page.tsx
 import Image from "next/image";
+import { draftMode } from "next/headers";
 import {
   getContactPage,
   type ContactPageData,
@@ -18,7 +19,10 @@ function buildImageUrl(photo?: ContactPerson["photo"]): string | null {
 }
 
 export default async function ContactUsPage() {
-  const data: ContactPageData | null = await getContactPage().catch(() => null);
+  const { isEnabled: isPreview } = await draftMode();
+  const data: ContactPageData | null = await getContactPage({
+    draft: isPreview,
+  }).catch(() => null);
   const contacts = data?.contacts ?? [];
 
   const staffContacts = contacts.filter(

@@ -1,4 +1,5 @@
 import React from "react";
+import { draftMode } from "next/headers";
 import { PayloadRichText as RichText } from "@/components/ui/payloadRichText";
 import {
   getGettingStarted,
@@ -9,9 +10,10 @@ export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
 
 export default async function GettingStartedPage() {
-  const data: GettingStartedPage | null = await getGettingStarted().catch(
-    () => null,
-  );
+  const { isEnabled: isPreview } = await draftMode();
+  const data: GettingStartedPage | null = await getGettingStarted({
+    draft: isPreview,
+  }).catch(() => null);
 
   return (
     <main className="mx-auto w-full max-w-[var(--content-max,110ch)] px-6 pt-6 pb-12 space-y-10">

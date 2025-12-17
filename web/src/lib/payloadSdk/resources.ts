@@ -21,6 +21,8 @@ export type ResourcesPageData = {
   sections?: ResourceSection[];
 };
 
-export async function getResourcesPage(): Promise<ResourcesPageData> {
-  return payload.get<ResourcesPageData>("/globals/resources-page");
+export async function getResourcesPage(options?: { draft?: boolean }): Promise<ResourcesPageData> {
+  return payload.get<ResourcesPageData>("/globals/resources-page", {
+    draft: options?.draft,
+  });
 }

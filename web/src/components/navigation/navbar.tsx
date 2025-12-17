@@ -2,78 +2,178 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "next-themes";
-import { Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/theme/ThemeToggle";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 export default function Navbar() {
-  const { theme, systemTheme } = useTheme();
-  const effectiveTheme = theme === "system" ? systemTheme : theme;
+  const { resolvedTheme, theme, systemTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  const mode = useMemo(() => {
+    if (!mounted) return "light";
+    if (resolvedTheme) return resolvedTheme;
+    if (theme === "system" && systemTheme) return systemTheme;
+    if (theme) return theme;
+    if (typeof document !== "undefined") {
+      return document.documentElement.classList.contains("dark")
+        ? "dark"
+        : "light";
+    }
+    return "light";
+  }, [mounted, resolvedTheme, theme, systemTheme]);
 
   const cppLogo =
-    effectiveTheme === "dark"
+    mode === "dark"
       ? "/assets/logos/cpp_yellow.png"
       : "/assets/logos/cpp_green.png";
 
   const nsfLogo =
-  effectiveTheme === "dark"
+  mode === "dark"
     ? "/assets/logos/nsf.png"
     : "/assets/logos/nsf.png";
 
   return (
-<nav
-  aria-label="Primary"
-  className="
-    sticky top-0 z-50
-    flex items-center
-    h-16 px-4 sm:px-6 border-b
-    bg-background/80 backdrop-blur
-    supports-[backdrop-filter]:bg-background/60
-  "
->
-  {/* Left: logos + links together */}
-  <div className="flex items-center gap-6">
-    <Link href="/" aria-label="Home" className="flex items-center gap-2">
-      <Image src={cppLogo} alt="Cal Poly Pomona Logo" width={56} height={56} className="h-12 w-auto sm:h-14" priority />
-    </Link>
-
-    <Image src={nsfLogo} alt="NSF Logo" width={150} height={80} className="h-12 w-auto sm:h-14" />
-    <span className="font-semibold text-lg sm:text-2xl text-foreground">
-      NSF CURE SBP
-    </span>
-
-    {/* 🧭 Links — right next to wordmark */}
-    <div className="flex items-center gap-5 ml-8 text-lg">
-      <Link href="/" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-        Home
-      </Link>
-      <Link href="/resources" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-        Resources
-      </Link>
-      <Link href="/contact-us" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-        Contact Us
-      </Link>
-    </div>
-  </div>
-
-  {/* right-side cluster (theme toggle, etc.) */}
-  <div className="ml-auto flex items-center gap-3">
-    <form
-      role="search"
-      className="relative hidden md:block w-52 lg:w-72"
-      action="/search"
+    <nav
+      aria-label="Primary"
+      className="
+        sticky top-0 z-50
+        flex items-center gap-3
+        h-16 px-4 sm:px-6 border-b
+        bg-background/80 backdrop-blur
+        supports-[backdrop-filter]:bg-background/60
+      "
     >
-      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-      <Input
-        name="q"
-        placeholder="Search program..."
-        className="h-10 rounded-lg border-border/80 bg-muted/40 pl-9 pr-4 text-sm shadow-sm transition focus-visible:ring-2 focus-visible:ring-primary/50"
-      />
-    </form>
-    <ThemeToggle />
-  </div>
-</nav>
+      <div className="flex items-center gap-3 sm:gap-5 min-w-0">
+        <Link href="/" aria-label="Home" className="flex items-center gap-2">
+          <Image
+            src={cppLogo}
+            alt="Cal Poly Pomona Logo"
+            width={48}
+            height={48}
+            className="h-10 w-auto sm:h-12"
+            priority
+          />
+        </Link>
 
+        <Image
+          src={nsfLogo}
+          alt="NSF Logo"
+          width={110}
+          height={72}
+          className="h-10 w-auto sm:h-12"
+          priority
+        />
+
+        <span className="font-semibold text-base sm:text-xl text-foreground truncate">
+          NSF CURE SBP
+        </span>
+      </div>
+
+      {/* Desktop links */}
+      <div className="hidden lg:flex items-center gap-5 ml-6 text-sm font-medium text-foreground">
+        <Link
+          href="/"
+          className="hover:text-primary transition-colors"
+        >
+          Home
+        </Link>
+        <Link
+          href="/resources"
+          className="hover:text-primary transition-colors"
+        >
+          Resources
+        </Link>
+        <Link
+          href="/contact-us"
+          className="hover:text-primary transition-colors"
+        >
+          Contact Us
+        </Link>
+      </div>
+
+      {/* Right cluster */}
+      <div className="ml-auto flex items-center gap-2">
+        <form
+          role="search"
+          className="relative hidden md:block w-48 lg:w-56"
+          action="/search"
+        >
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            name="q"
+            placeholder="Search program..."
+            className="h-10 rounded-lg border-border/80 bg-muted/40 pl-9 pr-3 text-sm shadow-sm transition focus-visible:ring-2 focus-visible:ring-primary/50"
+          />
+        </form>
+
+        <ThemeToggle />
+
+        {/* Mobile menu */}
+        <Sheet>
+          <SheetTrigger asChild>
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-md border border-border/70 bg-muted/40 px-3 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:hidden"
+              aria-label="Open navigation"
+            >
+              <Menu className="h-4 w-4" />
+              Menu
+            </button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-[min(22rem,90vw)]">
+            <SheetHeader className="px-5 pt-5 pb-3 text-left space-y-1.5">
+              <SheetTitle className="text-lg">NSF CURE SBP</SheetTitle>
+              <p className="text-sm text-muted-foreground">
+                Quick links and search
+              </p>
+            </SheetHeader>
+
+            <div className="px-5 pb-6 space-y-4">
+              <form role="search" action="/search" className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  name="q"
+                  placeholder="Search program..."
+                  className="h-10 rounded-lg border-border/80 bg-muted/40 pl-9 pr-3 text-sm shadow-sm transition focus-visible:ring-2 focus-visible:ring-primary/50"
+                />
+              </form>
+
+              <div className="grid gap-2 text-foreground text-base">
+                <Link
+                  href="/"
+                  className="rounded-md px-3 py-2 transition hover:bg-muted"
+                >
+                  Home
+                </Link>
+                <Link
+                  href="/resources"
+                  className="rounded-md px-3 py-2 transition hover:bg-muted"
+                >
+                  Resources
+                </Link>
+                <Link
+                  href="/contact-us"
+                  className="rounded-md px-3 py-2 transition hover:bg-muted"
+                >
+                  Contact Us
+                </Link>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+    </nav>
   );
 }

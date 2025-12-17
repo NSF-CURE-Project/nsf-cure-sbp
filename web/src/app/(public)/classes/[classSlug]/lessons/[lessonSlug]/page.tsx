@@ -1,8 +1,9 @@
 // src/app/(public)/classes/[classSlug]/lessons/[lessonSlug]/page.tsx
+import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import { SafeHtml } from "@/components/ui/safeHtml";
 import { getLessonBySlug } from "@/lib/payloadSdk/lessons";
-import type { LessonDoc } from "@/lib/payloadSdk/types";
+import type { LessonBlock, LessonDoc } from "@/lib/payloadSdk/types";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
@@ -46,8 +47,9 @@ function getLessonClassSlug(lesson: LessonDoc): string | null {
 async function fetchLessonForClass(
   classSlug: string,
   lessonSlug: string,
+  options?: { draft?: boolean },
 ): Promise<LessonDoc | null> {
-  const lesson = await getLessonBySlug(lessonSlug);
+  const lesson = await getLessonBySlug(lessonSlug, options);
   if (!lesson) return null;
 
   const lessonClassSlug = getLessonClassSlug(lesson);
@@ -107,24 +109,29 @@ function renderLexicalNode(node: any): string {
 
 export default async function LessonPage({ params }: PageProps) {
   const { classSlug, lessonSlug } = await params;
+  const { isEnabled: isPreview } = await draftMode();
 
-  const lesson = await fetchLessonForClass(classSlug, lessonSlug);
+  const lesson = await fetchLessonForClass(classSlug, lessonSlug, {
+    draft: isPreview,
+  });
   if (!lesson) return notFound();
 
   const title = lesson.title ?? "Untitled lesson";
   const lastModified = lesson.updatedAt || lesson.createdAt || null;
 
-  // Extract lesson body — supports plain string or Lexical JSON
-  const textContent = normalizeTextContent(lesson.textContent);
+  const layoutBlocks = Array.isArray(lesson.layout)
+    ? (lesson.layout as LessonBlock[])
+    : [];
 
+  // Legacy fields (fallback if no blocks exist)
+  const textContent = normalizeTextContent(lesson.textContent);
   const videoUrl = absUrl(
     (lesson.video as any)?.url ?? (lesson as any).videoUrl ?? null,
   );
-
   const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(textContent ?? "");
 
   return (
-    <article className="max-w-4xl mx-auto py-10 px-4">
+    <article className="mx-auto w-full max-w-[var(--content-max,100ch)] py-10 px-4">
       {/* Visible Lesson Title */}
       <h1 className="text-3xl font-bold mb-6">{title}</h1>
 
@@ -139,47 +146,93 @@ export default async function LessonPage({ params }: PageProps) {
         {title}
       </h2>
 
-      {/* ============================
-          VIDEO SECTION
-      ============================ */}
+      {layoutBlocks.length > 0 ? (
+        <div className="space-y-10">
+          {layoutBlocks.map((block, idx) => {
+            if (block.blockType === "richTextBlock") {
+              const html = normalizeTextContent(block.body);
+              const looksHtml = /<\/?[a-z][\s\S]*>/i.test(html ?? "");
+              return (
+                <section key={block.id ?? idx}>
+                  {looksHtml ? (
+                    <SafeHtml
+                      html={html}
+                      className="prose dark:prose-invert max-w-none"
+                    />
+                  ) : (
+                    <div className="prose dark:prose-invert whitespace-pre-wrap max-w-none">
+                      {html}
+                    </div>
+                  )}
+                </section>
+              );
+            }
 
-      {/* Invisible TOC heading for video */}
-      <h3 id="lesson-video" className="sr-only">
-        Lesson Video
-      </h3>
+            if (block.blockType === "videoBlock") {
+              const url = absUrl(
+                (block.video as any)?.url ?? (block as any).url ?? null,
+              );
+              if (!url) return null;
+              return (
+                <section key={block.id ?? idx} className="space-y-3">
+                  <div className="aspect-video w-full">
+                    <video
+                      src={url}
+                      controls
+                      className="w-full h-full rounded-lg shadow"
+                    />
+                  </div>
+                  {block.caption && (
+                    <p className="text-sm text-muted-foreground">{block.caption}</p>
+                  )}
+                </section>
+              );
+            }
 
-      {videoUrl ? (
-        <div className="aspect-video mb-8">
-          <video
-            src={videoUrl}
-            controls
-            className="w-full h-full rounded-lg shadow"
-          />
+            return null;
+          })}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground mb-8">
-          No video for this lesson.
-        </p>
-      )}
+        <>
+          {/* ============================
+              VIDEO SECTION (legacy)
+          ============================ */}
+          <h3 id="lesson-video" className="sr-only">
+            Lesson Video
+          </h3>
 
-      {/* ============================
-          CONTENT SECTION
-      ============================ */}
+          {videoUrl ? (
+            <div className="aspect-video mb-8">
+              <video
+                src={videoUrl}
+                controls
+                className="w-full h-full rounded-lg shadow"
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground mb-8">
+              No video for this lesson.
+            </p>
+          )}
 
-      {/* Invisible TOC heading for content */}
-      <h3 id="lesson-content" className="sr-only">
-        Lesson Content
-      </h3>
+          {/* ============================
+              CONTENT SECTION (legacy)
+          ============================ */}
+          <h3 id="lesson-content" className="sr-only">
+            Lesson Content
+          </h3>
 
-      {looksLikeHtml ? (
-        <SafeHtml
-          html={textContent}
-          className="prose dark:prose-invert max-w-none"
-        />
-      ) : (
-        <div className="prose dark:prose-invert whitespace-pre-wrap max-w-none">
-          {textContent}
-        </div>
+          {looksLikeHtml ? (
+            <SafeHtml
+              html={textContent}
+              className="prose dark:prose-invert max-w-none"
+            />
+          ) : (
+            <div className="prose dark:prose-invert whitespace-pre-wrap max-w-none">
+              {textContent}
+            </div>
+          )}
+        </>
       )}
     </article>
   );

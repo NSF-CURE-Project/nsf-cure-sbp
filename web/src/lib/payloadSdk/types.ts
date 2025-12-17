@@ -37,9 +37,26 @@ export type LessonDoc = {
   slug: string;
   textContent?: any; // Payload richText
   video?: any;
+  layout?: LessonBlock[];
   problemSets?: any[];
   class?: ClassDoc | string | number;
   chapter?: ChapterDoc | string | number;
   updatedAt?: string;
   createdAt?: string;
 };
+
+export type RichTextBlock = {
+  id?: string;
+  blockType: "richTextBlock";
+  body?: any;
+};
+
+export type VideoBlock = {
+  id?: string;
+  blockType: "videoBlock";
+  video?: any; // upload relation; expect .url
+  url?: string;
+  caption?: string;
+};
+
+export type LessonBlock = RichTextBlock | VideoBlock;

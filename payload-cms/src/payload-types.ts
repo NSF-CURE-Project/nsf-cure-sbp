@@ -204,6 +204,10 @@ export interface Lesson {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * Add rich text or videos and drag to reorder. Leave empty to fall back to legacy fields.
+   */
+  layout?: (RichTextBlock | VideoBlock)[] | null;
   problemSets?:
     | {
         name: string;
@@ -252,6 +256,42 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "RichTextBlock".
+ */
+export interface RichTextBlock {
+  body: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'richTextBlock';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "VideoBlock".
+ */
+export interface VideoBlock {
+  video?: (number | null) | Media;
+  url?: string | null;
+  caption?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'videoBlock';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -402,6 +442,12 @@ export interface LessonsSelect<T extends boolean = true> {
   slug?: T;
   video?: T;
   textContent?: T;
+  layout?:
+    | T
+    | {
+        richTextBlock?: T | RichTextBlockSelect<T>;
+        videoBlock?: T | VideoBlockSelect<T>;
+      };
   problemSets?:
     | T
     | {
@@ -417,6 +463,26 @@ export interface LessonsSelect<T extends boolean = true> {
       };
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "RichTextBlock_select".
+ */
+export interface RichTextBlockSelect<T extends boolean = true> {
+  body?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "VideoBlock_select".
+ */
+export interface VideoBlockSelect<T extends boolean = true> {
+  video?: T;
+  url?: T;
+  caption?: T;
+  id?: T;
+  blockName?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -569,6 +635,7 @@ export interface HomePage {
         id?: string | null;
       }[]
     | null;
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -596,6 +663,7 @@ export interface ResourcesPage {
         id?: string | null;
       }[]
     | null;
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -616,6 +684,7 @@ export interface ContactPage {
     photo?: (number | null) | Media;
     id?: string | null;
   }[];
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -699,6 +768,7 @@ export interface HomePageSelect<T extends boolean = true> {
         step?: T;
         id?: T;
       };
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -726,6 +796,7 @@ export interface ResourcesPageSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -748,6 +819,7 @@ export interface ContactPageSelect<T extends boolean = true> {
         photo?: T;
         id?: T;
       };
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

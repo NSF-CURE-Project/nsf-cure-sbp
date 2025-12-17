@@ -1,3 +1,4 @@
+import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import { getClassBySlug } from "@/lib/payloadSdk/classes";
 
@@ -10,8 +11,9 @@ export async function generateMetadata(props: {
   searchParams: SearchParams;
 }) {
   const { classSlug } = await props.params;
+  const { isEnabled: isPreview } = await draftMode();
 
-  const c = await getClassBySlug(classSlug);
+  const c = await getClassBySlug(classSlug, { draft: isPreview });
   const title = c?.title ?? "Class";
 
   return {
@@ -25,8 +27,9 @@ export default async function ClassPage(props: {
   searchParams: SearchParams;
 }) {
   const { classSlug } = await props.params;
+  const { isEnabled: isPreview } = await draftMode();
 
-  const c = await getClassBySlug(classSlug);
+  const c = await getClassBySlug(classSlug, { draft: isPreview });
 
   if (!c) return notFound();
 

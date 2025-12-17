@@ -13,7 +13,7 @@
   --panel-gap: 0.75rem;
 
   /* Layout tokens */
-  --content-max: 100ch;   /* you can tweak this */
+  --content-max: 1200px;   /* default max width for content areas */
   --toc-open-width: 14rem;
   --toc-open-gap: 1.25rem;
   --toc-closed-width: 0px;

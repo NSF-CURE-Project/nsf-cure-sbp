@@ -1,5 +1,6 @@
 // app/resources/page.tsx
 import Link from "next/link";
+import { draftMode } from "next/headers";
 import {
   getResourcesPage,
   type ResourcesPageData,
@@ -53,7 +54,10 @@ const ResourceSectionBlock = ({ section }: { section: ResourceSection }) => (
 );
 
 export default async function ResourcesPage() {
-  const data: ResourcesPageData | null = await getResourcesPage().catch(() => null);
+  const { isEnabled: isPreview } = await draftMode();
+  const data: ResourcesPageData | null = await getResourcesPage({
+    draft: isPreview,
+  }).catch(() => null);
 
   return (
     <main className="min-w-0 overflow-x-hidden p-6 lg:px-8">

@@ -20,6 +20,8 @@ export type ContactPageData = {
   contacts: ContactPerson[];
 };
 
-export async function getContactPage(): Promise<ContactPageData> {
-  return payload.get<ContactPageData>("/globals/contact-page");
+export async function getContactPage(options?: { draft?: boolean }): Promise<ContactPageData> {
+  return payload.get<ContactPageData>("/globals/contact-page", {
+    draft: options?.draft,
+  });
 }

@@ -1,6 +1,6 @@
 // src/app/(public)/layout.tsx
 import React from "react";
-import { cookies } from "next/headers";
+import { cookies, draftMode } from "next/headers";
 
 import {
   SidebarProvider,
@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import AppSidebar from "@/components/admin-panel/sidebar";
+import { MobileSidebar } from "@/components/admin-panel/mobile-sidebar";
 import Footer from "@/components/Footer";
 
 import { getClassesTree } from "@/lib/payloadSdk/classes";
@@ -29,26 +30,32 @@ export default async function RootLayout({
   // restore open/closed state if you want
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
+  const { isEnabled: isPreview } = await draftMode();
 
-  const payloadClasses = await getClassesTree();
+  const payloadClasses = await getClassesTree({ draft: isPreview });
 
   // ------ NORMALIZE FOR SIDEBAR (Strapi-style shape) ------
   const sidebarClasses = normalizeClassesForSidebar(payloadClasses);
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <div className="min-h-dvh bg-background text-foreground flex">
-        {/* LEFT: Salimi sidebar with your dynamic items */}
-        {/* `as any` because AppSidebar's props are still typed as old ClassItem[] */}
-        <AppSidebar classes={sidebarClasses as any} />
+      <div className="relative min-h-dvh bg-background text-foreground flex overflow-x-hidden">
+        {/* LEFT: sticky, fixed-width sidebar (overlays footer) */}
+        <div className="hidden lg:flex lg:fixed lg:left-0 lg:top-[var(--nav-h,4rem)] lg:h-[calc(100vh-var(--nav-h,4rem))] lg:w-64 lg:z-30 lg:bg-background">
+          <AppSidebar classes={sidebarClasses as any} />
+        </div>
 
-        {/* RIGHT: main content (no TOC) lives in SidebarInset */}
-        <SidebarInset className="flex-1">
-          <div
-            id="layout"
-            className="min-h-dvh flex flex-col"
-          >
-            <main className="min-w-0 overflow-x-hidden p-6 lg:px-8 flex-1">
+        {/* RIGHT: main column with left padding to clear sidebar */}
+        <SidebarInset className="flex-1 flex flex-col min-w-0 lg:ml-64">
+          <div id="layout" className="min-h-dvh flex flex-col">
+            <main className="min-w-0 overflow-x-hidden p-4 sm:p-6 lg:px-8 flex-1">
+              <div className="lg:hidden mb-4 flex items-center justify-between gap-3">
+                <MobileSidebar classes={sidebarClasses as any} />
+                <span className="text-xs text-muted-foreground">
+                  Tap to browse classes and lessons
+                </span>
+              </div>
+
               <div
                 id="content"
                 className="mx-auto w-full max-w-[var(--content-max,100ch)] transition-[max-width] duration-300"
@@ -57,7 +64,7 @@ export default async function RootLayout({
               </div>
             </main>
 
-            <footer className="border-t bg-background/80 backdrop-blur py-8 px-6 text-center text-sm text-muted-foreground">
+            <footer className="border-t bg-background/80 backdrop-blur py-8 px-6 text-center text-sm text-muted-foreground w-full">
               <Footer />
             </footer>
           </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import { draftMode } from "next/headers";
 import { ThemedButton } from "@/components/ui/ThemedButton";
 import { PayloadRichText as RichText } from "@/components/ui/payloadRichText";
 import { getHomePage, type HomePageData } from "@/lib/payloadSdk/home";
@@ -7,10 +8,14 @@ export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
 
 export default async function Landing() {
-  const home: HomePageData | null = await getHomePage().catch(() => null);
+  const { isEnabled: isPreview } = await draftMode();
+  const home: HomePageData | null = await getHomePage({ draft: isPreview }).catch(() => null);
 
   return (
-    <div className="mx-auto w-full max-w-[var(--content-max)] px-6">
+    <div
+      className="mx-auto w-full max-w-[var(--content-max)] px-6"
+      style={{ "--content-max": "100vw" } as React.CSSProperties}
+    >
       <header>
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
           {home?.heroTitle ?? "NSF CURE Summer Bridge Program"}

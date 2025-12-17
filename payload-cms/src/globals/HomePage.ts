@@ -7,6 +7,29 @@ export const HomePage: GlobalConfig = {
   access: {
     read: () => true, // public
   },
+  versions: {
+    drafts: true,
+  },
+  admin: {
+    preview: {
+      url: () => {
+        const base = process.env.WEB_PREVIEW_URL ?? "http://localhost:3001";
+        const search = new URLSearchParams({
+          secret: process.env.PREVIEW_SECRET ?? "",
+          type: "home",
+        });
+        return `${base}/api/preview?${search.toString()}`;
+      },
+    },
+  },
+  hooks: {
+    beforeChange: [
+      ({ data }) => ({
+        ...data,
+        _status: "published",
+      }),
+    ],
+  },
   fields: [
     // HERO SECTION
     {

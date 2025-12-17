@@ -5,10 +5,24 @@ export const Classes: CollectionConfig = {
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "order", "slug"],
+    preview: {
+      url: ({ data }) => {
+        const base = process.env.WEB_PREVIEW_URL ?? "http://localhost:3001";
+        const secret = process.env.PREVIEW_SECRET ?? "";
+        const search = new URLSearchParams({
+          secret,
+          type: "class",
+          slug: data?.slug ?? "",
+        });
+        return `${base}/api/preview?${search.toString()}`;
+      },
+    },
   },
   access: {
     read: () => true,
   },
+  // Disable versions/drafts to avoid version tables
+  versions: false,
   fields: [
     {
       name: "title",

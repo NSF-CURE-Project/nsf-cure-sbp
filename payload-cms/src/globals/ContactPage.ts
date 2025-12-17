@@ -6,6 +6,29 @@ export const ContactPage: GlobalConfig = {
   access: {
     read: () => true,
   },
+  versions: {
+    drafts: true,
+  },
+  admin: {
+    preview: {
+      url: () => {
+        const base = process.env.WEB_PREVIEW_URL ?? "http://localhost:3001";
+        const search = new URLSearchParams({
+          secret: process.env.PREVIEW_SECRET ?? "",
+          type: "contact",
+        });
+        return `${base}/api/preview?${search.toString()}`;
+      },
+    },
+  },
+  hooks: {
+    beforeChange: [
+      ({ data }) => ({
+        ...data,
+        _status: "published",
+      }),
+    ],
+  },
   fields: [
     {
       name: 'heroTitle',

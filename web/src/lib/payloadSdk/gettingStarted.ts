@@ -18,6 +18,8 @@ export type GettingStartedPage = {
   resources?: GettingStartedResource[];
 };
 
-export async function getGettingStarted(): Promise<GettingStartedPage> {
-  return payload.get<GettingStartedPage>("/globals/getting-started");
+export async function getGettingStarted(options?: { draft?: boolean }): Promise<GettingStartedPage> {
+  return payload.get<GettingStartedPage>("/globals/getting-started", {
+    draft: options?.draft,
+  });
 }
