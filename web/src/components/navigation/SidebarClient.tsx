@@ -159,22 +159,22 @@ export default function SidebarClient({ classes }: Props) {
           return (
             <li key={cSlug}>
               {/* Class header */}
-              <button
-                type="button"
-                aria-expanded={classOpen}
-                aria-controls={`panel-class-${cSlug}`}
-                onClick={() => toggleClass(cSlug)}
-                className="group flex w-full items-start justify-between gap-2 px-4 py-2 text-base font-semibold text-primary transition-colors hover:bg-primary/10 hover:text-primary"
-              >
-                <span>{getClassTitle(cls)}</span>
-                <ChevronRight
-                  className={[
-                    "h-3 w-3 transition-transform",
-                    classOpen ? "rotate-90" : "",
-                  ].join(" ")}
-                  aria-hidden="true"
-                />
-              </button>
+                <button
+                  type="button"
+                  aria-expanded={classOpen}
+                  aria-controls={`panel-class-${cSlug}`}
+                  onClick={() => toggleClass(cSlug)}
+                  className="group flex w-full items-start justify-between gap-2 px-4 py-2 text-base font-semibold text-primary transition-colors hover:bg-primary/10 hover:text-primary"
+                >
+                  <span>{getClassTitle(cls)}</span>
+                  <ChevronRight
+                    className={[
+                    "h-3 w-3 shrink-0 mr-0.5 transition-transform",
+                      classOpen ? "rotate-90 -translate-x-2" : "",
+                    ].join(" ")}
+                    aria-hidden="true"
+                  />
+                </button>
 
               {/* Chapters (collapsible) */}
               <div
@@ -223,15 +223,15 @@ export default function SidebarClient({ classes }: Props) {
                             aria-controls={`panel-ch-${chKey}`}
                             onClick={() => toggleChapter(cSlug, chSlug)}
                             className={[
-                              "group flex w-full items-start justify-between gap-2 px-2 py-1 font-medium rounded-md transition-colors text-left",
+                              "group flex w-full items-start justify-between gap-2 px-2 py-1 pr-2 font-medium rounded-md transition-colors text-left",
                               "hover:bg-accent/25 hover:text-accent-foreground",
                             ].join(" ")}
                           >
                             <span>{getChapterTitle(ch)}</span>
                             <ChevronRight
                               className={[
-                                "h-3 w-3 transition-transform",
-                                chOpen ? "rotate-90" : "",
+                                "h-3 w-3 shrink-0 mr-0.5 transition-transform",
+                                chOpen ? "rotate-90 -translate-x-2" : "",
                               ].join(" ")}
                               aria-hidden="true"
                             />

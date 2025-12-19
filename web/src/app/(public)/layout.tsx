@@ -10,6 +10,7 @@ import {
 import AppSidebar from "@/components/admin-panel/sidebar";
 import { MobileSidebar } from "@/components/admin-panel/mobile-sidebar";
 import Footer from "@/components/Footer";
+import LockBodyScroll from "@/components/layout/LockBodyScroll";
 
 import { getClassesTree } from "@/lib/payloadSdk/classes";
 import type {
@@ -39,16 +40,21 @@ export default async function RootLayout({
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <div className="relative min-h-dvh bg-background text-foreground flex overflow-x-hidden">
+      <LockBodyScroll />
+      <div className="relative h-[calc(100dvh-var(--nav-h,4rem))] bg-background text-foreground flex overflow-hidden">
         {/* LEFT: sticky, fixed-width sidebar (overlays footer) */}
         <div className="hidden lg:flex lg:fixed lg:left-0 lg:top-[var(--nav-h,4rem)] lg:h-[calc(100vh-var(--nav-h,4rem))] lg:w-64 lg:z-30 lg:bg-background">
           <AppSidebar classes={sidebarClasses as any} />
         </div>
 
         {/* RIGHT: main column with left padding to clear sidebar */}
-        <SidebarInset className="flex-1 flex flex-col min-w-0 lg:ml-64">
-          <div id="layout" className="min-h-dvh flex flex-col">
-            <main className="min-w-0 overflow-x-hidden p-4 sm:p-6 lg:px-8 flex-1">
+        <SidebarInset className="flex-1 flex flex-col min-w-0 h-[calc(100dvh-var(--nav-h,4rem))] overflow-hidden lg:ml-64">
+          <div
+            id="layout"
+            className="h-full flex flex-col overflow-y-scroll overflow-x-hidden"
+            style={{ scrollbarGutter: "stable" }}
+          >
+            <main className="min-w-0 p-4 sm:p-6 lg:px-8 flex-1">
               <div className="lg:hidden mb-4 flex items-center justify-between gap-3">
                 <MobileSidebar classes={sidebarClasses as any} />
                 <span className="text-xs text-muted-foreground">

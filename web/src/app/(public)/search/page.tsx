@@ -60,7 +60,7 @@ export default async function SearchPage({
   return (
     <main
       className="mx-auto w-full max-w-[var(--content-max,100ch)] py-10 px-4 sm:px-6 space-y-8"
-      style={{ "--content-max": "100vw" } as React.CSSProperties}
+      style={{ "--content-max": "100%" } as React.CSSProperties}
     >
       <header className="space-y-2">
         <p className="text-sm uppercase tracking-[0.08em] text-muted-foreground">

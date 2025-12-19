@@ -14,7 +14,7 @@ export default async function Landing() {
   return (
     <div
       className="mx-auto w-full max-w-[var(--content-max)] px-6"
-      style={{ "--content-max": "100vw" } as React.CSSProperties}
+      style={{ "--content-max": "100%" } as React.CSSProperties}
     >
       <header>
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
