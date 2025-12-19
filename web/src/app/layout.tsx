@@ -8,7 +8,12 @@ export const metadata: Metadata = {
   title: "NSF CURE Summer Bridge Program",
   description: "The online NSF CURE Summer Bridge Program (SBP) is a National Science Foundation-funded initiative (NSF Award #2318158) that launched in 2026 to help rising second-year engineering students build a strong foundation in Statics and Mechanics of Materials.",
   icons: {
-    icon: "/assets/logos/sbp_logo_transparent.png",
+  icon: [
+    {
+      url: "/assets/logos/sbp_logo_transparent.png",
+      href: "/assets/logos/sbp_logo_transparent.png",
+    }
+    ],
   },
 };
 

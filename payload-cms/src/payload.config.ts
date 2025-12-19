@@ -1,4 +1,3 @@
-// storage-adapter-import-placeholder
 import { postgresAdapter } from '@payloadcms/db-postgres';
 import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import path from 'path';
@@ -32,6 +31,11 @@ const dirname = path.dirname(filename);
 export default buildConfig({
   admin: {
     user: Users.slug,
+    meta: {
+      titleSuffix: "Admin",
+      description: "Admin login for NSF CURE SBP",
+      icons: "/assets/logos/sbp_logo_transparent.png",
+    },
 
     importMap: {
       baseDir: path.resolve(dirname),
@@ -64,6 +68,6 @@ export default buildConfig({
   }),
   sharp,
   plugins: [
-    // storage-adapter-placeholder
+
   ],
 });
