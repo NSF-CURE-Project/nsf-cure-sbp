@@ -9,44 +9,50 @@ type LessonItem = {
   slug?: string;
   title?: string;
   name?: string;
-} & Record<string, any>;
+  lessonSlug?: string;
+  id?: string | number;
+} & Record<string, unknown>;
 
 type ChapterItem = {
   slug?: string;
   title?: string;
   name?: string;
+  chapterSlug?: string;
+  id?: string | number;
   lessons?: LessonItem[];
   items?: LessonItem[];
   children?: LessonItem[];
-} & Record<string, any>;
+} & Record<string, unknown>;
 
 type ClassItem = {
   slug?: string;
   title?: string;
   name?: string;
+  classSlug?: string;
+  id?: string | number;
   chapters?: ChapterItem[];
   modules?: ChapterItem[];
   children?: ChapterItem[];
-} & Record<string, any>;
+} & Record<string, unknown>;
 
 type Props = { classes: ClassItem[] };
 
 // ---------- Accessors ----------
 const getClassSlug = (c: ClassItem) =>
-  c.slug ?? (c as any).classSlug ?? (c as any).id ?? "";
+  c.slug ?? c.classSlug ?? (c.id != null ? String(c.id) : "");
 const getClassTitle = (c: ClassItem) => c.title ?? c.name ?? "Untitled Class";
 const getChapters = (c: ClassItem): ChapterItem[] =>
   (c.chapters ?? c.modules ?? c.children ?? []) as ChapterItem[];
 
 const getChapterSlug = (ch: ChapterItem) =>
-  ch.slug ?? (ch as any).chapterSlug ?? (ch as any).id ?? "";
+  ch.slug ?? ch.chapterSlug ?? (ch.id != null ? String(ch.id) : "");
 const getChapterTitle = (ch: ChapterItem) =>
   ch.title ?? ch.name ?? "Untitled Chapter";
 const getLessons = (ch: ChapterItem): LessonItem[] =>
   (ch.lessons ?? ch.items ?? ch.children ?? []) as LessonItem[];
 
 const getLessonSlug = (l: LessonItem) =>
-  l.slug ?? (l as any).lessonSlug ?? (l as any).id ?? "";
+  l.slug ?? l.lessonSlug ?? (l.id != null ? String(l.id) : "");
 const getLessonTitle = (l: LessonItem) =>
   l.title ?? l.name ?? "Untitled Lesson";
 
@@ -164,12 +170,15 @@ export default function SidebarClient({ classes }: Props) {
                   aria-expanded={classOpen}
                   aria-controls={`panel-class-${cSlug}`}
                   onClick={() => toggleClass(cSlug)}
-                  className="group flex w-full items-start justify-between gap-2 px-4 py-2 text-base font-semibold text-primary transition-colors hover:bg-primary/10 hover:text-primary"
+                  className={[
+                    "group flex w-full items-center justify-between gap-2 px-4 py-2 text-base font-medium transition-colors",
+                    "text-muted-foreground hover:text-[#FFB81C] hover:bg-muted/40",
+                  ].join(" ")}
                 >
-                  <span>{getClassTitle(cls)}</span>
+                  <span className="flex-1 text-left">{getClassTitle(cls)}</span>
                   <ChevronRight
                     className={[
-                    "h-3 w-3 shrink-0 mr-0.5 transition-transform",
+                    "h-3 w-3 shrink-0 transition-transform",
                       classOpen ? "rotate-90 -translate-x-2" : "",
                     ].join(" ")}
                     aria-hidden="true"
@@ -186,7 +195,7 @@ export default function SidebarClient({ classes }: Props) {
                     : "grid-rows-[0fr] opacity-70",
                 ].join(" ")}
               >
-                <ul className="min-h-0 overflow-hidden pl-5 pr-2 space-y-1">
+                <ul className="min-h-0 overflow-hidden pl-6 pr-2 space-y-1">
                   {getChapters(cls).map((ch) => {
                     const chSlug = getChapterSlug(ch);
                     if (!chSlug) return null;
@@ -210,7 +219,7 @@ export default function SidebarClient({ classes }: Props) {
                       <li key={chSlug}>
                         <div
                           className={[
-                            "relative pl-2 border-l",
+                            "relative pl-3 border-l",
                             chapterBarActive
                               ? "border-l-2 border-[#FFB81C]"
                               : "border-border/30",
@@ -223,14 +232,19 @@ export default function SidebarClient({ classes }: Props) {
                             aria-controls={`panel-ch-${chKey}`}
                             onClick={() => toggleChapter(cSlug, chSlug)}
                             className={[
-                              "group flex w-full items-start justify-between gap-2 px-2 py-1 pr-2 font-medium rounded-md transition-colors text-left",
-                              "hover:bg-accent/25 hover:text-accent-foreground",
+                              "group flex w-full items-center justify-between gap-2 px-2 py-1 pr-2 font-normal rounded-md transition-colors text-left",
+                              chapterBarActive
+                                ? "text-[#FFB81C]"
+                                : "text-muted-foreground",
+                              "hover:text-[#FFB81C] hover:bg-muted/40",
                             ].join(" ")}
                           >
-                            <span>{getChapterTitle(ch)}</span>
+                            <span className="flex-1 text-left">
+                              {getChapterTitle(ch)}
+                            </span>
                             <ChevronRight
                               className={[
-                                "h-3 w-3 shrink-0 mr-0.5 transition-transform",
+                                "h-3 w-3 shrink-0 transition-transform",
                                 chOpen ? "rotate-90 -translate-x-2" : "",
                               ].join(" ")}
                               aria-hidden="true"
@@ -239,14 +253,14 @@ export default function SidebarClient({ classes }: Props) {
 
                           {/* Chapter Overview — only when open */}
                           {chOpen && (
-                            <div className="pl-4 mt-1">
+                            <div className="pl-5 mt-1">
                               <Link
                                 href={`/classes/${cSlug}/chapters/${chSlug}`}
                                 className={[
                                   "inline-block w-fit px-3 py-0.5 text-sm rounded-md border transition-colors",
                                   chapterOverviewActive
-                                    ? "bg-accent text-accent-foreground border-accent"
-                                    : "text-muted-foreground border-border hover:bg-accent/10 hover:text-accent-foreground",
+                                    ? "text-[#FFB81C] border-[#FFB81C]"
+                                    : "text-muted-foreground border-border hover:text-[#FFB81C] hover:border-[#FFB81C] hover:bg-muted/30",
                                 ].join(" ")}
                               >
                                 Chapter Overview
@@ -260,7 +274,7 @@ export default function SidebarClient({ classes }: Props) {
                           <div
                             id={`panel-ch-${chKey}`}
                             className={[
-                              "grid transition-[grid-template-rows,opacity] duration-200 ease-out pl-4",
+                              "grid transition-[grid-template-rows,opacity] duration-200 ease-out pl-5",
                               chOpen
                                 ? "grid-rows-[1fr] opacity-100"
                                 : "grid-rows-[0fr] opacity-70",
@@ -278,8 +292,8 @@ export default function SidebarClient({ classes }: Props) {
                                       className={[
                                         "block rounded-md px-2 py-1 transition-colors",
                                         active
-                                          ? "bg-accent text-accent-foreground font-semibold"
-                                          : "text-muted-foreground hover:bg-accent/20 hover:text-accent-foreground",
+                                          ? "bg-muted/40 text-[#FFB81C] font-semibold"
+                                          : "text-muted-foreground hover:text-[#FFB81C] hover:bg-muted/30",
                                       ].join(" ")}
                                     >
                                       {getLessonTitle(ls)}

@@ -5,9 +5,9 @@ import * as React from "react";
 import { RichText as RichTextRenderer } from "@payloadcms/richtext-lexical/react";
 import type { SerializedEditorState } from "@payloadcms/richtext-lexical/lexical";
 
-type Props = {
-  content: SerializedEditorState;   // <- the Lexical JSON from Payload
-} & React.HTMLAttributes<HTMLDivElement>;
+type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "content"> & {
+  content: SerializedEditorState; // <- the Lexical JSON from Payload
+};
 
 export function PayloadRichText({ content, className, ...rest }: Props) {
   if (!content) return null;

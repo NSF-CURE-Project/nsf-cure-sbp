@@ -1,0 +1,89 @@
+/* Payload admin branding overrides */
+:root,
+html[data-theme="light"] {
+  --font-body: "Avenir Next", "Avenir", "Segoe UI", "Helvetica Neue", sans-serif;
+  --font-mono: "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", monospace;
+
+  --theme-bg: #f7f5ef;
+  --theme-text: #122019;
+  --theme-input-bg: #ffffff;
+
+  --theme-elevation-0: #ffffff;
+  --theme-elevation-50: #f7f5ef;
+  --theme-elevation-100: #f0ece2;
+  --theme-elevation-150: #e7e1d3;
+  --theme-elevation-200: #ddd6c4;
+  --theme-elevation-250: #cec6b1;
+  --theme-elevation-300: #b7b09a;
+  --theme-elevation-350: #a39c86;
+  --theme-elevation-400: #8a846f;
+  --theme-elevation-450: #746f5d;
+  --theme-elevation-500: #605b4c;
+  --theme-elevation-600: #3c3b32;
+  --theme-elevation-700: #2b2a24;
+  --theme-elevation-800: #1f1e1a;
+  --theme-elevation-900: #161512;
+  --theme-elevation-950: #0f0e0c;
+  --theme-elevation-1000: #070705;
+
+  --theme-success-100: #e1f5e9;
+  --theme-success-600: #1e7a4c;
+  --theme-error-100: #fde8e6;
+  --theme-error-600: #b42318;
+}
+
+html[data-theme="dark"] {
+  --font-body: "Avenir Next", "Avenir", "Segoe UI", "Helvetica Neue", sans-serif;
+  --font-mono: "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", monospace;
+
+  --theme-bg: #0f1411;
+  --theme-text: #f4f1e8;
+  --theme-input-bg: #151b17;
+
+  --theme-elevation-0: #0f1411;
+  --theme-elevation-50: #141a16;
+  --theme-elevation-100: #19201b;
+  --theme-elevation-150: #1f261f;
+  --theme-elevation-200: #2a3229;
+  --theme-elevation-250: #353d31;
+  --theme-elevation-300: #414939;
+  --theme-elevation-350: #4f5745;
+  --theme-elevation-400: #5c6451;
+  --theme-elevation-450: #6a7260;
+  --theme-elevation-500: #7a8371;
+  --theme-elevation-600: #9aa48f;
+  --theme-elevation-700: #b7c1aa;
+  --theme-elevation-800: #d7e0c9;
+  --theme-elevation-900: #e7efdb;
+  --theme-elevation-950: #f2f6ea;
+  --theme-elevation-1000: #ffffff;
+
+  --theme-success-100: #103a27;
+  --theme-success-600: #5ac08a;
+  --theme-error-100: #3a1414;
+  --theme-error-600: #f97066;
+}
+
+body {
+  background: radial-gradient(circle at 20% 10%, #fff2d9 0%, #f7f5ef 38%, #efe9db 100%);
+  color: var(--theme-text);
+}
+
+.btn--style-primary {
+  --bg-color: #005030;
+  --hover-bg: #003d24;
+  --color: #ffffff;
+}
+
+.btn--style-secondary {
+  --color: #005030;
+  --box-shadow: inset 0 0 0 1px #005030;
+  --hover-color: #003d24;
+  --hover-box-shadow: inset 0 0 0 1px #003d24;
+}
+
+.btn--style-pill {
+  --bg-color: #ffb81c;
+  --color: #1b1b1b;
+  --hover-bg: #f0a800;
+}

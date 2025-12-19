@@ -105,6 +105,12 @@ export default function Navbar() {
 
       {/* Right cluster */}
       <div className="ml-auto flex items-center gap-2">
+        <Link
+          href="/login"
+          className="hidden md:inline-flex items-center rounded-md border border-border/70 bg-muted/40 px-3 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/60"
+        >
+          Sign In
+        </Link>
         <form
           role="search"
           className="relative hidden md:block w-48 lg:w-56"
@@ -168,6 +174,12 @@ export default function Navbar() {
                   className="rounded-md px-3 py-2 transition hover:bg-muted"
                 >
                   Contact Us
+                </Link>
+                <Link
+                  href="/admin"
+                  className="rounded-md px-3 py-2 transition hover:bg-muted"
+                >
+                  Login
                 </Link>
               </div>
             </div>

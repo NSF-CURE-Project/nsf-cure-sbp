@@ -74,5 +74,5 @@ export function RichText({
   className?: string;
 }) {
   if (!content) return null;
-  return <div className={className}>{renderNodes(content as any)}</div>;
+  return <div className={className}>{renderNodes(content as BlockNode[])}</div>;
 }

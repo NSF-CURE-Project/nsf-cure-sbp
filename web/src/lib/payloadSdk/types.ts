@@ -23,7 +23,7 @@ export type ChapterDoc = {
   id: string | number;
   title: string;
   slug: string;
-  objective?: any;
+  objective?: unknown;
   // Relationship back to class
   class?: ClassDoc | string | number;
   // When depth > 0, populated
@@ -35,10 +35,10 @@ export type LessonDoc = {
   id: string | number;
   title: string;
   slug: string;
-  textContent?: any; // Payload richText
-  video?: any;
+  textContent?: unknown; // Payload richText
+  video?: unknown;
   layout?: LessonBlock[];
-  problemSets?: any[];
+  problemSets?: unknown[];
   class?: ClassDoc | string | number;
   chapter?: ChapterDoc | string | number;
   updatedAt?: string;
@@ -48,13 +48,13 @@ export type LessonDoc = {
 export type RichTextBlock = {
   id?: string;
   blockType: "richTextBlock";
-  body?: any;
+  body?: unknown;
 };
 
 export type VideoBlock = {
   id?: string;
   blockType: "videoBlock";
-  video?: any; // upload relation; expect .url
+  video?: unknown; // upload relation; expect .url
   url?: string;
   caption?: string;
 };

@@ -1,4 +1,5 @@
 // web/src/lib/payloadSdk/home.ts
+import type { SerializedEditorState } from "@payloadcms/richtext-lexical/lexical";
 import { payload } from "./payloadClient";
 
 export type HomePageData = {
@@ -7,13 +8,13 @@ export type HomePageData = {
   heroButtonLabel?: string;
   heroButtonHref?: string;
   purposeTitle?: string;
-  purposeBody?: any; // richText JSON
+  purposeBody?: SerializedEditorState; // richText JSON
   goalsTitle?: string;
-  goalsIntro?: any; // legacy plain string
-  goalsIntroRich?: any; // richText JSON
+  goalsIntro?: SerializedEditorState; // legacy plain string
+  goalsIntroRich?: SerializedEditorState; // richText JSON
   goals?: { id?: string; item: string }[];
   gettingStartedTitle?: string;
-  gettingStartedBody?: any; // richText JSON
+  gettingStartedBody?: SerializedEditorState; // richText JSON
   gettingStartedSteps?: { id?: string; step: string }[];
 };
 

@@ -23,6 +23,10 @@ import type {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+type SidebarLesson = { title: string; slug: string };
+type SidebarModule = { title: string; slug: string; lessons: SidebarLesson[] };
+type SidebarClass = { title: string; slug: string; modules: SidebarModule[] };
+
 export default async function RootLayout({
   children,
 }: {
@@ -44,7 +48,7 @@ export default async function RootLayout({
       <div className="relative h-[calc(100dvh-var(--nav-h,4rem))] bg-background text-foreground flex overflow-hidden">
         {/* LEFT: sticky, fixed-width sidebar (overlays footer) */}
         <div className="hidden lg:flex lg:fixed lg:left-0 lg:top-[var(--nav-h,4rem)] lg:h-[calc(100vh-var(--nav-h,4rem))] lg:w-64 lg:z-30 lg:bg-background">
-          <AppSidebar classes={sidebarClasses as any} />
+          <AppSidebar classes={sidebarClasses} />
         </div>
 
         {/* RIGHT: main column with left padding to clear sidebar */}
@@ -56,7 +60,7 @@ export default async function RootLayout({
           >
             <main className="min-w-0 p-4 sm:p-6 lg:px-8 flex-1">
               <div className="lg:hidden mb-4 flex items-center justify-between gap-3">
-                <MobileSidebar classes={sidebarClasses as any} />
+                <MobileSidebar classes={sidebarClasses} />
                 <span className="text-xs text-muted-foreground">
                   Tap to browse classes and lessons
                 </span>
@@ -89,9 +93,9 @@ export default async function RootLayout({
  *   ]
  * }
  */
-function normalizeClassesForSidebar(classes: ClassDoc[]) {
+function normalizeClassesForSidebar(classes: ClassDoc[]): SidebarClass[] {
   return classes.map((cls: ClassDoc) => {
-    const c: any = cls;
+    const c = cls as ClassDoc & { chapters?: ChapterDoc[] };
 
     const title =
       typeof c.title === "string" && c.title.trim()
@@ -100,30 +104,32 @@ function normalizeClassesForSidebar(classes: ClassDoc[]) {
 
     const slug = typeof c.slug === "string" ? c.slug : "";
 
-    const chapters: ChapterDoc[] = Array.isArray(c.chapters)
-      ? (c.chapters as ChapterDoc[])
-      : [];
+    const chapters: ChapterDoc[] = Array.isArray(c.chapters) ? c.chapters : [];
 
-    const modules = chapters.map((ch: any) => {
+    const modules = chapters.map((chapter) => {
+      const ch = chapter as ChapterDoc & { lessons?: LessonDoc[] };
       const chapterTitle =
-        typeof ch?.title === "string" && ch.title.trim()
+        typeof ch.title === "string" && ch.title.trim()
           ? ch.title
           : "Untitled chapter";
 
-      const chapterSlug = typeof ch?.slug === "string" ? ch.slug : "";
+      const chapterSlug = typeof ch.slug === "string" ? ch.slug : "";
 
-      const rawLessons: LessonDoc[] = Array.isArray(ch?.lessons)
-        ? (ch.lessons as LessonDoc[])
+      const rawLessons: LessonDoc[] = Array.isArray(ch.lessons)
+        ? ch.lessons
         : [];
 
       const lessons = rawLessons
-        .map((l: any) => ({
-          title:
-            typeof l?.title === "string" && l.title.trim()
-              ? l.title
-              : "Untitled lesson",
-          slug: typeof l?.slug === "string" ? l.slug : "",
-        }))
+        .map((lesson) => {
+          const l = lesson as LessonDoc;
+          return {
+            title:
+              typeof l.title === "string" && l.title.trim()
+                ? l.title
+                : "Untitled lesson",
+            slug: typeof l.slug === "string" ? l.slug : "",
+          };
+        })
         .filter((l) => l.slug); // drop invalid entries
 
       return {

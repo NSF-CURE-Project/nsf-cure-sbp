@@ -14,8 +14,6 @@ export default function Toc() {
   const pathname = usePathname();
   const TOC_OPEN_WIDTH = "14rem";
   const TOC_OPEN_GAP = "1.25rem";
-  const TOC_CLOSED_WIDTH = "0px";
-  const TOC_CLOSED_GAP = "0px";
 
   // Restore persisted state
   useEffect(() => {

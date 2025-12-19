@@ -1,3 +1,4 @@
+import type { SerializedEditorState } from "@payloadcms/richtext-lexical/lexical";
 import { payload } from "./payloadClient";
 
 export type GettingStartedResource = {
@@ -8,12 +9,12 @@ export type GettingStartedResource = {
 export type GettingStartedStep = {
   id?: string;
   heading: string;
-  description?: any;
+  description?: SerializedEditorState;
 };
 
 export type GettingStartedPage = {
   title: string;
-  intro?: any;
+  intro?: SerializedEditorState;
   steps?: GettingStartedStep[];
   resources?: GettingStartedResource[];
 };

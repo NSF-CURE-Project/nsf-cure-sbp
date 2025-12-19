@@ -29,24 +29,37 @@ function buildUrl() {
 }
 
 // Normalize Strapi response
-function normalizeContact(item: any): Contact {
-  if (!item) return { id: 0, name: "Unknown" };
+function normalizeContact(item: unknown): Contact {
+  if (!item || typeof item !== "object") return { id: 0, name: "Unknown" };
+  const base = item as {
+    id?: number;
+    name?: string;
+    phone?: string;
+    email?: string;
+    photo?: { url?: string | null } | null;
+    attributes?: {
+      name?: string;
+      phone?: string;
+      email?: string;
+      photo?: { data?: { attributes?: { url?: string | null } } };
+    };
+  };
 
   // v5 flat
-  if (!("attributes" in item)) {
+  if (!("attributes" in base)) {
     return {
-      id: item.id ?? 0,
-      name: item.name ?? "Unnamed",
-      phone: item.phone ?? "",
-      email: item.email ?? "",
-      photo: absUrl(item.photo?.url ?? null),
+      id: base.id ?? 0,
+      name: base.name ?? "Unnamed",
+      phone: base.phone ?? "",
+      email: base.email ?? "",
+      photo: absUrl(base.photo?.url ?? null),
     };
   }
 
   // v4 nested
-  const a = item.attributes ?? {};
+  const a = base.attributes ?? {};
   return {
-    id: item.id ?? 0,
+    id: base.id ?? 0,
     name: a.name ?? "Unnamed",
     phone: a.phone ?? "",
     email: a.email ?? "",

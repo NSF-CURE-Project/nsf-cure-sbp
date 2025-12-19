@@ -22,7 +22,10 @@ const absUrl = (u?: string | null) =>
 
 /** Try to recover the class.slug from the lesson document (handles a few shapes). */
 function getLessonClassSlug(lesson: LessonDoc): string | null {
-  const l: any = lesson;
+  const l = lesson as LessonDoc & {
+    class?: { slug?: string } | null;
+    chapter?: { class?: { slug?: string } | null } | null;
+  };
 
   // Direct class relationship on lesson
   if (l.class && typeof l.class === "object" && "slug" in l.class) {
@@ -71,10 +74,14 @@ function normalizeTextContent(raw: unknown): string {
   if (typeof raw === "string") return raw;
   if (!raw || typeof raw !== "object") return "";
 
-  const node: any = raw;
+  const node = raw as {
+    root?: {
+      children?: unknown[];
+    };
+  };
   if (node.root && Array.isArray(node.root.children)) {
     const html = node.root.children
-      .map((child: any) => renderLexicalNode(child))
+      .map((child) => renderLexicalNode(child))
       .filter(Boolean)
       .join("");
     return html || "";
@@ -83,15 +90,23 @@ function normalizeTextContent(raw: unknown): string {
   return "";
 }
 
-function renderLexicalNode(node: any): string {
+type LexicalNode = {
+  type?: string;
+  children?: LexicalNode[];
+  text?: string;
+  tag?: string;
+};
+
+function renderLexicalNode(node: unknown): string {
   if (!node || typeof node !== "object") return "";
-  const type = node.type;
-  const children = Array.isArray(node.children) ? node.children : [];
+  const current = node as LexicalNode;
+  const type = current.type;
+  const children = Array.isArray(current.children) ? current.children : [];
 
   const text = children.map(renderLexicalNode).join("");
 
   if (type === "text") {
-    return typeof node.text === "string" ? node.text : "";
+    return typeof current.text === "string" ? current.text : "";
   }
 
   if (type === "paragraph") {
@@ -99,7 +114,7 @@ function renderLexicalNode(node: any): string {
   }
 
   if (type === "heading") {
-    const tag = node.tag || "h2";
+    const tag = current.tag || "h2";
     return text ? `<${tag}>${text}</${tag}>` : "";
   }
 
@@ -125,9 +140,11 @@ export default async function LessonPage({ params }: PageProps) {
 
   // Legacy fields (fallback if no blocks exist)
   const textContent = normalizeTextContent(lesson.textContent);
-  const videoUrl = absUrl(
-    (lesson.video as any)?.url ?? (lesson as any).videoUrl ?? null,
-  );
+  const lessonMedia = lesson as {
+    video?: { url?: string } | null;
+    videoUrl?: string | null;
+  };
+  const videoUrl = absUrl(lessonMedia.video?.url ?? lessonMedia.videoUrl ?? null);
   const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(textContent ?? "");
 
   return (
@@ -169,9 +186,11 @@ export default async function LessonPage({ params }: PageProps) {
             }
 
             if (block.blockType === "videoBlock") {
-              const url = absUrl(
-                (block.video as any)?.url ?? (block as any).url ?? null,
-              );
+              const blockMedia = block as {
+                video?: { url?: string } | null;
+                url?: string | null;
+              };
+              const url = absUrl(blockMedia.video?.url ?? blockMedia.url ?? null);
               if (!url) return null;
               return (
                 <section key={block.id ?? idx} className="space-y-3">

@@ -5,8 +5,11 @@ import Navbar from "@/components/navigation/navbar";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Supplemental Engineering Lessons",
-  description: "Supplemental engineering learning videos and problem sets.",
+  title: "NSF CURE Summer Bridge Program",
+  description: "The online NSF CURE Summer Bridge Program (SBP) is a National Science Foundation-funded initiative (NSF Award #2318158) that launched in 2026 to help rising second-year engineering students build a strong foundation in Statics and Mechanics of Materials.",
+  icons: {
+    icon: "/assets/logos/sbp_logo_transparent.png",
+  },
 };
 
 export default function RootLayout({

@@ -25,7 +25,7 @@ type NormalizedChapter = {
 
 function getChapterClassSlug(chapter: ChapterDoc | null): string | null {
   if (!chapter) return null;
-  const c: any = chapter;
+  const c = chapter as ChapterDoc & { class?: { slug?: string } | null };
 
   if (c.class && typeof c.class === "object" && "slug" in c.class) {
     return c.class.slug as string;
@@ -37,7 +37,10 @@ function getChapterClassSlug(chapter: ChapterDoc | null): string | null {
 function normalizeChapter(chapter: ChapterDoc | null): NormalizedChapter | null {
   if (!chapter) return null;
 
-  const c: any = chapter;
+  const c = chapter as ChapterDoc & {
+    objective?: string;
+    lessons?: LessonDoc[];
+  };
 
   const title =
     typeof c.title === "string" && c.title.trim()
@@ -50,15 +53,18 @@ function normalizeChapter(chapter: ChapterDoc | null): NormalizedChapter | null 
 
   const classSlug = getChapterClassSlug(chapter);
 
-  const rawLessons = Array.isArray(c.lessons) ? (c.lessons as LessonDoc[]) : [];
+  const rawLessons = Array.isArray(c.lessons) ? c.lessons : [];
   const lessons: NormalizedLesson[] = rawLessons
-    .map((l: any) => ({
-      title:
-        typeof l?.title === "string" && l.title.trim()
-          ? l.title
-          : "Untitled lesson",
-      slug: typeof l?.slug === "string" ? l.slug : "",
-    }))
+    .map((lesson) => {
+      const l = lesson as LessonDoc;
+      return {
+        title:
+          typeof l?.title === "string" && l.title.trim()
+            ? l.title
+            : "Untitled lesson",
+        slug: typeof l?.slug === "string" ? l.slug : "",
+      };
+    })
     .filter((l) => l.slug); // drop empty slugs
 
   return {

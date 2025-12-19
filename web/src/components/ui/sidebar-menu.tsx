@@ -8,8 +8,7 @@ import { cn } from "@/lib/utils";
 /* Root menu list                                                     */
 /* ------------------------------------------------------------------ */
 
-export interface SidebarMenuProps
-  extends React.HTMLAttributes<HTMLUListElement> {}
+export type SidebarMenuProps = React.HTMLAttributes<HTMLUListElement>;
 
 export function SidebarMenu({ className, ...props }: SidebarMenuProps) {
   return (
@@ -24,8 +23,7 @@ export function SidebarMenu({ className, ...props }: SidebarMenuProps) {
 /* Top-level menu item + button                                       */
 /* ------------------------------------------------------------------ */
 
-export interface SidebarMenuItemProps
-  extends React.LiHTMLAttributes<HTMLLIElement> {}
+export type SidebarMenuItemProps = React.LiHTMLAttributes<HTMLLIElement>;
 
 export function SidebarMenuItem({ className, ...props }: SidebarMenuItemProps) {
   return <li className={cn("relative", className)} {...props} />;
@@ -63,8 +61,7 @@ export const SidebarMenuButton = React.forwardRef<
 /* Sub-menu (for nested items)                                        */
 /* ------------------------------------------------------------------ */
 
-export interface SidebarMenuSubProps
-  extends React.HTMLAttributes<HTMLUListElement> {}
+export type SidebarMenuSubProps = React.HTMLAttributes<HTMLUListElement>;
 
 export function SidebarMenuSub({ className, ...props }: SidebarMenuSubProps) {
   return (
@@ -78,8 +75,7 @@ export function SidebarMenuSub({ className, ...props }: SidebarMenuSubProps) {
   );
 }
 
-export interface SidebarMenuSubItemProps
-  extends React.LiHTMLAttributes<HTMLLIElement> {}
+export type SidebarMenuSubItemProps = React.LiHTMLAttributes<HTMLLIElement>;
 
 export function SidebarMenuSubItem({
   className,

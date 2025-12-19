@@ -1,4 +1,5 @@
-import { draftMode, NextRequest, NextResponse } from "next/server";
+import { draftMode } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 
 const PREVIEW_SECRET = process.env.PREVIEW_SECRET || "";
 
@@ -12,7 +13,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: "Invalid secret" }, { status: 401 });
   }
 
-  await draftMode().enable();
+  const draft = await draftMode();
+  draft.enable();
 
   let redirect = "/";
   switch (type) {

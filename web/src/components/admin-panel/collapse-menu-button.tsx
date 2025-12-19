@@ -37,7 +37,6 @@ type Submenu = {
 interface CollapseMenuButtonProps {
   icon: LucideIcon;
   label: string;
-  active: boolean;
   submenus: Submenu[];
   isOpen: boolean | undefined;
 }
@@ -45,7 +44,6 @@ interface CollapseMenuButtonProps {
 export function CollapseMenuButton({
   icon: Icon,
   label,
-  active,
   submenus,
   isOpen
 }: CollapseMenuButtonProps) {

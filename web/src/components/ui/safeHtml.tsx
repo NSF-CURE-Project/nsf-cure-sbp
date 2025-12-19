@@ -9,13 +9,22 @@ export function SafeHtml({
   html: string | null | undefined;
   className?: string;
 }) {
-  const [purify, setPurify] = useState<typeof import("isomorphic-dompurify")>();
+  type Sanitizer = { sanitize: (input: string) => string };
+  const [purify, setPurify] = useState<Sanitizer | null>(null);
 
   // Load DOMPurify only in the browser to avoid jsdom file lookups during SSR
   useEffect(() => {
     let active = true;
     import("isomorphic-dompurify").then((mod) => {
-      if (active) setPurify(mod.default || (mod as any));
+      const candidate: unknown =
+        "default" in mod ? (mod.default as unknown) : (mod as unknown);
+      const instance =
+        typeof candidate === "function"
+          ? (candidate as (win: Window) => Sanitizer)(window)
+          : (candidate as Sanitizer);
+      if (active && typeof instance?.sanitize === "function") {
+        setPurify(instance);
+      }
     });
     return () => {
       active = false;
@@ -23,7 +32,7 @@ export function SafeHtml({
   }, []);
 
   const safe = useMemo(() => {
-    if (!purify) return html ?? "";
+    if (!purify || typeof purify.sanitize !== "function") return html ?? "";
     return purify.sanitize(html ?? "");
   }, [purify, html]);
 
