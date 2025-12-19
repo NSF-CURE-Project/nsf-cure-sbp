@@ -22,6 +22,9 @@ const StaffDashboardView: PayloadComponent = {
 const StaffProvider: PayloadComponent = {
   path: '@/views/StaffProvider#default',
 };
+const AdminLogo: PayloadComponent = {
+  path: '@/views/AdminLogo#default',
+};
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -36,6 +39,9 @@ export default buildConfig({
 
     components: {
       providers: [StaffProvider],
+      graphics: {
+        Logo: AdminLogo,
+      },
       views: {
         dashboard: {
           Component: StaffDashboardView,
