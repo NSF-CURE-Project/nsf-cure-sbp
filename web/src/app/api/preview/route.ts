@@ -19,8 +19,7 @@ export async function GET(req: NextRequest) {
   let redirect = "/";
   switch (type) {
     case "lesson":
-      // Expect slug already includes class context; fallback to lessons route without class
-      redirect = `/classes/${searchParams.get("classSlug") ?? ""}/lessons/${slug}`;
+      redirect = `/preview/lesson/${slug}`;
       break;
     case "class":
       redirect = `/classes/${slug}`;
