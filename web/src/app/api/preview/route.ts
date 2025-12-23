@@ -34,6 +34,9 @@ export async function GET(req: NextRequest) {
     case "contact":
       redirect = `/contact-us`;
       break;
+    case "getting-started":
+      redirect = `/getting-started`;
+      break;
     default:
       redirect = "/";
   }

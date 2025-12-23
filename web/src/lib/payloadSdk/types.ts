@@ -35,20 +35,40 @@ export type LessonDoc = {
   id: string | number;
   title: string;
   slug: string;
-  textContent?: unknown; // Payload richText
-  video?: unknown;
-  layout?: LessonBlock[];
-  problemSets?: unknown[];
+  layout?: PageLayoutBlock[];
   class?: ClassDoc | string | number;
   chapter?: ChapterDoc | string | number;
   updatedAt?: string;
   createdAt?: string;
 };
 
+export type HeroBlock = {
+  id?: string;
+  blockType: "heroBlock";
+  title?: string;
+  subtitle?: string;
+  buttonLabel?: string;
+  buttonHref?: string;
+};
+
+export type SectionTitleBlock = {
+  id?: string;
+  blockType: "sectionTitle";
+  title?: string;
+  subtitle?: string;
+  size?: "sm" | "md" | "lg";
+};
+
 export type RichTextBlock = {
   id?: string;
   blockType: "richTextBlock";
   body?: unknown;
+};
+
+export type TextBlock = {
+  id?: string;
+  blockType: "textBlock";
+  text?: string;
 };
 
 export type VideoBlock = {
@@ -59,4 +79,84 @@ export type VideoBlock = {
   caption?: string;
 };
 
-export type LessonBlock = RichTextBlock | VideoBlock;
+export type ListBlockItem = {
+  id?: string;
+  text?: string;
+};
+
+export type ListBlock = {
+  id?: string;
+  blockType: "listBlock";
+  title?: string;
+  listStyle?: "unordered" | "ordered";
+  items?: ListBlockItem[];
+};
+
+export type StepsListItem = {
+  id?: string;
+  heading?: string;
+  description?: unknown;
+};
+
+export type StepsListBlock = {
+  id?: string;
+  blockType: "stepsList";
+  title?: string;
+  steps?: StepsListItem[];
+};
+
+export type ButtonBlock = {
+  id?: string;
+  blockType: "buttonBlock";
+  label?: string;
+  href?: string;
+};
+
+export type ResourceItem = {
+  id?: string;
+  title?: string;
+  description?: string;
+  url?: string;
+  type?: string;
+};
+
+export type ResourcesListBlock = {
+  id?: string;
+  blockType: "resourcesList";
+  title?: string;
+  description?: string;
+  resources?: ResourceItem[];
+};
+
+export type ContactPerson = {
+  id?: string;
+  name?: string;
+  title?: string;
+  phone?: string;
+  email?: string;
+  category?: "staff" | "technical" | string;
+  photo?: unknown;
+};
+
+export type ContactsListBlock = {
+  id?: string;
+  blockType: "contactsList";
+  title?: string;
+  description?: string;
+  groupByCategory?: boolean;
+  contacts?: ContactPerson[];
+};
+
+export type PageLayoutBlock =
+  | HeroBlock
+  | SectionTitleBlock
+  | RichTextBlock
+  | TextBlock
+  | VideoBlock
+  | ListBlock
+  | StepsListBlock
+  | ButtonBlock
+  | ResourcesListBlock
+  | ContactsListBlock;
+
+export type LessonBlock = PageLayoutBlock;

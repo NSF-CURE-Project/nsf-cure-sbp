@@ -3,21 +3,15 @@ import { draftMode } from "next/headers";
 
 import { getClassesTree } from "@/lib/payloadSdk/classes";
 import { getHomePage, type HomePageData } from "@/lib/payloadSdk/home";
-import {
-  getResourcesPage,
-  type ResourcesPageData,
-  type ResourceItem,
-  type ResourceSection,
-} from "@/lib/payloadSdk/resources";
-import {
-  getContactPage,
-  type ContactPageData,
-  type ContactPerson,
-} from "@/lib/payloadSdk/contacts";
+import { getResourcesPage, type ResourcesPageData } from "@/lib/payloadSdk/resources";
+import { getContactPage, type ContactPageData } from "@/lib/payloadSdk/contacts";
 import type {
   ClassDoc,
   ChapterDoc,
   LessonDoc,
+  PageLayoutBlock,
+  ResourceItem,
+  ContactPerson,
 } from "@/lib/payloadSdk/types";
 
 export const dynamic = "force-dynamic";
@@ -148,21 +142,17 @@ function buildResults(
     typeof value === "string" && value.toLowerCase().includes(term);
 
   const { home, resources, contacts } = extra;
+  const homeBlocks = Array.isArray(home?.layout) ? home.layout : [];
+  const resourceBlocks = Array.isArray(resources?.layout) ? resources.layout : [];
+  const contactBlocks = Array.isArray(contacts?.layout) ? contacts.layout : [];
 
-  if (
-    home &&
-    (includes(home.heroTitle) ||
-      includes(home.heroSubtitle) ||
-      includes(home.purposeTitle) ||
-      includes(home.goalsTitle) ||
-      includes(home.gettingStartedTitle))
-  ) {
+  if (home && blocksContainTerm(homeBlocks, term)) {
     matches.push({
       id: "home",
-      title: home.heroTitle || "Home",
+      title: "Home",
       type: "home",
       href: "/",
-      subtitle: "Hero and intro content",
+      subtitle: "Page content",
     });
   }
 
@@ -199,7 +189,12 @@ function buildResults(
 
       for (const l of lessons) {
         const lessonTitle = l.title ?? "Untitled lesson";
-        if (includes(l.title) || includes(l.slug) || includes(l.textContent)) {
+        const lessonBlocks = Array.isArray(l.layout) ? l.layout : [];
+        if (
+          includes(l.title) ||
+          includes(l.slug) ||
+          blocksContainTerm(lessonBlocks, term)
+        ) {
           matches.push({
             id: `lesson-${c.id ?? c.slug}-${ch.id ?? ch.slug}-${
               l.id ?? l.slug
@@ -215,62 +210,42 @@ function buildResults(
   }
 
   if (resources) {
-    if (
-      includes(resources.heroTitle) ||
-      includes("resources") ||
-      includes(resources.heroIntro)
-    ) {
+    if (blocksContainTerm(resourceBlocks, term) || includes("resources")) {
       matches.push({
         id: "resources-page",
-        title: resources.heroTitle || "Resources",
+        title: "Resources",
         type: "resource",
         href: "/resources",
-        subtitle: "Full resources page",
+        subtitle: "Page content",
       });
     }
 
-    const sections: ResourceSection[] = Array.isArray(resources.sections)
-      ? resources.sections
-      : [];
-
-    for (const section of sections) {
-      const sectionTitle = section.title ?? "Resources";
-      const resourcesList: ResourceItem[] = Array.isArray(section.resources)
-        ? section.resources
-        : [];
-
-      for (const item of resourcesList) {
-        if (includes(item.title) || includes(item.description) || includes(item.url)) {
-          matches.push({
-            id: `resource-${section.id ?? sectionTitle}-${item.id ?? item.url}`,
-            title: item.title,
-            type: "resource",
-            subtitle: sectionTitle,
-            href: item.url,
-          });
-        }
+    const resourceItems = extractResourceItems(resourceBlocks);
+    for (const item of resourceItems) {
+      if (includes(item.title) || includes(item.description) || includes(item.url)) {
+        matches.push({
+          id: `resource-${item.id ?? item.url ?? item.title}`,
+          title: item.title ?? "Resource",
+          type: "resource",
+          subtitle: item.context ?? "Resources",
+          href: item.url ?? "/resources",
+        });
       }
     }
   }
 
   if (contacts) {
-    if (
-      includes(contacts.heroTitle) ||
-      includes("contact") ||
-      includes(contacts.heroIntro)
-    ) {
+    if (blocksContainTerm(contactBlocks, term) || includes("contact")) {
       matches.push({
         id: "contact-page",
-        title: contacts.heroTitle || "Contact Us",
+        title: "Contact Us",
         type: "contact",
         href: "/contact-us",
-        subtitle: "Full contact page",
+        subtitle: "Page content",
       });
     }
 
-    const people: ContactPerson[] = Array.isArray(contacts.contacts)
-      ? contacts.contacts
-      : [];
+    const people: ContactPerson[] = extractContactPeople(contactBlocks);
 
     for (const person of people) {
       if (
@@ -292,4 +267,110 @@ function buildResults(
   }
 
   return matches;
+}
+
+function blocksContainTerm(blocks: PageLayoutBlock[], term: string): boolean {
+  const values = extractTextFromBlocks(blocks).filter(Boolean);
+  return values.some((value) => value.toLowerCase().includes(term));
+}
+
+function extractTextFromBlocks(blocks: PageLayoutBlock[]): string[] {
+  const values: string[] = [];
+
+  for (const block of blocks) {
+    if (block.blockType === "heroBlock") {
+      values.push(block.title ?? "", block.subtitle ?? "", block.buttonLabel ?? "");
+    }
+    if (block.blockType === "sectionTitle") {
+      values.push(block.title ?? "", block.subtitle ?? "");
+    }
+    if (block.blockType === "richTextBlock") {
+      values.push(extractTextFromRichText(block.body));
+    }
+    if (block.blockType === "textBlock") {
+      values.push(block.text ?? "");
+    }
+    if (block.blockType === "videoBlock") {
+      values.push(block.caption ?? "", block.url ?? "");
+    }
+    if (block.blockType === "listBlock") {
+      values.push(block.title ?? "");
+      (block.items ?? []).forEach((item) => values.push(item.text ?? ""));
+    }
+    if (block.blockType === "stepsList") {
+      values.push(block.title ?? "");
+      (block.steps ?? []).forEach((step) => {
+        values.push(step.heading ?? "");
+        values.push(extractTextFromRichText(step.description));
+      });
+    }
+    if (block.blockType === "buttonBlock") {
+      values.push(block.label ?? "", block.href ?? "");
+    }
+    if (block.blockType === "resourcesList") {
+      values.push(block.title ?? "", block.description ?? "");
+      (block.resources ?? []).forEach((resource) => {
+        values.push(
+          resource.title ?? "",
+          resource.description ?? "",
+          resource.url ?? "",
+          resource.type ?? ""
+        );
+      });
+    }
+    if (block.blockType === "contactsList") {
+      values.push(block.title ?? "", block.description ?? "");
+      (block.contacts ?? []).forEach((person) => {
+        values.push(
+          person.name ?? "",
+          person.title ?? "",
+          person.email ?? "",
+          person.phone ?? "",
+          person.category ?? ""
+        );
+      });
+    }
+  }
+
+  return values.filter(Boolean);
+}
+
+function extractTextFromRichText(value?: unknown): string {
+  if (!value || typeof value !== "object") return "";
+  const root = value as { root?: { children?: unknown[] } };
+  if (!root.root || !Array.isArray(root.root.children)) return "";
+  return root.root.children.map(extractTextFromLexicalNode).join(" ").trim();
+}
+
+function extractTextFromLexicalNode(node: unknown): string {
+  if (!node || typeof node !== "object") return "";
+  const current = node as { type?: string; text?: string; children?: unknown[] };
+  if (current.type === "text") {
+    return current.text ?? "";
+  }
+  const children = Array.isArray(current.children) ? current.children : [];
+  return children.map(extractTextFromLexicalNode).join(" ");
+}
+
+function extractResourceItems(blocks: PageLayoutBlock[]): (ResourceItem & { context?: string })[] {
+  const items: (ResourceItem & { context?: string })[] = [];
+  for (const block of blocks) {
+    if (block.blockType !== "resourcesList") continue;
+    const context = block.title ?? "Resources";
+    (block.resources ?? []).forEach((resource) => {
+      items.push({ ...resource, context });
+    });
+  }
+  return items;
+}
+
+function extractContactPeople(blocks: PageLayoutBlock[]): ContactPerson[] {
+  const people: ContactPerson[] = [];
+  for (const block of blocks) {
+    if (block.blockType !== "contactsList") continue;
+    (block.contacts ?? []).forEach((person) => {
+      people.push(person);
+    });
+  }
+  return people;
 }

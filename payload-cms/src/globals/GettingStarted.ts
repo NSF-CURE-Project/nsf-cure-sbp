@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload';
+import { pageBlocks } from '../blocks/pageBlocks';
 
 export const GettingStarted: GlobalConfig = {
   slug: 'getting-started',
@@ -6,55 +7,45 @@ export const GettingStarted: GlobalConfig = {
   access: {
     read: () => true,
   },
+  versions: {
+    drafts: true,
+  },
+  admin: {
+    group: "Main Pages",
+    preview: {
+      url: () => {
+        const base = process.env.WEB_PREVIEW_URL ?? "http://localhost:3001";
+        const search = new URLSearchParams({
+          secret: process.env.PREVIEW_SECRET ?? "",
+          type: "getting-started",
+        });
+        return `${base}/api/preview?${search.toString()}`;
+      },
+    },
+    livePreview: {
+      url: () => {
+        const base = process.env.WEB_PREVIEW_URL ?? "http://localhost:3001";
+        const search = new URLSearchParams({
+          secret: process.env.PREVIEW_SECRET ?? "",
+          type: "getting-started",
+        });
+        return `${base}/api/preview?${search.toString()}`;
+      },
+    },
+  },
   fields: [
     {
-      name: 'title',
-      label: 'Page title',
-      type: 'text',
-      required: true,
-      defaultValue: 'Getting Started',
-    },
-    {
-      name: 'intro',
-      label: 'Introduction',
-      type: 'richText',
-    },
-    {
-      name: 'steps',
-      label: 'Steps',
-      type: 'array',
-      fields: [
-        {
-          name: 'heading',
-          label: 'Step heading',
-          type: 'text',
-          required: true,
-        },
-        {
-          name: 'description',
-          label: 'Step description',
-          type: 'richText',
-        },
-      ],
-    },
-    {
-      name: 'resources',
-      label: 'Helpful resources',
-      type: 'array',
-      fields: [
-        {
-          name: 'label',
-          label: 'Label',
-          type: 'text',
-          required: true,
-        },
-        {
-          name: 'url',
-          label: 'URL',
-          type: 'text',
-          required: true,
-        },
-      ],
+      name: 'layout',
+      label: 'Page layout',
+      type: 'blocks',
+      labels: {
+        singular: 'Section',
+        plural: 'Sections',
+      },
+      blocks: pageBlocks,
+      admin: {
+        description: 'Build the page by adding and reordering content blocks.',
+      },
     },
   ],
 };

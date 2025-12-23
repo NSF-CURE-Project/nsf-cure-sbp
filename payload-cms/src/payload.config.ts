@@ -24,6 +24,12 @@ const StaffProvider: PayloadComponent = {
 const AdminLogo: PayloadComponent = {
   path: '@/views/AdminLogo#default',
 };
+const AdminIcon: PayloadComponent = {
+  path: '@/views/AdminIcon#default',
+};
+const StaffNav: PayloadComponent = {
+  path: '@/views/StaffNav#default',
+};
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -36,6 +42,30 @@ export default buildConfig({
       description: "Admin login for NSF CURE SBP",
       icons: "/assets/logos/sbp_logo_transparent.png",
     },
+    livePreview: {
+      globals: ["home-page", "resources-page", "contact-page", "getting-started"],
+      collections: ["lessons"],
+      breakpoints: [
+        {
+          label: "Desktop",
+          name: "desktop",
+          width: 1280,
+          height: 720,
+        },
+        {
+          label: "Tablet",
+          name: "tablet",
+          width: 834,
+          height: 1112,
+        },
+        {
+          label: "Mobile",
+          name: "mobile",
+          width: 390,
+          height: 844,
+        },
+      ],
+    },
 
     importMap: {
       baseDir: path.resolve(dirname),
@@ -45,7 +75,9 @@ export default buildConfig({
       providers: [StaffProvider],
       graphics: {
         Logo: AdminLogo,
+        Icon: AdminIcon,
       },
+      Nav: StaffNav,
       views: {
         dashboard: {
           Component: StaffDashboardView,

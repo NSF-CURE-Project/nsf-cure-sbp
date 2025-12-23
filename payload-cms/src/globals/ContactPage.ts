@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload';
+import { pageBlocks } from '../blocks/pageBlocks';
 
 export const ContactPage: GlobalConfig = {
   slug: 'contact-page',
@@ -10,6 +11,7 @@ export const ContactPage: GlobalConfig = {
     drafts: true,
   },
   admin: {
+    group: "Main Pages",
     preview: {
       url: () => {
         const base = process.env.WEB_PREVIEW_URL ?? "http://localhost:3001";
@@ -20,72 +22,30 @@ export const ContactPage: GlobalConfig = {
         return `${base}/api/preview?${search.toString()}`;
       },
     },
-  },
-  hooks: {
-    beforeChange: [
-      ({ data }) => ({
-        ...data,
-        _status: "published",
-      }),
-    ],
+    livePreview: {
+      url: () => {
+        const base = process.env.WEB_PREVIEW_URL ?? "http://localhost:3001";
+        const search = new URLSearchParams({
+          secret: process.env.PREVIEW_SECRET ?? "",
+          type: "contact",
+        });
+        return `${base}/api/preview?${search.toString()}`;
+      },
+    },
   },
   fields: [
     {
-      name: 'heroTitle',
-      label: 'Hero title',
-      type: 'text',
-      required: true,
-      defaultValue: 'Contact Us',
-    },
-    {
-      name: 'heroIntro',
-      label: 'Hero description',
-      type: 'textarea',
-    },
-    {
-      name: 'contacts',
-      label: 'Contacts',
-      type: 'array',
-      required: true,
-      fields: [
-        {
-          name: 'name',
-          label: 'Name',
-          type: 'text',
-          required: true,
-        },
-        {
-          name: 'title',
-          label: 'Title',
-          type: 'text',
-        },
-        {
-          name: 'category',
-          label: 'Category',
-          type: 'select',
-          options: [
-            { label: 'Staff', value: 'staff' },
-            { label: 'Technical', value: 'technical' },
-          ],
-          defaultValue: 'staff',
-        },
-        {
-          name: 'phone',
-          label: 'Phone',
-          type: 'text',
-        },
-        {
-          name: 'email',
-          label: 'Email',
-          type: 'text',
-        },
-        {
-          name: 'photo',
-          label: 'Photo',
-          type: 'upload',
-          relationTo: 'media',
-        },
-      ],
+      name: 'layout',
+      label: 'Page layout',
+      type: 'blocks',
+      labels: {
+        singular: 'Section',
+        plural: 'Sections',
+      },
+      blocks: pageBlocks,
+      admin: {
+        description: 'Build the page by adding and reordering content blocks.',
+      },
     },
   ],
 };

@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload";
+import { pageBlocks } from "../blocks/pageBlocks";
 
 export const Lessons: CollectionConfig = {
   slug: "lessons",
@@ -25,12 +26,34 @@ export const Lessons: CollectionConfig = {
         return `${base}/api/preview?${search.toString()}`;
       },
     },
+    livePreview: {
+      url: ({ data }) => {
+        const lessonSlug = data?.slug ?? "";
+        const classSlug =
+          (typeof data?.class === "object" && (data.class as any)?.slug) ||
+          (typeof data?.chapter === "object" &&
+            (data.chapter as any)?.class &&
+            typeof (data.chapter as any).class === "object" &&
+            (data.chapter as any).class.slug) ||
+          "";
+        const base = process.env.WEB_PREVIEW_URL ?? "http://localhost:3001";
+        const secret = process.env.PREVIEW_SECRET ?? "";
+        const search = new URLSearchParams({
+          secret,
+          type: "lesson",
+          slug: lessonSlug,
+        });
+        if (classSlug) search.set("classSlug", classSlug);
+        return `${base}/api/preview?${search.toString()}`;
+      },
+    },
   },
   access: {
     read: () => true,
   },
-  // Disable versions/drafts to avoid version tables
-  versions: false,
+  versions: {
+    drafts: true,
+  },
   fields: [
     {
       name: "title",
@@ -50,18 +73,6 @@ export const Lessons: CollectionConfig = {
       },
     },
 
-    {
-      // Strapi `video` media field → Payload upload to Media collection
-      name: "video",
-      type: "upload",
-      relationTo: "media" as any, // assumes you have Media collection with slug 'media'
-    },
-    {
-      // Strapi `textContent` (Markdown) → Payload richText
-      name: "textContent",
-      type: "richText",
-    },
-
     // Flexible layout so staff can reorder content blocks
     {
       name: "layout",
@@ -71,77 +82,10 @@ export const Lessons: CollectionConfig = {
         singular: "Section",
         plural: "Sections",
       },
-      blocks: [
-        {
-          slug: "richTextBlock",
-          interfaceName: "RichTextBlock",
-          labels: { singular: "Rich Text", plural: "Rich Text" },
-          fields: [
-            {
-              name: "body",
-              type: "richText",
-              required: true,
-            },
-          ],
-        },
-        {
-          slug: "videoBlock",
-          interfaceName: "VideoBlock",
-          labels: { singular: "Video", plural: "Videos" },
-          fields: [
-            {
-              name: "video",
-              type: "upload",
-              relationTo: "media" as any,
-              required: false,
-            },
-            {
-              name: "url",
-              label: "External URL (optional)",
-              type: "text",
-            },
-            {
-              name: "caption",
-              type: "text",
-            },
-          ],
-        },
-      ],
+      blocks: pageBlocks,
       admin: {
-        description:
-          "Add rich text or videos and drag to reorder. Leave empty to fall back to legacy fields.",
+        description: "Build the lesson by adding and reordering content blocks.",
       },
-    },
-    {
-      // Strapi `problemSets` component
-      name: "problemSets",
-      label: "Problem Sets",
-      type: "array", // repeatable component
-      fields: [
-        {
-          name: "name",
-          type: "text",
-          required: true,
-        },
-        {
-          // nested repeatable `questions` component
-          name: "questions",
-          label: "Questions",
-          type: "array",
-          fields: [
-            {
-              name: "questionText",
-              type: "richText", // maps Strapi markdown
-              required: true,
-            },
-            {
-              name: "answer",
-              type: "text",
-              required: true,
-            },
-          ],
-        },
-      ],
     },
   ],
 };

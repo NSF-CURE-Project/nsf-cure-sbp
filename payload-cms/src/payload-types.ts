@@ -188,55 +188,149 @@ export interface Lesson {
    * Used in lesson URLs, e.g. /classes/statics/lessons/vector-operations
    */
   slug: string;
-  video?: (number | null) | Media;
-  textContent?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
   /**
-   * Add rich text or videos and drag to reorder. Leave empty to fall back to legacy fields.
+   * Build the lesson by adding and reordering content blocks.
    */
-  layout?: (RichTextBlock | VideoBlock)[] | null;
-  problemSets?:
-    | {
-        name: string;
-        questions?:
-          | {
-              questionText: {
-                root: {
-                  type: string;
-                  children: {
-                    type: any;
-                    version: number;
-                    [k: string]: unknown;
-                  }[];
-                  direction: ('ltr' | 'rtl') | null;
-                  format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-                  indent: number;
+  layout?:
+    | (
+        | {
+            title: string;
+            subtitle?: string | null;
+            buttonLabel?: string | null;
+            buttonHref?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'heroBlock';
+          }
+        | {
+            title: string;
+            subtitle?: string | null;
+            size?: ('sm' | 'md' | 'lg') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'sectionTitle';
+          }
+        | {
+            body: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
                   version: number;
-                };
-                [k: string]: unknown;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
               };
-              answer: string;
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-      }[]
+              [k: string]: unknown;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'richTextBlock';
+          }
+        | {
+            text?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'textBlock';
+          }
+        | {
+            video?: (number | null) | Media;
+            url?: string | null;
+            caption?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'videoBlock';
+          }
+        | {
+            title?: string | null;
+            listStyle?: ('unordered' | 'ordered') | null;
+            items?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'listBlock';
+          }
+        | {
+            title?: string | null;
+            steps?:
+              | {
+                  heading: string;
+                  description?: {
+                    root: {
+                      type: string;
+                      children: {
+                        type: any;
+                        version: number;
+                        [k: string]: unknown;
+                      }[];
+                      direction: ('ltr' | 'rtl') | null;
+                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                      indent: number;
+                      version: number;
+                    };
+                    [k: string]: unknown;
+                  } | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'stepsList';
+          }
+        | {
+            label: string;
+            href: string;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'buttonBlock';
+          }
+        | {
+            title?: string | null;
+            description?: string | null;
+            resources?:
+              | {
+                  title: string;
+                  description?: string | null;
+                  url: string;
+                  type?: ('link' | 'video' | 'download' | 'other') | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'resourcesList';
+          }
+        | {
+            title?: string | null;
+            description?: string | null;
+            groupByCategory?: boolean | null;
+            contacts?:
+              | {
+                  name: string;
+                  title?: string | null;
+                  category?: ('staff' | 'technical') | null;
+                  phone?: string | null;
+                  email?: string | null;
+                  photo?: (number | null) | Media;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'contactsList';
+          }
+      )[]
     | null;
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -256,42 +350,6 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "RichTextBlock".
- */
-export interface RichTextBlock {
-  body: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'richTextBlock';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "VideoBlock".
- */
-export interface VideoBlock {
-  video?: (number | null) | Media;
-  url?: string | null;
-  caption?: string | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'videoBlock';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -440,49 +498,128 @@ export interface ChaptersSelect<T extends boolean = true> {
 export interface LessonsSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
-  video?: T;
-  textContent?: T;
   layout?:
     | T
     | {
-        richTextBlock?: T | RichTextBlockSelect<T>;
-        videoBlock?: T | VideoBlockSelect<T>;
-      };
-  problemSets?:
-    | T
-    | {
-        name?: T;
-        questions?:
+        heroBlock?:
           | T
           | {
-              questionText?: T;
-              answer?: T;
+              title?: T;
+              subtitle?: T;
+              buttonLabel?: T;
+              buttonHref?: T;
               id?: T;
+              blockName?: T;
             };
-        id?: T;
+        sectionTitle?:
+          | T
+          | {
+              title?: T;
+              subtitle?: T;
+              size?: T;
+              id?: T;
+              blockName?: T;
+            };
+        richTextBlock?:
+          | T
+          | {
+              body?: T;
+              id?: T;
+              blockName?: T;
+            };
+        textBlock?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+              blockName?: T;
+            };
+        videoBlock?:
+          | T
+          | {
+              video?: T;
+              url?: T;
+              caption?: T;
+              id?: T;
+              blockName?: T;
+            };
+        listBlock?:
+          | T
+          | {
+              title?: T;
+              listStyle?: T;
+              items?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        stepsList?:
+          | T
+          | {
+              title?: T;
+              steps?:
+                | T
+                | {
+                    heading?: T;
+                    description?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        buttonBlock?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+              blockName?: T;
+            };
+        resourcesList?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              resources?:
+                | T
+                | {
+                    title?: T;
+                    description?: T;
+                    url?: T;
+                    type?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        contactsList?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              groupByCategory?: T;
+              contacts?:
+                | T
+                | {
+                    name?: T;
+                    title?: T;
+                    category?: T;
+                    phone?: T;
+                    email?: T;
+                    photo?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
       };
   updatedAt?: T;
   createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "RichTextBlock_select".
- */
-export interface RichTextBlockSelect<T extends boolean = true> {
-  body?: T;
-  id?: T;
-  blockName?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "VideoBlock_select".
- */
-export interface VideoBlockSelect<T extends boolean = true> {
-  video?: T;
-  url?: T;
-  caption?: T;
-  id?: T;
-  blockName?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -571,69 +708,145 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface HomePage {
   id: number;
-  heroTitle: string;
-  heroSubtitle: string;
-  heroButtonLabel?: string | null;
-  heroButtonHref?: string | null;
-  purposeTitle?: string | null;
-  purposeBody?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  goalsTitle?: string | null;
-  goalsIntroRich?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  goals?:
-    | {
-        item: string;
-        id?: string | null;
-      }[]
-    | null;
-  gettingStartedTitle?: string | null;
-  gettingStartedBody?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  gettingStartedSteps?:
-    | {
-        step: string;
-        id?: string | null;
-      }[]
+  /**
+   * Build the page by adding and reordering content blocks.
+   */
+  layout?:
+    | (
+        | {
+            title: string;
+            subtitle?: string | null;
+            buttonLabel?: string | null;
+            buttonHref?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'heroBlock';
+          }
+        | {
+            title: string;
+            subtitle?: string | null;
+            size?: ('sm' | 'md' | 'lg') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'sectionTitle';
+          }
+        | {
+            body: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'richTextBlock';
+          }
+        | {
+            text?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'textBlock';
+          }
+        | {
+            video?: (number | null) | Media;
+            url?: string | null;
+            caption?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'videoBlock';
+          }
+        | {
+            title?: string | null;
+            listStyle?: ('unordered' | 'ordered') | null;
+            items?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'listBlock';
+          }
+        | {
+            title?: string | null;
+            steps?:
+              | {
+                  heading: string;
+                  description?: {
+                    root: {
+                      type: string;
+                      children: {
+                        type: any;
+                        version: number;
+                        [k: string]: unknown;
+                      }[];
+                      direction: ('ltr' | 'rtl') | null;
+                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                      indent: number;
+                      version: number;
+                    };
+                    [k: string]: unknown;
+                  } | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'stepsList';
+          }
+        | {
+            label: string;
+            href: string;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'buttonBlock';
+          }
+        | {
+            title?: string | null;
+            description?: string | null;
+            resources?:
+              | {
+                  title: string;
+                  description?: string | null;
+                  url: string;
+                  type?: ('link' | 'video' | 'download' | 'other') | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'resourcesList';
+          }
+        | {
+            title?: string | null;
+            description?: string | null;
+            groupByCategory?: boolean | null;
+            contacts?:
+              | {
+                  name: string;
+                  title?: string | null;
+                  category?: ('staff' | 'technical') | null;
+                  phone?: string | null;
+                  email?: string | null;
+                  photo?: (number | null) | Media;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'contactsList';
+          }
+      )[]
     | null;
   _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
@@ -645,23 +858,145 @@ export interface HomePage {
  */
 export interface ResourcesPage {
   id: number;
-  heroTitle: string;
-  heroIntro?: string | null;
-  sections?:
-    | {
-        title: string;
-        description?: string | null;
-        resources?:
-          | {
-              title: string;
-              description?: string | null;
-              url: string;
-              type?: ('link' | 'video' | 'download' | 'other') | null;
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-      }[]
+  /**
+   * Build the page by adding and reordering content blocks.
+   */
+  layout?:
+    | (
+        | {
+            title: string;
+            subtitle?: string | null;
+            buttonLabel?: string | null;
+            buttonHref?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'heroBlock';
+          }
+        | {
+            title: string;
+            subtitle?: string | null;
+            size?: ('sm' | 'md' | 'lg') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'sectionTitle';
+          }
+        | {
+            body: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'richTextBlock';
+          }
+        | {
+            text?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'textBlock';
+          }
+        | {
+            video?: (number | null) | Media;
+            url?: string | null;
+            caption?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'videoBlock';
+          }
+        | {
+            title?: string | null;
+            listStyle?: ('unordered' | 'ordered') | null;
+            items?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'listBlock';
+          }
+        | {
+            title?: string | null;
+            steps?:
+              | {
+                  heading: string;
+                  description?: {
+                    root: {
+                      type: string;
+                      children: {
+                        type: any;
+                        version: number;
+                        [k: string]: unknown;
+                      }[];
+                      direction: ('ltr' | 'rtl') | null;
+                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                      indent: number;
+                      version: number;
+                    };
+                    [k: string]: unknown;
+                  } | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'stepsList';
+          }
+        | {
+            label: string;
+            href: string;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'buttonBlock';
+          }
+        | {
+            title?: string | null;
+            description?: string | null;
+            resources?:
+              | {
+                  title: string;
+                  description?: string | null;
+                  url: string;
+                  type?: ('link' | 'video' | 'download' | 'other') | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'resourcesList';
+          }
+        | {
+            title?: string | null;
+            description?: string | null;
+            groupByCategory?: boolean | null;
+            contacts?:
+              | {
+                  name: string;
+                  title?: string | null;
+                  category?: ('staff' | 'technical') | null;
+                  phone?: string | null;
+                  email?: string | null;
+                  photo?: (number | null) | Media;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'contactsList';
+          }
+      )[]
     | null;
   _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
@@ -673,17 +1008,146 @@ export interface ResourcesPage {
  */
 export interface ContactPage {
   id: number;
-  heroTitle: string;
-  heroIntro?: string | null;
-  contacts: {
-    name: string;
-    title?: string | null;
-    category?: ('staff' | 'technical') | null;
-    phone?: string | null;
-    email?: string | null;
-    photo?: (number | null) | Media;
-    id?: string | null;
-  }[];
+  /**
+   * Build the page by adding and reordering content blocks.
+   */
+  layout?:
+    | (
+        | {
+            title: string;
+            subtitle?: string | null;
+            buttonLabel?: string | null;
+            buttonHref?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'heroBlock';
+          }
+        | {
+            title: string;
+            subtitle?: string | null;
+            size?: ('sm' | 'md' | 'lg') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'sectionTitle';
+          }
+        | {
+            body: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'richTextBlock';
+          }
+        | {
+            text?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'textBlock';
+          }
+        | {
+            video?: (number | null) | Media;
+            url?: string | null;
+            caption?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'videoBlock';
+          }
+        | {
+            title?: string | null;
+            listStyle?: ('unordered' | 'ordered') | null;
+            items?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'listBlock';
+          }
+        | {
+            title?: string | null;
+            steps?:
+              | {
+                  heading: string;
+                  description?: {
+                    root: {
+                      type: string;
+                      children: {
+                        type: any;
+                        version: number;
+                        [k: string]: unknown;
+                      }[];
+                      direction: ('ltr' | 'rtl') | null;
+                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                      indent: number;
+                      version: number;
+                    };
+                    [k: string]: unknown;
+                  } | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'stepsList';
+          }
+        | {
+            label: string;
+            href: string;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'buttonBlock';
+          }
+        | {
+            title?: string | null;
+            description?: string | null;
+            resources?:
+              | {
+                  title: string;
+                  description?: string | null;
+                  url: string;
+                  type?: ('link' | 'video' | 'download' | 'other') | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'resourcesList';
+          }
+        | {
+            title?: string | null;
+            description?: string | null;
+            groupByCategory?: boolean | null;
+            contacts?:
+              | {
+                  name: string;
+                  title?: string | null;
+                  category?: ('staff' | 'technical') | null;
+                  phone?: string | null;
+                  email?: string | null;
+                  photo?: (number | null) | Media;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'contactsList';
+          }
+      )[]
+    | null;
   _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -694,50 +1158,147 @@ export interface ContactPage {
  */
 export interface GettingStarted {
   id: number;
-  title: string;
-  intro?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  steps?:
-    | {
-        heading: string;
-        description?: {
-          root: {
-            type: string;
-            children: {
-              type: any;
-              version: number;
+  /**
+   * Build the page by adding and reordering content blocks.
+   */
+  layout?:
+    | (
+        | {
+            title: string;
+            subtitle?: string | null;
+            buttonLabel?: string | null;
+            buttonHref?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'heroBlock';
+          }
+        | {
+            title: string;
+            subtitle?: string | null;
+            size?: ('sm' | 'md' | 'lg') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'sectionTitle';
+          }
+        | {
+            body: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
               [k: string]: unknown;
-            }[];
-            direction: ('ltr' | 'rtl') | null;
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-            indent: number;
-            version: number;
-          };
-          [k: string]: unknown;
-        } | null;
-        id?: string | null;
-      }[]
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'richTextBlock';
+          }
+        | {
+            text?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'textBlock';
+          }
+        | {
+            video?: (number | null) | Media;
+            url?: string | null;
+            caption?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'videoBlock';
+          }
+        | {
+            title?: string | null;
+            listStyle?: ('unordered' | 'ordered') | null;
+            items?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'listBlock';
+          }
+        | {
+            title?: string | null;
+            steps?:
+              | {
+                  heading: string;
+                  description?: {
+                    root: {
+                      type: string;
+                      children: {
+                        type: any;
+                        version: number;
+                        [k: string]: unknown;
+                      }[];
+                      direction: ('ltr' | 'rtl') | null;
+                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                      indent: number;
+                      version: number;
+                    };
+                    [k: string]: unknown;
+                  } | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'stepsList';
+          }
+        | {
+            label: string;
+            href: string;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'buttonBlock';
+          }
+        | {
+            title?: string | null;
+            description?: string | null;
+            resources?:
+              | {
+                  title: string;
+                  description?: string | null;
+                  url: string;
+                  type?: ('link' | 'video' | 'download' | 'other') | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'resourcesList';
+          }
+        | {
+            title?: string | null;
+            description?: string | null;
+            groupByCategory?: boolean | null;
+            contacts?:
+              | {
+                  name: string;
+                  title?: string | null;
+                  category?: ('staff' | 'technical') | null;
+                  phone?: string | null;
+                  email?: string | null;
+                  photo?: (number | null) | Media;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'contactsList';
+          }
+      )[]
     | null;
-  resources?:
-    | {
-        label: string;
-        url: string;
-        id?: string | null;
-      }[]
-    | null;
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -746,27 +1307,124 @@ export interface GettingStarted {
  * via the `definition` "home-page_select".
  */
 export interface HomePageSelect<T extends boolean = true> {
-  heroTitle?: T;
-  heroSubtitle?: T;
-  heroButtonLabel?: T;
-  heroButtonHref?: T;
-  purposeTitle?: T;
-  purposeBody?: T;
-  goalsTitle?: T;
-  goalsIntroRich?: T;
-  goals?:
+  layout?:
     | T
     | {
-        item?: T;
-        id?: T;
-      };
-  gettingStartedTitle?: T;
-  gettingStartedBody?: T;
-  gettingStartedSteps?:
-    | T
-    | {
-        step?: T;
-        id?: T;
+        heroBlock?:
+          | T
+          | {
+              title?: T;
+              subtitle?: T;
+              buttonLabel?: T;
+              buttonHref?: T;
+              id?: T;
+              blockName?: T;
+            };
+        sectionTitle?:
+          | T
+          | {
+              title?: T;
+              subtitle?: T;
+              size?: T;
+              id?: T;
+              blockName?: T;
+            };
+        richTextBlock?:
+          | T
+          | {
+              body?: T;
+              id?: T;
+              blockName?: T;
+            };
+        textBlock?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+              blockName?: T;
+            };
+        videoBlock?:
+          | T
+          | {
+              video?: T;
+              url?: T;
+              caption?: T;
+              id?: T;
+              blockName?: T;
+            };
+        listBlock?:
+          | T
+          | {
+              title?: T;
+              listStyle?: T;
+              items?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        stepsList?:
+          | T
+          | {
+              title?: T;
+              steps?:
+                | T
+                | {
+                    heading?: T;
+                    description?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        buttonBlock?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+              blockName?: T;
+            };
+        resourcesList?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              resources?:
+                | T
+                | {
+                    title?: T;
+                    description?: T;
+                    url?: T;
+                    type?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        contactsList?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              groupByCategory?: T;
+              contacts?:
+                | T
+                | {
+                    name?: T;
+                    title?: T;
+                    category?: T;
+                    phone?: T;
+                    email?: T;
+                    photo?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
       };
   _status?: T;
   updatedAt?: T;
@@ -778,23 +1436,124 @@ export interface HomePageSelect<T extends boolean = true> {
  * via the `definition` "resources-page_select".
  */
 export interface ResourcesPageSelect<T extends boolean = true> {
-  heroTitle?: T;
-  heroIntro?: T;
-  sections?:
+  layout?:
     | T
     | {
-        title?: T;
-        description?: T;
-        resources?:
+        heroBlock?:
+          | T
+          | {
+              title?: T;
+              subtitle?: T;
+              buttonLabel?: T;
+              buttonHref?: T;
+              id?: T;
+              blockName?: T;
+            };
+        sectionTitle?:
+          | T
+          | {
+              title?: T;
+              subtitle?: T;
+              size?: T;
+              id?: T;
+              blockName?: T;
+            };
+        richTextBlock?:
+          | T
+          | {
+              body?: T;
+              id?: T;
+              blockName?: T;
+            };
+        textBlock?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+              blockName?: T;
+            };
+        videoBlock?:
+          | T
+          | {
+              video?: T;
+              url?: T;
+              caption?: T;
+              id?: T;
+              blockName?: T;
+            };
+        listBlock?:
+          | T
+          | {
+              title?: T;
+              listStyle?: T;
+              items?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        stepsList?:
+          | T
+          | {
+              title?: T;
+              steps?:
+                | T
+                | {
+                    heading?: T;
+                    description?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        buttonBlock?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+              blockName?: T;
+            };
+        resourcesList?:
           | T
           | {
               title?: T;
               description?: T;
-              url?: T;
-              type?: T;
+              resources?:
+                | T
+                | {
+                    title?: T;
+                    description?: T;
+                    url?: T;
+                    type?: T;
+                    id?: T;
+                  };
               id?: T;
+              blockName?: T;
             };
-        id?: T;
+        contactsList?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              groupByCategory?: T;
+              contacts?:
+                | T
+                | {
+                    name?: T;
+                    title?: T;
+                    category?: T;
+                    phone?: T;
+                    email?: T;
+                    photo?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
       };
   _status?: T;
   updatedAt?: T;
@@ -806,18 +1565,124 @@ export interface ResourcesPageSelect<T extends boolean = true> {
  * via the `definition` "contact-page_select".
  */
 export interface ContactPageSelect<T extends boolean = true> {
-  heroTitle?: T;
-  heroIntro?: T;
-  contacts?:
+  layout?:
     | T
     | {
-        name?: T;
-        title?: T;
-        category?: T;
-        phone?: T;
-        email?: T;
-        photo?: T;
-        id?: T;
+        heroBlock?:
+          | T
+          | {
+              title?: T;
+              subtitle?: T;
+              buttonLabel?: T;
+              buttonHref?: T;
+              id?: T;
+              blockName?: T;
+            };
+        sectionTitle?:
+          | T
+          | {
+              title?: T;
+              subtitle?: T;
+              size?: T;
+              id?: T;
+              blockName?: T;
+            };
+        richTextBlock?:
+          | T
+          | {
+              body?: T;
+              id?: T;
+              blockName?: T;
+            };
+        textBlock?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+              blockName?: T;
+            };
+        videoBlock?:
+          | T
+          | {
+              video?: T;
+              url?: T;
+              caption?: T;
+              id?: T;
+              blockName?: T;
+            };
+        listBlock?:
+          | T
+          | {
+              title?: T;
+              listStyle?: T;
+              items?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        stepsList?:
+          | T
+          | {
+              title?: T;
+              steps?:
+                | T
+                | {
+                    heading?: T;
+                    description?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        buttonBlock?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+              blockName?: T;
+            };
+        resourcesList?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              resources?:
+                | T
+                | {
+                    title?: T;
+                    description?: T;
+                    url?: T;
+                    type?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        contactsList?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              groupByCategory?: T;
+              contacts?:
+                | T
+                | {
+                    name?: T;
+                    title?: T;
+                    category?: T;
+                    phone?: T;
+                    email?: T;
+                    photo?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
       };
   _status?: T;
   updatedAt?: T;
@@ -829,22 +1694,126 @@ export interface ContactPageSelect<T extends boolean = true> {
  * via the `definition` "getting-started_select".
  */
 export interface GettingStartedSelect<T extends boolean = true> {
-  title?: T;
-  intro?: T;
-  steps?:
+  layout?:
     | T
     | {
-        heading?: T;
-        description?: T;
-        id?: T;
+        heroBlock?:
+          | T
+          | {
+              title?: T;
+              subtitle?: T;
+              buttonLabel?: T;
+              buttonHref?: T;
+              id?: T;
+              blockName?: T;
+            };
+        sectionTitle?:
+          | T
+          | {
+              title?: T;
+              subtitle?: T;
+              size?: T;
+              id?: T;
+              blockName?: T;
+            };
+        richTextBlock?:
+          | T
+          | {
+              body?: T;
+              id?: T;
+              blockName?: T;
+            };
+        textBlock?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+              blockName?: T;
+            };
+        videoBlock?:
+          | T
+          | {
+              video?: T;
+              url?: T;
+              caption?: T;
+              id?: T;
+              blockName?: T;
+            };
+        listBlock?:
+          | T
+          | {
+              title?: T;
+              listStyle?: T;
+              items?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        stepsList?:
+          | T
+          | {
+              title?: T;
+              steps?:
+                | T
+                | {
+                    heading?: T;
+                    description?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        buttonBlock?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+              blockName?: T;
+            };
+        resourcesList?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              resources?:
+                | T
+                | {
+                    title?: T;
+                    description?: T;
+                    url?: T;
+                    type?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        contactsList?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              groupByCategory?: T;
+              contacts?:
+                | T
+                | {
+                    name?: T;
+                    title?: T;
+                    category?: T;
+                    phone?: T;
+                    email?: T;
+                    photo?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
       };
-  resources?:
-    | T
-    | {
-        label?: T;
-        url?: T;
-        id?: T;
-      };
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
