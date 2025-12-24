@@ -7,7 +7,7 @@ export const fetchCache = "default-no-store";
 export default function RegisterPage() {
   return (
     <main className="min-h-[70vh] px-6 py-16">
-      <div className="mx-auto w-full max-w-xl rounded-3xl border border-border/60 bg-card/80 p-10 shadow-lg">
+      <div className="mx-auto w-full max-w-xl rounded-lg border border-border/60 bg-card/80 p-10 shadow-lg">
         <div className="space-y-2">
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
             Student Access

@@ -8,7 +8,7 @@ import AppSidebar from "@/components/admin-panel/sidebar";
 import { MobileSidebar } from "@/components/admin-panel/mobile-sidebar";
 import Footer from "@/components/Footer";
 import LockBodyScroll from "@/components/layout/LockBodyScroll";
-import { isAuthRoute } from "@/lib/routes/authRoutes";
+import { isAuthRoute, shouldHideSidebar } from "@/lib/routes/authRoutes";
 
 type SidebarLesson = { title: string; slug: string };
 type SidebarModule = { title: string; slug: string; lessons: SidebarLesson[] };
@@ -28,6 +28,7 @@ export default function PublicLayoutShell({
   const pathname = usePathname();
   const router = useRouter();
   const authOnly = isAuthRoute(pathname);
+  const hideSidebar = shouldHideSidebar(pathname);
 
   if (authOnly) {
     const handleBack = () => {
@@ -53,6 +54,14 @@ export default function PublicLayoutShell({
         <div className="flex min-h-[calc(100dvh-5rem)] items-center justify-center px-6 py-10">
           <div className="w-full max-w-2xl">{children}</div>
         </div>
+      </div>
+    );
+  }
+
+  if (hideSidebar) {
+    return (
+      <div className="min-h-dvh bg-background text-foreground">
+        <div className="mx-auto w-full max-w-4xl px-6 py-10">{children}</div>
       </div>
     );
   }
