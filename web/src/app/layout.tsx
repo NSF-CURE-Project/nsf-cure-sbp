@@ -1,8 +1,8 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { ThemeProvider } from "../theme/theme-provider";
-import Navbar from "@/components/navigation/navbar";
 import React from "react";
+import NavbarGate from "@/components/navigation/NavbarGate";
 
 export const metadata: Metadata = {
   title: "NSF CURE Summer Bridge Program",
@@ -32,7 +32,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
+          <NavbarGate />
           {children}
         </ThemeProvider>
       </body>
