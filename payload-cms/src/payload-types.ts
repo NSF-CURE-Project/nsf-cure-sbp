@@ -63,6 +63,7 @@ export type SupportedTimezones =
 
 export interface Config {
   auth: {
+    accounts: AccountAuthOperations;
     users: UserAuthOperations;
   };
   blocks: {};
@@ -70,6 +71,7 @@ export interface Config {
     classes: Class;
     chapters: Chapter;
     lessons: Lesson;
+    accounts: Account;
     users: User;
     media: Media;
     'payload-kv': PayloadKv;
@@ -82,6 +84,7 @@ export interface Config {
     classes: ClassesSelect<false> | ClassesSelect<true>;
     chapters: ChaptersSelect<false> | ChaptersSelect<true>;
     lessons: LessonsSelect<false> | LessonsSelect<true>;
+    accounts: AccountsSelect<false> | AccountsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -106,12 +109,34 @@ export interface Config {
     'getting-started': GettingStartedSelect<false> | GettingStartedSelect<true>;
   };
   locale: null;
-  user: User & {
-    collection: 'users';
-  };
+  user:
+    | (Account & {
+        collection: 'accounts';
+      })
+    | (User & {
+        collection: 'users';
+      });
   jobs: {
     tasks: unknown;
     workflows: unknown;
+  };
+}
+export interface AccountAuthOperations {
+  forgotPassword: {
+    email: string;
+    password: string;
+  };
+  login: {
+    email: string;
+    password: string;
+  };
+  registerFirstUser: {
+    email: string;
+    password: string;
+  };
+  unlock: {
+    email: string;
+    password: string;
   };
 }
 export interface UserAuthOperations {
@@ -353,6 +378,43 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "accounts".
+ */
+export interface Account {
+  id: number;
+  /**
+   * Default is student. Staff/admin can be used for special access.
+   */
+  role: 'student' | 'staff' | 'admin';
+  fullName?: string | null;
+  /**
+   * Reserved for CPP SSO integration (e.g., Okta, Azure AD).
+   */
+  ssoProvider?: string | null;
+  /**
+   * Reserved for CPP SSO integration (unique external user id).
+   */
+  ssoSubject?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -416,6 +478,10 @@ export interface PayloadLockedDocument {
         value: number | Lesson;
       } | null)
     | ({
+        relationTo: 'accounts';
+        value: number | Account;
+      } | null)
+    | ({
         relationTo: 'users';
         value: number | User;
       } | null)
@@ -424,10 +490,15 @@ export interface PayloadLockedDocument {
         value: number | Media;
       } | null);
   globalSlug?: string | null;
-  user: {
-    relationTo: 'users';
-    value: number | User;
-  };
+  user:
+    | {
+        relationTo: 'accounts';
+        value: number | Account;
+      }
+    | {
+        relationTo: 'users';
+        value: number | User;
+      };
   updatedAt: string;
   createdAt: string;
 }
@@ -437,10 +508,15 @@ export interface PayloadLockedDocument {
  */
 export interface PayloadPreference {
   id: number;
-  user: {
-    relationTo: 'users';
-    value: number | User;
-  };
+  user:
+    | {
+        relationTo: 'accounts';
+        value: number | Account;
+      }
+    | {
+        relationTo: 'users';
+        value: number | User;
+      };
   key?: string | null;
   value?:
     | {
@@ -620,6 +696,32 @@ export interface LessonsSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "accounts_select".
+ */
+export interface AccountsSelect<T extends boolean = true> {
+  role?: T;
+  fullName?: T;
+  ssoProvider?: T;
+  ssoSubject?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

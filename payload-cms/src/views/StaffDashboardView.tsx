@@ -285,7 +285,7 @@ const StaffDashboardContent = ({
 }: {
   user?: AdminViewServerProps['initPageResult']['req']['user'];
   stats: {
-    mainPages: number;
+    accounts: number;
     lessons: number;
     drafts: number;
   };
@@ -362,7 +362,7 @@ const StaffDashboardContent = ({
               <div style={mockChipStyle}>Live</div>
             </div>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <StatCard label="Main Pages" value={`${stats.mainPages}`} />
+              <StatCard label="Student Accounts" value={`${stats.accounts}`} />
               <StatCard label="Lessons" value={`${stats.lessons}`} />
               <StatCard label="Drafts" value={`${stats.drafts}`} />
             </div>
@@ -470,7 +470,7 @@ const AdminDashboardContent = ({
 }: {
   user?: AdminViewServerProps['initPageResult']['req']['user'];
   stats: {
-    mainPages: number;
+    accounts: number;
     lessons: number;
     drafts: number;
   };
@@ -547,7 +547,7 @@ const AdminDashboardContent = ({
               <div style={mockChipStyle}>Live</div>
             </div>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <StatCard label="Main Pages" value={`${stats.mainPages}`} />
+              <StatCard label="Student Accounts" value={`${stats.accounts}`} />
               <StatCard label="Lessons" value={`${stats.lessons}`} />
               <StatCard label="Drafts" value={`${stats.drafts}`} />
             </div>
@@ -656,6 +656,7 @@ export default async function StaffDashboardView({
   let lessonsCount = 0;
   let lessonsDraftCount = 0;
   let globalsDraftCount = 0;
+  let accountsCount = 0;
 
   try {
     const lessons = await payload.find({
@@ -684,6 +685,17 @@ export default async function StaffDashboardView({
     lessonsDraftCount = 0;
   }
 
+  try {
+    const accounts = await payload.find({
+      collection: 'accounts',
+      depth: 0,
+      limit: 0,
+    });
+    accountsCount = accounts.totalDocs ?? 0;
+  } catch {
+    accountsCount = 0;
+  }
+
   const globalSlugs = ['home-page', 'resources-page', 'contact-page', 'getting-started'];
   for (const slug of globalSlugs) {
     try {
@@ -700,7 +712,7 @@ export default async function StaffDashboardView({
   }
 
   const stats = {
-    mainPages: globalSlugs.length,
+    accounts: accountsCount,
     lessons: lessonsCount,
     drafts: lessonsDraftCount + globalsDraftCount,
   };
