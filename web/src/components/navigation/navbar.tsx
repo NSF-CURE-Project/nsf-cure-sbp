@@ -4,9 +4,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "next-themes";
-import { Menu, Search } from "lucide-react";
+import { ChevronDown, LogOut, Menu, Search, Settings, User as UserIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/theme/ThemeToggle";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -85,6 +94,15 @@ export default function Navbar() {
     ? "/assets/logos/nsf.png"
     : "/assets/logos/nsf.png";
 
+  const displayName = user?.fullName ?? "Student";
+  const initials =
+    displayName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("") || "SB";
+
   return (
     <nav
       aria-label="Primary"
@@ -146,31 +164,6 @@ export default function Navbar() {
 
       {/* Right cluster */}
       <div className="ml-auto flex items-center gap-2">
-        {user ? (
-          <div className="hidden md:flex flex-col items-end text-xs leading-tight">
-            <span className="text-muted-foreground uppercase tracking-wide">Logged in as</span>
-            <span className="text-foreground">
-              {user.fullName ?? "Student"} • {user.email}
-            </span>
-          </div>
-        ) : null}
-        {user ? (
-          <button
-            type="button"
-            onClick={handleSignOut}
-            disabled={authBusy}
-            className="hidden md:inline-flex items-center rounded-md border border-border/70 bg-muted/40 px-3 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {authBusy ? "Signing out..." : "Sign Out"}
-          </button>
-        ) : (
-          <Link
-            href="/login"
-            className="hidden md:inline-flex items-center rounded-md border border-border/70 bg-muted/40 px-3 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/60"
-          >
-            Sign In
-          </Link>
-        )}
         <form
           role="search"
           className="relative hidden md:block w-48 lg:w-56"
@@ -183,8 +176,77 @@ export default function Navbar() {
             className="h-10 rounded-lg border-border/80 bg-muted/40 pl-9 pr-3 text-sm shadow-sm transition focus-visible:ring-2 focus-visible:ring-primary/50"
           />
         </form>
-
-        <ThemeToggle />
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="hidden md:inline-flex items-center gap-2 rounded-full px-2.5 py-1.5 text-sm font-medium text-foreground transition hover:bg-muted/40"
+              >
+                <Avatar className="h-8 w-8 border border-border/50">
+                  <AvatarImage src="" alt={displayName} />
+                  <AvatarFallback className="bg-muted/60 text-xs font-semibold">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="max-w-[140px] truncate">{displayName}</span>
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              sideOffset={10}
+              className="z-[9999] w-56 bg-background shadow-xl"
+            >
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{displayName}</p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link href="/profile" className="flex items-center">
+                  <UserIcon className="mr-3 h-4 w-4 text-muted-foreground" />
+                  Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link href="/settings" className="flex items-center">
+                  <Settings className="mr-3 h-4 w-4 text-muted-foreground" />
+                  Settings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={handleSignOut}
+                disabled={authBusy}
+              >
+                <LogOut className="mr-3 h-4 w-4 text-muted-foreground" />
+                {authBusy ? "Signing out..." : "Logout"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <div className="px-2 py-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Theme
+                  </span>
+                  <ThemeToggle variant="icon" className="hover:bg-muted/60" />
+                </div>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Link
+            href="/login"
+            className="hidden md:inline-flex items-center rounded-md border border-border/70 bg-muted/40 px-3 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/60"
+          >
+            Sign In
+          </Link>
+        )}
 
         {/* Mobile menu */}
         <Sheet>
@@ -209,11 +271,21 @@ export default function Navbar() {
             <div className="px-5 pb-6 space-y-4">
               {user ? (
                 <div className="rounded-lg border border-border/60 bg-muted/40 px-4 py-3 text-sm">
-                  <div className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Logged in as
-                  </div>
-                  <div className="text-foreground">
-                    {user.fullName ?? "Student"} • {user.email}
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-9 w-9 border border-border/50">
+                      <AvatarImage src="" alt={displayName} />
+                      <AvatarFallback className="bg-background text-xs font-semibold">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                        Logged in as
+                      </div>
+                      <div className="text-foreground">
+                        {displayName} • {user.email}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ) : null}
@@ -246,14 +318,34 @@ export default function Navbar() {
                   Contact Us
                 </Link>
                 {user ? (
-                  <button
-                    type="button"
-                    onClick={handleSignOut}
-                    disabled={authBusy}
-                    className="rounded-md px-3 py-2 text-left transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {authBusy ? "Signing out..." : "Sign Out"}
-                  </button>
+                  <>
+                    <Link
+                      href="/profile"
+                      className="rounded-md px-3 py-2 transition hover:bg-muted"
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      href="/settings"
+                      className="rounded-md px-3 py-2 transition hover:bg-muted"
+                    >
+                      Settings
+                    </Link>
+                    <div className="rounded-md px-3 py-2">
+                      <div className="flex items-center justify-between text-xs uppercase tracking-wide text-muted-foreground">
+                        Theme
+                        <ThemeToggle variant="icon" className="hover:bg-muted/60" />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      disabled={authBusy}
+                      className="rounded-md px-3 py-2 text-left transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {authBusy ? "Signing out..." : "Logout"}
+                    </button>
+                  </>
                 ) : (
                   <Link
                     href="/login"
