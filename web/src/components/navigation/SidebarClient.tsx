@@ -73,6 +73,8 @@ export default function SidebarClient({ classes }: Props) {
       };
     }, [pathname]);
 
+  const showOnlyTopLevel = !currentLessonSlug && !currentChapterSlug;
+
   // lessonSlug -> { classSlug, chapterSlug }
   const lessonOwner = useMemo(() => {
     const map: Record<string, { classSlug: string; chapterSlug: string }> = {};
@@ -161,41 +163,52 @@ export default function SidebarClient({ classes }: Props) {
           const cSlug = getClassSlug(cls);
           if (!cSlug) return null;
           const classOpen = !!openClasses[cSlug];
+          const classTitle = getClassTitle(cls);
 
           return (
             <li key={cSlug}>
               {/* Class header */}
+              {showOnlyTopLevel ? (
+                <Link
+                  href={`/classes/${cSlug}`}
+                  className="block px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground/80 transition-colors hover:text-foreground"
+                >
+                  {classTitle}
+                </Link>
+              ) : (
                 <button
                   type="button"
                   aria-expanded={classOpen}
                   aria-controls={`panel-class-${cSlug}`}
                   onClick={() => toggleClass(cSlug)}
                   className={[
-                    "group flex w-full items-center justify-between gap-2 px-4 py-2 text-base font-medium transition-colors",
-                    "text-muted-foreground hover:text-[#FFB81C] hover:bg-muted/40",
+                    "group flex w-full items-center justify-between gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition-colors",
+                    "text-muted-foreground/80 hover:text-foreground",
                   ].join(" ")}
                 >
-                  <span className="flex-1 text-left">{getClassTitle(cls)}</span>
+                  <span className="flex-1 text-left">{classTitle}</span>
                   <ChevronRight
                     className={[
-                    "h-3 w-3 shrink-0 transition-transform",
-                      classOpen ? "rotate-90 -translate-x-2" : "",
+                      "h-3 w-3 shrink-0 transition-transform text-muted-foreground/60",
+                      classOpen ? "rotate-90 -translate-x-1" : "",
                     ].join(" ")}
                     aria-hidden="true"
                   />
                 </button>
+              )}
 
               {/* Chapters (collapsible) */}
-              <div
-                id={`panel-class-${cSlug}`}
-                className={[
-                  "grid transition-[grid-template-rows,opacity] duration-200 ease-out",
-                  classOpen
-                    ? "grid-rows-[1fr] opacity-100"
-                    : "grid-rows-[0fr] opacity-70",
-                ].join(" ")}
-              >
-                <ul className="min-h-0 overflow-hidden pl-6 pr-2 space-y-1">
+              {!showOnlyTopLevel && (
+                <div
+                  id={`panel-class-${cSlug}`}
+                  className={[
+                    "grid transition-[grid-template-rows,opacity] duration-200 ease-out",
+                    classOpen
+                      ? "grid-rows-[1fr] opacity-100"
+                      : "grid-rows-[0fr] opacity-70",
+                  ].join(" ")}
+                >
+                  <ul className="min-h-0 overflow-hidden pl-6 pr-2 space-y-1">
                   {getChapters(cls).map((ch) => {
                     const chSlug = getChapterSlug(ch);
                     if (!chSlug) return null;
@@ -217,14 +230,7 @@ export default function SidebarClient({ classes }: Props) {
 
                     return (
                       <li key={chSlug}>
-                        <div
-                          className={[
-                            "relative pl-3 border-l",
-                            chapterBarActive
-                              ? "border-l-2 border-[#FFB81C]"
-                              : "border-border/30",
-                          ].join(" ")}
-                        >
+                        <div className="relative pl-3">
                           {/* Chapter header */}
                           <button
                             type="button"
@@ -232,11 +238,11 @@ export default function SidebarClient({ classes }: Props) {
                             aria-controls={`panel-ch-${chKey}`}
                             onClick={() => toggleChapter(cSlug, chSlug)}
                             className={[
-                              "group flex w-full items-center justify-between gap-2 px-2 py-1 pr-2 font-normal rounded-md transition-colors text-left",
+                              "group flex w-full items-center justify-between gap-2 px-2 py-1 pr-2 rounded-md transition-colors text-left border-l-2",
                               chapterBarActive
-                                ? "text-[#FFB81C]"
-                                : "text-muted-foreground",
-                              "hover:text-[#FFB81C] hover:bg-muted/40",
+                                ? "bg-muted/30 text-foreground border-[#FFB81C] pl-1"
+                                : "text-muted-foreground border-transparent",
+                              "hover:text-foreground hover:bg-muted/30",
                             ].join(" ")}
                           >
                             <span className="flex-1 text-left">
@@ -244,8 +250,8 @@ export default function SidebarClient({ classes }: Props) {
                             </span>
                             <ChevronRight
                               className={[
-                                "h-3 w-3 shrink-0 transition-transform",
-                                chOpen ? "rotate-90 -translate-x-2" : "",
+                                "h-3 w-3 shrink-0 transition-transform text-muted-foreground/60",
+                                chOpen ? "rotate-90 -translate-x-1" : "",
                               ].join(" ")}
                               aria-hidden="true"
                             />
@@ -257,16 +263,14 @@ export default function SidebarClient({ classes }: Props) {
                               <Link
                                 href={`/classes/${cSlug}/chapters/${chSlug}`}
                                 className={[
-                                  "inline-block w-fit px-3 py-0.5 text-sm rounded-md border transition-colors",
+                                  "inline-flex w-fit items-center gap-2 px-3 py-1 text-sm rounded-md transition-colors border-l-2",
                                   chapterOverviewActive
-                                    ? "text-[#FFB81C] border-[#FFB81C]"
-                                    : "text-muted-foreground border-border hover:text-[#FFB81C] hover:border-[#FFB81C] hover:bg-muted/30",
+                                    ? "bg-muted/40 text-foreground border-[#FFB81C]"
+                                    : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/30",
                                 ].join(" ")}
                               >
                                 Chapter Overview
                               </Link>
-
-                              <div className="mt-2 h-px w-full bg-border" />
                             </div>
                           )}
 
@@ -292,11 +296,18 @@ export default function SidebarClient({ classes }: Props) {
                                       className={[
                                         "block rounded-md px-2 py-1 transition-colors",
                                         active
-                                          ? "bg-muted/40 text-[#FFB81C] font-semibold"
-                                          : "text-muted-foreground hover:text-[#FFB81C] hover:bg-muted/30",
+                                          ? "bg-muted/40 text-foreground"
+                                          : "text-muted-foreground hover:text-foreground hover:bg-muted/30",
                                       ].join(" ")}
                                     >
-                                      {getLessonTitle(ls)}
+                                      <span
+                                        className={[
+                                          "relative block pl-2",
+                                          active ? "border-l-2 border-[#FFB81C]" : "",
+                                        ].join(" ")}
+                                      >
+                                        {getLessonTitle(ls)}
+                                      </span>
                                     </Link>
                                   </li>
                                 );
@@ -312,8 +323,9 @@ export default function SidebarClient({ classes }: Props) {
                       </li>
                     );
                   })}
-                </ul>
-              </div>
+                  </ul>
+                </div>
+              )}
             </li>
           );
         })}

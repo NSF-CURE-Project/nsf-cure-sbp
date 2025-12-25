@@ -51,7 +51,19 @@ export default async function RootLayout({
  * }
  */
 function normalizeClassesForSidebar(classes: ClassDoc[]): SidebarClass[] {
-  return classes.map((cls: ClassDoc) => {
+  const byOrderThenTitle = (
+    a: { order?: number | null; title?: string | null },
+    b: { order?: number | null; title?: string | null }
+  ) => {
+    const orderA = typeof a.order === "number" ? a.order : Number(a.order ?? 0);
+    const orderB = typeof b.order === "number" ? b.order : Number(b.order ?? 0);
+    if (orderA !== orderB) return orderA - orderB;
+    const titleA = typeof a.title === "string" ? a.title.toLowerCase() : "";
+    const titleB = typeof b.title === "string" ? b.title.toLowerCase() : "";
+    return titleA.localeCompare(titleB);
+  };
+
+  return [...classes].sort(byOrderThenTitle).map((cls: ClassDoc) => {
     const c = cls as ClassDoc & { chapters?: ChapterDoc[] };
 
     const title =
@@ -63,7 +75,7 @@ function normalizeClassesForSidebar(classes: ClassDoc[]): SidebarClass[] {
 
     const chapters: ChapterDoc[] = Array.isArray(c.chapters) ? c.chapters : [];
 
-    const modules = chapters.map((chapter) => {
+    const modules = [...chapters].sort(byOrderThenTitle).map((chapter) => {
       const ch = chapter as ChapterDoc & { lessons?: LessonDoc[] };
       const chapterTitle =
         typeof ch.title === "string" && ch.title.trim()
@@ -76,7 +88,8 @@ function normalizeClassesForSidebar(classes: ClassDoc[]): SidebarClass[] {
         ? ch.lessons
         : [];
 
-      const lessons = rawLessons
+      const lessons = [...rawLessons]
+        .sort(byOrderThenTitle)
         .map((lesson) => {
           const l = lesson as LessonDoc;
           return {

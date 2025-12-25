@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { pageBlocks } from "../blocks/pageBlocks";
+import { ensureUniqueSlug, slugify } from "../utils/slug";
 
 export const Lessons: CollectionConfig = {
   slug: "lessons",
@@ -54,11 +55,45 @@ export const Lessons: CollectionConfig = {
   versions: {
     drafts: true,
   },
+  hooks: {
+    beforeValidate: [
+      async ({ data, req, originalDoc, id }) => {
+        if (!data) return data;
+        if (!data.slug) {
+          const title = data.title ?? originalDoc?.title ?? "";
+          const base = slugify(String(title));
+          const chapter = data.chapter ?? originalDoc?.chapter;
+          const chapterId =
+            typeof chapter === "object" && chapter !== null
+              ? (chapter as any).id
+              : chapter;
+          data.slug = await ensureUniqueSlug({
+            base,
+            collection: "lessons",
+            req,
+            id,
+            where: chapterId ? { chapter: { equals: chapterId } } : undefined,
+          });
+        }
+        return data;
+      },
+    ],
+  },
   fields: [
     {
       name: "title",
       type: "text",
       required: true,
+    },
+    {
+      name: "chapter",
+      label: "Chapter",
+      type: "relationship",
+      relationTo: "chapters" as any,
+      required: true,
+      admin: {
+        description: "Assign this lesson to a chapter.",
+      },
     },
 
     // 🔹 NEW: slug used in /classes/[classSlug]/lessons/[lessonSlug]
@@ -66,10 +101,34 @@ export const Lessons: CollectionConfig = {
       name: "slug",
       type: "text",
       required: true,
-      unique: true,
+      validate: async (value, { data, req, id }) => {
+        if (!value || typeof value !== "string") return "Slug is required.";
+        const chapter = data?.chapter;
+        const chapterId =
+          typeof chapter === "object" && chapter !== null
+            ? (chapter as any).id
+            : chapter;
+        if (!chapterId) return "Select a chapter before setting the slug.";
+        if (!req?.payload) return true;
+        const existing = await req.payload.find({
+          collection: "lessons",
+          depth: 0,
+          limit: 1,
+          where: {
+            slug: { equals: value },
+            chapter: { equals: chapterId },
+            id: { not_equals: id },
+          },
+        });
+        if (existing.totalDocs > 0) {
+          return "Slug must be unique within this chapter.";
+        }
+        return true;
+      },
       admin: {
         description:
-          "Used in lesson URLs, e.g. /classes/statics/lessons/vector-operations",
+          "Auto-generated from the lesson title. Must be unique within a chapter.",
+        hidden: true,
       },
     },
 

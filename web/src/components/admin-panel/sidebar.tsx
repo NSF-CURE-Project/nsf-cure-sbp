@@ -30,15 +30,15 @@ export default function AppSidebar({ classes, className }: AppSidebarProps) {
   return (
     <Sidebar
       className={cn(
-        "relative border-r bg-background min-h-dvh h-full flex-col overflow-hidden lg:sticky lg:top-[var(--nav-h,4rem)] lg:h-[calc(100vh-var(--nav-h,4rem))] transition-[width] duration-200",
+        "relative min-h-dvh h-full flex-col overflow-hidden lg:sticky lg:top-[var(--nav-h,4rem)] lg:h-[calc(100vh-var(--nav-h,4rem))] transition-[width] duration-200",
         isOpen ? "w-64" : "w-14",
         className
       )}
     >
-      <div className="sticky top-0 z-20 flex items-center justify-between pr-1 pl-2 py-2 border-b border-border/60 bg-background/95 backdrop-blur relative">
+      <div className="sticky top-0 z-20 flex items-center gap-2 pr-3 pl-3 py-2 bg-transparent backdrop-blur">
         <div
           className={cn(
-            "text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-opacity duration-150",
+            "text-xs font-semibold uppercase tracking-wide text-muted-foreground/80 transition-opacity duration-150",
             isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
           )}
         >
@@ -48,13 +48,13 @@ export default function AppSidebar({ classes, className }: AppSidebarProps) {
           type="button"
           onClick={toggle}
           className={cn(
-            "h-7 w-7 rounded-full border border-border/70 bg-muted/80 text-foreground shadow-sm hover:bg-muted transition flex items-center justify-center",
-            "absolute right-1 top-1/2 -translate-y-1/2"
+            "ml-auto flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground/70 transition hover:bg-muted/40 hover:text-foreground/80",
+            !isOpen && "absolute right-2 top-2"
           )}
           aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
         >
           <ChevronLeft
-            className={cn("h-4 w-4 transition-transform", isOpen ? "" : "rotate-180")}
+            className={cn("h-3.5 w-3.5 transition-transform", isOpen ? "" : "rotate-180")}
           />
         </button>
       </div>

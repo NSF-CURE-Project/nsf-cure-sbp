@@ -9,7 +9,19 @@ export default async function Sidebar() {
 }
 
 function normalizeClassesForSidebar(classes: ClassDoc[]) {
-  return classes.map((cls) => {
+  const byOrderThenTitle = (
+    a: { order?: number | null; title?: string | null },
+    b: { order?: number | null; title?: string | null }
+  ) => {
+    const orderA = typeof a.order === "number" ? a.order : Number(a.order ?? 0);
+    const orderB = typeof b.order === "number" ? b.order : Number(b.order ?? 0);
+    if (orderA !== orderB) return orderA - orderB;
+    const titleA = typeof a.title === "string" ? a.title.toLowerCase() : "";
+    const titleB = typeof b.title === "string" ? b.title.toLowerCase() : "";
+    return titleA.localeCompare(titleB);
+  };
+
+  return [...classes].sort(byOrderThenTitle).map((cls) => {
     const title =
       typeof cls.title === "string" && cls.title.trim()
         ? cls.title
@@ -21,7 +33,7 @@ function normalizeClassesForSidebar(classes: ClassDoc[]) {
       ? (cls.chapters as ChapterDoc[])
       : [];
 
-    const modules = chapters.map((ch) => {
+    const modules = [...chapters].sort(byOrderThenTitle).map((ch) => {
       const chapterTitle =
         typeof ch?.title === "string" && ch.title.trim()
           ? ch.title
@@ -33,7 +45,8 @@ function normalizeClassesForSidebar(classes: ClassDoc[]) {
         ? (ch.lessons as LessonDoc[])
         : [];
 
-      const lessons = rawLessons
+      const lessons = [...rawLessons]
+        .sort(byOrderThenTitle)
         .map((l) => ({
           title:
             typeof l?.title === "string" && l.title.trim()

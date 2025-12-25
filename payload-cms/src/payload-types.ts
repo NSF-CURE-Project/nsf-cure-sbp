@@ -158,7 +158,7 @@ export interface Class {
   title: string;
   description?: string | null;
   /**
-   * Lower numbers appear earlier in the sidebar.
+   * Managed from the Reorder classes list.
    */
   order?: number | null;
   chapters?: (number | Chapter)[] | null;
@@ -202,7 +202,11 @@ export interface Lesson {
   id: number;
   title: string;
   /**
-   * Used in lesson URLs, e.g. /classes/statics/lessons/vector-operations
+   * Assign this lesson to a chapter.
+   */
+  chapter: number | Chapter;
+  /**
+   * Auto-generated from the lesson title. Must be unique within a chapter.
    */
   slug: string;
   /**
@@ -376,7 +380,7 @@ export interface Page {
   id: number;
   title: string;
   /**
-   * Used in URLs. Use 'home' for the homepage, or any slug for /[slug].
+   * Auto-generated from the page title. Use 'Home' to create the homepage slug.
    */
   slug: string;
   /**
@@ -724,6 +728,7 @@ export interface ChaptersSelect<T extends boolean = true> {
  */
 export interface LessonsSelect<T extends boolean = true> {
   title?: T;
+  chapter?: T;
   slug?: T;
   layout?:
     | T

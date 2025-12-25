@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 
 import { pageBlocks } from "../blocks/pageBlocks";
+import { ensureUniqueSlug, slugify } from "../utils/slug";
 
 export const Pages: CollectionConfig = {
   slug: "pages",
@@ -50,6 +51,28 @@ export const Pages: CollectionConfig = {
   versions: {
     drafts: true,
   },
+  hooks: {
+    beforeValidate: [
+      async ({ data, req, originalDoc, id }) => {
+        if (!data) return data;
+        if (!data.slug) {
+          const title = data.title ?? originalDoc?.title ?? "";
+          const normalizedTitle = String(title).trim().toLowerCase();
+          const base =
+            normalizedTitle === "home" || normalizedTitle === "home page"
+              ? "home"
+              : slugify(String(title));
+          data.slug = await ensureUniqueSlug({
+            base,
+            collection: "pages",
+            req,
+            id,
+          });
+        }
+        return data;
+      },
+    ],
+  },
   fields: [
     {
       name: "title",
@@ -63,7 +86,8 @@ export const Pages: CollectionConfig = {
       unique: true,
       admin: {
         description:
-          "Used in URLs. Use 'home' for the homepage, or any slug for /[slug].",
+          "Auto-generated from the page title. Use 'Home' to create the homepage slug.",
+        hidden: true,
       },
     },
     {

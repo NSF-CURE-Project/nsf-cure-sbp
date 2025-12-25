@@ -1,6 +1,7 @@
 import type { AdminViewServerProps } from 'payload';
 import { Gutter } from '@payloadcms/ui';
 import React from 'react';
+import ClassOrderList from './ClassOrderList';
 
 const cppGreen = '#005030';
 const cppGold = '#FFB81C';
@@ -493,6 +494,11 @@ const StaffDashboardContent = ({
             description="Review and edit lessons."
           />
         </div>
+      </div>
+
+      <div style={sectionLabelStyle}>Reorder classes</div>
+      <div style={{ ...contentBoxStyle }}>
+        <ClassOrderList showEditLinks />
       </div>
 
       <div style={helpBoxStyle}>

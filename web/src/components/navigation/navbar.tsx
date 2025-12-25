@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { ChevronDown, LogOut, Menu, Search, Settings, User as UserIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -28,12 +29,48 @@ const PAYLOAD_URL = process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:300
 
 export default function Navbar() {
   const { resolvedTheme, theme, systemTheme } = useTheme();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<{ email: string; fullName?: string } | null>(null);
   const [pages, setPages] = useState<{ id: string; slug: string; title: string }[]>([]);
   const [authBusy, setAuthBusy] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const tagName = target?.tagName;
+      const isTypingTarget =
+        tagName === "INPUT" ||
+        tagName === "TEXTAREA" ||
+        tagName === "SELECT" ||
+        target?.isContentEditable;
+
+      if ((event.key === "k" && (event.metaKey || event.ctrlKey)) || (event.key === "/" && !isTypingTarget)) {
+        event.preventDefault();
+        setSearchOpen(true);
+        return;
+      }
+
+      if (event.key === "Escape" && searchOpen) {
+        setSearchOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    requestAnimationFrame(() => {
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+    });
+  }, [searchOpen]);
   useEffect(() => {
     const controller = new AbortController();
     const loadUser = async () => {
@@ -95,6 +132,14 @@ export default function Navbar() {
       setAuthBusy(false);
       window.location.href = "/";
     }
+  };
+
+  const handleSearchSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    const query = searchValue.trim();
+    if (!query) return;
+    setSearchOpen(false);
+    router.push(`/search?q=${encodeURIComponent(query)}`);
   };
 
   const mode = useMemo(() => {
@@ -187,18 +232,18 @@ export default function Navbar() {
 
       {/* Right cluster */}
       <div className="ml-auto flex items-center gap-2">
-        <form
-          role="search"
-          className="relative hidden md:block w-48 lg:w-56"
-          action="/search"
+        <button
+          type="button"
+          className="hidden md:flex items-center gap-2 rounded-lg border border-border/70 bg-muted/40 px-3 py-1 text-[13px] text-muted-foreground shadow-sm transition hover:bg-muted/60"
+          onClick={() => setSearchOpen(true)}
+          aria-label="Open search"
         >
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            name="q"
-            placeholder="Search program..."
-            className="h-10 rounded-lg border-border/80 bg-muted/40 pl-9 pr-3 text-sm shadow-sm transition focus-visible:ring-2 focus-visible:ring-primary/50"
-          />
-        </form>
+          <Search className="h-4 w-4" />
+          <span className="text-sm">Search program...</span>
+          <span className="ml-2 rounded-md border border-border/60 bg-background px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-foreground/70">
+            ⌘K
+          </span>
+        </button>
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -219,7 +264,7 @@ export default function Navbar() {
             <DropdownMenuContent
               side="bottom"
               align="center"
-              sideOffset={8}
+              sideOffset={12}
               alignOffset={0}
               className="z-[9999] w-56 bg-background shadow-xl"
             >
@@ -381,6 +426,56 @@ export default function Navbar() {
           </SheetContent>
         </Sheet>
       </div>
+      {searchOpen ? (
+        <div
+          className="fixed inset-0 z-[10000] bg-black/40 backdrop-blur-sm"
+          onClick={() => setSearchOpen(false)}
+        >
+          <div
+            className="mx-auto mt-24 w-[min(92vw,720px)] rounded-2xl border border-border/70 bg-background shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 border-b border-border/60 px-4 py-3">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <form className="flex-1" onSubmit={handleSearchSubmit}>
+                <input
+                  ref={searchInputRef}
+                  value={searchValue}
+                  onChange={(event) => setSearchValue(event.target.value)}
+                  placeholder="What are you searching for?"
+                  className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                />
+              </form>
+              <span className="rounded-md border border-border/60 bg-muted/40 px-2 py-1 text-[11px] font-semibold text-muted-foreground">
+                Esc
+              </span>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Quick links
+              </div>
+              <div className="mt-2 grid gap-2">
+                <Link
+                  href="/directory"
+                  className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-sm text-foreground transition hover:bg-muted/40"
+                  onClick={() => setSearchOpen(false)}
+                >
+                  Site Directory
+                  <span className="text-xs text-muted-foreground">Browse all pages</span>
+                </Link>
+                <Link
+                  href="/classes"
+                  className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-sm text-foreground transition hover:bg-muted/40"
+                  onClick={() => setSearchOpen(false)}
+                >
+                  Classes
+                  <span className="text-xs text-muted-foreground">Explore lessons</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </nav>
   );
 }
