@@ -4,8 +4,10 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="w-full border-t bg-background/70 backdrop-blur py-10 mt-12 text-sm text-muted-foreground">
-      <div className="w-full px-6 sm:px-10 lg:px-12 grid grid-cols-1 sm:grid-cols-3 gap-8">
+    <footer className="w-full border-t bg-muted/30 text-sm text-muted-foreground">
+      <div className="w-full">
+        <div className="mx-auto w-full max-w-6xl px-4 py-10 pb-12 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-10 sm:grid-cols-3 sm:justify-items-center">
         {/* 🧭 Site links */}
         <div>
           <h3 className="font-semibold text-foreground mb-3">Explore</h3>
@@ -30,10 +32,10 @@ export default function Footer() {
           <ul className="space-y-2">
             <li>
               <a
-                href="mailto:cure@cpp.edu"
+                href="mailto:cnsfcuresbp@gmail.com"
                 className="hover:underline"
               >
-                cure@cpp.edu
+                nsfcuresbp@gmail.com
               </a>
             </li>
             <li>3801 W Temple Ave, Pomona, CA 91768</li>
@@ -49,16 +51,18 @@ export default function Footer() {
             </li>
           </ul>
         </div>
-      </div>
+          </div>
 
-      {/* 🦶 Bottom bar */}
-      <div className="mt-8 border-t pt-4 text-center text-xs text-muted-foreground/80 px-6 sm:px-10 lg:px-12">
-        <p>
-          © {new Date().getFullYear()} Cal Poly Pomona Engineering — NSF CURE Summer Bridge Program
-        </p>
-        <p className="mt-1">
-          Built with ❤️ using Next.js, Tailwind CSS, and Payload.
-        </p>
+          {/* 🦶 Bottom bar */}
+          <div className="mt-8 text-center text-xs text-muted-foreground/80">
+            <p>
+              © {new Date().getFullYear()} Cal Poly Pomona Engineering — NSF CURE Summer Bridge Program
+            </p>
+            <p className="mt-1">
+              Built with ❤️ using Next.js, Tailwind CSS, and Payload.
+            </p>
+          </div>
+        </div>
       </div>
     </footer>
   );

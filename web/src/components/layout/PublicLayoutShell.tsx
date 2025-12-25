@@ -7,7 +7,6 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/admin-panel/sidebar";
 import { MobileSidebar } from "@/components/admin-panel/mobile-sidebar";
 import Footer from "@/components/Footer";
-import LockBodyScroll from "@/components/layout/LockBodyScroll";
 import { isAuthRoute, shouldHideSidebar } from "@/lib/routes/authRoutes";
 
 type SidebarLesson = { title: string; slug: string };
@@ -68,39 +67,37 @@ export default function PublicLayoutShell({
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <LockBodyScroll />
-      <div className="relative h-[calc(100dvh-var(--nav-h,4rem))] bg-background text-foreground flex overflow-hidden">
-        <div className="hidden lg:flex lg:fixed lg:left-0 lg:top-[var(--nav-h,4rem)] lg:h-[calc(100vh-var(--nav-h,4rem))] lg:w-64 lg:z-30 lg:bg-background">
-          <AppSidebar classes={sidebarClasses} />
-        </div>
-
-        <SidebarInset className="flex-1 flex flex-col min-w-0 h-[calc(100dvh-var(--nav-h,4rem))] overflow-hidden lg:ml-64">
-          <div
-            id="layout"
-            className="h-full flex flex-col overflow-y-scroll overflow-x-hidden"
-            style={{ scrollbarGutter: "stable" }}
-          >
-            <main className="min-w-0 p-4 sm:p-6 lg:px-8 flex-1">
-              <div className="lg:hidden mb-4 flex items-center justify-between gap-3">
-                <MobileSidebar classes={sidebarClasses} />
-                <span className="text-xs text-muted-foreground">
-                  Tap to browse classes and lessons
-                </span>
-              </div>
-
-              <div
-                id="content"
-                className="mx-auto w-full max-w-[var(--content-max,100ch)] transition-[max-width] duration-300"
-              >
-                {children}
-              </div>
-            </main>
-
-            <footer className="border-t bg-background/80 backdrop-blur py-8 px-6 text-center text-sm text-muted-foreground w-full">
-              <Footer />
-            </footer>
+      <div className="relative min-h-[calc(100dvh-var(--nav-h,4rem))] bg-background text-foreground flex flex-col">
+        <div className="flex-1 grid lg:grid-cols-[16rem_minmax(0,1fr)]">
+          <div className="hidden lg:flex lg:flex-col lg:sticky lg:top-[var(--nav-h,4rem)] lg:h-[calc(100dvh-var(--nav-h,4rem))] lg:bg-background lg:border-r lg:border-border/60 lg:shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+            <AppSidebar classes={sidebarClasses} />
           </div>
-        </SidebarInset>
+
+          <SidebarInset className="flex flex-col min-w-0 lg:col-start-2">
+            <div
+              id="layout"
+              className="min-h-full flex flex-col"
+              style={{ scrollbarGutter: "stable" }}
+            >
+              <main className="min-w-0 p-4 sm:p-6 lg:px-8 flex-1">
+                <div className="lg:hidden mb-4 flex items-center justify-between gap-3">
+                  <MobileSidebar classes={sidebarClasses} />
+                  <span className="text-xs text-muted-foreground">
+                    Tap to browse classes and lessons
+                  </span>
+                </div>
+
+                <div
+                  id="content"
+                  className="mx-auto w-full max-w-[var(--content-max,100ch)] transition-[max-width] duration-300"
+                >
+                  {children}
+                </div>
+              </main>
+            </div>
+          </SidebarInset>
+        </div>
+        <Footer />
       </div>
     </SidebarProvider>
   );

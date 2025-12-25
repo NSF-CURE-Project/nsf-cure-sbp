@@ -30,7 +30,7 @@ export default function AppSidebar({ classes, className }: AppSidebarProps) {
   return (
     <Sidebar
       className={cn(
-        "relative min-h-dvh h-full flex-col overflow-hidden lg:sticky lg:top-[var(--nav-h,4rem)] lg:h-[calc(100vh-var(--nav-h,4rem))] transition-[width] duration-200",
+        "relative h-full min-h-0 flex-col overflow-hidden transition-[width] duration-200",
         isOpen ? "w-64" : "w-14",
         className
       )}
