@@ -8,6 +8,9 @@ import AppSidebar from "@/components/admin-panel/sidebar";
 import { MobileSidebar } from "@/components/admin-panel/mobile-sidebar";
 import Footer from "@/components/Footer";
 import { isAuthRoute, shouldHideSidebar } from "@/lib/routes/authRoutes";
+import { useSidebar } from "@/hooks/use-sidebar";
+import { useStore } from "@/hooks/use-store";
+import { cn } from "@/lib/utils";
 
 type SidebarLesson = { title: string; slug: string };
 type SidebarModule = { title: string; slug: string; lessons: SidebarLesson[] };
@@ -26,6 +29,8 @@ export default function PublicLayoutShell({
 }: PublicLayoutShellProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const sidebarStore = useStore(useSidebar, (s) => s);
+  const sidebarOpen = sidebarStore?.getOpenState() ?? defaultOpen;
   const authOnly = isAuthRoute(pathname);
   const hideSidebar = shouldHideSidebar(pathname);
 
@@ -68,12 +73,29 @@ export default function PublicLayoutShell({
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
       <div className="relative min-h-[calc(100dvh-var(--nav-h,4rem))] bg-background text-foreground flex flex-col">
-        <div className="flex-1 grid lg:grid-cols-[16rem_minmax(0,1fr)]">
-          <div className="hidden lg:flex lg:flex-col lg:sticky lg:top-[var(--nav-h,4rem)] lg:h-[calc(100dvh-var(--nav-h,4rem))] lg:bg-background lg:border-r lg:border-border/60 lg:shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+        <div
+          className={cn(
+            "flex-1 grid",
+            sidebarOpen ? "lg:grid-cols-[16rem_minmax(0,1fr)]" : "lg:grid-cols-[minmax(0,1fr)]"
+          )}
+        >
+          <div
+            className={cn(
+              "hidden lg:flex lg:flex-col lg:bg-background lg:shadow-[0_1px_0_rgba(15,23,42,0.04)]",
+              sidebarOpen
+                ? "lg:sticky lg:top-[var(--nav-h,4rem)] lg:h-[calc(100dvh-var(--nav-h,4rem))]"
+                : "lg:fixed lg:left-0 lg:top-[var(--nav-h,4rem)] lg:h-[calc(100dvh-var(--nav-h,4rem))] lg:w-14 lg:z-30"
+            )}
+          >
             <AppSidebar classes={sidebarClasses} />
           </div>
 
-          <SidebarInset className="flex flex-col min-w-0 lg:col-start-2">
+          <SidebarInset
+            className={cn(
+              "flex flex-col min-w-0",
+              sidebarOpen && "lg:col-start-2"
+            )}
+          >
             <div
               id="layout"
               className="min-h-full flex flex-col"

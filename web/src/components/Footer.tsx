@@ -8,7 +8,7 @@ export default function Footer() {
       <div className="w-full">
         <div className="mx-auto w-full max-w-6xl px-4 py-10 pb-12 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-3 sm:justify-items-center">
-        {/* 🧭 Site links */}
+        {/* Site links */}
         <div>
           <h3 className="font-semibold text-foreground mb-3">Explore</h3>
           <ul className="space-y-2">
@@ -18,7 +18,7 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* 📚 Resources */}
+        {/* Resources */}
         <div>
           <h3 className="font-semibold text-foreground mb-3">Resources</h3>
           <ul className="space-y-2">
@@ -26,7 +26,7 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* 🧑‍💻 Contact / Branding */}
+        {/* Contact / Branding */}
         <div>
           <h3 className="font-semibold text-foreground mb-3">Connect</h3>
           <ul className="space-y-2">
@@ -53,13 +53,13 @@ export default function Footer() {
         </div>
           </div>
 
-          {/* 🦶 Bottom bar */}
+          {/* Bottom bar */}
           <div className="mt-8 text-center text-xs text-muted-foreground/80">
             <p>
               © {new Date().getFullYear()} Cal Poly Pomona Engineering — NSF CURE Summer Bridge Program
             </p>
             <p className="mt-1">
-              Built with ❤️ using Next.js, Tailwind CSS, and Payload.
+              Built using Next.js, Tailwind CSS, and Payload.
             </p>
           </div>
         </div>
