@@ -7,9 +7,17 @@ export const Users: CollectionConfig = {
     useAsTitle: "email",
   },
   access: {
-    read: ({ req }) => req.user?.role === "admin", // Only admins can see user list
+    read: ({ req }) => {
+      if (!req.user) return false;
+      if (req.user.role === "admin") return true;
+      return { id: { equals: req.user.id } };
+    },
     create: ({ req }) => req.user?.role === "admin",
-    update: ({ req }) => req.user?.role === "admin",
+    update: ({ req }) => {
+      if (!req.user) return false;
+      if (req.user.role === "admin") return true;
+      return { id: { equals: req.user.id } };
+    },
     delete: ({ req }) => req.user?.role === "admin",
   },
   fields: [

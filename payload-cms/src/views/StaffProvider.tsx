@@ -101,20 +101,14 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
 
         .collection-edit--lessons .collection-edit__main-wrapper,
-        .global-edit--home-page .collection-edit__main-wrapper,
-        .global-edit--resources-page .collection-edit__main-wrapper,
-        .global-edit--contact-page .collection-edit__main-wrapper,
-        .global-edit--getting-started .collection-edit__main-wrapper {
+        .collection-edit--pages .collection-edit__main-wrapper {
           display: flex;
           flex-direction: column;
           gap: 24px;
         }
 
         .collection-edit--lessons .live-preview-window,
-        .global-edit--home-page .live-preview-window,
-        .global-edit--resources-page .live-preview-window,
-        .global-edit--contact-page .live-preview-window,
-        .global-edit--getting-started .live-preview-window {
+        .collection-edit--pages .live-preview-window {
           order: -1;
           width: 100%;
           height: 70vh;
@@ -123,18 +117,12 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
 
         .collection-edit--lessons .live-preview-window__wrapper,
-        .global-edit--home-page .live-preview-window__wrapper,
-        .global-edit--resources-page .live-preview-window__wrapper,
-        .global-edit--contact-page .live-preview-window__wrapper,
-        .global-edit--getting-started .live-preview-window__wrapper {
+        .collection-edit--pages .live-preview-window__wrapper {
           height: 100%;
         }
 
         .collection-edit--lessons .collection-edit__main,
-        .global-edit--home-page .collection-edit__main,
-        .global-edit--resources-page .collection-edit__main,
-        .global-edit--contact-page .collection-edit__main,
-        .global-edit--getting-started .collection-edit__main {
+        .collection-edit--pages .collection-edit__main {
           width: 100%;
         }
       `}</style>

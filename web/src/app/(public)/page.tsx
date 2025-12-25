@@ -17,9 +17,9 @@ export default async function Landing() {
     >
       <LivePreviewBlocks
         initialData={home}
-        globalSlug="home-page"
+        collectionSlug="pages"
         className="space-y-12 py-10"
-        emptyMessage="No content yet. Add blocks in the Home Page layout."
+        emptyMessage="No content yet. Add blocks to the page layout."
       />
     </div>
   );

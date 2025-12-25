@@ -18,6 +18,14 @@ export async function GET(req: NextRequest) {
 
   let redirect = "/";
   switch (type) {
+    case "page": {
+      if (!slug || slug === "home") {
+        redirect = "/";
+      } else {
+        redirect = `/${slug}`;
+      }
+      break;
+    }
     case "lesson":
       redirect = `/preview/lesson/${slug}`;
       break;
@@ -26,15 +34,6 @@ export async function GET(req: NextRequest) {
       break;
     case "home":
       redirect = `/`;
-      break;
-    case "resources":
-      redirect = `/resources`;
-      break;
-    case "contact":
-      redirect = `/contact-us`;
-      break;
-    case "getting-started":
-      redirect = `/getting-started`;
       break;
     default:
       redirect = "/";

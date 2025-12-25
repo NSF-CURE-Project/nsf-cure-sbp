@@ -21,7 +21,6 @@ export default function Footer() {
           <h3 className="font-semibold text-foreground mb-3">Resources</h3>
           <ul className="space-y-2">
             <li><Link href="/faq" className="hover:underline">FAQ</Link></li>
-            <li><Link href="/contacts" className="hover:underline">Contact Us</Link></li>
           </ul>
         </div>
 

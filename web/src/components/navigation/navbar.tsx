@@ -30,6 +30,7 @@ export default function Navbar() {
   const { resolvedTheme, theme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<{ email: string; fullName?: string } | null>(null);
+  const [pages, setPages] = useState<{ id: string; slug: string; title: string }[]>([]);
   const [authBusy, setAuthBusy] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -54,6 +55,31 @@ export default function Navbar() {
       }
     };
     loadUser();
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const loadPages = async () => {
+      try {
+        const res = await fetch(`${PAYLOAD_URL}/api/pages?limit=100&sort=title`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          setPages([]);
+          return;
+        }
+        const data = (await res.json()) as {
+          docs?: { id: string; slug: string; title: string }[];
+        };
+        setPages((data.docs ?? []).filter((page) => page.slug && page.slug !== "home"));
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setPages([]);
+        }
+      }
+    };
+    loadPages();
     return () => controller.abort();
   }, []);
 
@@ -148,18 +174,15 @@ export default function Navbar() {
         >
           Home
         </Link>
-        <Link
-          href="/resources"
-          className="hover:text-primary transition-colors"
-        >
-          Resources
-        </Link>
-        <Link
-          href="/contact-us"
-          className="hover:text-primary transition-colors"
-        >
-          Contact Us
-        </Link>
+        {pages.map((page) => (
+          <Link
+            key={page.id}
+            href={`/${page.slug}`}
+            className="hover:text-primary transition-colors"
+          >
+            {page.title}
+          </Link>
+        ))}
       </div>
 
       {/* Right cluster */}
@@ -305,18 +328,15 @@ export default function Navbar() {
                 >
                   Home
                 </Link>
-                <Link
-                  href="/resources"
-                  className="rounded-md px-3 py-2 transition hover:bg-muted"
-                >
-                  Resources
-                </Link>
-                <Link
-                  href="/contact-us"
-                  className="rounded-md px-3 py-2 transition hover:bg-muted"
-                >
-                  Contact Us
-                </Link>
+                {pages.map((page) => (
+                  <Link
+                    key={page.id}
+                    href={`/${page.slug}`}
+                    className="rounded-md px-3 py-2 transition hover:bg-muted"
+                  >
+                    {page.title}
+                  </Link>
+                ))}
                 {user ? (
                   <>
                     <Link

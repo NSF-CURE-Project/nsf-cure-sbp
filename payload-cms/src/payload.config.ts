@@ -11,11 +11,8 @@ import { Media } from './collections/Media';
 import { Classes } from './collections/Classes';
 import { Chapters } from './collections/Chapters';
 import { Lessons } from './collections/Lessons';
+import { Pages } from './collections/Pages';
 import { Accounts } from './collections/Accounts';
-import { HomePage } from './globals/HomePage';
-import { ResourcesPage } from './globals/ResourcesPage';
-import { ContactPage } from './globals/ContactPage';
-import { GettingStarted } from './globals/GettingStarted';
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
   path: '@/views/StaffDashboardView#default',
@@ -50,6 +47,7 @@ const parseFrom = (value?: string) => {
 
 const { fromName, fromAddress } = parseFrom(process.env.SMTP_FROM);
 const frontendURL = process.env.FRONTEND_URL ?? "http://localhost:3001";
+const serverURL = process.env.PAYLOAD_PUBLIC_SERVER_URL ?? "http://localhost:3000";
 const defaultFromAddress = fromAddress ?? process.env.SMTP_USER ?? "info@payloadcms.com";
 const defaultFromName = fromName ?? "NSF CURE SBP";
 const transport = nodemailer.createTransport({
@@ -73,6 +71,7 @@ const buildEmailAdapter = () => ({
 });
 
 export default buildConfig({
+  serverURL,
   cors: [frontendURL],
   csrf: [frontendURL],
   admin: {
@@ -83,8 +82,7 @@ export default buildConfig({
       icons: "/assets/logos/sbp_logo_transparent.png",
     },
     livePreview: {
-      globals: ["home-page", "resources-page", "contact-page", "getting-started"],
-      collections: ["lessons"],
+      collections: ["lessons", "pages"],
       breakpoints: [
         {
           label: "Desktop",
@@ -126,8 +124,7 @@ export default buildConfig({
     },
   },
 
-  collections: [Classes, Chapters, Lessons, Accounts, Users, Media],
-  globals: [HomePage, ResourcesPage, ContactPage, GettingStarted],
+  collections: [Classes, Chapters, Lessons, Pages, Accounts, Users, Media],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   email: buildEmailAdapter,

@@ -39,45 +39,23 @@ const statCardStyle: React.CSSProperties = {
   minWidth: 140,
 };
 
-const EditHomePageCard = () => (
-  <a href="/admin/globals/home-page" style={{ textDecoration: 'none', color: 'inherit' }}>
+const ManagePagesCard = () => (
+  <a href="/admin/collections/pages" style={{ textDecoration: 'none', color: 'inherit' }}>
     <div style={cardStyle}>
-      <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>Edit Home Page</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>View / Edit Pages</div>
       <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>
-        Edit the landing NSF CURE SBP landing page content here.
+        Manage all main pages from one list.
       </div>
     </div>
   </a>
 );
 
-const EditResourcesCard = () => (
-  <a href="/admin/globals/resources-page" style={{ textDecoration: 'none', color: 'inherit' }}>
+const CreatePageCard = () => (
+  <a href="/admin/collections/pages/create" style={{ textDecoration: 'none', color: 'inherit' }}>
     <div style={cardStyle}>
-      <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>Edit Resources Page</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>Add Page</div>
       <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>
-        Manage resources sections, links, and downloads.
-      </div>
-    </div>
-  </a>
-);
-
-const EditContactPageCard = () => (
-  <a href="/admin/globals/contact-page" style={{ textDecoration: 'none', color: 'inherit' }}>
-    <div style={cardStyle}>
-      <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>Edit Contact Us Page</div>
-      <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>
-        Update contact cards, titles, and hero copy.
-      </div>
-    </div>
-  </a>
-);
-
-const EditGettingStartedCard = () => (
-  <a href="/admin/globals/getting-started" style={{ textDecoration: 'none', color: 'inherit' }}>
-    <div style={cardStyle}>
-      <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>Edit Getting Started</div>
-      <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>
-        Update onboarding steps and resources.
+        Create a new main page.
       </div>
     </div>
   </a>
@@ -332,7 +310,7 @@ const StaffDashboardContent = ({
         <div style={heroGridStyle}>
           <div>
             <div style={{ fontSize: 12, letterSpacing: 1.2, textTransform: 'uppercase', color: cppGreen, fontWeight: 800 }}>
-              Staff Dashboard
+              Dashboard
             </div>
             <h1 style={{ fontSize: 42, fontWeight: 900, margin: '8px 0 12px', color: cppInk, lineHeight: 1.05 }}>
               NSF CURE Summer Bridge Program
@@ -342,8 +320,8 @@ const StaffDashboardContent = ({
               This is the dashboard for managing NSF CURE SBP operations.
             </p>
             <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <a href="/admin/globals/home-page" style={{ textDecoration: 'none' }}>
-                <div style={{ ...mockChipStyle, background: cppGreen, color: '#ffffff' }}>Edit Home Page</div>
+              <a href="/admin/collections/pages" style={{ textDecoration: 'none' }}>
+                <div style={{ ...mockChipStyle, background: cppGreen, color: '#ffffff' }}>Manage Pages</div>
               </a>
               <a href="/admin/collections/lessons/create" style={{ textDecoration: 'none' }}>
                 <div style={mockChipStyle}>Add Lesson</div>
@@ -387,24 +365,14 @@ const StaffDashboardContent = ({
       <div style={{ ...contentBoxStyle }}>
         <div style={{ marginTop: 6, ...cardRowStyle }}>
           <QuickActionCard
-            href="/admin/globals/home-page"
-            title="Edit Home Page"
-            description="Update hero, highlights, and blocks."
+            href="/admin/collections/pages"
+            title="View / Edit Pages"
+            description="Manage all main pages."
           />
           <QuickActionCard
-            href="/admin/globals/resources-page"
-            title="Edit Resources Page"
-            description="Manage resources and downloads."
-          />
-          <QuickActionCard
-            href="/admin/globals/contact-page"
-            title="Edit Contact Page"
-            description="Update staff contact cards."
-          />
-          <QuickActionCard
-            href="/admin/globals/getting-started"
-            title="Edit Getting Started"
-            description="Refresh onboarding steps."
+            href="/admin/collections/pages/create"
+            title="Add Page"
+            description="Create a new main page."
           />
           <QuickActionCard
             href="/admin/collections/lessons/create"
@@ -464,185 +432,6 @@ const StaffDashboardContent = ({
   </Gutter>
 );
 
-const AdminDashboardContent = ({
-  user,
-  stats,
-}: {
-  user?: AdminViewServerProps['initPageResult']['req']['user'];
-  stats: {
-    accounts: number;
-    lessons: number;
-    drafts: number;
-  };
-}) => (
-  <Gutter>
-    <style>{`
-      .quick-action-card > div {
-        transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
-      }
-      .quick-action-card:hover > div {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 26px rgba(15, 23, 42, 0.14);
-        border-color: rgba(15, 23, 42, 0.28);
-      }
-      .quick-action-card:active > div {
-        transform: translateY(0);
-        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
-      }
-    `}</style>
-    <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-      <div style={containerStyle}>
-      <div
-        style={{
-          width: '100%',
-          borderRadius: 26,
-          padding: '28px 28px 30px',
-          background: `linear-gradient(135deg, rgba(0,80,48,0.06) 0%, rgba(255,184,28,0.2) 100%)`,
-          border: '1px solid rgba(0, 80, 48, 0.08)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage:
-              'linear-gradient(to right, rgba(15, 23, 42, 0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(15, 23, 42, 0.06) 1px, transparent 1px)',
-            backgroundSize: '120px 120px',
-            opacity: 0.25,
-            pointerEvents: 'none',
-          }}
-        />
-        <div style={heroGridStyle}>
-          <div>
-            <div style={{ fontSize: 12, letterSpacing: 1.2, textTransform: 'uppercase', color: cppGreen, fontWeight: 800 }}>
-              Admin Dashboard
-            </div>
-            <h1 style={{ fontSize: 42, fontWeight: 900, margin: '8px 0 12px', color: cppInk, lineHeight: 1.05 }}>
-              Full access, clean controls
-            </h1>
-            <p style={{ fontSize: 16, color: '#4b5f56', maxWidth: 460 }}>
-              Welcome, {user?.email ?? 'admin'}. You have full access to content and settings.
-              Use the quick actions to jump straight to edits and builds.
-            </p>
-            <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <a href="/admin/globals/home-page" style={{ textDecoration: 'none' }}>
-                <div style={{ ...mockChipStyle, background: cppGreen, color: '#ffffff' }}>Edit Home Page</div>
-              </a>
-              <a href="/admin/collections/lessons/create" style={{ textDecoration: 'none' }}>
-                <div style={mockChipStyle}>Add Lesson</div>
-              </a>
-              <a href="/admin/collections/classes" style={{ textDecoration: 'none' }}>
-                <div style={mockChipStyle}>View Classes</div>
-              </a>
-              <a href="/admin/account" style={{ textDecoration: 'none' }}>
-                <div style={mockChipStyle}>Your Account</div>
-              </a>
-            </div>
-          </div>
-          <div style={heroCardStyle}>
-            <div style={mockHeaderStyle}>
-              <div style={{ fontWeight: 700, color: cppInk }}>Quick Overview</div>
-              <div style={mockChipStyle}>Live</div>
-            </div>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <StatCard label="Student Accounts" value={`${stats.accounts}`} />
-              <StatCard label="Lessons" value={`${stats.lessons}`} />
-              <StatCard label="Drafts" value={`${stats.drafts}`} />
-            </div>
-            <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
-              <div style={mockPanelStyle}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: cppInk }}>Top task</div>
-                <div style={{ fontSize: 12, color: '#5b6f66', marginTop: 4 }}>
-                  Use the quick actions below to jump straight into edits.
-                </div>
-              </div>
-              <div style={mockPanelStyle}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: cppInk }}>Status</div>
-                <div style={{ fontSize: 12, color: '#5b6f66', marginTop: 4 }}>
-                  Drafts count updates from pages and lessons in progress.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div style={sectionLabelStyle}>Quick actions</div>
-      <div style={{ ...contentBoxStyle }}>
-        <div style={{ marginTop: 6, ...cardRowStyle }}>
-          <QuickActionCard
-            href="/admin/globals/home-page"
-            title="Edit Home Page"
-            description="Update hero, highlights, and blocks."
-          />
-          <QuickActionCard
-            href="/admin/globals/resources-page"
-            title="Edit Resources Page"
-            description="Manage resources and downloads."
-          />
-          <QuickActionCard
-            href="/admin/globals/contact-page"
-            title="Edit Contact Page"
-            description="Update staff contact cards."
-          />
-          <QuickActionCard
-            href="/admin/globals/getting-started"
-            title="Edit Getting Started"
-            description="Refresh onboarding steps."
-          />
-          <QuickActionCard
-            href="/admin/collections/lessons/create"
-            title="Add Lesson"
-            description="Create a new lesson for a chapter."
-          />
-        </div>
-      </div>
-
-      <div style={sectionLabelStyle}>Course actions</div>
-      <div style={{ ...contentBoxStyle }}>
-        <div style={{ marginTop: 6, ...cardRowStyle }}>
-          <QuickActionCard
-            href="/admin/collections/classes"
-            title="View Classes"
-            description="Review and edit class entries."
-          />
-          <QuickActionCard
-            href="/admin/collections/classes/create"
-            title="Add Class"
-            description="Create a new class entry."
-          />
-          <QuickActionCard
-            href="/admin/collections/chapters"
-            title="View Chapters"
-            description="Review and edit chapters."
-          />
-          <QuickActionCard
-            href="/admin/collections/chapters/create"
-            title="Add Chapter"
-            description="Create a chapter for a class."
-          />
-          <QuickActionCard
-            href="/admin/collections/lessons"
-            title="View Lessons"
-            description="Review and edit lessons."
-          />
-        </div>
-      </div>
-
-      <div style={helpBoxStyle}>
-        <strong style={{ color: cppGreen }}>How to publish:</strong> open a page or lesson, click
-        <strong> Save Draft</strong> while editing, then choose <strong>Publish changes</strong> when ready.
-        Use the left menu for all content.
-      </div>
-      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
-        <LogoutCard />
-      </div>
-    </div>
-    </div>
-  </Gutter>
-);
-
 export default async function StaffDashboardView({
   initPageResult,
   params,
@@ -650,12 +439,11 @@ export default async function StaffDashboardView({
 }: AdminViewServerProps) {
   const { req } = initPageResult;
   const user = req.user;
-  const role = user?.role ?? 'staff';
   const payload = req.payload;
 
   let lessonsCount = 0;
   let lessonsDraftCount = 0;
-  let globalsDraftCount = 0;
+  let pagesDraftCount = 0;
   let accountsCount = 0;
 
   try {
@@ -696,30 +484,27 @@ export default async function StaffDashboardView({
     accountsCount = 0;
   }
 
-  const globalSlugs = ['home-page', 'resources-page', 'contact-page', 'getting-started'];
-  for (const slug of globalSlugs) {
-    try {
-      const global = await payload.findGlobal({
-        slug,
-        draft: true,
-      });
-      if ((global as { _status?: string })._status === 'draft') {
-        globalsDraftCount += 1;
-      }
-    } catch {
-      // ignore
-    }
+  try {
+    const pageDrafts = await payload.find({
+      collection: 'pages',
+      depth: 0,
+      limit: 0,
+      where: {
+        _status: {
+          equals: 'draft',
+        },
+      },
+    });
+    pagesDraftCount = pageDrafts.totalDocs ?? 0;
+  } catch {
+    pagesDraftCount = 0;
   }
 
   const stats = {
     accounts: accountsCount,
     lessons: lessonsCount,
-    drafts: lessonsDraftCount + globalsDraftCount,
+    drafts: lessonsDraftCount + pagesDraftCount,
   };
 
-  return role === 'staff' ? (
-    <StaffDashboardContent user={user} stats={stats} />
-  ) : (
-    <AdminDashboardContent user={user} stats={stats} />
-  );
+  return <StaffDashboardContent user={user} stats={stats} />;
 }

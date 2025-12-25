@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { draftMode } from "next/headers";
 import type { ChapterDoc, ClassDoc, LessonDoc } from "@/lib/payloadSdk/types";
 import { getClassesTree } from "@/lib/payloadSdk/classes";
+import { getPages, type PageDoc } from "@/lib/payloadSdk/pages";
 
 export const metadata: Metadata = {
   title: "Site Directory | NSF CURE SBP",
@@ -23,10 +24,6 @@ const isLessonDoc = (value: LessonDoc | string): value is LessonDoc =>
 const staticPages = [
   { title: "Home", href: "/" },
   { title: "Search", href: "/search" },
-  { title: "Resources", href: "/resources" },
-  { title: "Getting Started", href: "/getting-started" },
-  { title: "Contact Us", href: "/contact-us" },
-  { title: "Contacts", href: "/contacts" },
 ];
 
 export default async function DirectoryPage() {
@@ -34,6 +31,8 @@ export default async function DirectoryPage() {
   const classes: ClassDoc[] = await getClassesTree({ draft: isPreview }).catch(
     () => [],
   );
+  const pages: PageDoc[] = await getPages({ draft: isPreview }).catch(() => []);
+  const mainPages = pages.filter((page) => page.slug && page.slug !== "home");
 
   return (
     <div
@@ -57,6 +56,16 @@ export default async function DirectoryPage() {
               <a
                 className="text-foreground hover:text-primary transition-colors"
                 href={page.href}
+              >
+                {page.title}
+              </a>
+            </li>
+          ))}
+          {mainPages.map((page) => (
+            <li key={page.id}>
+              <a
+                className="text-foreground hover:text-primary transition-colors"
+                href={`/${page.slug}`}
               >
                 {page.title}
               </a>

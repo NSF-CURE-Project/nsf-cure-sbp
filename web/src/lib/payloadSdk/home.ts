@@ -1,14 +1,12 @@
 // web/src/lib/payloadSdk/home.ts
 import type { PageLayoutBlock } from "./types";
-import { payload } from "./payloadClient";
+import { getPageBySlug } from "./pages";
 
 export type HomePageData = {
   layout?: PageLayoutBlock[] | null;
 };
 
 export async function getHomePage(options?: { draft?: boolean }): Promise<HomePageData> {
-  const data = await payload.get<HomePageData>("/globals/home-page", {
-    draft: options?.draft,
-  });
-  return data;
+  const page = await getPageBySlug("home", { draft: options?.draft });
+  return { layout: page?.layout ?? null };
 }

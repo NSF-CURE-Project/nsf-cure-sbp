@@ -3,15 +3,11 @@ import { draftMode } from "next/headers";
 
 import { getClassesTree } from "@/lib/payloadSdk/classes";
 import { getHomePage, type HomePageData } from "@/lib/payloadSdk/home";
-import { getResourcesPage, type ResourcesPageData } from "@/lib/payloadSdk/resources";
-import { getContactPage, type ContactPageData } from "@/lib/payloadSdk/contacts";
 import type {
   ClassDoc,
   ChapterDoc,
   LessonDoc,
   PageLayoutBlock,
-  ResourceItem,
-  ContactPerson,
 } from "@/lib/payloadSdk/types";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +18,7 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 type Result = {
   id: string;
   title: string;
-  type: "class" | "chapter" | "lesson" | "home" | "resource" | "contact";
+  type: "class" | "chapter" | "lesson" | "home";
   href: string;
   subtitle?: string;
 };
@@ -38,17 +34,15 @@ export default async function SearchPage({
   const query = Array.isArray(rawQ) ? rawQ[0] : rawQ;
   const term = (query ?? "").trim().toLowerCase();
 
-  const [classes, home, resources, contacts] = term
+  const [classes, home] = term
     ? await Promise.all([
         getClassesTree({ draft: isPreview }),
         getHomePage({ draft: isPreview }).catch(() => null),
-        getResourcesPage({ draft: isPreview }).catch(() => null),
-        getContactPage({ draft: isPreview }).catch(() => null),
       ])
-    : [[], null, null, null];
+    : [[], null];
 
   const results = term
-    ? buildResults(classes, term, { home, resources, contacts })
+    ? buildResults(classes, term, { home })
     : [];
 
   return (
@@ -132,8 +126,6 @@ function buildResults(
   term: string,
   extra: {
     home: HomePageData | null;
-    resources: ResourcesPageData | null;
-    contacts: ContactPageData | null;
   },
 ): Result[] {
   const matches: Result[] = [];
@@ -141,10 +133,8 @@ function buildResults(
   const includes = (value?: unknown) =>
     typeof value === "string" && value.toLowerCase().includes(term);
 
-  const { home, resources, contacts } = extra;
+  const { home } = extra;
   const homeBlocks = Array.isArray(home?.layout) ? home.layout : [];
-  const resourceBlocks = Array.isArray(resources?.layout) ? resources.layout : [];
-  const contactBlocks = Array.isArray(contacts?.layout) ? contacts.layout : [];
 
   if (home && blocksContainTerm(homeBlocks, term)) {
     matches.push({
@@ -205,63 +195,6 @@ function buildResults(
             href: `/classes/${c.slug}/lessons/${l.slug}`,
           });
         }
-      }
-    }
-  }
-
-  if (resources) {
-    if (blocksContainTerm(resourceBlocks, term) || includes("resources")) {
-      matches.push({
-        id: "resources-page",
-        title: "Resources",
-        type: "resource",
-        href: "/resources",
-        subtitle: "Page content",
-      });
-    }
-
-    const resourceItems = extractResourceItems(resourceBlocks);
-    for (const item of resourceItems) {
-      if (includes(item.title) || includes(item.description) || includes(item.url)) {
-        matches.push({
-          id: `resource-${item.id ?? item.url ?? item.title}`,
-          title: item.title ?? "Resource",
-          type: "resource",
-          subtitle: item.context ?? "Resources",
-          href: item.url ?? "/resources",
-        });
-      }
-    }
-  }
-
-  if (contacts) {
-    if (blocksContainTerm(contactBlocks, term) || includes("contact")) {
-      matches.push({
-        id: "contact-page",
-        title: "Contact Us",
-        type: "contact",
-        href: "/contact-us",
-        subtitle: "Page content",
-      });
-    }
-
-    const people: ContactPerson[] = extractContactPeople(contactBlocks);
-
-    for (const person of people) {
-      if (
-        includes(person.name) ||
-        includes(person.title) ||
-        includes(person.email) ||
-        includes(person.phone) ||
-        includes(person.category)
-      ) {
-        matches.push({
-          id: `contact-${person.id ?? person.email ?? person.phone ?? person.name}`,
-          title: person.name,
-          type: "contact",
-          subtitle: person.title || person.category || "Contact",
-          href: "/contact-us",
-        });
       }
     }
   }
@@ -350,27 +283,4 @@ function extractTextFromLexicalNode(node: unknown): string {
   }
   const children = Array.isArray(current.children) ? current.children : [];
   return children.map(extractTextFromLexicalNode).join(" ");
-}
-
-function extractResourceItems(blocks: PageLayoutBlock[]): (ResourceItem & { context?: string })[] {
-  const items: (ResourceItem & { context?: string })[] = [];
-  for (const block of blocks) {
-    if (block.blockType !== "resourcesList") continue;
-    const context = block.title ?? "Resources";
-    (block.resources ?? []).forEach((resource) => {
-      items.push({ ...resource, context });
-    });
-  }
-  return items;
-}
-
-function extractContactPeople(blocks: PageLayoutBlock[]): ContactPerson[] {
-  const people: ContactPerson[] = [];
-  for (const block of blocks) {
-    if (block.blockType !== "contactsList") continue;
-    (block.contacts ?? []).forEach((person) => {
-      people.push(person);
-    });
-  }
-  return people;
 }

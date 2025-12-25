@@ -71,6 +71,7 @@ export interface Config {
     classes: Class;
     chapters: Chapter;
     lessons: Lesson;
+    pages: Page;
     accounts: Account;
     users: User;
     media: Media;
@@ -84,6 +85,7 @@ export interface Config {
     classes: ClassesSelect<false> | ClassesSelect<true>;
     chapters: ChaptersSelect<false> | ChaptersSelect<true>;
     lessons: LessonsSelect<false> | LessonsSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
     accounts: AccountsSelect<false> | AccountsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -96,18 +98,8 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {
-    'home-page': HomePage;
-    'resources-page': ResourcesPage;
-    'contact-page': ContactPage;
-    'getting-started': GettingStarted;
-  };
-  globalsSelect: {
-    'home-page': HomePageSelect<false> | HomePageSelect<true>;
-    'resources-page': ResourcesPageSelect<false> | ResourcesPageSelect<true>;
-    'contact-page': ContactPageSelect<false> | ContactPageSelect<true>;
-    'getting-started': GettingStartedSelect<false> | GettingStartedSelect<true>;
-  };
+  globals: {};
+  globalsSelect: {};
   locale: null;
   user:
     | (Account & {
@@ -378,6 +370,161 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  title: string;
+  /**
+   * Used in URLs. Use 'home' for the homepage, or any slug for /[slug].
+   */
+  slug: string;
+  /**
+   * Build the page by adding and reordering content blocks.
+   */
+  layout?:
+    | (
+        | {
+            title: string;
+            subtitle?: string | null;
+            buttonLabel?: string | null;
+            buttonHref?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'heroBlock';
+          }
+        | {
+            title: string;
+            subtitle?: string | null;
+            size?: ('sm' | 'md' | 'lg') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'sectionTitle';
+          }
+        | {
+            body: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'richTextBlock';
+          }
+        | {
+            text?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'textBlock';
+          }
+        | {
+            video?: (number | null) | Media;
+            url?: string | null;
+            caption?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'videoBlock';
+          }
+        | {
+            title?: string | null;
+            listStyle?: ('unordered' | 'ordered') | null;
+            items?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'listBlock';
+          }
+        | {
+            title?: string | null;
+            steps?:
+              | {
+                  heading: string;
+                  description?: {
+                    root: {
+                      type: string;
+                      children: {
+                        type: any;
+                        version: number;
+                        [k: string]: unknown;
+                      }[];
+                      direction: ('ltr' | 'rtl') | null;
+                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                      indent: number;
+                      version: number;
+                    };
+                    [k: string]: unknown;
+                  } | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'stepsList';
+          }
+        | {
+            label: string;
+            href: string;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'buttonBlock';
+          }
+        | {
+            title?: string | null;
+            description?: string | null;
+            resources?:
+              | {
+                  title: string;
+                  description?: string | null;
+                  url: string;
+                  type?: ('link' | 'video' | 'download' | 'other') | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'resourcesList';
+          }
+        | {
+            title?: string | null;
+            description?: string | null;
+            groupByCategory?: boolean | null;
+            contacts?:
+              | {
+                  name: string;
+                  title?: string | null;
+                  category?: ('staff' | 'technical') | null;
+                  phone?: string | null;
+                  email?: string | null;
+                  photo?: (number | null) | Media;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'contactsList';
+          }
+      )[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "accounts".
  */
 export interface Account {
@@ -478,6 +625,10 @@ export interface PayloadLockedDocument {
         value: number | Lesson;
       } | null)
     | ({
+        relationTo: 'pages';
+        value: number | Page;
+      } | null)
+    | ({
         relationTo: 'accounts';
         value: number | Account;
       } | null)
@@ -572,6 +723,136 @@ export interface ChaptersSelect<T extends boolean = true> {
  * via the `definition` "lessons_select".
  */
 export interface LessonsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  layout?:
+    | T
+    | {
+        heroBlock?:
+          | T
+          | {
+              title?: T;
+              subtitle?: T;
+              buttonLabel?: T;
+              buttonHref?: T;
+              id?: T;
+              blockName?: T;
+            };
+        sectionTitle?:
+          | T
+          | {
+              title?: T;
+              subtitle?: T;
+              size?: T;
+              id?: T;
+              blockName?: T;
+            };
+        richTextBlock?:
+          | T
+          | {
+              body?: T;
+              id?: T;
+              blockName?: T;
+            };
+        textBlock?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+              blockName?: T;
+            };
+        videoBlock?:
+          | T
+          | {
+              video?: T;
+              url?: T;
+              caption?: T;
+              id?: T;
+              blockName?: T;
+            };
+        listBlock?:
+          | T
+          | {
+              title?: T;
+              listStyle?: T;
+              items?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        stepsList?:
+          | T
+          | {
+              title?: T;
+              steps?:
+                | T
+                | {
+                    heading?: T;
+                    description?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        buttonBlock?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+              blockName?: T;
+            };
+        resourcesList?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              resources?:
+                | T
+                | {
+                    title?: T;
+                    description?: T;
+                    url?: T;
+                    type?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        contactsList?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              groupByCategory?: T;
+              contacts?:
+                | T
+                | {
+                    name?: T;
+                    title?: T;
+                    category?: T;
+                    phone?: T;
+                    email?: T;
+                    photo?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   layout?:
@@ -803,1122 +1084,6 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "home-page".
- */
-export interface HomePage {
-  id: number;
-  /**
-   * Build the page by adding and reordering content blocks.
-   */
-  layout?:
-    | (
-        | {
-            title: string;
-            subtitle?: string | null;
-            buttonLabel?: string | null;
-            buttonHref?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'heroBlock';
-          }
-        | {
-            title: string;
-            subtitle?: string | null;
-            size?: ('sm' | 'md' | 'lg') | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'sectionTitle';
-          }
-        | {
-            body: {
-              root: {
-                type: string;
-                children: {
-                  type: any;
-                  version: number;
-                  [k: string]: unknown;
-                }[];
-                direction: ('ltr' | 'rtl') | null;
-                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-                indent: number;
-                version: number;
-              };
-              [k: string]: unknown;
-            };
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'richTextBlock';
-          }
-        | {
-            text?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'textBlock';
-          }
-        | {
-            video?: (number | null) | Media;
-            url?: string | null;
-            caption?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'videoBlock';
-          }
-        | {
-            title?: string | null;
-            listStyle?: ('unordered' | 'ordered') | null;
-            items?:
-              | {
-                  text?: string | null;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'listBlock';
-          }
-        | {
-            title?: string | null;
-            steps?:
-              | {
-                  heading: string;
-                  description?: {
-                    root: {
-                      type: string;
-                      children: {
-                        type: any;
-                        version: number;
-                        [k: string]: unknown;
-                      }[];
-                      direction: ('ltr' | 'rtl') | null;
-                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-                      indent: number;
-                      version: number;
-                    };
-                    [k: string]: unknown;
-                  } | null;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'stepsList';
-          }
-        | {
-            label: string;
-            href: string;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'buttonBlock';
-          }
-        | {
-            title?: string | null;
-            description?: string | null;
-            resources?:
-              | {
-                  title: string;
-                  description?: string | null;
-                  url: string;
-                  type?: ('link' | 'video' | 'download' | 'other') | null;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'resourcesList';
-          }
-        | {
-            title?: string | null;
-            description?: string | null;
-            groupByCategory?: boolean | null;
-            contacts?:
-              | {
-                  name: string;
-                  title?: string | null;
-                  category?: ('staff' | 'technical') | null;
-                  phone?: string | null;
-                  email?: string | null;
-                  photo?: (number | null) | Media;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'contactsList';
-          }
-      )[]
-    | null;
-  _status?: ('draft' | 'published') | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "resources-page".
- */
-export interface ResourcesPage {
-  id: number;
-  /**
-   * Build the page by adding and reordering content blocks.
-   */
-  layout?:
-    | (
-        | {
-            title: string;
-            subtitle?: string | null;
-            buttonLabel?: string | null;
-            buttonHref?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'heroBlock';
-          }
-        | {
-            title: string;
-            subtitle?: string | null;
-            size?: ('sm' | 'md' | 'lg') | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'sectionTitle';
-          }
-        | {
-            body: {
-              root: {
-                type: string;
-                children: {
-                  type: any;
-                  version: number;
-                  [k: string]: unknown;
-                }[];
-                direction: ('ltr' | 'rtl') | null;
-                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-                indent: number;
-                version: number;
-              };
-              [k: string]: unknown;
-            };
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'richTextBlock';
-          }
-        | {
-            text?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'textBlock';
-          }
-        | {
-            video?: (number | null) | Media;
-            url?: string | null;
-            caption?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'videoBlock';
-          }
-        | {
-            title?: string | null;
-            listStyle?: ('unordered' | 'ordered') | null;
-            items?:
-              | {
-                  text?: string | null;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'listBlock';
-          }
-        | {
-            title?: string | null;
-            steps?:
-              | {
-                  heading: string;
-                  description?: {
-                    root: {
-                      type: string;
-                      children: {
-                        type: any;
-                        version: number;
-                        [k: string]: unknown;
-                      }[];
-                      direction: ('ltr' | 'rtl') | null;
-                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-                      indent: number;
-                      version: number;
-                    };
-                    [k: string]: unknown;
-                  } | null;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'stepsList';
-          }
-        | {
-            label: string;
-            href: string;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'buttonBlock';
-          }
-        | {
-            title?: string | null;
-            description?: string | null;
-            resources?:
-              | {
-                  title: string;
-                  description?: string | null;
-                  url: string;
-                  type?: ('link' | 'video' | 'download' | 'other') | null;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'resourcesList';
-          }
-        | {
-            title?: string | null;
-            description?: string | null;
-            groupByCategory?: boolean | null;
-            contacts?:
-              | {
-                  name: string;
-                  title?: string | null;
-                  category?: ('staff' | 'technical') | null;
-                  phone?: string | null;
-                  email?: string | null;
-                  photo?: (number | null) | Media;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'contactsList';
-          }
-      )[]
-    | null;
-  _status?: ('draft' | 'published') | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "contact-page".
- */
-export interface ContactPage {
-  id: number;
-  /**
-   * Build the page by adding and reordering content blocks.
-   */
-  layout?:
-    | (
-        | {
-            title: string;
-            subtitle?: string | null;
-            buttonLabel?: string | null;
-            buttonHref?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'heroBlock';
-          }
-        | {
-            title: string;
-            subtitle?: string | null;
-            size?: ('sm' | 'md' | 'lg') | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'sectionTitle';
-          }
-        | {
-            body: {
-              root: {
-                type: string;
-                children: {
-                  type: any;
-                  version: number;
-                  [k: string]: unknown;
-                }[];
-                direction: ('ltr' | 'rtl') | null;
-                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-                indent: number;
-                version: number;
-              };
-              [k: string]: unknown;
-            };
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'richTextBlock';
-          }
-        | {
-            text?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'textBlock';
-          }
-        | {
-            video?: (number | null) | Media;
-            url?: string | null;
-            caption?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'videoBlock';
-          }
-        | {
-            title?: string | null;
-            listStyle?: ('unordered' | 'ordered') | null;
-            items?:
-              | {
-                  text?: string | null;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'listBlock';
-          }
-        | {
-            title?: string | null;
-            steps?:
-              | {
-                  heading: string;
-                  description?: {
-                    root: {
-                      type: string;
-                      children: {
-                        type: any;
-                        version: number;
-                        [k: string]: unknown;
-                      }[];
-                      direction: ('ltr' | 'rtl') | null;
-                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-                      indent: number;
-                      version: number;
-                    };
-                    [k: string]: unknown;
-                  } | null;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'stepsList';
-          }
-        | {
-            label: string;
-            href: string;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'buttonBlock';
-          }
-        | {
-            title?: string | null;
-            description?: string | null;
-            resources?:
-              | {
-                  title: string;
-                  description?: string | null;
-                  url: string;
-                  type?: ('link' | 'video' | 'download' | 'other') | null;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'resourcesList';
-          }
-        | {
-            title?: string | null;
-            description?: string | null;
-            groupByCategory?: boolean | null;
-            contacts?:
-              | {
-                  name: string;
-                  title?: string | null;
-                  category?: ('staff' | 'technical') | null;
-                  phone?: string | null;
-                  email?: string | null;
-                  photo?: (number | null) | Media;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'contactsList';
-          }
-      )[]
-    | null;
-  _status?: ('draft' | 'published') | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "getting-started".
- */
-export interface GettingStarted {
-  id: number;
-  /**
-   * Build the page by adding and reordering content blocks.
-   */
-  layout?:
-    | (
-        | {
-            title: string;
-            subtitle?: string | null;
-            buttonLabel?: string | null;
-            buttonHref?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'heroBlock';
-          }
-        | {
-            title: string;
-            subtitle?: string | null;
-            size?: ('sm' | 'md' | 'lg') | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'sectionTitle';
-          }
-        | {
-            body: {
-              root: {
-                type: string;
-                children: {
-                  type: any;
-                  version: number;
-                  [k: string]: unknown;
-                }[];
-                direction: ('ltr' | 'rtl') | null;
-                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-                indent: number;
-                version: number;
-              };
-              [k: string]: unknown;
-            };
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'richTextBlock';
-          }
-        | {
-            text?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'textBlock';
-          }
-        | {
-            video?: (number | null) | Media;
-            url?: string | null;
-            caption?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'videoBlock';
-          }
-        | {
-            title?: string | null;
-            listStyle?: ('unordered' | 'ordered') | null;
-            items?:
-              | {
-                  text?: string | null;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'listBlock';
-          }
-        | {
-            title?: string | null;
-            steps?:
-              | {
-                  heading: string;
-                  description?: {
-                    root: {
-                      type: string;
-                      children: {
-                        type: any;
-                        version: number;
-                        [k: string]: unknown;
-                      }[];
-                      direction: ('ltr' | 'rtl') | null;
-                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-                      indent: number;
-                      version: number;
-                    };
-                    [k: string]: unknown;
-                  } | null;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'stepsList';
-          }
-        | {
-            label: string;
-            href: string;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'buttonBlock';
-          }
-        | {
-            title?: string | null;
-            description?: string | null;
-            resources?:
-              | {
-                  title: string;
-                  description?: string | null;
-                  url: string;
-                  type?: ('link' | 'video' | 'download' | 'other') | null;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'resourcesList';
-          }
-        | {
-            title?: string | null;
-            description?: string | null;
-            groupByCategory?: boolean | null;
-            contacts?:
-              | {
-                  name: string;
-                  title?: string | null;
-                  category?: ('staff' | 'technical') | null;
-                  phone?: string | null;
-                  email?: string | null;
-                  photo?: (number | null) | Media;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'contactsList';
-          }
-      )[]
-    | null;
-  _status?: ('draft' | 'published') | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "home-page_select".
- */
-export interface HomePageSelect<T extends boolean = true> {
-  layout?:
-    | T
-    | {
-        heroBlock?:
-          | T
-          | {
-              title?: T;
-              subtitle?: T;
-              buttonLabel?: T;
-              buttonHref?: T;
-              id?: T;
-              blockName?: T;
-            };
-        sectionTitle?:
-          | T
-          | {
-              title?: T;
-              subtitle?: T;
-              size?: T;
-              id?: T;
-              blockName?: T;
-            };
-        richTextBlock?:
-          | T
-          | {
-              body?: T;
-              id?: T;
-              blockName?: T;
-            };
-        textBlock?:
-          | T
-          | {
-              text?: T;
-              id?: T;
-              blockName?: T;
-            };
-        videoBlock?:
-          | T
-          | {
-              video?: T;
-              url?: T;
-              caption?: T;
-              id?: T;
-              blockName?: T;
-            };
-        listBlock?:
-          | T
-          | {
-              title?: T;
-              listStyle?: T;
-              items?:
-                | T
-                | {
-                    text?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        stepsList?:
-          | T
-          | {
-              title?: T;
-              steps?:
-                | T
-                | {
-                    heading?: T;
-                    description?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        buttonBlock?:
-          | T
-          | {
-              label?: T;
-              href?: T;
-              id?: T;
-              blockName?: T;
-            };
-        resourcesList?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              resources?:
-                | T
-                | {
-                    title?: T;
-                    description?: T;
-                    url?: T;
-                    type?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        contactsList?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              groupByCategory?: T;
-              contacts?:
-                | T
-                | {
-                    name?: T;
-                    title?: T;
-                    category?: T;
-                    phone?: T;
-                    email?: T;
-                    photo?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-      };
-  _status?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "resources-page_select".
- */
-export interface ResourcesPageSelect<T extends boolean = true> {
-  layout?:
-    | T
-    | {
-        heroBlock?:
-          | T
-          | {
-              title?: T;
-              subtitle?: T;
-              buttonLabel?: T;
-              buttonHref?: T;
-              id?: T;
-              blockName?: T;
-            };
-        sectionTitle?:
-          | T
-          | {
-              title?: T;
-              subtitle?: T;
-              size?: T;
-              id?: T;
-              blockName?: T;
-            };
-        richTextBlock?:
-          | T
-          | {
-              body?: T;
-              id?: T;
-              blockName?: T;
-            };
-        textBlock?:
-          | T
-          | {
-              text?: T;
-              id?: T;
-              blockName?: T;
-            };
-        videoBlock?:
-          | T
-          | {
-              video?: T;
-              url?: T;
-              caption?: T;
-              id?: T;
-              blockName?: T;
-            };
-        listBlock?:
-          | T
-          | {
-              title?: T;
-              listStyle?: T;
-              items?:
-                | T
-                | {
-                    text?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        stepsList?:
-          | T
-          | {
-              title?: T;
-              steps?:
-                | T
-                | {
-                    heading?: T;
-                    description?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        buttonBlock?:
-          | T
-          | {
-              label?: T;
-              href?: T;
-              id?: T;
-              blockName?: T;
-            };
-        resourcesList?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              resources?:
-                | T
-                | {
-                    title?: T;
-                    description?: T;
-                    url?: T;
-                    type?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        contactsList?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              groupByCategory?: T;
-              contacts?:
-                | T
-                | {
-                    name?: T;
-                    title?: T;
-                    category?: T;
-                    phone?: T;
-                    email?: T;
-                    photo?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-      };
-  _status?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "contact-page_select".
- */
-export interface ContactPageSelect<T extends boolean = true> {
-  layout?:
-    | T
-    | {
-        heroBlock?:
-          | T
-          | {
-              title?: T;
-              subtitle?: T;
-              buttonLabel?: T;
-              buttonHref?: T;
-              id?: T;
-              blockName?: T;
-            };
-        sectionTitle?:
-          | T
-          | {
-              title?: T;
-              subtitle?: T;
-              size?: T;
-              id?: T;
-              blockName?: T;
-            };
-        richTextBlock?:
-          | T
-          | {
-              body?: T;
-              id?: T;
-              blockName?: T;
-            };
-        textBlock?:
-          | T
-          | {
-              text?: T;
-              id?: T;
-              blockName?: T;
-            };
-        videoBlock?:
-          | T
-          | {
-              video?: T;
-              url?: T;
-              caption?: T;
-              id?: T;
-              blockName?: T;
-            };
-        listBlock?:
-          | T
-          | {
-              title?: T;
-              listStyle?: T;
-              items?:
-                | T
-                | {
-                    text?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        stepsList?:
-          | T
-          | {
-              title?: T;
-              steps?:
-                | T
-                | {
-                    heading?: T;
-                    description?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        buttonBlock?:
-          | T
-          | {
-              label?: T;
-              href?: T;
-              id?: T;
-              blockName?: T;
-            };
-        resourcesList?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              resources?:
-                | T
-                | {
-                    title?: T;
-                    description?: T;
-                    url?: T;
-                    type?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        contactsList?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              groupByCategory?: T;
-              contacts?:
-                | T
-                | {
-                    name?: T;
-                    title?: T;
-                    category?: T;
-                    phone?: T;
-                    email?: T;
-                    photo?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-      };
-  _status?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "getting-started_select".
- */
-export interface GettingStartedSelect<T extends boolean = true> {
-  layout?:
-    | T
-    | {
-        heroBlock?:
-          | T
-          | {
-              title?: T;
-              subtitle?: T;
-              buttonLabel?: T;
-              buttonHref?: T;
-              id?: T;
-              blockName?: T;
-            };
-        sectionTitle?:
-          | T
-          | {
-              title?: T;
-              subtitle?: T;
-              size?: T;
-              id?: T;
-              blockName?: T;
-            };
-        richTextBlock?:
-          | T
-          | {
-              body?: T;
-              id?: T;
-              blockName?: T;
-            };
-        textBlock?:
-          | T
-          | {
-              text?: T;
-              id?: T;
-              blockName?: T;
-            };
-        videoBlock?:
-          | T
-          | {
-              video?: T;
-              url?: T;
-              caption?: T;
-              id?: T;
-              blockName?: T;
-            };
-        listBlock?:
-          | T
-          | {
-              title?: T;
-              listStyle?: T;
-              items?:
-                | T
-                | {
-                    text?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        stepsList?:
-          | T
-          | {
-              title?: T;
-              steps?:
-                | T
-                | {
-                    heading?: T;
-                    description?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        buttonBlock?:
-          | T
-          | {
-              label?: T;
-              href?: T;
-              id?: T;
-              blockName?: T;
-            };
-        resourcesList?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              resources?:
-                | T
-                | {
-                    title?: T;
-                    description?: T;
-                    url?: T;
-                    type?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        contactsList?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              groupByCategory?: T;
-              contacts?:
-                | T
-                | {
-                    name?: T;
-                    title?: T;
-                    category?: T;
-                    phone?: T;
-                    email?: T;
-                    photo?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-      };
-  _status?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
