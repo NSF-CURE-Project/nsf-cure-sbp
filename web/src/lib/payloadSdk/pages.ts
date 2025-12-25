@@ -20,7 +20,7 @@ export async function getPageBySlug(
   slug: string,
   options?: { draft?: boolean }
 ): Promise<PageDoc | null> {
-  const query = `/collections/pages?where[slug][equals]=${encodeURIComponent(slug)}&limit=1`;
+  const query = `/pages?where[slug][equals]=${encodeURIComponent(slug)}&limit=1`;
   const data = await payload.get<PageQueryResponse>(query, {
     draft: options?.draft,
   });
@@ -29,7 +29,7 @@ export async function getPageBySlug(
 
 export async function getPages(options?: { draft?: boolean }): Promise<PageDoc[]> {
   const data = await payload.get<PagesQueryResponse>(
-    "/collections/pages?limit=100&sort=title",
+    "/pages?limit=100&sort=title",
     { draft: options?.draft }
   );
   return data.docs ?? [];

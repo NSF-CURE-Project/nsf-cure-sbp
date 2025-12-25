@@ -217,8 +217,10 @@ export default function Navbar() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              align="end"
-              sideOffset={10}
+              side="bottom"
+              align="center"
+              sideOffset={8}
+              alignOffset={0}
               className="z-[9999] w-56 bg-background shadow-xl"
             >
               <DropdownMenuLabel className="font-normal">

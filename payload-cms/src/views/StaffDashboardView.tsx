@@ -8,7 +8,7 @@ const cppCream = '#f7f4ee';
 const cppInk = '#0b3d27';
 const cardStyle: React.CSSProperties = {
   border: '1px solid rgba(0, 80, 48, 0.12)',
-  borderRadius: 12,
+  borderRadius: 8,
   padding: '10px 12px',
   boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
   display: 'inline-block',
@@ -21,7 +21,7 @@ const cardStyle: React.CSSProperties = {
 
 const quickCardStyle: React.CSSProperties = {
   border: '1px solid rgba(15, 23, 42, 0.12)',
-  borderRadius: 14,
+  borderRadius: 8,
   padding: '16px 18px',
   background: '#ffffff',
   boxShadow: '0 6px 16px rgba(15, 23, 42, 0.08)',
@@ -40,8 +40,12 @@ const statCardStyle: React.CSSProperties = {
 };
 
 const ManagePagesCard = () => (
-  <a href="/admin/collections/pages" style={{ textDecoration: 'none', color: 'inherit' }}>
-    <div style={cardStyle}>
+  <a
+    href="/admin/collections/pages"
+    style={{ textDecoration: 'none', color: 'inherit' }}
+    className="dashboard-card-link"
+  >
+    <div style={cardStyle} className="dashboard-card">
       <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>View / Edit Pages</div>
       <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>
         Manage all main pages from one list.
@@ -51,8 +55,12 @@ const ManagePagesCard = () => (
 );
 
 const CreatePageCard = () => (
-  <a href="/admin/collections/pages/create" style={{ textDecoration: 'none', color: 'inherit' }}>
-    <div style={cardStyle}>
+  <a
+    href="/admin/collections/pages/create"
+    style={{ textDecoration: 'none', color: 'inherit' }}
+    className="dashboard-card-link"
+  >
+    <div style={cardStyle} className="dashboard-card">
       <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>Add Page</div>
       <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>
         Create a new main page.
@@ -87,7 +95,7 @@ const StatCard = ({
   label: string;
   value: string;
 }) => (
-  <div style={statCardStyle}>
+  <div style={statCardStyle} className="dashboard-stat-card">
     <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#5b6f66', fontWeight: 700 }}>
       {label}
     </div>
@@ -98,8 +106,12 @@ const StatCard = ({
 );
 
 const CreateClassCard = () => (
-  <a href="/admin/collections/classes/create" style={{ textDecoration: 'none', color: 'inherit' }}>
-    <div style={cardStyle}>
+  <a
+    href="/admin/collections/classes/create"
+    style={{ textDecoration: 'none', color: 'inherit' }}
+    className="dashboard-card-link"
+  >
+    <div style={cardStyle} className="dashboard-card">
       <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>Add Class</div>
       <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>Create a new class entry.</div>
     </div>
@@ -107,8 +119,12 @@ const CreateClassCard = () => (
 );
 
 const CreateChapterCard = () => (
-  <a href="/admin/collections/chapters/create" style={{ textDecoration: 'none', color: 'inherit' }}>
-    <div style={cardStyle}>
+  <a
+    href="/admin/collections/chapters/create"
+    style={{ textDecoration: 'none', color: 'inherit' }}
+    className="dashboard-card-link"
+  >
+    <div style={cardStyle} className="dashboard-card">
       <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>Add Chapter</div>
       <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>Create a new chapter for a class.</div>
     </div>
@@ -116,8 +132,12 @@ const CreateChapterCard = () => (
 );
 
 const CreateLessonCard = () => (
-  <a href="/admin/collections/lessons/create" style={{ textDecoration: 'none', color: 'inherit' }}>
-    <div style={cardStyle}>
+  <a
+    href="/admin/collections/lessons/create"
+    style={{ textDecoration: 'none', color: 'inherit' }}
+    className="dashboard-card-link"
+  >
+    <div style={cardStyle} className="dashboard-card">
       <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>Add Lesson</div>
       <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>Create a new lesson for a chapter.</div>
     </div>
@@ -125,8 +145,12 @@ const CreateLessonCard = () => (
 );
 
 const ManageClassesCard = () => (
-  <a href="/admin/collections/classes" style={{ textDecoration: 'none', color: 'inherit' }}>
-    <div style={cardStyle}>
+  <a
+    href="/admin/collections/classes"
+    style={{ textDecoration: 'none', color: 'inherit' }}
+    className="dashboard-card-link"
+  >
+    <div style={cardStyle} className="dashboard-card">
       <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>View / Edit Classes</div>
       <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>Review, edit, or delete classes.</div>
     </div>
@@ -134,8 +158,12 @@ const ManageClassesCard = () => (
 );
 
 const ManageChaptersCard = () => (
-  <a href="/admin/collections/chapters" style={{ textDecoration: 'none', color: 'inherit' }}>
-    <div style={cardStyle}>
+  <a
+    href="/admin/collections/chapters"
+    style={{ textDecoration: 'none', color: 'inherit' }}
+    className="dashboard-card-link"
+  >
+    <div style={cardStyle} className="dashboard-card">
       <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>View / Edit Chapters</div>
       <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>Review, edit, or delete chapters.</div>
     </div>
@@ -143,8 +171,12 @@ const ManageChaptersCard = () => (
 );
 
 const ManageLessonsCard = () => (
-  <a href="/admin/collections/lessons" style={{ textDecoration: 'none', color: 'inherit' }}>
-    <div style={cardStyle}>
+  <a
+    href="/admin/collections/lessons"
+    style={{ textDecoration: 'none', color: 'inherit' }}
+    className="dashboard-card-link"
+  >
+    <div style={cardStyle} className="dashboard-card">
       <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>View / Edit Lessons</div>
       <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>Review, edit, or delete lessons.</div>
     </div>
@@ -154,22 +186,34 @@ const ManageLessonsCard = () => (
 const LogoutCard = () => (
   <a
     href="/admin/logout"
-    style={{
-      ...cardStyle,
-      background: '#0f172a',
-      color: '#f8fafc',
-      borderColor: 'rgba(15, 23, 42, 0.35)',
-      minWidth: 220,
-    }}
+    style={{ textDecoration: 'none', color: 'inherit' }}
+    className="dashboard-card-link"
   >
-    <div style={{ fontSize: 18, fontWeight: 700 }}>Log out</div>
-    <div style={{ marginTop: 4, fontSize: 14, color: '#cbd5e1' }}>Sign out of the admin panel</div>
+    <div
+      style={{
+        ...cardStyle,
+        background: '#0f172a',
+        color: '#f8fafc',
+        borderColor: 'rgba(15, 23, 42, 0.35)',
+        minWidth: 220,
+      }}
+      className="dashboard-card"
+    >
+      <div style={{ fontSize: 18, fontWeight: 700 }}>Log out</div>
+      <div style={{ marginTop: 4, fontSize: 14, color: '#cbd5e1' }}>
+        Sign out of the admin panel
+      </div>
+    </div>
   </a>
 );
 
 const AccountCard = () => (
-  <a href="/admin/account" style={{ textDecoration: 'none', color: 'inherit' }}>
-    <div style={cardStyle}>
+  <a
+    href="/admin/account"
+    style={{ textDecoration: 'none', color: 'inherit' }}
+    className="dashboard-card-link"
+  >
+    <div style={cardStyle} className="dashboard-card">
       <div style={{ fontSize: 18, fontWeight: 700, color: cppGreen }}>View / Edit Staff Account</div>
     </div>
   </a>
@@ -194,6 +238,7 @@ const containerStyle: React.CSSProperties = {
 const contentBoxStyle: React.CSSProperties = {
   width: '100%',
   maxWidth: 980,
+  alignSelf: 'flex-start',
 };
 
 const sectionLabelStyle: React.CSSProperties = {
@@ -249,7 +294,7 @@ const mockHeaderStyle: React.CSSProperties = {
 };
 
 const mockChipStyle: React.CSSProperties = {
-  borderRadius: 999,
+  borderRadius: 4,
   padding: '6px 10px',
   fontSize: 12,
   fontWeight: 600,
@@ -281,6 +326,41 @@ const StaffDashboardContent = ({
       .quick-action-card:active > div {
         transform: translateY(0);
         box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+      }
+      .dashboard-card {
+        transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+      }
+      .dashboard-card-link:hover .dashboard-card {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+        border-color: rgba(15, 23, 42, 0.22);
+      }
+      .dashboard-card-link:active .dashboard-card {
+        transform: translateY(0);
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+      }
+      .dashboard-chip {
+        transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+      }
+      .dashboard-chip:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+      }
+      .dashboard-stat-card {
+        transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+      }
+      .dashboard-stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+        border-color: rgba(15, 23, 42, 0.22);
+      }
+      .dashboard-panel {
+        transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+      }
+      .dashboard-panel:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
+        border-color: rgba(15, 23, 42, 0.22);
       }
     `}</style>
     <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
@@ -321,16 +401,18 @@ const StaffDashboardContent = ({
             </p>
             <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <a href="/admin/collections/pages" style={{ textDecoration: 'none' }}>
-                <div style={{ ...mockChipStyle, background: cppGreen, color: '#ffffff' }}>Manage Pages</div>
+                <div style={{ ...mockChipStyle, background: cppGreen, color: '#ffffff' }} className="dashboard-chip">
+                  Manage Pages
+                </div>
               </a>
               <a href="/admin/collections/lessons/create" style={{ textDecoration: 'none' }}>
-                <div style={mockChipStyle}>Add Lesson</div>
+                <div style={mockChipStyle} className="dashboard-chip">Add Lesson</div>
               </a>
               <a href="/admin/collections/classes" style={{ textDecoration: 'none' }}>
-                <div style={mockChipStyle}>View Classes</div>
+                <div style={mockChipStyle} className="dashboard-chip">View Classes</div>
               </a>
               <a href="/admin/account" style={{ textDecoration: 'none' }}>
-                <div style={mockChipStyle}>Your Account</div>
+                <div style={mockChipStyle} className="dashboard-chip">Your Account</div>
               </a>
             </div>
           </div>
@@ -345,13 +427,13 @@ const StaffDashboardContent = ({
               <StatCard label="Drafts" value={`${stats.drafts}`} />
             </div>
             <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
-              <div style={mockPanelStyle}>
+              <div style={mockPanelStyle} className="dashboard-panel">
                 <div style={{ fontSize: 13, fontWeight: 700, color: cppInk }}>Top task</div>
                 <div style={{ fontSize: 12, color: '#5b6f66', marginTop: 4 }}>
                   Use the quick actions below to jump straight into edits.
                 </div>
               </div>
-              <div style={mockPanelStyle}>
+              <div style={mockPanelStyle} className="dashboard-panel">
                 <div style={{ fontSize: 13, fontWeight: 700, color: cppInk }}>Status</div>
                 <div style={{ fontSize: 12, color: '#5b6f66', marginTop: 4 }}>
                   Drafts count updates from pages and lessons in progress.
