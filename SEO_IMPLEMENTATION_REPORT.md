@@ -1,6 +1,6 @@
-# SEO Implementation Report (NSF CURE SBP)
+# SEO Implementation Details
 
-This is a detailed journal-style record of how SEO was implemented across the Next.js + Payload site.
+This is a record of how SEO was implemented across the Next.js + Payload site.
 
 ## 1) Centralized SEO Configuration
 
