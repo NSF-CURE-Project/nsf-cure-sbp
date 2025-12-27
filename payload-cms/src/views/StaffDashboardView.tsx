@@ -3,10 +3,10 @@ import { Gutter } from '@payloadcms/ui';
 import React from 'react';
 import ClassOrderList from './ClassOrderList';
 
-const cppGreen = '#005030';
-const cppGold = '#FFB81C';
-const cppCream = '#f7f4ee';
-const cppInk = '#0b3d27';
+const cppGreen = '#334155';
+const cppGold = '#94a3b8';
+const cppCream = '#f8fafc';
+const cppInk = '#0f172a';
 const cardStyle: React.CSSProperties = {
   border: '1px solid rgba(0, 80, 48, 0.12)',
   borderRadius: 8,
@@ -310,7 +310,7 @@ const StaffDashboardContent = ({
   user?: AdminViewServerProps['initPageResult']['req']['user'];
   stats: {
     accounts: number;
-    lessons: number;
+    unanswered: number;
     drafts: number;
   };
 }) => (
@@ -371,8 +371,8 @@ const StaffDashboardContent = ({
           width: '100%',
           borderRadius: 26,
           padding: '28px 28px 30px',
-          background: `linear-gradient(135deg, rgba(0,80,48,0.06) 0%, rgba(255,184,28,0.2) 100%)`,
-          border: '1px solid rgba(0, 80, 48, 0.08)',
+          background: `linear-gradient(135deg, rgba(148,163,184,0.16) 0%, rgba(226,232,240,0.5) 100%)`,
+          border: '1px solid rgba(148, 163, 184, 0.28)',
           position: 'relative',
           overflow: 'hidden',
         }}
@@ -382,9 +382,9 @@ const StaffDashboardContent = ({
             position: 'absolute',
             inset: 0,
             backgroundImage:
-              'linear-gradient(to right, rgba(15, 23, 42, 0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(15, 23, 42, 0.06) 1px, transparent 1px)',
+              'linear-gradient(to right, rgba(148, 163, 184, 0.16) 1px, transparent 1px), linear-gradient(to bottom, rgba(148, 163, 184, 0.16) 1px, transparent 1px)',
             backgroundSize: '120px 120px',
-            opacity: 0.25,
+            opacity: 0.18,
             pointerEvents: 'none',
           }}
         />
@@ -424,7 +424,7 @@ const StaffDashboardContent = ({
             </div>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <StatCard label="Student Accounts" value={`${stats.accounts}`} />
-              <StatCard label="Lessons" value={`${stats.lessons}`} />
+              <StatCard label="Unanswered Questions" value={`${stats.unanswered}`} />
               <StatCard label="Drafts" value={`${stats.drafts}`} />
             </div>
             <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
@@ -534,20 +534,25 @@ export default async function StaffDashboardView({
   const user = req.user;
   const payload = req.payload;
 
-  let lessonsCount = 0;
+  let unansweredCount = 0;
   let lessonsDraftCount = 0;
   let pagesDraftCount = 0;
   let accountsCount = 0;
 
   try {
-    const lessons = await payload.find({
-      collection: 'lessons',
+    const unanswered = await payload.find({
+      collection: 'questions',
       depth: 0,
       limit: 0,
+      where: {
+        status: {
+          equals: 'open',
+        },
+      },
     });
-    lessonsCount = lessons.totalDocs ?? 0;
+    unansweredCount = unanswered.totalDocs ?? 0;
   } catch {
-    lessonsCount = 0;
+    unansweredCount = 0;
   }
 
   try {
@@ -595,7 +600,7 @@ export default async function StaffDashboardView({
 
   const stats = {
     accounts: accountsCount,
-    lessons: lessonsCount,
+    unanswered: unansweredCount,
     drafts: lessonsDraftCount + pagesDraftCount,
   };
 
