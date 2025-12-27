@@ -8,6 +8,7 @@ import type { LessonDoc, PageLayoutBlock } from "@/lib/payloadSdk/types";
 import { usePayloadLivePreview } from "./usePayloadLivePreview";
 import { LessonQuestionDrawer } from "@/components/questions/LessonQuestionDrawer";
 import { LessonQuestionList } from "@/components/questions/LessonQuestionList";
+import { LessonProgressControls } from "@/components/progress/LessonProgressControls";
 
 type Props = {
   initialData: LessonDoc | null;
@@ -58,6 +59,11 @@ export function LivePreviewLesson({ initialData, className, lessonNav }: Props) 
       currentIndex={normalizedNav.currentIndex}
       hrefPrefix={normalizedNav.hrefPrefix}
       placement="bottom"
+      extraContent={
+        data?.id ? (
+          <LessonProgressControls lessonId={data.id} lessonTitle={title} />
+        ) : null
+      }
     />
   ) : null;
 
@@ -110,6 +116,7 @@ type LessonNavSimpleProps = {
   currentIndex: number;
   hrefPrefix: string;
   placement: "top" | "bottom";
+  extraContent?: React.ReactNode;
 };
 
 function LessonNavSimple({
@@ -117,6 +124,7 @@ function LessonNavSimple({
   currentIndex,
   hrefPrefix,
   placement,
+  extraContent,
 }: LessonNavSimpleProps) {
   const prev = currentIndex > 0 ? lessons[currentIndex - 1] : null;
   const next =
@@ -132,6 +140,9 @@ function LessonNavSimple({
           : "mt-4 border-t border-border/60 pt-2"
       }
     >
+      {placement === "bottom" ? (
+        <div className="mb-4">{extraContent}</div>
+      ) : null}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         {prev ? (
           <Link

@@ -15,7 +15,7 @@ import type {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-type SidebarLesson = { title: string; slug: string };
+type SidebarLesson = { id: string | number; title: string; slug: string };
 type SidebarModule = {
   title: string;
   slug: string;
@@ -113,6 +113,7 @@ function normalizeClassesForSidebar(classes: ClassDoc[]): SidebarClass[] {
         .map((lesson) => {
           const l = lesson as LessonDoc;
           return {
+            id: l.id,
             title:
               typeof l.title === "string" && l.title.trim()
                 ? l.title

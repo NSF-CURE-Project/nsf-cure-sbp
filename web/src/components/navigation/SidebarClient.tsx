@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 
 type LessonItem = {
   slug?: string;
@@ -61,11 +61,86 @@ const getLessons = (ch: ChapterItem): LessonItem[] =>
 
 const getLessonSlug = (l: LessonItem) =>
   l.slug ?? l.lessonSlug ?? (l.id != null ? String(l.id) : "");
+const getLessonId = (l: LessonItem) =>
+  l.id != null ? String(l.id) : l.slug ?? l.lessonSlug ?? "";
 const getLessonTitle = (l: LessonItem) =>
   l.title ?? l.name ?? "Untitled Lesson";
 
 export default function SidebarClient({ classes }: Props) {
   const pathname = usePathname();
+  const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const loadUser = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000"}/api/accounts/me`,
+          {
+            credentials: "include",
+            signal: controller.signal,
+          },
+        );
+        if (!res.ok) {
+          setUserId(null);
+          return;
+        }
+        const data = (await res.json()) as { user?: { id?: string } };
+        setUserId(data?.user?.id ?? null);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setUserId(null);
+        }
+      }
+    };
+    loadUser();
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    const controller = new AbortController();
+    const loadProgress = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000"}/api/lesson-progress?limit=500&where[completed][equals]=true`,
+          {
+            credentials: "include",
+            signal: controller.signal,
+          },
+        );
+        if (!res.ok) {
+          setCompletedLessons(new Set());
+          return;
+        }
+        const data = (await res.json()) as {
+          docs?: { lesson?: string | { id?: string | number } }[];
+        };
+        const next = new Set<string>();
+        (data.docs ?? []).forEach((doc) => {
+          const lessonValue = doc.lesson;
+          if (typeof lessonValue === "string") {
+            next.add(lessonValue);
+          } else if (
+            typeof lessonValue === "object" &&
+            lessonValue &&
+            "id" in lessonValue &&
+            lessonValue.id != null
+          ) {
+            next.add(String(lessonValue.id));
+          }
+        });
+        setCompletedLessons(next);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setCompletedLessons(new Set());
+        }
+      }
+    };
+    loadProgress();
+    return () => controller.abort();
+  }, [userId]);
 
   // Parse /classes/[classSlug]/(chapters|lessons)/[slug]
   const { currentClassSlug, currentLessonSlug, currentChapterSlug } =
@@ -302,6 +377,7 @@ export default function SidebarClient({ classes }: Props) {
                             <ul className="min-h-0 overflow-hidden py-0.5 space-y-1">
                               {lessons.map((ls) => {
                                 const lsSlug = getLessonSlug(ls);
+                                const lsId = getLessonId(ls);
                                 if (!lsSlug) return null;
                                 const active = lsSlug === currentLessonSlug;
                                 return (
@@ -317,11 +393,14 @@ export default function SidebarClient({ classes }: Props) {
                                     >
                                       <span
                                         className={[
-                                          "relative block pl-2",
+                                          "relative flex items-center gap-2 pl-2",
                                           active ? "border-l-2 border-foreground/20" : "",
                                         ].join(" ")}
                                       >
                                         {getLessonTitle(ls)}
+                                        {completedLessons.has(lsId) ? (
+                                          <Check className="h-3 w-3 text-emerald-500" />
+                                        ) : null}
                                       </span>
                                     </Link>
                                   </li>

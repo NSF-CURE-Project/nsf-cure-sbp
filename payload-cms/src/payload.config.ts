@@ -16,6 +16,7 @@ import { Accounts } from './collections/Accounts';
 import { MathFeature } from './lexical/math/MathFeature';
 import { Questions } from './collections/Questions';
 import { Notifications } from './collections/Notifications';
+import { LessonProgress } from './collections/LessonProgress';
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
   path: '@/views/StaffDashboardView#default',
@@ -127,7 +128,7 @@ export default buildConfig({
     },
   },
 
-  collections: [Classes, Chapters, Lessons, Pages, Accounts, Users, Media, Questions, Notifications],
+  collections: [Classes, Chapters, Lessons, Pages, Accounts, Users, Media, Questions, Notifications, LessonProgress],
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [
       ...defaultFeatures,

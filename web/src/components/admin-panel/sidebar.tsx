@@ -12,7 +12,7 @@ import { useSidebar } from "@/hooks/use-sidebar";
 
 import SidebarClient from "@/components/navigation/SidebarClient";
 
-type LessonNav = { slug: string; title: string };
+type LessonNav = { id: string | number; slug: string; title: string };
 type ModuleNav = { slug: string; title: string; lessons: LessonNav[] };
 type ClassNav = { slug: string; title: string; modules: ModuleNav[] };
 

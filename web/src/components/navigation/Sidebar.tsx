@@ -61,6 +61,7 @@ function normalizeClassesForSidebar(classes: ClassDoc[]) {
       const lessons = [...rawLessons]
         .sort(byOrderThenTitle)
         .map((l) => ({
+          id: l.id,
           title:
             typeof l?.title === "string" && l.title.trim()
               ? l.title

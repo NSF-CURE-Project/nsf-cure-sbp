@@ -144,7 +144,10 @@ export function LessonQuestionDrawer({ lessonId, lessonTitle, onSubmitted }: Pro
               Ask a Question about this Lesson
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-[min(95vw,540px)] px-6 sm:px-8">
+          <SheetContent
+            side="right"
+            className="h-dvh w-[min(95vw,540px)] overflow-y-auto px-6 sm:px-8"
+          >
             <SheetHeader className="space-y-2 border-b border-border/60 pb-4">
               <SheetTitle className="text-xl">Ask a question</SheetTitle>
               <SheetDescription className="text-sm">

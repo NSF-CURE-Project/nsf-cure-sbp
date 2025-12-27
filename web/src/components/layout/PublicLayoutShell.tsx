@@ -95,7 +95,7 @@ export default function PublicLayoutShell({
           <SidebarInset
             className={cn(
               "flex flex-col min-w-0",
-              sidebarOpen && "lg:col-start-2"
+              sidebarOpen ? "lg:col-start-2" : "lg:pl-14"
             )}
           >
             <div
@@ -121,7 +121,9 @@ export default function PublicLayoutShell({
             </div>
           </SidebarInset>
         </div>
-        <Footer />
+        <div className={cn(sidebarOpen ? "" : "lg:pl-14")}>
+          <Footer />
+        </div>
       </div>
     </SidebarProvider>
   );

@@ -2,6 +2,8 @@ import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import { getClassBySlug } from "@/lib/payloadSdk/classes";
 import { buildMetadata } from "@/lib/seo";
+import type { ChapterDoc, LessonDoc } from "@/lib/payloadSdk/types";
+import { ClassProgressSummary } from "@/components/progress/ClassProgressSummary";
 
 type Params = Promise<{ classSlug: string }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
@@ -40,9 +42,22 @@ export default async function ClassPage(props: {
 
   if (!c) return notFound();
 
+  const chapters: ChapterDoc[] = Array.isArray(c.chapters)
+    ? (c.chapters as ChapterDoc[])
+    : [];
+  const totalLessons = chapters.reduce((count, chapter) => {
+    const lessons = (chapter as ChapterDoc & { lessons?: LessonDoc[] }).lessons;
+    return count + (Array.isArray(lessons) ? lessons.length : 0);
+  }, 0);
+
   return (
     <article>
       <h1 className="text-3xl font-bold">{c.title}</h1>
+      <ClassProgressSummary
+        classId={c.id}
+        classTitle={c.title}
+        totalLessons={totalLessons}
+      />
     </article>
   );
 }

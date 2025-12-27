@@ -471,12 +471,18 @@ export default function Navbar() {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Link
-            href="/login"
-            className="hidden md:inline-flex h-8 items-center rounded-lg border border-border/70 bg-muted/40 px-3 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/60"
-          >
-            Sign In
-          </Link>
+          <>
+            <ThemeToggle
+              variant="icon"
+              className="hidden md:inline-flex hover:bg-muted/60"
+            />
+            <Link
+              href="/login"
+              className="hidden md:inline-flex h-8 items-center rounded-lg border border-border/70 bg-muted/40 px-3 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/60"
+            >
+              Sign In
+            </Link>
+          </>
         )}
 
         {/* Mobile menu */}

@@ -122,6 +122,15 @@ function SnappingVideo({
             controls
             playsInline
             className="h-full w-full object-contain"
+            onEnded={() => {
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(
+                  new CustomEvent("lesson-progress", {
+                    detail: { type: "video-ended" },
+                  }),
+                );
+              }
+            }}
           />
         </div>
       </div>
