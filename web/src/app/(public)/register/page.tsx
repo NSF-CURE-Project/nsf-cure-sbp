@@ -1,8 +1,16 @@
 import Link from "next/link";
 import { RegisterForm } from "./RegisterForm";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
+
+export const metadata = buildMetadata({
+  title: "Register",
+  description: "Create a student account for NSF CURE SBP.",
+  path: "/register",
+  noIndex: true,
+});
 
 export default function RegisterPage() {
   return (

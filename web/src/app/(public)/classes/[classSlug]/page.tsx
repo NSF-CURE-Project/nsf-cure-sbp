@@ -1,6 +1,7 @@
 import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import { getClassBySlug } from "@/lib/payloadSdk/classes";
+import { buildMetadata } from "@/lib/seo";
 
 type Params = Promise<{ classSlug: string }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
@@ -15,10 +16,16 @@ export async function generateMetadata(props: {
 
   const c = await getClassBySlug(classSlug, { draft: isPreview });
   const title = c?.title ?? "Class";
+  const description =
+    typeof c?.description === "string" && c.description.trim()
+      ? c.description
+      : `Explore lessons and chapters in ${title}.`;
 
-  return {
-    title: `${title} • Engineering Learning`,
-  };
+  return buildMetadata({
+    title,
+    description,
+    path: `/classes/${classSlug}`,
+  });
 }
 
 // --- Page ---

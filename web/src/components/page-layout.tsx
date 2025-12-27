@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
 import type { PageLayoutBlock } from "@/lib/payloadSdk/types";
 
@@ -20,6 +21,8 @@ const resolveMediaUrl = (media?: unknown): string | null => {
 
 const resolveContactPhoto = (photo?: unknown): string | null =>
   resolveMediaUrl(photo);
+
+const VIDEO_SNAP_WIDTHS = [480, 720, 960];
 
 type SectionTitleSize = "sm" | "md" | "lg";
 
@@ -59,6 +62,77 @@ const renderRichTextOrText = (value?: unknown, className?: string) => {
   }
   return null;
 };
+
+const getSnappedWidth = (current: number, max: number) => {
+  const candidates = VIDEO_SNAP_WIDTHS.filter((width) => width <= max);
+  const options = candidates.length ? candidates : [max];
+  if (max && !options.includes(max)) {
+    options.push(max);
+  }
+  return options.reduce((closest, width) => {
+    return Math.abs(width - current) < Math.abs(closest - current) ? width : closest;
+  }, options[0]);
+};
+
+function SnappingVideo({
+  url,
+  caption,
+}: {
+  url: string;
+  caption?: string | null;
+}) {
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [snappedWidth, setSnappedWidth] = useState<number | null>(null);
+
+  const snapToNearest = useCallback(() => {
+    const frame = frameRef.current;
+    if (!frame || !frame.parentElement) return;
+    const parentWidth = frame.parentElement.getBoundingClientRect().width;
+    const currentWidth = frame.getBoundingClientRect().width;
+    const nextWidth = getSnappedWidth(currentWidth, parentWidth);
+    setSnappedWidth(nextWidth);
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const frame = frameRef.current;
+      if (!frame || !frame.parentElement) return;
+      const parentWidth = frame.parentElement.getBoundingClientRect().width;
+      if (snappedWidth && snappedWidth > parentWidth) {
+        setSnappedWidth(getSnappedWidth(parentWidth, parentWidth));
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [snappedWidth]);
+
+  return (
+    <section className="space-y-3">
+      <div
+        ref={frameRef}
+        className="w-full min-w-[280px] max-w-full overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-b from-muted/50 to-muted/20 p-1 shadow-lg"
+        style={{ resize: "horizontal", width: snappedWidth ? `${snappedWidth}px` : undefined }}
+        onPointerUp={snapToNearest}
+        onMouseUp={snapToNearest}
+        onTouchEnd={snapToNearest}
+      >
+        <div className="aspect-video w-full overflow-hidden rounded-xl bg-black">
+          <video
+            src={url}
+            controls
+            playsInline
+            className="h-full w-full object-contain"
+          />
+        </div>
+      </div>
+      {caption && (
+        <p className="text-sm text-muted-foreground">
+          {caption}
+        </p>
+      )}
+    </section>
+  );
+}
 
 export function PageLayout({
   blocks,
@@ -135,20 +209,11 @@ export function PageLayout({
           const url = resolveMediaUrl(block.video ?? block.url ?? null);
           if (!url) return null;
           return (
-            <section key={block.id ?? idx} className="space-y-3">
-              <div className="aspect-video w-full">
-                <video
-                  src={url}
-                  controls
-                  className="w-full h-full rounded-lg shadow"
-                />
-              </div>
-              {block.caption && (
-                <p className="text-sm text-muted-foreground">
-                  {block.caption}
-                </p>
-              )}
-            </section>
+            <SnappingVideo
+              key={block.id ?? idx}
+              url={url}
+              caption={block.caption}
+            />
           );
         }
 

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { SafeHtml } from "@/components/ui/safeHtml";
 import { getChapterBySlug } from "@/lib/payloadSdk/chapters";
 import type { ChapterDoc, LessonDoc } from "@/lib/payloadSdk/types";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
@@ -90,6 +91,28 @@ async function fetchChapterForClass(classSlug: string, chapterSlug: string) {
     mod: matchesClass ? normalized : null,
     raw: chapter,
   };
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<RouteParams>;
+}) {
+  const { classSlug, chapterSlug } = await params;
+  const { mod } = await fetchChapterForClass(classSlug, chapterSlug);
+  if (!mod) {
+    return buildMetadata({
+      title: "Chapter",
+      description: "Chapter overview.",
+      path: `/classes/${classSlug}/chapters/${chapterSlug}`,
+    });
+  }
+
+  return buildMetadata({
+    title: mod.title,
+    description: `Lessons and objectives for ${mod.title}.`,
+    path: `/classes/${classSlug}/chapters/${mod.slug}`,
+  });
 }
 
 export default async function ChapterOverviewPage({

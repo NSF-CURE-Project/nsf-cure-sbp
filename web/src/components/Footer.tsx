@@ -6,7 +6,7 @@ export default function Footer() {
   return (
     <footer className="w-full border-t bg-muted/30 text-sm text-muted-foreground">
       <div className="w-full">
-        <div className="mx-auto w-full max-w-6xl px-4 py-10 pb-12 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-6xl px-4 py-10 pb-6 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-3 sm:justify-items-center">
         {/* Site links */}
         <div>

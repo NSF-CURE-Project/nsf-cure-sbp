@@ -23,6 +23,7 @@ export type ChapterDoc = {
   id: string | number;
   title: string;
   slug: string;
+  chapterNumber?: number | null;
   objective?: unknown;
   // Relationship back to class
   class?: ClassDoc | string | number;
@@ -35,6 +36,7 @@ export type LessonDoc = {
   id: string | number;
   title: string;
   slug: string;
+  order?: number | null;
   layout?: PageLayoutBlock[];
   class?: ClassDoc | string | number;
   chapter?: ChapterDoc | string | number;

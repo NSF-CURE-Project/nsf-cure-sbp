@@ -1,14 +1,15 @@
 import React from "react";
-import type { Metadata } from "next";
 import { draftMode } from "next/headers";
 import type { ChapterDoc, ClassDoc, LessonDoc } from "@/lib/payloadSdk/types";
 import { getClassesTree } from "@/lib/payloadSdk/classes";
 import { getPages, type PageDoc } from "@/lib/payloadSdk/pages";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Site Directory | NSF CURE SBP",
+export const metadata = buildMetadata({
+  title: "Site Directory",
   description: "Directory of all public pages for NSF CURE SBP.",
-};
+  path: "/directory",
+});
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";

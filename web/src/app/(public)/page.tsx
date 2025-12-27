@@ -2,9 +2,17 @@ import React from "react";
 import { draftMode } from "next/headers";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
 import { getHomePage, type HomePageData } from "@/lib/payloadSdk/home";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
+
+export const metadata = buildMetadata({
+  title: "Home",
+  description:
+    "NSF CURE Summer Bridge Program for engineering students studying Statics and Mechanics of Materials.",
+  path: "/",
+});
 
 export default async function Landing() {
   const { isEnabled: isPreview } = await draftMode();

@@ -1,7 +1,15 @@
 import Link from "next/link";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
+
+export const metadata = buildMetadata({
+  title: "Check Your Email",
+  description: "Check your email for a password reset link.",
+  path: "/check-email",
+  noIndex: true,
+});
 
 export default function CheckEmailPage() {
   return (

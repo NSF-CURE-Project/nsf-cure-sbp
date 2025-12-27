@@ -4,6 +4,7 @@
 import * as React from "react";
 import { RichText as RichTextRenderer } from "@payloadcms/richtext-lexical/react";
 import type { SerializedEditorState } from "@payloadcms/richtext-lexical/lexical";
+import { jsxConverter } from "@/components/ui/RichText/converters";
 
 type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "content"> & {
   content: SerializedEditorState; // <- the Lexical JSON from Payload
@@ -16,6 +17,7 @@ export function PayloadRichText({ content, className, ...rest }: Props) {
     <RichTextRenderer
       data={content}
       className={className}
+      converters={jsxConverter}
       {...rest}
       // converters={jsxConverter} // you can add this later if you need custom blocks/links
     />

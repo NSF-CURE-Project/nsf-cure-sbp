@@ -1,9 +1,16 @@
 import { draftMode } from "next/headers";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
 import { getResourcesPage, type ResourcesPageData } from "@/lib/payloadSdk/resources";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
+
+export const metadata = buildMetadata({
+  title: "Resources",
+  description: "Resources and materials for NSF CURE SBP learners.",
+  path: "/resources",
+});
 
 export default async function ResourcesPage() {
   const { isEnabled: isPreview } = await draftMode();

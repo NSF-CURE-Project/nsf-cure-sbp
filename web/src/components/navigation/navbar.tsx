@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { ChevronDown, LogOut, Menu, Search, Settings, User as UserIcon } from "lucide-react";
+import { Bell, ChevronDown, LogOut, Menu, Search, Settings, User as UserIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/theme/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -31,8 +32,15 @@ export default function Navbar() {
   const { resolvedTheme, theme, systemTheme } = useTheme();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [user, setUser] = useState<{ email: string; fullName?: string } | null>(null);
-  const [pages, setPages] = useState<{ id: string; slug: string; title: string }[]>([]);
+  const [user, setUser] = useState<{ id: string; email: string; fullName?: string } | null>(null);
+  const [notifications, setNotifications] = useState<
+    { id: string; title: string; body?: string; read?: boolean; createdAt?: string }[]
+  >([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notificationsBusy, setNotificationsBusy] = useState(false);
+  const [pages, setPages] = useState<
+    { id: string; slug: string; title: string; navOrder?: number | null }[]
+  >([]);
   const [authBusy, setAuthBusy] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -83,7 +91,7 @@ export default function Navbar() {
           setUser(null);
           return;
         }
-        const data = (await res.json()) as { user?: { email: string; fullName?: string } };
+        const data = (await res.json()) as { user?: { id: string; email: string; fullName?: string } };
         setUser(data?.user ?? null);
       } catch (error) {
         if (!controller.signal.aborted) {
@@ -99,7 +107,7 @@ export default function Navbar() {
     const controller = new AbortController();
     const loadPages = async () => {
       try {
-        const res = await fetch(`${PAYLOAD_URL}/api/pages?limit=100&sort=title`, {
+        const res = await fetch(`${PAYLOAD_URL}/api/pages?limit=100&sort=navOrder`, {
           signal: controller.signal,
         });
         if (!res.ok) {
@@ -107,9 +115,18 @@ export default function Navbar() {
           return;
         }
         const data = (await res.json()) as {
-          docs?: { id: string; slug: string; title: string }[];
+          docs?: { id: string; slug: string; title: string; navOrder?: number | null }[];
         };
-        setPages((data.docs ?? []).filter((page) => page.slug && page.slug !== "home"));
+        const cleaned = (data.docs ?? []).filter(
+          (page) => page.slug && page.slug !== "home"
+        );
+        cleaned.sort((a, b) => {
+          const aOrder = typeof a.navOrder === "number" ? a.navOrder : Number.POSITIVE_INFINITY;
+          const bOrder = typeof b.navOrder === "number" ? b.navOrder : Number.POSITIVE_INFINITY;
+          if (aOrder !== bOrder) return aOrder - bOrder;
+          return (a.title ?? "").localeCompare(b.title ?? "");
+        });
+        setPages(cleaned);
       } catch (error) {
         if (!controller.signal.aborted) {
           setPages([]);
@@ -119,6 +136,41 @@ export default function Navbar() {
     loadPages();
     return () => controller.abort();
   }, []);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const controller = new AbortController();
+    const loadNotifications = async () => {
+      setNotificationsBusy(true);
+      try {
+        const res = await fetch(
+          `${PAYLOAD_URL}/api/notifications?limit=8&sort=-createdAt`,
+          {
+            credentials: "include",
+            signal: controller.signal,
+          },
+        );
+        if (!res.ok) {
+          setNotifications([]);
+          return;
+        }
+        const data = (await res.json()) as {
+          docs?: { id: string; title: string; body?: string; read?: boolean; createdAt?: string }[];
+        };
+        setNotifications(data.docs ?? []);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setNotifications([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setNotificationsBusy(false);
+        }
+      }
+    };
+    loadNotifications();
+    return () => controller.abort();
+  }, [user?.id, notificationsOpen]);
 
   const handleSignOut = async () => {
     setAuthBusy(true);
@@ -174,6 +226,39 @@ export default function Navbar() {
       .map((part) => part[0]?.toUpperCase())
       .join("") || "SB";
 
+  const unreadCount = useMemo(
+    () => notifications.filter((notification) => !notification.read).length,
+    [notifications],
+  );
+
+  const handleNotificationRead = async (notificationId: string) => {
+    try {
+      await fetch(`${PAYLOAD_URL}/api/notifications/${notificationId}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ read: true }),
+      });
+      setNotifications((prev) =>
+        prev.map((notification) =>
+          notification.id === notificationId
+            ? { ...notification, read: true }
+            : notification,
+        ),
+      );
+    } catch (error) {
+      // Ignore notification read failures.
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    const unread = notifications.filter((notification) => !notification.read);
+    if (unread.length === 0) return;
+    await Promise.all(unread.map((item) => handleNotificationRead(item.id)));
+  };
+
   return (
     <nav
       aria-label="Primary"
@@ -215,7 +300,7 @@ export default function Navbar() {
       <div className="hidden lg:flex items-center gap-5 ml-6 text-sm font-medium text-foreground">
         <Link
           href="/"
-          className="hover:text-primary transition-colors"
+          className="relative transition-colors hover:text-foreground after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:bg-foreground/70 after:origin-left after:scale-x-0 after:transition-transform after:duration-200 hover:after:scale-x-100"
         >
           Home
         </Link>
@@ -223,7 +308,7 @@ export default function Navbar() {
           <Link
             key={page.id}
             href={`/${page.slug}`}
-            className="hover:text-primary transition-colors"
+            className="relative transition-colors hover:text-foreground after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:bg-foreground/70 after:origin-left after:scale-x-0 after:transition-transform after:duration-200 hover:after:scale-x-100"
           >
             {page.title}
           </Link>
@@ -244,6 +329,82 @@ export default function Navbar() {
             ⌘K
           </span>
         </button>
+        {user ? (
+          <DropdownMenu open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-muted/40 text-foreground shadow-sm transition hover:bg-muted/60"
+                aria-label="Open notifications"
+              >
+                <Bell className="h-4 w-4" />
+                {unreadCount > 0 ? (
+                  <span className="absolute -right-1 -top-1 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">
+                    {unreadCount}
+                  </span>
+                ) : null}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              side="bottom"
+              align="end"
+              sideOffset={12}
+              className="z-[9999] w-80 bg-background shadow-xl"
+            >
+              <div className="flex items-center justify-between px-3 py-2">
+                <span className="text-sm font-semibold">Notifications</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleMarkAllRead}
+                  disabled={unreadCount === 0}
+                >
+                  Mark all read
+                </Button>
+              </div>
+              <DropdownMenuSeparator />
+              <div className="max-h-80 overflow-auto">
+                {notificationsBusy ? (
+                  <div className="px-3 py-3 text-sm text-muted-foreground">
+                    Loading notifications...
+                  </div>
+                ) : null}
+                {!notificationsBusy && notifications.length === 0 ? (
+                  <div className="px-3 py-3 text-sm text-muted-foreground">
+                    No notifications yet.
+                  </div>
+                ) : null}
+                {notifications.map((notification) => (
+                  <DropdownMenuItem
+                    key={notification.id}
+                    className="flex cursor-pointer flex-col items-start gap-1 py-2"
+                    onClick={() => handleNotificationRead(notification.id)}
+                  >
+                    <div className="flex w-full items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-foreground">
+                        {notification.title}
+                      </span>
+                      {!notification.read ? (
+                        <span className="h-2 w-2 rounded-full bg-primary" />
+                      ) : null}
+                    </div>
+                    {notification.body ? (
+                      <span className="text-xs text-muted-foreground">
+                        {notification.body}
+                      </span>
+                    ) : null}
+                    {notification.createdAt ? (
+                      <span className="text-[11px] text-muted-foreground">
+                        {formatNotificationDate(notification.createdAt)}
+                      </span>
+                    ) : null}
+                  </DropdownMenuItem>
+                ))}
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -312,7 +473,7 @@ export default function Navbar() {
         ) : (
           <Link
             href="/login"
-            className="hidden md:inline-flex items-center rounded-md border border-border/70 bg-muted/40 px-3 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/60"
+            className="hidden md:inline-flex h-8 items-center rounded-lg border border-border/70 bg-muted/40 px-3 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/60"
           >
             Sign In
           </Link>
@@ -446,9 +607,14 @@ export default function Navbar() {
                   className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
                 />
               </form>
-              <span className="rounded-md border border-border/60 bg-muted/40 px-2 py-1 text-[11px] font-semibold text-muted-foreground">
+              <button
+                type="button"
+                className="rounded-md border border-border/60 bg-muted/40 px-2 py-1 text-[11px] font-semibold text-muted-foreground transition hover:bg-muted/60"
+                onClick={() => setSearchOpen(false)}
+                aria-label="Close search"
+              >
                 Esc
-              </span>
+              </button>
             </div>
             <div className="p-4">
               <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -478,4 +644,17 @@ export default function Navbar() {
       ) : null}
     </nav>
   );
+}
+
+function formatNotificationDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const diff = Date.now() - date.getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }

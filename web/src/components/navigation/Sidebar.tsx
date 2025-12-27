@@ -20,6 +20,19 @@ function normalizeClassesForSidebar(classes: ClassDoc[]) {
     const titleB = typeof b.title === "string" ? b.title.toLowerCase() : "";
     return titleA.localeCompare(titleB);
   };
+  const byChapterNumberThenTitle = (
+    a: { chapterNumber?: number | null; title?: string | null },
+    b: { chapterNumber?: number | null; title?: string | null }
+  ) => {
+    const numA = typeof a.chapterNumber === "number" ? a.chapterNumber : null;
+    const numB = typeof b.chapterNumber === "number" ? b.chapterNumber : null;
+    if (numA != null && numB != null && numA !== numB) return numA - numB;
+    if (numA != null && numB == null) return -1;
+    if (numA == null && numB != null) return 1;
+    const titleA = typeof a.title === "string" ? a.title.toLowerCase() : "";
+    const titleB = typeof b.title === "string" ? b.title.toLowerCase() : "";
+    return titleA.localeCompare(titleB);
+  };
 
   return [...classes].sort(byOrderThenTitle).map((cls) => {
     const title =
@@ -33,7 +46,7 @@ function normalizeClassesForSidebar(classes: ClassDoc[]) {
       ? (cls.chapters as ChapterDoc[])
       : [];
 
-    const modules = [...chapters].sort(byOrderThenTitle).map((ch) => {
+    const modules = [...chapters].sort(byChapterNumberThenTitle).map((ch) => {
       const chapterTitle =
         typeof ch?.title === "string" && ch.title.trim()
           ? ch.title
@@ -60,6 +73,8 @@ function normalizeClassesForSidebar(classes: ClassDoc[]) {
         title: chapterTitle,
         slug: chapterSlug,
         lessons,
+        chapterNumber:
+          typeof ch?.chapterNumber === "number" ? ch.chapterNumber : null,
       };
     });
 

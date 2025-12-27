@@ -1,8 +1,16 @@
 import Link from "next/link";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
+
+export const metadata = buildMetadata({
+  title: "Forgot Password",
+  description: "Reset your NSF CURE SBP account password.",
+  path: "/forgot-password",
+  noIndex: true,
+});
 
 export default function ForgotPasswordPage() {
   return (

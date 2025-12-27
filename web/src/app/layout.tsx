@@ -3,10 +3,27 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "../theme/theme-provider";
 import React from "react";
 import NavbarGate from "@/components/navigation/NavbarGate";
+import { defaultDescription, siteName, siteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "NSF CURE Summer Bridge Program",
-  description: "The online NSF CURE Summer Bridge Program (SBP) is a National Science Foundation-funded initiative (NSF Award #2318158) that launched in 2026 to help rising second-year engineering students build a strong foundation in Statics and Mechanics of Materials.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: siteName,
+    template: `%s | ${siteName}`,
+  },
+  description: defaultDescription,
+  openGraph: {
+    title: siteName,
+    description: defaultDescription,
+    url: siteUrl,
+    siteName,
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteName,
+    description: defaultDescription,
+  },
   icons: {
   icon: [
     {

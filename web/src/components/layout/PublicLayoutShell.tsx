@@ -65,7 +65,9 @@ export default function PublicLayoutShell({
   if (hideSidebar) {
     return (
       <div className="min-h-dvh bg-background text-foreground">
-        <div className="mx-auto w-full max-w-4xl px-6 py-10">{children}</div>
+        <div className="mx-auto w-full max-w-4xl px-6 pt-6 pb-10">
+          {children}
+        </div>
       </div>
     );
   }
@@ -101,7 +103,7 @@ export default function PublicLayoutShell({
               className="min-h-full flex flex-col"
               style={{ scrollbarGutter: "stable" }}
             >
-              <main className="min-w-0 p-4 sm:p-6 lg:px-8 flex-1">
+              <main className="min-w-0 px-4 pt-3 pb-4 sm:px-6 sm:pt-4 sm:pb-6 lg:px-8 flex-1">
                 <div className="lg:hidden mb-4 flex items-center justify-between gap-3">
                   <MobileSidebar classes={sidebarClasses} />
                   <span className="text-xs text-muted-foreground">

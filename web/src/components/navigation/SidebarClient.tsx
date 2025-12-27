@@ -18,6 +18,7 @@ type ChapterItem = {
   title?: string;
   name?: string;
   chapterSlug?: string;
+  chapterNumber?: number | null;
   id?: string | number;
   lessons?: LessonItem[];
   items?: LessonItem[];
@@ -48,6 +49,13 @@ const getChapterSlug = (ch: ChapterItem) =>
   ch.slug ?? ch.chapterSlug ?? (ch.id != null ? String(ch.id) : "");
 const getChapterTitle = (ch: ChapterItem) =>
   ch.title ?? ch.name ?? "Untitled Chapter";
+const getChapterNumber = (ch: ChapterItem) =>
+  typeof ch.chapterNumber === "number" ? ch.chapterNumber : null;
+const getChapterLabel = (ch: ChapterItem) => {
+  const number = getChapterNumber(ch);
+  const title = getChapterTitle(ch);
+  return number ? `Ch ${number} \u00b7 ${title}` : title;
+};
 const getLessons = (ch: ChapterItem): LessonItem[] =>
   (ch.lessons ?? ch.items ?? ch.children ?? []) as LessonItem[];
 
@@ -73,7 +81,7 @@ export default function SidebarClient({ classes }: Props) {
       };
     }, [pathname]);
 
-  const showOnlyTopLevel = !currentLessonSlug && !currentChapterSlug;
+  const showOnlyTopLevel = !currentClassSlug && !currentLessonSlug && !currentChapterSlug;
 
   // lessonSlug -> { classSlug, chapterSlug }
   const lessonOwner = useMemo(() => {
@@ -107,7 +115,6 @@ export default function SidebarClient({ classes }: Props) {
     let hMap: Record<string, boolean> = {};
     try {
       cMap = JSON.parse(localStorage.getItem(STORAGE_CLASSES) || "{}") || {};
-      hMap = JSON.parse(localStorage.getItem(STORAGE_CHAPTERS) || "{}") || {};
     } catch {}
 
     const ownerFromLesson = currentLessonSlug
@@ -131,8 +138,11 @@ export default function SidebarClient({ classes }: Props) {
       : null;
 
     if (defaultClass && cMap[defaultClass] !== true) cMap[defaultClass] = true;
-    if (defaultChapter && hMap[defaultChapter] !== true)
-      hMap[defaultChapter] = true;
+    if (defaultChapter) {
+      hMap = { [defaultChapter]: true };
+    } else {
+      hMap = {};
+    }
     if (!Object.keys(cMap).length && defaultClass) cMap[defaultClass] = true;
 
     setOpenClasses(cMap);
@@ -149,11 +159,26 @@ export default function SidebarClient({ classes }: Props) {
   }, [openClasses, openChapters]);
 
   const toggleClass = (slug: string) =>
-    setOpenClasses((m) => ({ ...m, [slug]: !m[slug] }));
+    setOpenClasses((m) => {
+      const isOpen = !!m[slug];
+      if (isOpen) {
+        return { ...m, [slug]: false };
+      }
+      const next: Record<string, boolean> = {};
+      for (const key of Object.keys(m)) next[key] = false;
+      next[slug] = true;
+      return next;
+    });
 
   const toggleChapter = (classSlug: string, chapterSlug: string) => {
     const key = `${classSlug}/${chapterSlug}`;
-    setOpenChapters((m) => ({ ...m, [key]: !m[key] }));
+    setOpenChapters((m) => {
+      const isOpen = !!m[key];
+      if (isOpen) {
+        return { ...m, [key]: false };
+      }
+      return { [key]: true };
+    });
   };
 
   return (
@@ -231,48 +256,38 @@ export default function SidebarClient({ classes }: Props) {
                     return (
                       <li key={chSlug}>
                         <div className="relative pl-3">
-                          {/* Chapter header */}
-                          <button
-                            type="button"
-                            aria-expanded={chOpen}
-                            aria-controls={`panel-ch-${chKey}`}
-                            onClick={() => toggleChapter(cSlug, chSlug)}
+                          <div
                             className={[
                               "group flex w-full items-center justify-between gap-2 px-2 py-1 pr-2 rounded-md transition-colors text-left border-l-2",
                               chapterBarActive
-                                ? "bg-muted/30 text-foreground border-[#FFB81C] pl-1"
-                                : "text-muted-foreground border-transparent",
-                              "hover:text-foreground hover:bg-muted/30",
+                                ? "bg-muted/10 text-foreground/85 border-foreground/20 pl-1"
+                                : "text-muted-foreground/60 border-transparent",
+                              "hover:text-foreground/85 hover:bg-muted/10",
                             ].join(" ")}
                           >
-                            <span className="flex-1 text-left">
-                              {getChapterTitle(ch)}
-                            </span>
-                            <ChevronRight
-                              className={[
-                                "h-3 w-3 shrink-0 transition-transform text-muted-foreground/60",
-                                chOpen ? "rotate-90 -translate-x-1" : "",
-                              ].join(" ")}
-                              aria-hidden="true"
-                            />
-                          </button>
-
-                          {/* Chapter Overview — only when open */}
-                          {chOpen && (
-                            <div className="pl-5 mt-1">
-                              <Link
-                                href={`/classes/${cSlug}/chapters/${chSlug}`}
+                            <Link
+                              href={`/classes/${cSlug}/chapters/${chSlug}`}
+                              className="flex-1 text-left text-inherit"
+                            >
+                              {getChapterLabel(ch)}
+                            </Link>
+                            <button
+                              type="button"
+                              aria-expanded={chOpen}
+                              aria-controls={`panel-ch-${chKey}`}
+                              onClick={() => toggleChapter(cSlug, chSlug)}
+                              className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground/60 transition hover:bg-muted/20 hover:text-foreground"
+                              aria-label={chOpen ? "Collapse lessons" : "Expand lessons"}
+                            >
+                              <ChevronRight
                                 className={[
-                                  "inline-flex w-fit items-center gap-2 px-3 py-1 text-sm rounded-md transition-colors border-l-2",
-                                  chapterOverviewActive
-                                    ? "bg-muted/40 text-foreground border-[#FFB81C]"
-                                    : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/30",
+                                  "h-3 w-3 shrink-0 transition-transform",
+                                  chOpen ? "rotate-90 -translate-x-1" : "",
                                 ].join(" ")}
-                              >
-                                Chapter Overview
-                              </Link>
-                            </div>
-                          )}
+                                aria-hidden="true"
+                              />
+                            </button>
+                          </div>
 
                           {/* Lessons */}
                           <div
@@ -296,14 +311,14 @@ export default function SidebarClient({ classes }: Props) {
                                       className={[
                                         "block rounded-md px-2 py-1 transition-colors",
                                         active
-                                          ? "bg-muted/40 text-foreground"
-                                          : "text-muted-foreground hover:text-foreground hover:bg-muted/30",
+                                          ? "bg-muted/10 text-foreground/85"
+                                          : "text-muted-foreground/60 hover:text-foreground/85 hover:bg-muted/10",
                                       ].join(" ")}
                                     >
                                       <span
                                         className={[
                                           "relative block pl-2",
-                                          active ? "border-l-2 border-[#FFB81C]" : "",
+                                          active ? "border-l-2 border-foreground/20" : "",
                                         ].join(" ")}
                                       >
                                         {getLessonTitle(ls)}

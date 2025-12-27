@@ -1,9 +1,16 @@
 import { draftMode } from "next/headers";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
 import { getGettingStarted, type GettingStartedPage } from "@/lib/payloadSdk/gettingStarted";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
+
+export const metadata = buildMetadata({
+  title: "Getting Started",
+  description: "How to get started with NSF CURE SBP.",
+  path: "/getting-started",
+});
 
 export default async function GettingStartedPage() {
   const { isEnabled: isPreview } = await draftMode();

@@ -2,9 +2,26 @@ import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
 import { getPageBySlug, type PageData } from "@/lib/payloadSdk/pages";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const { isEnabled: isPreview } = await draftMode();
+  const page = await getPageBySlug(slug, { draft: isPreview }).catch(() => null);
+  const title = page?.title ?? "Page";
+  return buildMetadata({
+    title,
+    description: `${title} — NSF CURE SBP.`,
+    path: `/${slug}`,
+  });
+}
 
 export default async function PageBySlug({
   params,

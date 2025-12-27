@@ -1,8 +1,15 @@
 // src/app/(public)/contact-us/page.tsx
 import Image from "next/image";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
+
+export const metadata = buildMetadata({
+  title: "Contacts",
+  description: "Staff and program contacts for NSF CURE SBP.",
+  path: "/contacts",
+});
 
 const STRAPI_URL = process.env.STRAPI_URL ?? "http://localhost:1337";
 const IS_PROD = process.env.NODE_ENV === "production";

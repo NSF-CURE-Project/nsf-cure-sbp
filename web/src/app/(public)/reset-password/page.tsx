@@ -1,8 +1,16 @@
 import Link from "next/link";
 import { ResetPasswordForm } from "./ResetPasswordForm";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
+
+export const metadata = buildMetadata({
+  title: "Reset Password",
+  description: "Choose a new password for your NSF CURE SBP account.",
+  path: "/reset-password",
+  noIndex: true,
+});
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 

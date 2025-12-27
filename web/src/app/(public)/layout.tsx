@@ -16,7 +16,12 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 type SidebarLesson = { title: string; slug: string };
-type SidebarModule = { title: string; slug: string; lessons: SidebarLesson[] };
+type SidebarModule = {
+  title: string;
+  slug: string;
+  lessons: SidebarLesson[];
+  chapterNumber?: number | null;
+};
 type SidebarClass = { title: string; slug: string; modules: SidebarModule[] };
 
 export default async function RootLayout({
@@ -62,6 +67,19 @@ function normalizeClassesForSidebar(classes: ClassDoc[]): SidebarClass[] {
     const titleB = typeof b.title === "string" ? b.title.toLowerCase() : "";
     return titleA.localeCompare(titleB);
   };
+  const byChapterNumberThenTitle = (
+    a: { chapterNumber?: number | null; title?: string | null },
+    b: { chapterNumber?: number | null; title?: string | null }
+  ) => {
+    const numA = typeof a.chapterNumber === "number" ? a.chapterNumber : null;
+    const numB = typeof b.chapterNumber === "number" ? b.chapterNumber : null;
+    if (numA != null && numB != null && numA !== numB) return numA - numB;
+    if (numA != null && numB == null) return -1;
+    if (numA == null && numB != null) return 1;
+    const titleA = typeof a.title === "string" ? a.title.toLowerCase() : "";
+    const titleB = typeof b.title === "string" ? b.title.toLowerCase() : "";
+    return titleA.localeCompare(titleB);
+  };
 
   return [...classes].sort(byOrderThenTitle).map((cls: ClassDoc) => {
     const c = cls as ClassDoc & { chapters?: ChapterDoc[] };
@@ -75,7 +93,7 @@ function normalizeClassesForSidebar(classes: ClassDoc[]): SidebarClass[] {
 
     const chapters: ChapterDoc[] = Array.isArray(c.chapters) ? c.chapters : [];
 
-    const modules = [...chapters].sort(byOrderThenTitle).map((chapter) => {
+    const modules = [...chapters].sort(byChapterNumberThenTitle).map((chapter) => {
       const ch = chapter as ChapterDoc & { lessons?: LessonDoc[] };
       const chapterTitle =
         typeof ch.title === "string" && ch.title.trim()
@@ -83,6 +101,8 @@ function normalizeClassesForSidebar(classes: ClassDoc[]): SidebarClass[] {
           : "Untitled chapter";
 
       const chapterSlug = typeof ch.slug === "string" ? ch.slug : "";
+      const chapterNumber =
+        typeof ch.chapterNumber === "number" ? ch.chapterNumber : null;
 
       const rawLessons: LessonDoc[] = Array.isArray(ch.lessons)
         ? ch.lessons
@@ -106,6 +126,7 @@ function normalizeClassesForSidebar(classes: ClassDoc[]): SidebarClass[] {
         title: chapterTitle,
         slug: chapterSlug,
         lessons,
+        chapterNumber,
       };
     });
 

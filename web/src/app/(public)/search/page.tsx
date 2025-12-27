@@ -9,9 +9,16 @@ import type {
   LessonDoc,
   PageLayoutBlock,
 } from "@/lib/payloadSdk/types";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+export const metadata = buildMetadata({
+  title: "Search",
+  description: "Search classes, chapters, lessons, and pages.",
+  path: "/search",
+});
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 

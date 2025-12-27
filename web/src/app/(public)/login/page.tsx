@@ -1,8 +1,16 @@
 import Link from "next/link";
 import { LoginForm } from "./LoginForm";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
+
+export const metadata = buildMetadata({
+  title: "Sign in",
+  description: "Sign in to access NSF CURE SBP.",
+  path: "/login",
+  noIndex: true,
+});
 
 export default function LoginPage() {
   return (
