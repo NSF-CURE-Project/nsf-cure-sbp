@@ -462,6 +462,11 @@ const StaffDashboardContent = ({
             title="Add Lesson"
             description="Create a new lesson for a chapter."
           />
+          <QuickActionCard
+            href="/admin/collections/questions"
+            title="Questions Inbox"
+            description="Review lesson questions from students."
+          />
         </div>
       </div>
 

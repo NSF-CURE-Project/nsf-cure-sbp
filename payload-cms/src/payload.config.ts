@@ -1,5 +1,5 @@
 import { postgresAdapter } from '@payloadcms/db-postgres';
-import { lexicalEditor } from '@payloadcms/richtext-lexical';
+import { FixedToolbarFeature, InlineToolbarFeature, lexicalEditor } from '@payloadcms/richtext-lexical';
 import path from 'path';
 import { buildConfig, type PayloadComponent } from 'payload';
 import nodemailer from 'nodemailer';
@@ -13,6 +13,9 @@ import { Chapters } from './collections/Chapters';
 import { Lessons } from './collections/Lessons';
 import { Pages } from './collections/Pages';
 import { Accounts } from './collections/Accounts';
+import { MathFeature } from './lexical/math/MathFeature';
+import { Questions } from './collections/Questions';
+import { Notifications } from './collections/Notifications';
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
   path: '@/views/StaffDashboardView#default',
@@ -124,8 +127,15 @@ export default buildConfig({
     },
   },
 
-  collections: [Classes, Chapters, Lessons, Pages, Accounts, Users, Media],
-  editor: lexicalEditor(),
+  collections: [Classes, Chapters, Lessons, Pages, Accounts, Users, Media, Questions, Notifications],
+  editor: lexicalEditor({
+    features: ({ defaultFeatures }) => [
+      ...defaultFeatures,
+      FixedToolbarFeature(),
+      InlineToolbarFeature(),
+      MathFeature(),
+    ],
+  }),
   secret: process.env.PAYLOAD_SECRET || '',
   email: buildEmailAdapter,
   onInit: async (payload) => {

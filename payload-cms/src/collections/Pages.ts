@@ -7,8 +7,9 @@ export const Pages: CollectionConfig = {
   slug: "pages",
   admin: {
     useAsTitle: "title",
-    defaultColumns: ["title", "slug", "updatedAt"],
+    defaultColumns: ["navOrder", "title", "slug", "updatedAt"],
     group: "Main Pages",
+    defaultSort: "navOrder",
     preview: {
       url: ({ data }) => {
         const base = process.env.WEB_PREVIEW_URL ?? "http://localhost:3001";
@@ -74,6 +75,26 @@ export const Pages: CollectionConfig = {
     ],
   },
   fields: [
+    {
+      name: "pageOrderGuide",
+      type: "ui",
+      admin: {
+        components: {
+          Field: "@/views/PageOrderField#default",
+        },
+      },
+    },
+    {
+      name: "navOrder",
+      label: "Navigation Order",
+      type: "number",
+      min: 0,
+      admin: {
+        position: "sidebar",
+        description: "Managed from the Reorder pages list.",
+        readOnly: true,
+      },
+    },
     {
       name: "title",
       type: "text",

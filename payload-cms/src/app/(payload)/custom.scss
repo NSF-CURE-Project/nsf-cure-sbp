@@ -1,4 +1,6 @@
 /* Payload admin branding overrides */
+@import "katex/dist/katex.min.css";
+
 :root,
 html[data-theme="light"] {
   --font-body: "Avenir Next", "Avenir", "Segoe UI", "Helvetica Neue", sans-serif;

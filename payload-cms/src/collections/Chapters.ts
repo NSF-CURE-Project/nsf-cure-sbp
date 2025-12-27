@@ -29,9 +29,27 @@ export const Chapters: CollectionConfig = {
   },
   fields: [
     {
+      name: "lessonOrderGuide",
+      type: "ui",
+      admin: {
+        components: {
+          Field: "@/views/ChapterLessonOrderField#default",
+        },
+      },
+    },
+    {
       name: "title",
       type: "text",
       required: true,
+    },
+    {
+      name: "chapterNumber",
+      label: "Chapter number",
+      type: "number",
+      min: 1,
+      admin: {
+        description: "Shown as Ch {number} in the sidebar.",
+      },
     },
     {
       name: "lessons",
@@ -59,6 +77,9 @@ export const Chapters: CollectionConfig = {
     {
       name: "objective",
       type: "richText", // same as before, just now “chapter objective”
+      admin: {
+        description: "Use $...$ for inline math and $$...$$ for display math.",
+      },
     },
   ],
 };

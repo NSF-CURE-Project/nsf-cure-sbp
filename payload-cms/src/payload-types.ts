@@ -75,6 +75,8 @@ export interface Config {
     accounts: Account;
     users: User;
     media: Media;
+    questions: Question;
+    notifications: Notification;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -89,6 +91,8 @@ export interface Config {
     accounts: AccountsSelect<false> | AccountsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    questions: QuestionsSelect<false> | QuestionsSelect<true>;
+    notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -173,9 +177,16 @@ export interface Class {
 export interface Chapter {
   id: number;
   title: string;
+  /**
+   * Shown as Ch {number} in the sidebar.
+   */
+  chapterNumber?: number | null;
   lessons?: (number | Lesson)[] | null;
   class: number | Class;
   slug: string;
+  /**
+   * Use $...$ for inline math and $$...$$ for display math.
+   */
   objective?: {
     root: {
       type: string;
@@ -200,6 +211,10 @@ export interface Chapter {
  */
 export interface Lesson {
   id: number;
+  /**
+   * Managed from the Reorder lessons list.
+   */
+  order?: number | null;
   title: string;
   /**
    * Assign this lesson to a chapter.
@@ -378,6 +393,10 @@ export interface Media {
  */
 export interface Page {
   id: number;
+  /**
+   * Managed from the Reorder pages list.
+   */
+  navOrder?: number | null;
   title: string;
   /**
    * Auto-generated from the page title. Use 'Home' to create the homepage slug.
@@ -594,6 +613,69 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "questions".
+ */
+export interface Question {
+  id: number;
+  user: number | Account;
+  /**
+   * Question is scoped to this lesson.
+   */
+  lesson: number | Lesson;
+  chapter?: (number | null) | Chapter;
+  class?: (number | null) | Class;
+  status: 'open' | 'answered' | 'resolved';
+  title: string;
+  /**
+   * Use Markdown or simple text. Math with $...$ is supported on the frontend.
+   */
+  body: string;
+  attachment?: (number | null) | Media;
+  /**
+   * Staff and TAs can respond here.
+   */
+  answers?:
+    | {
+        author: number | User;
+        body: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        };
+        createdAt: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications".
+ */
+export interface Notification {
+  id: number;
+  recipient: number | Account;
+  type: 'question_answered';
+  title: string;
+  body?: string | null;
+  question?: (number | null) | Question;
+  read?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -643,6 +725,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'questions';
+        value: number | Question;
+      } | null)
+    | ({
+        relationTo: 'notifications';
+        value: number | Notification;
       } | null);
   globalSlug?: string | null;
   user:
@@ -715,6 +805,7 @@ export interface ClassesSelect<T extends boolean = true> {
  */
 export interface ChaptersSelect<T extends boolean = true> {
   title?: T;
+  chapterNumber?: T;
   lessons?: T;
   class?: T;
   slug?: T;
@@ -727,6 +818,7 @@ export interface ChaptersSelect<T extends boolean = true> {
  * via the `definition` "lessons_select".
  */
 export interface LessonsSelect<T extends boolean = true> {
+  order?: T;
   title?: T;
   chapter?: T;
   slug?: T;
@@ -858,6 +950,7 @@ export interface LessonsSelect<T extends boolean = true> {
  * via the `definition` "pages_select".
  */
 export interface PagesSelect<T extends boolean = true> {
+  navOrder?: T;
   title?: T;
   slug?: T;
   layout?:
@@ -1049,6 +1142,44 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "questions_select".
+ */
+export interface QuestionsSelect<T extends boolean = true> {
+  user?: T;
+  lesson?: T;
+  chapter?: T;
+  class?: T;
+  status?: T;
+  title?: T;
+  body?: T;
+  attachment?: T;
+  answers?:
+    | T
+    | {
+        author?: T;
+        body?: T;
+        createdAt?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications_select".
+ */
+export interface NotificationsSelect<T extends boolean = true> {
+  recipient?: T;
+  type?: T;
+  title?: T;
+  body?: T;
+  question?: T;
+  read?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

@@ -60,6 +60,9 @@ export const pageLayoutBlocks: Block[] = [
         name: "body",
         type: "richText",
         required: true,
+        admin: {
+          description: "Use $...$ for inline math and $$...$$ for display math.",
+        },
       },
     ],
   },
@@ -151,6 +154,9 @@ export const pageLayoutBlocks: Block[] = [
           {
             name: "description",
             type: "richText",
+            admin: {
+              description: "Use $...$ for inline math and $$...$$ for display math.",
+            },
           },
         ],
       },

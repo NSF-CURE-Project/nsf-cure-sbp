@@ -6,6 +6,8 @@ export const Lessons: CollectionConfig = {
   slug: "lessons",
   admin: {
     useAsTitle: "title",
+    defaultColumns: ["order", "title", "chapter", "updatedAt"],
+    defaultSort: "order",
     preview: {
       url: ({ data }) => {
         const lessonSlug = data?.slug ?? "";
@@ -80,6 +82,26 @@ export const Lessons: CollectionConfig = {
     ],
   },
   fields: [
+    {
+      name: "lessonOrderGuide",
+      type: "ui",
+      admin: {
+        components: {
+          Field: "@/views/LessonOrderField#default",
+        },
+      },
+    },
+    {
+      name: "order",
+      label: "Lesson Order",
+      type: "number",
+      min: 0,
+      admin: {
+        position: "sidebar",
+        description: "Managed from the Reorder lessons list.",
+        readOnly: true,
+      },
+    },
     {
       name: "title",
       type: "text",
