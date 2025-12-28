@@ -249,7 +249,7 @@ const StaffProvider = (
           right: 22px;
           bottom: 22px;
           z-index: 9999;
-          border-radius: 999px;
+          border-radius: 0;
           border: 1px solid rgba(15, 23, 42, 0.2);
           background: rgba(255, 255, 255, 0.9);
           color: var(--cpp-ink);

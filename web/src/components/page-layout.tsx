@@ -146,21 +146,45 @@ function SnappingVideo({
 export function PageLayout({
   blocks,
   className = "space-y-10",
+  heroLogo,
 }: {
   blocks?: PageLayoutBlock[] | null;
   className?: string;
+  heroLogo?: {
+    src: string;
+    alt: string;
+    width?: number;
+    height?: number;
+    className?: string;
+  };
 }) {
   if (!blocks?.length) return null;
+  let heroLogoRendered = false;
 
   return (
     <div className={className}>
       {blocks.map((block, idx) => {
         if (block.blockType === "heroBlock") {
+          const shouldShowLogo = heroLogo && !heroLogoRendered;
+          if (shouldShowLogo) {
+            heroLogoRendered = true;
+          }
           return (
             <section key={block.id ?? idx} className="space-y-4">
-              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
-                {block.title}
-              </h1>
+              <div className="flex items-center gap-3">
+                {shouldShowLogo ? (
+                  <Image
+                    src={heroLogo.src}
+                    alt={heroLogo.alt}
+                    width={heroLogo.width ?? 48}
+                    height={heroLogo.height ?? 48}
+                    className={heroLogo.className ?? "h-10 w-auto opacity-80 grayscale"}
+                  />
+                ) : null}
+                <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
+                  {block.title}
+                </h1>
+              </div>
               {block.subtitle && (
                 <p className="text-muted-foreground leading-7">
                   {block.subtitle}

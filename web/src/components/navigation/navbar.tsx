@@ -304,15 +304,18 @@ export default function Navbar() {
         >
           Home
         </Link>
-        {pages.map((page) => (
+        {pages.map((page) => {
+          const href = page.slug === "learning" ? "/learning" : `/${page.slug}`;
+          return (
           <Link
             key={page.id}
-            href={`/${page.slug}`}
+            href={href}
             className="relative transition-colors hover:text-foreground after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:bg-foreground/70 after:origin-left after:scale-x-0 after:transition-transform after:duration-200 hover:after:scale-x-100"
           >
             {page.title}
           </Link>
-        ))}
+          );
+        })}
       </div>
 
       {/* Right cluster */}
@@ -542,15 +545,19 @@ export default function Navbar() {
                 >
                   Home
                 </Link>
-                {pages.map((page) => (
-                  <Link
-                    key={page.id}
-                    href={`/${page.slug}`}
-                    className="rounded-md px-3 py-2 transition hover:bg-muted"
-                  >
-                    {page.title}
-                  </Link>
-                ))}
+                {pages.map((page) => {
+                  const href =
+                    page.slug === "learning" ? "/learning" : `/${page.slug}`;
+                  return (
+                    <Link
+                      key={page.id}
+                      href={href}
+                      className="rounded-md px-3 py-2 transition hover:bg-muted"
+                    >
+                      {page.title}
+                    </Link>
+                  );
+                })}
                 {user ? (
                   <>
                     <Link

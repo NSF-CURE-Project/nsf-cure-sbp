@@ -121,9 +121,7 @@ export default function PublicLayoutShell({
             </div>
           </SidebarInset>
         </div>
-        <div className={cn(sidebarOpen ? "" : "lg:pl-14")}>
-          <Footer />
-        </div>
+        <Footer contentOffsetClassName={sidebarOpen ? "" : "lg:pl-14"} />
       </div>
     </SidebarProvider>
   );

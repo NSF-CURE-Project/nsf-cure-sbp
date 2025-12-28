@@ -276,25 +276,35 @@ export default function SidebarClient({ classes }: Props) {
                   {classTitle}
                 </Link>
               ) : (
-                <button
-                  type="button"
-                  aria-expanded={classOpen}
-                  aria-controls={`panel-class-${cSlug}`}
-                  onClick={() => toggleClass(cSlug)}
+                <div
                   className={[
                     "group flex w-full items-center justify-between gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition-colors",
                     "text-muted-foreground/80 hover:text-foreground",
                   ].join(" ")}
                 >
-                  <span className="flex-1 text-left">{classTitle}</span>
-                  <ChevronRight
-                    className={[
-                      "h-3 w-3 shrink-0 transition-transform text-muted-foreground/60",
-                      classOpen ? "rotate-90 -translate-x-1" : "",
-                    ].join(" ")}
-                    aria-hidden="true"
-                  />
-                </button>
+                  <Link
+                    href={`/classes/${cSlug}`}
+                    className="flex-1 text-left text-inherit"
+                  >
+                    {classTitle}
+                  </Link>
+                  <button
+                    type="button"
+                    aria-expanded={classOpen}
+                    aria-controls={`panel-class-${cSlug}`}
+                    onClick={() => toggleClass(cSlug)}
+                    className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground/60 transition hover:bg-muted/20 hover:text-foreground"
+                    aria-label={classOpen ? "Collapse chapters" : "Expand chapters"}
+                  >
+                    <ChevronRight
+                      className={[
+                        "h-3 w-3 shrink-0 transition-transform",
+                        classOpen ? "rotate-90 -translate-x-1" : "",
+                      ].join(" ")}
+                      aria-hidden="true"
+                    />
+                  </button>
+                </div>
               )}
 
               {/* Chapters (collapsible) */}

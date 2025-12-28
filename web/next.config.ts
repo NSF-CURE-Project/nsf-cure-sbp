@@ -2,6 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  devServer: {
+    allowedDevOrigins: [
+      "http://app.sbp.local:3001",
+      "http://app.sbp.local",
+      "http://192.168.5.88:3001",
+    ],
+  },
 
   images: {
     remotePatterns: [

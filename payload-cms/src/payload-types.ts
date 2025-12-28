@@ -78,6 +78,7 @@ export interface Config {
     questions: Question;
     notifications: Notification;
     'lesson-progress': LessonProgress;
+    feedback: Feedback;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -95,6 +96,7 @@ export interface Config {
     questions: QuestionsSelect<false> | QuestionsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'lesson-progress': LessonProgressSelect<false> | LessonProgressSelect<true>;
+    feedback: FeedbackSelect<false> | FeedbackSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -693,6 +695,20 @@ export interface LessonProgress {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "feedback".
+ */
+export interface Feedback {
+  id: number;
+  email?: string | null;
+  read?: boolean | null;
+  message: string;
+  pageUrl?: string | null;
+  userAgent?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -754,6 +770,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'lesson-progress';
         value: number | LessonProgress;
+      } | null)
+    | ({
+        relationTo: 'feedback';
+        value: number | Feedback;
       } | null);
   globalSlug?: string | null;
   user:
@@ -1213,6 +1233,19 @@ export interface LessonProgressSelect<T extends boolean = true> {
   class?: T;
   completed?: T;
   completedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "feedback_select".
+ */
+export interface FeedbackSelect<T extends boolean = true> {
+  email?: T;
+  read?: T;
+  message?: T;
+  pageUrl?: T;
+  userAgent?: T;
   updatedAt?: T;
   createdAt?: T;
 }

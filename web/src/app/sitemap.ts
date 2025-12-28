@@ -8,6 +8,7 @@ type ChapterLike = ChapterDoc & { lessons?: LessonDoc[] };
 
 const staticRoutes = [
   "/",
+  "/learning",
   "/directory",
   "/search",
   "/resources",

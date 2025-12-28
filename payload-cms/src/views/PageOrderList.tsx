@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "@payloadcms/ui";
 
 type PageLink = {
@@ -58,6 +58,9 @@ export default function PageOrderList({
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
   const [pendingIndex, setPendingIndex] = useState<number | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingPages, setPendingPages] = useState<PageLink[] | null>(null);
+  const previousPagesRef = useRef<PageLink[]>([]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -74,9 +77,12 @@ export default function PageOrderList({
         const data = (await res.json()) as {
           docs?: PageLink[];
         };
-        const ordered = (data.docs ?? []).filter(
-          (page) => page.slug && page.slug !== "home"
-        );
+        const ordered = [...(data.docs ?? [])].sort((a, b) => {
+          const aOrder = typeof a.navOrder === "number" ? a.navOrder : Number.POSITIVE_INFINITY;
+          const bOrder = typeof b.navOrder === "number" ? b.navOrder : Number.POSITIVE_INFINITY;
+          if (aOrder !== bOrder) return aOrder - bOrder;
+          return (a.title ?? "").localeCompare(b.title ?? "");
+        });
         setPages(ordered);
       } catch (error) {
         if (!controller.signal.aborted) {
@@ -145,6 +151,7 @@ export default function PageOrderList({
   };
 
   const handleDrop = async (targetId: string) => {
+    if (confirmOpen) return;
     if (!draggingId || draggingId === targetId) return;
     if (pendingTitle && draggingId === "__pending__") {
       const items = [...pages];
@@ -161,7 +168,25 @@ export default function PageOrderList({
     const [moved] = current.splice(fromIndex, 1);
     current.splice(toIndex, 0, moved);
     setPages(current);
-    await persistPageOrder(current);
+    previousPagesRef.current = pages;
+    setPendingPages(current);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirm = async () => {
+    if (!pendingPages) {
+      setConfirmOpen(false);
+      return;
+    }
+    setConfirmOpen(false);
+    await persistPageOrder(pendingPages);
+    setPendingPages(null);
+  };
+
+  const handleCancel = () => {
+    setPages(previousPagesRef.current);
+    setPendingPages(null);
+    setConfirmOpen(false);
   };
 
   const listItems = (() => {
@@ -178,17 +203,19 @@ export default function PageOrderList({
 
   return (
     <div>
-      <div
-        style={{
-          fontSize: compact ? 12 : 14,
-          textTransform: "uppercase",
-          letterSpacing: "0.12em",
-          color: "var(--cpp-muted, #5b6f66)",
-          fontWeight: 700,
-        }}
-      >
-        {title}
-      </div>
+      {title ? (
+        <div
+          style={{
+            fontSize: compact ? 12 : 14,
+            textTransform: "uppercase",
+            letterSpacing: "0.12em",
+            color: "var(--cpp-muted, #5b6f66)",
+            fontWeight: 700,
+          }}
+        >
+          {title}
+        </div>
+      ) : null}
       {showHint ? (
         <div
           style={{
@@ -294,6 +321,76 @@ export default function PageOrderList({
           </div>
         )}
       </div>
+      {confirmOpen ? (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.35)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              width: "min(92vw, 420px)",
+              background: "#ffffff",
+              borderRadius: 0,
+              border: "1px solid rgba(15, 23, 42, 0.16)",
+              boxShadow: "0 20px 40px rgba(15, 23, 42, 0.2)",
+              padding: 18,
+            }}
+          >
+            <div style={{ fontSize: 16, fontWeight: 700, color: "var(--cpp-ink, #0b3d27)" }}>
+              Save new page order?
+            </div>
+            <p style={{ marginTop: 6, fontSize: 13, color: "#64748b" }}>
+              This will update the order shown in the main navigation.
+            </p>
+            <div
+              style={{
+                marginTop: 16,
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 8,
+              }}
+            >
+              <button
+                type="button"
+                onClick={handleCancel}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: 0,
+                  border: "1px solid rgba(15, 23, 42, 0.16)",
+                  background: "#f8fafc",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirm}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: 0,
+                  border: "1px solid rgba(15, 23, 42, 0.16)",
+                  background: "#0f172a",
+                  color: "#f8fafc",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Save order
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

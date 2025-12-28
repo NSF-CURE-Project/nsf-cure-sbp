@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link, useAuth } from "@payloadcms/ui";
+import PageOrderList from "./PageOrderList";
 
 const navStyle: React.CSSProperties = {
-  padding: "28px 14px 18px",
+  padding: "64px 14px 18px",
   display: "flex",
   flexDirection: "column",
   gap: 12,
@@ -20,118 +21,52 @@ const sectionTitleStyle: React.CSSProperties = {
   paddingTop: 12,
 };
 
-const sectionLinksStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 10,
-  paddingTop: 8,
-};
-
-const inlineNoteStyle: React.CSSProperties = {
-  fontSize: 12,
-  color: "var(--cpp-muted, #5b6f66)",
-  padding: "4px 8px",
-};
-
 const linkStyle: React.CSSProperties = {
   display: "block",
   padding: "10px 12px",
-  borderRadius: 10,
+  borderRadius: 0,
   background: "rgba(0, 80, 48, 0.08)",
   color: "var(--cpp-ink, #0b3d27)",
   textDecoration: "none",
   fontWeight: 600,
 };
 
-type PageLink = {
-  id: string;
-  title: string;
-  slug?: string | null;
-};
-
 export default function StaffNav() {
   const { user } = useAuth();
   const role = (user as { role?: string } | null)?.role;
-  const [pages, setPages] = useState<PageLink[]>([]);
-  const [pagesLoading, setPagesLoading] = useState(true);
 
   if (role !== "staff" && role !== "admin") {
     return null;
   }
 
-  useEffect(() => {
-    const controller = new AbortController();
-    const loadPages = async () => {
-      try {
-        const res = await fetch("/api/pages?limit=100&sort=title", {
-          credentials: "include",
-          signal: controller.signal,
-        });
-        if (!res.ok) {
-          setPages([]);
-          return;
-        }
-        const data = (await res.json()) as {
-          docs?: PageLink[];
-        };
-        setPages(data.docs ?? []);
-      } catch (error) {
-        if (!controller.signal.aborted) {
-          setPages([]);
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setPagesLoading(false);
-        }
-      }
-    };
-
-    loadPages();
-    return () => controller.abort();
-  }, []);
-
   return (
     <nav style={navStyle} aria-label="Staff navigation">
-      <div style={sectionTitleStyle}>Main Pages</div>
-      <div style={sectionLinksStyle}>
-        {pagesLoading ? (
-          <div style={inlineNoteStyle}>Loading pages…</div>
-        ) : pages.length ? (
-          pages.map((page) => (
-            <Link
-              key={page.id}
-              href={`/admin/collections/pages/${page.id}`}
-              style={linkStyle}
-            >
-              {page.title || page.slug || "Untitled Page"}
-            </Link>
-          ))
-        ) : (
-          <div style={inlineNoteStyle}>No pages yet.</div>
-        )}
+      <div style={sectionTitleStyle}>Navigation bar pages</div>
+      <Link href="/admin/collections/pages" style={linkStyle}>
+        Manage Pages
+      </Link>
+      <div style={{ height: 1, background: "rgba(15, 23, 42, 0.12)", margin: "8px 0" }} />
+      <div style={{ marginTop: 8 }}>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            fontSize: 12,
+            color: "#475569",
+            border: "1px dashed rgba(15, 23, 42, 0.2)",
+            background: "#f8fafc",
+            padding: "8px 10px",
+            borderRadius: 0,
+            width: "fit-content",
+            marginBottom: 8,
+          }}
+        >
+          <span style={{ fontWeight: 700 }}>Tip</span>
+          <span>Drag pages to reorder the navbar.</span>
+        </div>
+        <PageOrderList title={null} compact showHint={false} showEditLinks />
       </div>
-
-      <div style={sectionTitleStyle}>Lessons</div>
-      <Link href="/admin/collections/lessons" style={linkStyle}>
-        View / Edit Lessons
-      </Link>
-      <Link href="/admin/collections/lessons/create" style={linkStyle}>
-        Add New Lesson
-      </Link>
-
-      <div style={sectionTitleStyle}>Course Content</div>
-      <Link href="/admin/collections/classes" style={linkStyle}>
-        View / Edit Classes
-      </Link>
-      <Link href="/admin/collections/classes/create" style={linkStyle}>
-        Add New Class
-      </Link>
-      <Link href="/admin/collections/chapters" style={linkStyle}>
-        View / Edit Chapters
-      </Link>
-      <Link href="/admin/collections/chapters/create" style={linkStyle}>
-        Add New Chapter
-      </Link>
     </nav>
   );
 }

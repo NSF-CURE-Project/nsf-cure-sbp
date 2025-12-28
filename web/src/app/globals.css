@@ -70,6 +70,10 @@ body[data-toc="closed"] #layout {
   /* Supporting colors */
   --muted: 210 40% 96.1%;
   --muted-foreground: 215.4 16.3% 46.9%;
+  --link-hover: 222.2 47.4% 11.2%;
+  --hover-bg: 220 14% 95%;
+  --hover-border: 220 13% 86%;
+  --hover-fg: 222.2 47.4% 11.2%;
 
   --card: 0 0% 100%;
   --card-foreground: 222.2 84% 4.9%;
@@ -102,6 +106,10 @@ body[data-toc="closed"] #layout {
 
   --muted: 217.2 32.6% 17.5%;
   --muted-foreground: 215 20.2% 65.1%;
+  --link-hover: 210 40% 98%;
+  --hover-bg: 220 13% 16%;
+  --hover-border: 220 9% 26%;
+  --hover-fg: 210 40% 98%;
 
   --card: 222.2 84% 4.9%;
   --card-foreground: 210 40% 98%;
@@ -171,7 +179,18 @@ body[data-toc="closed"] #layout {
     color: hsl(var(--primary));
   }
   a:hover {
-    color: hsl(var(--secondary));
+    color: hsl(var(--link-hover));
+  }
+
+  button:hover,
+  [role="button"]:hover,
+  .hover-neutral:hover {
+    background-color: hsl(var(--hover-bg));
+    color: hsl(var(--hover-fg));
+  }
+
+  .hover-neutral-border:hover {
+    border-color: hsl(var(--hover-border));
   }
 
   /* Accessible focus ring using token colors */

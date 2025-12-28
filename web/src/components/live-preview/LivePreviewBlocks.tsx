@@ -15,6 +15,13 @@ type Props<T extends LayoutData> = {
   globalSlug?: string;
   className?: string;
   emptyMessage?: string;
+  heroLogo?: {
+    src: string;
+    alt: string;
+    width?: number;
+    height?: number;
+    className?: string;
+  };
 };
 
 export function LivePreviewBlocks<T extends LayoutData>({
@@ -23,6 +30,7 @@ export function LivePreviewBlocks<T extends LayoutData>({
   globalSlug,
   className = "space-y-10",
   emptyMessage = "No content yet.",
+  heroLogo,
 }: Props<T>) {
   const data = usePayloadLivePreview(initialData, {
     collectionSlug,
@@ -34,5 +42,5 @@ export function LivePreviewBlocks<T extends LayoutData>({
     return <p className="text-muted-foreground">{emptyMessage}</p>;
   }
 
-  return <PageLayout blocks={blocks} className={className} />;
+  return <PageLayout blocks={blocks} className={className} heroLogo={heroLogo} />;
 }

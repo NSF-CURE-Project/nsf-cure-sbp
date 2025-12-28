@@ -1,7 +1,6 @@
 import type { AdminViewServerProps } from 'payload';
 import { Gutter } from '@payloadcms/ui';
 import React from 'react';
-import ClassOrderList from './ClassOrderList';
 
 const cppGreen = '#334155';
 const cppGold = '#94a3b8';
@@ -9,31 +8,35 @@ const cppCream = '#f8fafc';
 const cppInk = '#0f172a';
 const cardStyle: React.CSSProperties = {
   border: '1px solid rgba(0, 80, 48, 0.12)',
-  borderRadius: 8,
-  padding: '10px 12px',
+  borderRadius: 0,
+  padding: '14px 16px',
+  width: 200,
+  height: 200,
   boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
-  display: 'inline-block',
-  minWidth: 180,
-  maxWidth: 200,
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'space-between',
   background: '#ffffff',
   transition: 'transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease',
-  textAlign: 'center',
 };
 
 const quickCardStyle: React.CSSProperties = {
   border: '1px solid rgba(15, 23, 42, 0.12)',
-  borderRadius: 8,
-  padding: '16px 18px',
+  borderRadius: 0,
+  padding: '14px 16px',
+  width: 200,
+  height: 200,
   background: '#ffffff',
   boxShadow: '0 6px 16px rgba(15, 23, 42, 0.08)',
   display: 'flex',
   flexDirection: 'column',
+  justifyContent: 'space-between',
   gap: 6,
 };
 
 const statCardStyle: React.CSSProperties = {
   border: '1px solid rgba(0, 80, 48, 0.12)',
-  borderRadius: 14,
+  borderRadius: 0,
   padding: '14px 16px',
   background: 'rgba(255, 255, 255, 0.85)',
   boxShadow: '0 10px 24px rgba(0, 0, 0, 0.08)',
@@ -255,13 +258,23 @@ const sectionLabelStyle: React.CSSProperties = {
 const helpBoxStyle: React.CSSProperties = {
   width: '100%',
   maxWidth: 720,
-  borderRadius: 14,
+  borderRadius: 0,
   border: '1px solid rgba(0, 80, 48, 0.15)',
   background: '#f8f6f0',
   padding: '14px 16px',
   color: '#1f2937',
   lineHeight: 1.5,
 };
+
+const contentHealthCardStyle: React.CSSProperties = {
+  borderRadius: 0,
+  border: '1px solid rgba(15, 23, 42, 0.12)',
+  background: '#ffffff',
+  padding: '14px 16px',
+  boxShadow: '0 8px 20px rgba(15, 23, 42, 0.08)',
+};
+
+import CourseCardList from './CourseCardList';
 
 const heroGridStyle: React.CSSProperties = {
   display: 'grid',
@@ -272,16 +285,18 @@ const heroGridStyle: React.CSSProperties = {
 };
 
 const heroCardStyle: React.CSSProperties = {
-  borderRadius: 22,
-  padding: '26px 28px',
+  borderRadius: 0,
+  padding: '20px 22px',
   background: '#ffffff',
   boxShadow: '0 20px 40px rgba(0, 0, 0, 0.12)',
   border: '1px solid rgba(0, 80, 48, 0.08)',
+  maxWidth: 520,
+  width: '100%',
 };
 
 const mockPanelStyle: React.CSSProperties = {
   background: '#ffffff',
-  borderRadius: 18,
+  borderRadius: 0,
   border: '1px solid rgba(0, 80, 48, 0.12)',
   boxShadow: '0 18px 38px rgba(0, 0, 0, 0.12)',
   padding: '18px',
@@ -295,7 +310,7 @@ const mockHeaderStyle: React.CSSProperties = {
 };
 
 const mockChipStyle: React.CSSProperties = {
-  borderRadius: 4,
+  borderRadius: 0,
   padding: '6px 10px',
   fontSize: 12,
   fontWeight: 600,
@@ -303,16 +318,38 @@ const mockChipStyle: React.CSSProperties = {
   color: cppInk,
 };
 
+type CourseTree = {
+  id: string | number;
+  title: string;
+  chapters: {
+    id: string | number;
+    title: string;
+    chapterNumber?: number | null;
+    lessons: {
+      id: string | number;
+      title: string;
+      order?: number | null;
+    }[];
+  }[];
+};
+
 const StaffDashboardContent = ({
   user,
   stats,
+  contentHealth,
+  courseTree,
 }: {
   user?: AdminViewServerProps['initPageResult']['req']['user'];
   stats: {
     accounts: number;
     unanswered: number;
-    drafts: number;
+    unreadFeedback: number;
   };
+  contentHealth: {
+    lowCompletion: { id: string | number; title: string; rate: number }[];
+    highQuestions: { id: string | number; title: string; count: number }[];
+  };
+  courseTree: CourseTree[];
 }) => (
   <Gutter>
     <style>{`
@@ -369,8 +406,10 @@ const StaffDashboardContent = ({
       <div
         style={{
           width: '100%',
-          borderRadius: 26,
-          padding: '28px 28px 30px',
+          maxWidth: 1080,
+          margin: '0 auto',
+          borderRadius: 0,
+          padding: '22px 22px 24px',
           background: `linear-gradient(135deg, rgba(148,163,184,0.16) 0%, rgba(226,232,240,0.5) 100%)`,
           border: '1px solid rgba(148, 163, 184, 0.28)',
           position: 'relative',
@@ -401,19 +440,19 @@ const StaffDashboardContent = ({
               This is the dashboard for managing NSF CURE SBP operations.
             </p>
             <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <a href="/admin/collections/pages" style={{ textDecoration: 'none' }}>
+              <a href="/admin/collections/questions" style={{ textDecoration: 'none' }}>
                 <div style={{ ...mockChipStyle, background: cppGreen, color: '#ffffff' }} className="dashboard-chip">
-                  Manage Pages
+                  Questions Inbox
                 </div>
               </a>
-              <a href="/admin/collections/lessons/create" style={{ textDecoration: 'none' }}>
-                <div style={mockChipStyle} className="dashboard-chip">Add Lesson</div>
-              </a>
-              <a href="/admin/collections/classes" style={{ textDecoration: 'none' }}>
-                <div style={mockChipStyle} className="dashboard-chip">View Classes</div>
+              <a href="/admin/collections/feedback" style={{ textDecoration: 'none' }}>
+                <div style={mockChipStyle} className="dashboard-chip">Feedback Inbox</div>
               </a>
               <a href="/admin/account" style={{ textDecoration: 'none' }}>
                 <div style={mockChipStyle} className="dashboard-chip">Your Account</div>
+              </a>
+              <a href="/admin/logout" style={{ textDecoration: 'none' }}>
+                <div style={mockChipStyle} className="dashboard-chip">Log out</div>
               </a>
             </div>
           </div>
@@ -425,100 +464,89 @@ const StaffDashboardContent = ({
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <StatCard label="Student Accounts" value={`${stats.accounts}`} />
               <StatCard label="Unanswered Questions" value={`${stats.unanswered}`} />
-              <StatCard label="Drafts" value={`${stats.drafts}`} />
+              <StatCard label="Unread Feedback" value={`${stats.unreadFeedback}`} />
             </div>
-            <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
-              <div style={mockPanelStyle} className="dashboard-panel">
-                <div style={{ fontSize: 13, fontWeight: 700, color: cppInk }}>Top task</div>
-                <div style={{ fontSize: 12, color: '#5b6f66', marginTop: 4 }}>
-                  Use the quick actions below to jump straight into edits.
+            <div style={{ marginTop: 14 }}>
+              <a href="/admin/collections/lessons?where[_status][equals]=draft" style={{ textDecoration: 'none' }}>
+                <div style={mockPanelStyle} className="dashboard-panel">
+                  <div style={{ fontSize: 13, fontWeight: 700, color: cppInk }}>View drafts</div>
+                  <div style={{ fontSize: 12, color: '#5b6f66', marginTop: 4 }}>
+                    See lessons that are still in draft.
+                  </div>
                 </div>
-              </div>
-              <div style={mockPanelStyle} className="dashboard-panel">
-                <div style={{ fontSize: 13, fontWeight: 700, color: cppInk }}>Status</div>
-                <div style={{ fontSize: 12, color: '#5b6f66', marginTop: 4 }}>
-                  Drafts count updates from pages and lessons in progress.
-                </div>
-              </div>
+              </a>
             </div>
           </div>
         </div>
       </div>
-      <div style={sectionLabelStyle}>Quick actions</div>
+      <div style={sectionLabelStyle}>Courses</div>
       <div style={{ ...contentBoxStyle }}>
-        <div style={{ marginTop: 6, ...cardRowStyle }}>
-          <QuickActionCard
-            href="/admin/collections/pages"
-            title="View / Edit Pages"
-            description="Manage all main pages."
-          />
-          <QuickActionCard
-            href="/admin/collections/pages/create"
-            title="Add Page"
-            description="Create a new main page."
-          />
-          <QuickActionCard
-            href="/admin/collections/lessons/create"
-            title="Add Lesson"
-            description="Create a new lesson for a chapter."
-          />
-          <QuickActionCard
-            href="/admin/collections/questions"
-            title="Questions Inbox"
-            description="Review lesson questions from students."
-          />
-        </div>
+        <CourseCardList initialCourses={courseTree} />
       </div>
-
-      <div style={sectionLabelStyle}>Course actions</div>
+      <div style={sectionLabelStyle}>Content health</div>
       <div style={{ ...contentBoxStyle }}>
-        <div style={{ marginTop: 6, ...cardRowStyle }}>
-          <QuickActionCard
-            href="/admin/collections/classes"
-            title="View Classes"
-            description="Review and edit class entries."
-          />
-          <QuickActionCard
-            href="/admin/collections/classes/create"
-            title="Add Class"
-            description="Create a new class entry."
-          />
-          <QuickActionCard
-            href="/admin/collections/chapters"
-            title="View Chapters"
-            description="Review and edit chapters."
-          />
-          <QuickActionCard
-            href="/admin/collections/chapters/create"
-            title="Add Chapter"
-            description="Create a chapter for a class."
-          />
-          <QuickActionCard
-            href="/admin/collections/lessons"
-            title="View Lessons"
-            description="Review and edit lessons."
-          />
+        <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+          <div style={contentHealthCardStyle}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+              Low completion lessons
+            </div>
+            <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+              Lessons with completion rates below the threshold.
+            </div>
+            <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+              {contentHealth.lowCompletion.length ? (
+                contentHealth.lowCompletion.map((item) => (
+                  <li key={String(item.id)}>
+                    <a
+                      href={`/admin/collections/lessons/${item.id}`}
+                      style={{ textDecoration: 'none', color: '#0f172a', fontWeight: 600 }}
+                    >
+                      {item.title}
+                    </a>
+                    <div style={{ fontSize: 12, color: '#64748b' }}>
+                      {Math.round(item.rate * 100)}% complete
+                    </div>
+                  </li>
+                ))
+              ) : (
+                <div style={{ fontSize: 12, color: '#64748b' }}>No low-completion lessons.</div>
+              )}
+            </ul>
+          </div>
+          <div style={contentHealthCardStyle}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+              High question volume
+            </div>
+            <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+              Lessons with unusually high student questions.
+            </div>
+            <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+              {contentHealth.highQuestions.length ? (
+                contentHealth.highQuestions.map((item) => (
+                  <li key={String(item.id)}>
+                    <a
+                      href={`/admin/collections/lessons/${item.id}`}
+                      style={{ textDecoration: 'none', color: '#0f172a', fontWeight: 600 }}
+                    >
+                      {item.title}
+                    </a>
+                    <div style={{ fontSize: 12, color: '#64748b' }}>
+                      {item.count} questions
+                    </div>
+                  </li>
+                ))
+              ) : (
+                <div style={{ fontSize: 12, color: '#64748b' }}>No high-volume lessons.</div>
+              )}
+            </ul>
+          </div>
         </div>
-      </div>
-
-      <div style={sectionLabelStyle}>Reorder classes</div>
-      <div style={{ ...contentBoxStyle }}>
-        <ClassOrderList showEditLinks />
       </div>
 
       <div style={helpBoxStyle}>
         <strong style={{ color: cppGreen }}>How to publish:</strong> open a page or lesson, click
         <strong> Save Draft</strong> while editing, then choose <strong>Publish changes</strong> when ready.
         Use the left menu for all content.
-      </div>
-      <div
-        style={{
-          marginTop: 24,
-          display: 'flex',
-          justifyContent: 'flex-end',
-        }}
-      >
-        <LogoutCard />
       </div>
     </div>
     </div>
@@ -537,7 +565,15 @@ export default async function StaffDashboardView({
   let unansweredCount = 0;
   let lessonsDraftCount = 0;
   let pagesDraftCount = 0;
+  let unreadFeedbackCount = 0;
   let accountsCount = 0;
+  let courseTree: CourseTree[] = [];
+  const LOW_COMPLETION_THRESHOLD = 0.4;
+  const HIGH_QUESTION_THRESHOLD = 5;
+  let contentHealth = {
+    lowCompletion: [] as { id: string | number; title: string; rate: number }[],
+    highQuestions: [] as { id: string | number; title: string; count: number }[],
+  };
 
   try {
     const unanswered = await payload.find({
@@ -598,11 +634,192 @@ export default async function StaffDashboardView({
     pagesDraftCount = 0;
   }
 
+  try {
+    const unreadFeedback = await payload.find({
+      collection: 'feedback',
+      depth: 0,
+      limit: 0,
+      where: {
+        read: {
+          equals: false,
+        },
+      },
+    });
+    unreadFeedbackCount = unreadFeedback.totalDocs ?? 0;
+  } catch {
+    unreadFeedbackCount = 0;
+  }
+
+  try {
+    const classes = await payload.find({
+      collection: 'classes',
+      depth: 2,
+      limit: 200,
+      sort: 'order',
+    });
+
+    courseTree = classes.docs.map((course: any) => {
+      const chapterDocs = Array.isArray(course?.chapters) ? course.chapters : [];
+      const chapters = chapterDocs
+        .map((chapter: any) => {
+          const lessonDocs = Array.isArray(chapter?.lessons) ? chapter.lessons : [];
+          const lessons = lessonDocs
+            .map((lesson: any) => ({
+              id: lesson?.id ?? lesson,
+              title: lesson?.title ?? 'Untitled lesson',
+              order: lesson?.order ?? null,
+            }))
+            .sort((a, b) => {
+              const orderA = typeof a.order === 'number' ? a.order : Number.MAX_SAFE_INTEGER;
+              const orderB = typeof b.order === 'number' ? b.order : Number.MAX_SAFE_INTEGER;
+              if (orderA !== orderB) return orderA - orderB;
+              return String(a.title).localeCompare(String(b.title));
+            });
+
+          return {
+            id: chapter?.id ?? chapter,
+            title: chapter?.title ?? 'Untitled chapter',
+            chapterNumber:
+              typeof chapter?.chapterNumber === 'number' ? chapter.chapterNumber : null,
+            lessons,
+          };
+        })
+        .sort((a, b) => {
+          const numberA = typeof a.chapterNumber === 'number' ? a.chapterNumber : Number.MAX_SAFE_INTEGER;
+          const numberB = typeof b.chapterNumber === 'number' ? b.chapterNumber : Number.MAX_SAFE_INTEGER;
+          if (numberA !== numberB) return numberA - numberB;
+          return String(a.title).localeCompare(String(b.title));
+        });
+
+      return {
+        id: course?.id ?? course,
+        title: course?.title ?? 'Untitled class',
+        chapters,
+      };
+    });
+  } catch {
+    courseTree = [];
+  }
+
+  try {
+    const lessons = await payload.find({
+      collection: 'lessons',
+      depth: 0,
+      limit: 2000,
+    });
+
+    const progress = await payload.find({
+      collection: 'lesson-progress',
+      depth: 0,
+      limit: 5000,
+    });
+
+    const completed = await payload.find({
+      collection: 'lesson-progress',
+      depth: 0,
+      limit: 5000,
+      where: {
+        completed: {
+          equals: true,
+        },
+      },
+    });
+
+    const questions = await payload.find({
+      collection: 'questions',
+      depth: 0,
+      limit: 5000,
+    });
+
+    const lessonById = new Map<string, { id: string | number; title: string }>();
+    lessons.docs.forEach((lesson) => {
+      lessonById.set(String(lesson.id), {
+        id: lesson.id,
+        title: lesson.title ?? 'Untitled lesson',
+      });
+    });
+
+    const progressTotals = new Map<string, number>();
+    progress.docs.forEach((doc) => {
+      const lessonValue = (doc as { lesson?: string | { id?: string | number } }).lesson;
+      const id =
+        typeof lessonValue === 'string'
+          ? lessonValue
+          : lessonValue?.id != null
+            ? String(lessonValue.id)
+            : null;
+      if (!id) return;
+      progressTotals.set(id, (progressTotals.get(id) ?? 0) + 1);
+    });
+
+    const progressCompleted = new Map<string, number>();
+    completed.docs.forEach((doc) => {
+      const lessonValue = (doc as { lesson?: string | { id?: string | number } }).lesson;
+      const id =
+        typeof lessonValue === 'string'
+          ? lessonValue
+          : lessonValue?.id != null
+            ? String(lessonValue.id)
+            : null;
+      if (!id) return;
+      progressCompleted.set(id, (progressCompleted.get(id) ?? 0) + 1);
+    });
+
+    const questionTotals = new Map<string, number>();
+    questions.docs.forEach((doc) => {
+      const lessonValue = (doc as { lesson?: string | { id?: string | number } }).lesson;
+      const id =
+        typeof lessonValue === 'string'
+          ? lessonValue
+          : lessonValue?.id != null
+            ? String(lessonValue.id)
+            : null;
+      if (!id) return;
+      questionTotals.set(id, (questionTotals.get(id) ?? 0) + 1);
+    });
+
+    const lowCompletion: { id: string | number; title: string; rate: number }[] = [];
+    progressTotals.forEach((total, id) => {
+      if (!total) return;
+      const completedCount = progressCompleted.get(id) ?? 0;
+      const rate = completedCount / total;
+      if (rate < LOW_COMPLETION_THRESHOLD) {
+        const lesson = lessonById.get(id);
+        if (lesson) {
+          lowCompletion.push({ id: lesson.id, title: lesson.title, rate });
+        }
+      }
+    });
+
+    const highQuestions: { id: string | number; title: string; count: number }[] = [];
+    questionTotals.forEach((count, id) => {
+      if (count < HIGH_QUESTION_THRESHOLD) return;
+      const lesson = lessonById.get(id);
+      if (lesson) {
+        highQuestions.push({ id: lesson.id, title: lesson.title, count });
+      }
+    });
+
+    contentHealth = {
+      lowCompletion: lowCompletion.sort((a, b) => a.rate - b.rate).slice(0, 6),
+      highQuestions: highQuestions.sort((a, b) => b.count - a.count).slice(0, 6),
+    };
+  } catch {
+    contentHealth = { lowCompletion: [], highQuestions: [] };
+  }
+
   const stats = {
     accounts: accountsCount,
     unanswered: unansweredCount,
-    drafts: lessonsDraftCount + pagesDraftCount,
+    unreadFeedback: unreadFeedbackCount,
   };
 
-  return <StaffDashboardContent user={user} stats={stats} />;
+  return (
+    <StaffDashboardContent
+      user={user}
+      stats={stats}
+      contentHealth={contentHealth}
+      courseTree={courseTree}
+    />
+  );
 }

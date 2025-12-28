@@ -28,6 +28,13 @@ export default async function Landing() {
         collectionSlug="pages"
         className="space-y-12 py-10"
         emptyMessage="No content yet. Add blocks to the page layout."
+        heroLogo={{
+          src: "/assets/logos/sbp_logo_transparent.png",
+          alt: "SBP logo",
+          width: 64,
+          height: 64,
+          className: "h-16 w-auto",
+        }}
       />
     </div>
   );
