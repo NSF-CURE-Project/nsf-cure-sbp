@@ -79,6 +79,7 @@ export interface Config {
     notifications: Notification;
     'lesson-progress': LessonProgress;
     feedback: Feedback;
+    'lesson-feedback': LessonFeedback;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -97,6 +98,7 @@ export interface Config {
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'lesson-progress': LessonProgressSelect<false> | LessonProgressSelect<true>;
     feedback: FeedbackSelect<false> | FeedbackSelect<true>;
+    'lesson-feedback': LessonFeedbackSelect<false> | LessonFeedbackSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -709,6 +711,35 @@ export interface Feedback {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "lesson-feedback".
+ */
+export interface LessonFeedback {
+  id: number;
+  user?: (number | null) | Account;
+  /**
+   * Feedback is scoped to this lesson.
+   */
+  lesson: number | Lesson;
+  chapter?: (number | null) | Chapter;
+  class?: (number | null) | Class;
+  rating: 1 | 2 | 3 | 4;
+  /**
+   * Optional comments from the student.
+   */
+  message?: string | null;
+  /**
+   * Staff reply shown in the admin panel.
+   */
+  reply?: string | null;
+  repliedAt?: string | null;
+  repliedBy?: (number | null) | User;
+  pageUrl?: string | null;
+  userAgent?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -774,6 +805,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'feedback';
         value: number | Feedback;
+      } | null)
+    | ({
+        relationTo: 'lesson-feedback';
+        value: number | LessonFeedback;
       } | null);
   globalSlug?: string | null;
   user:
@@ -1244,6 +1279,25 @@ export interface FeedbackSelect<T extends boolean = true> {
   email?: T;
   read?: T;
   message?: T;
+  pageUrl?: T;
+  userAgent?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "lesson-feedback_select".
+ */
+export interface LessonFeedbackSelect<T extends boolean = true> {
+  user?: T;
+  lesson?: T;
+  chapter?: T;
+  class?: T;
+  rating?: T;
+  message?: T;
+  reply?: T;
+  repliedAt?: T;
+  repliedBy?: T;
   pageUrl?: T;
   userAgent?: T;
   updatedAt?: T;

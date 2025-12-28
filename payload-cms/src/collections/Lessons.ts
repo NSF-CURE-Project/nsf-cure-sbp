@@ -163,5 +163,14 @@ export const Lessons: CollectionConfig = {
         description: 'Build the lesson by adding and reordering content blocks.',
       },
     },
+    {
+      name: 'lessonFeedbackPanel',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '@/views/LessonFeedbackPanel#default',
+        },
+      },
+    },
   ],
 }

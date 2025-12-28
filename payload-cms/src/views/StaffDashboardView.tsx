@@ -352,10 +352,12 @@ const StaffDashboardContent = ({
     accounts: number
     unanswered: number
     unreadFeedback: number
+    helpfulnessAvg: number | null
   }
   contentHealth: {
     lowCompletion: { id: string | number; title: string; rate: number }[]
     highQuestions: { id: string | number; title: string; count: number }[]
+    lowHelpfulness: { id: string | number; title: string; rating: number }[]
   }
   courseTree: CourseTree[]
 }) => (
@@ -494,11 +496,15 @@ const StaffDashboardContent = ({
                 <div style={{ fontWeight: 700, color: cppInk }}>Quick Overview</div>
                 <div style={mockChipStyle}>Live</div>
               </div>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <StatCard label="Student Accounts" value={`${stats.accounts}`} />
-                <StatCard label="Unanswered Questions" value={`${stats.unanswered}`} />
-                <StatCard label="Unread Feedback" value={`${stats.unreadFeedback}`} />
-              </div>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <StatCard label="Student Accounts" value={`${stats.accounts}`} />
+              <StatCard label="Unanswered Questions" value={`${stats.unanswered}`} />
+              <StatCard label="Unread Feedback" value={`${stats.unreadFeedback}`} />
+              <StatCard
+                label="Avg Helpfulness"
+                value={stats.helpfulnessAvg != null ? `${stats.helpfulnessAvg.toFixed(1)} / 4` : '—'}
+              />
+            </div>
               <div style={{ marginTop: 14 }}>
                 <a
                   href="/admin/collections/lessons?where[_status][equals]=draft"
@@ -580,6 +586,33 @@ const StaffDashboardContent = ({
                 )}
               </ul>
             </div>
+            <div style={contentHealthCardStyle}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+                Low helpfulness
+              </div>
+              <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+                Lessons with low average helpfulness ratings.
+              </div>
+              <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                {contentHealth.lowHelpfulness.length ? (
+                  contentHealth.lowHelpfulness.map((item) => (
+                    <li key={String(item.id)}>
+                      <a
+                        href={`/admin/collections/lessons/${item.id}`}
+                        style={{ textDecoration: 'none', color: '#0f172a', fontWeight: 600 }}
+                      >
+                        {item.title}
+                      </a>
+                      <div style={{ fontSize: 12, color: '#64748b' }}>
+                        {item.rating.toFixed(1)} / 4
+                      </div>
+                    </li>
+                  ))
+                ) : (
+                  <div style={{ fontSize: 12, color: '#64748b' }}>No low-rated lessons.</div>
+                )}
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -607,12 +640,15 @@ export default async function StaffDashboardView({
   let pagesDraftCount = 0
   let unreadFeedbackCount = 0
   let accountsCount = 0
+  let helpfulnessAvg: number | null = null
   let courseTree: CourseTree[] = []
   const LOW_COMPLETION_THRESHOLD = 0.4
   const HIGH_QUESTION_THRESHOLD = 5
+  const LOW_HELPFULNESS_THRESHOLD = 2.5
   let contentHealth = {
     lowCompletion: [] as { id: string | number; title: string; rate: number }[],
     highQuestions: [] as { id: string | number; title: string; count: number }[],
+    lowHelpfulness: [] as { id: string | number; title: string; rating: number }[],
   }
 
   try {
@@ -750,6 +786,12 @@ export default async function StaffDashboardView({
       limit: 2000,
     })
 
+    const lessonFeedback = await payload.find({
+      collection: 'lesson-feedback',
+      depth: 0,
+      limit: 5000,
+    })
+
     const progress = await payload.find({
       collection: 'lesson-progress',
       depth: 0,
@@ -845,15 +887,53 @@ export default async function StaffDashboardView({
     contentHealth = {
       lowCompletion: lowCompletion.sort((a, b) => a.rate - b.rate).slice(0, 6),
       highQuestions: highQuestions.sort((a, b) => b.count - a.count).slice(0, 6),
+      lowHelpfulness: [],
     }
+
+    const feedbackTotals = new Map<string, { sum: number; count: number }>()
+    lessonFeedback.docs.forEach((doc: any) => {
+      const lessonValue = doc.lesson
+      const id =
+        typeof lessonValue === 'string'
+          ? lessonValue
+          : lessonValue?.id != null
+            ? String(lessonValue.id)
+            : null
+      const rating = Number(doc.rating)
+      if (!id || !Number.isFinite(rating)) return
+      const current = feedbackTotals.get(id) ?? { sum: 0, count: 0 }
+      feedbackTotals.set(id, { sum: current.sum + rating, count: current.count + 1 })
+    })
+
+    let totalRating = 0
+    let totalCount = 0
+    const lowHelpfulness: { id: string | number; title: string; rating: number }[] = []
+    feedbackTotals.forEach((totals, id) => {
+      if (!totals.count) return
+      const avg = totals.sum / totals.count
+      totalRating += totals.sum
+      totalCount += totals.count
+      if (avg < LOW_HELPFULNESS_THRESHOLD) {
+        const lesson = lessonById.get(id)
+        if (lesson) {
+          lowHelpfulness.push({ id: lesson.id, title: lesson.title, rating: avg })
+        }
+      }
+    })
+
+    helpfulnessAvg = totalCount ? totalRating / totalCount : null
+    contentHealth.lowHelpfulness = lowHelpfulness
+      .sort((a, b) => a.rating - b.rating)
+      .slice(0, 6)
   } catch {
-    contentHealth = { lowCompletion: [], highQuestions: [] }
+    contentHealth = { lowCompletion: [], highQuestions: [], lowHelpfulness: [] }
   }
 
   const stats = {
     accounts: accountsCount,
     unanswered: unansweredCount,
     unreadFeedback: unreadFeedbackCount,
+    helpfulnessAvg,
   }
 
   return (

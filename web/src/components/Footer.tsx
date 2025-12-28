@@ -87,8 +87,8 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/classes" className="hover:underline">
-                    Classes
+                  <Link href="/learning" className="hover:underline">
+                    Learning
                   </Link>
                 </li>
                 <li>
@@ -106,6 +106,11 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                 <li>
                   <Link href="/faq" className="hover:underline">
                     FAQ
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/resources" className="hover:underline">
+                    Resources
                   </Link>
                 </li>
               </ul>

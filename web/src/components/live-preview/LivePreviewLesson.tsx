@@ -9,6 +9,7 @@ import { usePayloadLivePreview } from "./usePayloadLivePreview";
 import { LessonQuestionDrawer } from "@/components/questions/LessonQuestionDrawer";
 import { LessonQuestionList } from "@/components/questions/LessonQuestionList";
 import { LessonProgressControls } from "@/components/progress/LessonProgressControls";
+import { LessonHelpfulFeedback } from "@/components/lessons/LessonHelpfulFeedback";
 
 type Props = {
   initialData: LessonDoc | null;
@@ -98,6 +99,7 @@ export function LivePreviewLesson({
         </>
       ) : null}
       {navBottom}
+      {data?.id ? <LessonHelpfulFeedback lessonId={data.id} /> : null}
     </article>
   );
 }
