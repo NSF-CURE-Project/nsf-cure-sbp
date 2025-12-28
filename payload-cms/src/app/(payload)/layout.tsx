@@ -5,6 +5,7 @@ import '@payloadcms/next/css'
 import type { ServerFunctionClient } from 'payload'
 import { handleServerFunctions, RootLayout } from '@payloadcms/next/layouts'
 import React from 'react'
+import { cookies } from 'next/headers'
 
 import { importMap } from './admin/importMap.js'
 import './custom.scss'
@@ -22,10 +23,22 @@ const serverFunction: ServerFunctionClient = async function (args) {
   })
 }
 
-const Layout = ({ children }: Args) => (
-  <RootLayout config={config} importMap={importMap} serverFunction={serverFunction}>
-    {children}
-  </RootLayout>
-)
+const Layout = ({ children }: Args) => {
+  const cookieStore = cookies()
+  const storedTheme =
+    cookieStore.get('payload-admin-theme')?.value ?? cookieStore.get('payload-theme')?.value
+  const theme = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : undefined
+
+  return (
+    <RootLayout
+      config={config}
+      importMap={importMap}
+      serverFunction={serverFunction}
+      htmlProps={theme ? { 'data-theme': theme } : undefined}
+    >
+      {children}
+    </RootLayout>
+  )
+}
 
 export default Layout

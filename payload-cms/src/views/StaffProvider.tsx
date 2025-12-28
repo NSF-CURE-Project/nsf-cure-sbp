@@ -23,6 +23,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       document.body?.setAttribute('data-theme', value)
       window.localStorage.setItem('payload-admin-theme', value)
       window.localStorage.setItem('payload-theme', value)
+      document.cookie = `payload-admin-theme=${value}; path=/; max-age=31536000`
+      document.cookie = `payload-theme=${value}; path=/; max-age=31536000`
     }
 
     const userTheme = user?.adminTheme
@@ -56,6 +58,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     document.body?.setAttribute('data-theme', theme)
     window.localStorage.setItem('payload-admin-theme', theme)
     window.localStorage.setItem('payload-theme', theme)
+    document.cookie = `payload-admin-theme=${theme}; path=/; max-age=31536000`
+    document.cookie = `payload-theme=${theme}; path=/; max-age=31536000`
 
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
