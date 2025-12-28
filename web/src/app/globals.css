@@ -1,4 +1,3 @@
-
 @import "tw-animate-css";
 @import "katex/dist/katex.min.css";
 
@@ -8,18 +7,17 @@
 @tailwind components;
 @tailwind utilities;
 
-
 :root {
   --nav-h: 4rem;
   --panel-gap: 0.75rem;
 
   /* Layout tokens */
-  --content-max: 1200px;   /* default max width for content areas */
+  --content-max: 1200px; /* default max width for content areas */
   --toc-open-width: 14rem;
   --toc-open-gap: 1.25rem;
   --toc-closed-width: 0px;
   --toc-closed-gap: 0px;
-  --toc-w: var(--toc-open-width);   /* runtime toggles will swap these */
+  --toc-w: var(--toc-open-width); /* runtime toggles will swap these */
   --toc-gap: var(--toc-open-gap);
   --sidebar: hsl(0 0% 98%);
   --sidebar-foreground: hsl(240 5.3% 26.1%);
@@ -51,9 +49,9 @@ body[data-toc="closed"] #layout {
   --radius: 0.25rem;
 
   /* CPP brand colors (base HSLs) */
-  --cpp-green: 156 100% 16%;  /* #005030 */
-  --cpp-gold: 45 100% 55%;    /* #FFB81C */
-  --cpp-avocado: 90 55% 60%;  /* #A4D65E */
+  --cpp-green: 156 100% 16%; /* #005030 */
+  --cpp-gold: 45 100% 55%; /* #FFB81C */
+  --cpp-avocado: 90 55% 60%; /* #A4D65E */
 
   /* Themed roles */
   --primary: var(--cpp-green);
@@ -144,7 +142,9 @@ body[data-toc="closed"] #layout {
   * {
     border-width: 0;
     border-style: solid;
-    border-color: hsl(var(--border)); /* used when you add Tailwind `border` utilities */
+    border-color: hsl(
+      var(--border)
+    ); /* used when you add Tailwind `border` utilities */
   }
 
   html {

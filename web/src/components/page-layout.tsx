@@ -3,8 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
 import type { PageLayoutBlock } from "@/lib/payloadSdk/types";
 
-const CMS_URL =
-  process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const CMS_URL = process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
 
 const resolveMediaUrl = (media?: unknown): string | null => {
   if (!media) return null;
@@ -70,7 +69,9 @@ const getSnappedWidth = (current: number, max: number) => {
     options.push(max);
   }
   return options.reduce((closest, width) => {
-    return Math.abs(width - current) < Math.abs(closest - current) ? width : closest;
+    return Math.abs(width - current) < Math.abs(closest - current)
+      ? width
+      : closest;
   }, options[0]);
 };
 
@@ -111,7 +112,10 @@ function SnappingVideo({
       <div
         ref={frameRef}
         className="w-full min-w-[280px] max-w-full overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-b from-muted/50 to-muted/20 p-1 shadow-lg"
-        style={{ resize: "horizontal", width: snappedWidth ? `${snappedWidth}px` : undefined }}
+        style={{
+          resize: "horizontal",
+          width: snappedWidth ? `${snappedWidth}px` : undefined,
+        }}
         onPointerUp={snapToNearest}
         onMouseUp={snapToNearest}
         onTouchEnd={snapToNearest}
@@ -127,18 +131,14 @@ function SnappingVideo({
                 window.dispatchEvent(
                   new CustomEvent("lesson-progress", {
                     detail: { type: "video-ended" },
-                  }),
+                  })
                 );
               }
             }}
           />
         </div>
       </div>
-      {caption && (
-        <p className="text-sm text-muted-foreground">
-          {caption}
-        </p>
-      )}
+      {caption && <p className="text-sm text-muted-foreground">{caption}</p>}
     </section>
   );
 }
@@ -178,7 +178,9 @@ export function PageLayout({
                     alt={heroLogo.alt}
                     width={heroLogo.width ?? 48}
                     height={heroLogo.height ?? 48}
-                    className={heroLogo.className ?? "h-10 w-auto opacity-80 grayscale"}
+                    className={
+                      heroLogo.className ?? "h-10 w-auto opacity-80 grayscale"
+                    }
                   />
                 ) : null}
                 <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
@@ -224,7 +226,7 @@ export function PageLayout({
             <section key={block.id ?? idx}>
               {renderRichTextOrText(
                 block.body,
-                "prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground",
+                "prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
               )}
             </section>
           );
@@ -232,9 +234,7 @@ export function PageLayout({
 
         if (block.blockType === "textBlock") {
           return (
-            <section key={block.id ?? idx}>
-              {renderText(block.text)}
-            </section>
+            <section key={block.id ?? idx}>{renderText(block.text)}</section>
           );
         }
 
@@ -289,7 +289,7 @@ export function PageLayout({
                       </div>
                       {renderRichTextOrText(
                         step.description,
-                        "prose dark:prose-invert prose-invert leading-7 max-w-none text-muted-foreground",
+                        "prose dark:prose-invert prose-invert leading-7 max-w-none text-muted-foreground"
                       )}
                     </li>
                   ))}
@@ -372,16 +372,14 @@ export function PageLayout({
           const contacts = block.contacts ?? [];
           const groupByCategory = block.groupByCategory !== false;
           const staff = contacts.filter(
-            (c) => (c.category ?? "").toLowerCase() === "staff",
+            (c) => (c.category ?? "").toLowerCase() === "staff"
           );
           const technical = contacts.filter(
-            (c) => (c.category ?? "").toLowerCase() === "technical",
+            (c) => (c.category ?? "").toLowerCase() === "technical"
           );
           const other = contacts.filter(
             (c) =>
-              !["staff", "technical"].includes(
-                (c.category ?? "").toLowerCase(),
-              ),
+              !["staff", "technical"].includes((c.category ?? "").toLowerCase())
           );
           const sections = groupByCategory
             ? [

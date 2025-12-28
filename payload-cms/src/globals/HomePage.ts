@@ -1,10 +1,10 @@
 // cms-payload/src/globals/HomePage.ts
-import type { GlobalConfig } from "payload";
-import { pageBlocks } from "../blocks/pageBlocks";
+import type { GlobalConfig } from 'payload'
+import { pageBlocks } from '../blocks/pageBlocks'
 
 export const HomePage: GlobalConfig = {
-  slug: "home-page",
-  label: "Home Page",
+  slug: 'home-page',
+  label: 'Home Page',
   access: {
     read: () => true, // public
   },
@@ -12,41 +12,41 @@ export const HomePage: GlobalConfig = {
     drafts: true,
   },
   admin: {
-    group: "Main Pages",
+    group: 'Main Pages',
     preview: {
       url: () => {
-        const base = process.env.WEB_PREVIEW_URL ?? "http://localhost:3001";
+        const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
         const search = new URLSearchParams({
-          secret: process.env.PREVIEW_SECRET ?? "",
-          type: "home",
-        });
-        return `${base}/api/preview?${search.toString()}`;
+          secret: process.env.PREVIEW_SECRET ?? '',
+          type: 'home',
+        })
+        return `${base}/api/preview?${search.toString()}`
       },
     },
     livePreview: {
       url: () => {
-        const base = process.env.WEB_PREVIEW_URL ?? "http://localhost:3001";
+        const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
         const search = new URLSearchParams({
-          secret: process.env.PREVIEW_SECRET ?? "",
-          type: "home",
-        });
-        return `${base}/api/preview?${search.toString()}`;
+          secret: process.env.PREVIEW_SECRET ?? '',
+          type: 'home',
+        })
+        return `${base}/api/preview?${search.toString()}`
       },
     },
   },
   fields: [
     {
-      name: "layout",
-      label: "Page layout",
-      type: "blocks",
+      name: 'layout',
+      label: 'Page layout',
+      type: 'blocks',
       labels: {
-        singular: "Section",
-        plural: "Sections",
+        singular: 'Section',
+        plural: 'Sections',
       },
       blocks: pageBlocks,
       admin: {
-        description: "Build the page by adding and reordering content blocks.",
+        description: 'Build the page by adding and reordering content blocks.',
       },
     },
   ],
-};
+}

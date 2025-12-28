@@ -42,5 +42,7 @@ export function LivePreviewBlocks<T extends LayoutData>({
     return <p className="text-muted-foreground">{emptyMessage}</p>;
   }
 
-  return <PageLayout blocks={blocks} className={className} heroLogo={heroLogo} />;
+  return (
+    <PageLayout blocks={blocks} className={className} heroLogo={heroLogo} />
+  );
 }

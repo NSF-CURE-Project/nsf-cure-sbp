@@ -7,7 +7,7 @@ import type { ChapterDoc, LessonDoc } from "@/lib/payloadSdk/types";
 import { ClassProgressSummary } from "@/components/progress/ClassProgressSummary";
 
 type Params = Promise<{ classSlug: string }>;
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 // --- Metadata ---
 export async function generateMetadata(props: {
@@ -67,8 +67,8 @@ export default async function ClassPage(props: {
 
       <div className="space-y-6">
         {chapters.map((chapter) => {
-          const lessons = (chapter as ChapterDoc & { lessons?: LessonDoc[] })
-            .lessons ?? [];
+          const lessons =
+            (chapter as ChapterDoc & { lessons?: LessonDoc[] }).lessons ?? [];
           const chapterSlug = chapter.slug ?? "";
           return (
             <section key={String(chapter.id)} className="space-y-3">
@@ -102,9 +102,7 @@ export default async function ClassPage(props: {
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  No lessons yet.
-                </p>
+                <p className="text-sm text-muted-foreground">No lessons yet.</p>
               )}
             </section>
           );

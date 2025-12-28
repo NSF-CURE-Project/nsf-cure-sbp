@@ -1,78 +1,75 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig } from 'payload'
 
 const isStaff = (req?: { user?: { collection?: string; role?: string } }) =>
-  req?.user?.collection === "users" ||
-  ["admin", "staff"].includes(req?.user?.role ?? "");
+  req?.user?.collection === 'users' || ['admin', 'staff'].includes(req?.user?.role ?? '')
 
 export const Notifications: CollectionConfig = {
-  slug: "notifications",
+  slug: 'notifications',
   admin: {
-    useAsTitle: "title",
-    group: "Student Support",
-    defaultColumns: ["title", "recipient", "read", "createdAt"],
-    defaultSort: "-createdAt",
+    useAsTitle: 'title',
+    group: 'Student Support',
+    defaultColumns: ['title', 'recipient', 'read', 'createdAt'],
+    defaultSort: '-createdAt',
   },
   access: {
     read: ({ req }) => {
-      if (isStaff(req)) return true;
-      if (req.user?.collection === "accounts") {
-        return { recipient: { equals: req.user.id } };
+      if (isStaff(req)) return true
+      if (req.user?.collection === 'accounts') {
+        return { recipient: { equals: req.user.id } }
       }
-      return false;
+      return false
     },
     create: ({ req }) => isStaff(req),
     update: ({ req }) => {
-      if (isStaff(req)) return true;
-      if (req.user?.collection === "accounts") {
-        return { recipient: { equals: req.user.id } };
+      if (isStaff(req)) return true
+      if (req.user?.collection === 'accounts') {
+        return { recipient: { equals: req.user.id } }
       }
-      return false;
+      return false
     },
     delete: ({ req }) => isStaff(req),
   },
   fields: [
     {
-      name: "recipient",
-      type: "relationship",
-      relationTo: "accounts" as any,
+      name: 'recipient',
+      type: 'relationship',
+      relationTo: 'accounts' as any,
       required: true,
       admin: {
-        position: "sidebar",
+        position: 'sidebar',
       },
     },
     {
-      name: "type",
-      type: "select",
+      name: 'type',
+      type: 'select',
       required: true,
-      defaultValue: "question_answered",
-      options: [
-        { label: "Question answered", value: "question_answered" },
-      ],
+      defaultValue: 'question_answered',
+      options: [{ label: 'Question answered', value: 'question_answered' }],
       admin: {
-        position: "sidebar",
+        position: 'sidebar',
       },
     },
     {
-      name: "title",
-      type: "text",
+      name: 'title',
+      type: 'text',
       required: true,
     },
     {
-      name: "body",
-      type: "textarea",
+      name: 'body',
+      type: 'textarea',
     },
     {
-      name: "question",
-      type: "relationship",
-      relationTo: "questions" as any,
+      name: 'question',
+      type: 'relationship',
+      relationTo: 'questions' as any,
     },
     {
-      name: "read",
-      type: "checkbox",
+      name: 'read',
+      type: 'checkbox',
       defaultValue: false,
       admin: {
-        position: "sidebar",
+        position: 'sidebar',
       },
     },
   ],
-};
+}

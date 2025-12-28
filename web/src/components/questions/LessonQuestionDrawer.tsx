@@ -14,7 +14,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-const PAYLOAD_URL = process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const PAYLOAD_URL =
+  process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
 
 type Props = {
   lessonId: string;
@@ -28,7 +29,11 @@ type AccountUser = {
   fullName?: string;
 };
 
-export function LessonQuestionDrawer({ lessonId, lessonTitle, onSubmitted }: Props) {
+export function LessonQuestionDrawer({
+  lessonId,
+  lessonTitle,
+  onSubmitted,
+}: Props) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -86,7 +91,9 @@ export function LessonQuestionDrawer({ lessonId, lessonTitle, onSubmitted }: Pro
         if (!uploadRes.ok) {
           throw new Error("Upload failed. Please try again.");
         }
-        const uploadData = (await uploadRes.json()) as { doc?: { id?: string } };
+        const uploadData = (await uploadRes.json()) as {
+          doc?: { id?: string };
+        };
         attachmentId = uploadData?.doc?.id ?? null;
       }
 
@@ -118,7 +125,7 @@ export function LessonQuestionDrawer({ lessonId, lessonTitle, onSubmitted }: Pro
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "Something went wrong. Please try again.",
+          : "Something went wrong. Please try again."
       );
     } finally {
       setSubmitting(false);
@@ -136,11 +143,7 @@ export function LessonQuestionDrawer({ lessonId, lessonTitle, onSubmitted }: Pro
         </div>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button
-              type="button"
-              className="rounded-full"
-              disabled={!lessonId}
-            >
+            <Button type="button" className="rounded-full" disabled={!lessonId}>
               Ask a Question about this Lesson
             </Button>
           </SheetTrigger>
@@ -154,7 +157,8 @@ export function LessonQuestionDrawer({ lessonId, lessonTitle, onSubmitted }: Pro
                 Your question will be linked to “{lessonTitle}.”
               </SheetDescription>
               <div className="rounded-xl border border-border/60 bg-muted/40 px-4 py-3 text-xs text-muted-foreground">
-                Include any symbols, formulas, or steps you already tried for a faster response.
+                Include any symbols, formulas, or steps you already tried for a
+                faster response.
               </div>
             </SheetHeader>
 
@@ -195,7 +199,8 @@ export function LessonQuestionDrawer({ lessonId, lessonTitle, onSubmitted }: Pro
                   disabled={!user || submitting}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Tip: Use $...$ for inline math or $$...$$ for display equations.
+                  Tip: Use $...$ for inline math or $$...$$ for display
+                  equations.
                 </p>
               </div>
 
@@ -229,21 +234,21 @@ export function LessonQuestionDrawer({ lessonId, lessonTitle, onSubmitted }: Pro
                   Staff usually respond within 24 hours.
                 </span>
                 <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => setOpen(false)}
-                  disabled={submitting}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={!user || !canSubmit}
-                >
-                  {submitting ? "Submitting..." : "Submit Question"}
-                </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setOpen(false)}
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={!user || !canSubmit}
+                  >
+                    {submitting ? "Submitting..." : "Submit Question"}
+                  </Button>
                 </div>
               </div>
             </div>

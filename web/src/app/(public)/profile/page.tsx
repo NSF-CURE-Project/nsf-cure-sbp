@@ -4,7 +4,8 @@ import Link from "next/link";
 import { Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const PAYLOAD_URL = process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const PAYLOAD_URL =
+  process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
 
 type AccountUser = {
   email: string;
@@ -14,7 +15,9 @@ type AccountUser = {
 
 export default function ProfilePage() {
   const [user, setUser] = useState<AccountUser | null>(null);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading"
+  );
   const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
@@ -63,11 +66,10 @@ export default function ProfilePage() {
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
             Profile
           </p>
-          <h1 className="text-3xl font-bold text-foreground">
-            Your account
-          </h1>
+          <h1 className="text-3xl font-bold text-foreground">Your account</h1>
           <p className="text-muted-foreground">
-            Manage your student profile details and sign out of the program site.
+            Manage your student profile details and sign out of the program
+            site.
           </p>
         </div>
 
@@ -102,7 +104,9 @@ export default function ProfilePage() {
                 <span className="text-xs uppercase tracking-wide text-muted-foreground">
                   Full name
                 </span>
-                <span className="text-foreground">{user.fullName ?? "Student"}</span>
+                <span className="text-foreground">
+                  {user.fullName ?? "Student"}
+                </span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -115,7 +119,9 @@ export default function ProfilePage() {
                   <span className="text-xs uppercase tracking-wide text-muted-foreground">
                     Role
                   </span>
-                  <span className="text-foreground capitalize">{user.role}</span>
+                  <span className="text-foreground capitalize">
+                    {user.role}
+                  </span>
                 </div>
               ) : null}
             </div>

@@ -2,10 +2,7 @@
 
 import * as React from "react";
 import { ChevronLeft } from "lucide-react";
-import {
-  Sidebar,
-  SidebarContent,
-} from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/hooks/use-store";
 import { useSidebar } from "@/hooks/use-sidebar";
@@ -54,7 +51,10 @@ export default function AppSidebar({ classes, className }: AppSidebarProps) {
           aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
         >
           <ChevronLeft
-            className={cn("h-3.5 w-3.5 transition-transform", isOpen ? "" : "rotate-180")}
+            className={cn(
+              "h-3.5 w-3.5 transition-transform",
+              isOpen ? "" : "rotate-180"
+            )}
           />
         </button>
       </div>

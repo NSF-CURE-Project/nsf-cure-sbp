@@ -30,9 +30,7 @@ export function SidebarProvider({
   );
 
   return (
-    <SidebarContext.Provider value={value}>
-      {children}
-    </SidebarContext.Provider>
+    <SidebarContext.Provider value={value}>{children}</SidebarContext.Provider>
   );
 }
 
@@ -78,10 +76,7 @@ export function SidebarContent({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
-      className={cn("flex-1 overflow-y-auto px-3", className)}
-      {...props}
-    />
+    <div className={cn("flex-1 overflow-y-auto px-3", className)} {...props} />
   );
 }
 

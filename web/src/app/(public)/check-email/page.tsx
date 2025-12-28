@@ -19,9 +19,12 @@ export default function CheckEmailPage() {
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
             Student Access
           </p>
-          <h1 className="text-3xl font-bold text-foreground">Check your email</h1>
+          <h1 className="text-3xl font-bold text-foreground">
+            Check your email
+          </h1>
           <p className="text-muted-foreground">
-            If an account exists for that email, you’ll receive a reset link shortly.
+            If an account exists for that email, you’ll receive a reset link
+            shortly.
           </p>
         </div>
 

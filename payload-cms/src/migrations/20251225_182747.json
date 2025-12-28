@@ -208,12 +208,8 @@
           "name": "classes_rels_parent_fk",
           "tableFrom": "classes_rels",
           "tableTo": "classes",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -221,12 +217,8 @@
           "name": "classes_rels_chapters_fk",
           "tableFrom": "classes_rels",
           "tableTo": "chapters",
-          "columnsFrom": [
-            "chapters_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chapters_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -353,12 +345,8 @@
           "name": "chapters_class_id_classes_id_fk",
           "tableFrom": "chapters",
           "tableTo": "classes",
-          "columnsFrom": [
-            "class_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["class_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -471,12 +459,8 @@
           "name": "chapters_rels_parent_fk",
           "tableFrom": "chapters_rels",
           "tableTo": "chapters",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -484,12 +468,8 @@
           "name": "chapters_rels_lessons_fk",
           "tableFrom": "chapters_rels",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "lessons_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["lessons_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -611,12 +591,8 @@
           "name": "lessons_blocks_hero_block_parent_id_fk",
           "tableFrom": "lessons_blocks_hero_block",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -734,12 +710,8 @@
           "name": "lessons_blocks_section_title_parent_id_fk",
           "tableFrom": "lessons_blocks_section_title",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -843,12 +815,8 @@
           "name": "lessons_blocks_rich_text_block_parent_id_fk",
           "tableFrom": "lessons_blocks_rich_text_block",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -952,12 +920,8 @@
           "name": "lessons_blocks_text_block_parent_id_fk",
           "tableFrom": "lessons_blocks_text_block",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1088,12 +1052,8 @@
           "name": "lessons_blocks_video_block_video_id_media_id_fk",
           "tableFrom": "lessons_blocks_video_block",
           "tableTo": "media",
-          "columnsFrom": [
-            "video_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["video_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -1101,12 +1061,8 @@
           "name": "lessons_blocks_video_block_parent_id_fk",
           "tableFrom": "lessons_blocks_video_block",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1183,12 +1139,8 @@
           "name": "lessons_blocks_list_block_items_parent_id_fk",
           "tableFrom": "lessons_blocks_list_block_items",
           "tableTo": "lessons_blocks_list_block",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1300,12 +1252,8 @@
           "name": "lessons_blocks_list_block_parent_id_fk",
           "tableFrom": "lessons_blocks_list_block",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1388,12 +1336,8 @@
           "name": "lessons_blocks_steps_list_steps_parent_id_fk",
           "tableFrom": "lessons_blocks_steps_list_steps",
           "tableTo": "lessons_blocks_steps_list",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1497,12 +1441,8 @@
           "name": "lessons_blocks_steps_list_parent_id_fk",
           "tableFrom": "lessons_blocks_steps_list",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1612,12 +1552,8 @@
           "name": "lessons_blocks_button_block_parent_id_fk",
           "tableFrom": "lessons_blocks_button_block",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1714,12 +1650,8 @@
           "name": "lessons_blocks_resources_list_resources_parent_id_fk",
           "tableFrom": "lessons_blocks_resources_list_resources",
           "tableTo": "lessons_blocks_resources_list",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1829,12 +1761,8 @@
           "name": "lessons_blocks_resources_list_parent_id_fk",
           "tableFrom": "lessons_blocks_resources_list",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1958,12 +1886,8 @@
           "name": "lessons_blocks_contacts_list_contacts_photo_id_media_id_fk",
           "tableFrom": "lessons_blocks_contacts_list_contacts",
           "tableTo": "media",
-          "columnsFrom": [
-            "photo_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["photo_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -1971,12 +1895,8 @@
           "name": "lessons_blocks_contacts_list_contacts_parent_id_fk",
           "tableFrom": "lessons_blocks_contacts_list_contacts",
           "tableTo": "lessons_blocks_contacts_list",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2093,12 +2013,8 @@
           "name": "lessons_blocks_contacts_list_parent_id_fk",
           "tableFrom": "lessons_blocks_contacts_list",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2227,12 +2143,8 @@
           "name": "lessons_chapter_id_chapters_id_fk",
           "tableFrom": "lessons",
           "tableTo": "chapters",
-          "columnsFrom": [
-            "chapter_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chapter_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -2360,12 +2272,8 @@
           "name": "_lessons_v_blocks_hero_block_parent_id_fk",
           "tableFrom": "_lessons_v_blocks_hero_block",
           "tableTo": "_lessons_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2489,12 +2397,8 @@
           "name": "_lessons_v_blocks_section_title_parent_id_fk",
           "tableFrom": "_lessons_v_blocks_section_title",
           "tableTo": "_lessons_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2604,12 +2508,8 @@
           "name": "_lessons_v_blocks_rich_text_block_parent_id_fk",
           "tableFrom": "_lessons_v_blocks_rich_text_block",
           "tableTo": "_lessons_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2719,12 +2619,8 @@
           "name": "_lessons_v_blocks_text_block_parent_id_fk",
           "tableFrom": "_lessons_v_blocks_text_block",
           "tableTo": "_lessons_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2861,12 +2757,8 @@
           "name": "_lessons_v_blocks_video_block_video_id_media_id_fk",
           "tableFrom": "_lessons_v_blocks_video_block",
           "tableTo": "media",
-          "columnsFrom": [
-            "video_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["video_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -2874,12 +2766,8 @@
           "name": "_lessons_v_blocks_video_block_parent_id_fk",
           "tableFrom": "_lessons_v_blocks_video_block",
           "tableTo": "_lessons_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2962,12 +2850,8 @@
           "name": "_lessons_v_blocks_list_block_items_parent_id_fk",
           "tableFrom": "_lessons_v_blocks_list_block_items",
           "tableTo": "_lessons_v_blocks_list_block",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3085,12 +2969,8 @@
           "name": "_lessons_v_blocks_list_block_parent_id_fk",
           "tableFrom": "_lessons_v_blocks_list_block",
           "tableTo": "_lessons_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3179,12 +3059,8 @@
           "name": "_lessons_v_blocks_steps_list_steps_parent_id_fk",
           "tableFrom": "_lessons_v_blocks_steps_list_steps",
           "tableTo": "_lessons_v_blocks_steps_list",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3294,12 +3170,8 @@
           "name": "_lessons_v_blocks_steps_list_parent_id_fk",
           "tableFrom": "_lessons_v_blocks_steps_list",
           "tableTo": "_lessons_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3415,12 +3287,8 @@
           "name": "_lessons_v_blocks_button_block_parent_id_fk",
           "tableFrom": "_lessons_v_blocks_button_block",
           "tableTo": "_lessons_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3523,12 +3391,8 @@
           "name": "_lessons_v_blocks_resources_list_resources_parent_id_fk",
           "tableFrom": "_lessons_v_blocks_resources_list_resources",
           "tableTo": "_lessons_v_blocks_resources_list",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3644,12 +3508,8 @@
           "name": "_lessons_v_blocks_resources_list_parent_id_fk",
           "tableFrom": "_lessons_v_blocks_resources_list",
           "tableTo": "_lessons_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3779,12 +3639,8 @@
           "name": "_lessons_v_blocks_contacts_list_contacts_photo_id_media_id_fk",
           "tableFrom": "_lessons_v_blocks_contacts_list_contacts",
           "tableTo": "media",
-          "columnsFrom": [
-            "photo_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["photo_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -3792,12 +3648,8 @@
           "name": "_lessons_v_blocks_contacts_list_contacts_parent_id_fk",
           "tableFrom": "_lessons_v_blocks_contacts_list_contacts",
           "tableTo": "_lessons_v_blocks_contacts_list",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3920,12 +3772,8 @@
           "name": "_lessons_v_blocks_contacts_list_parent_id_fk",
           "tableFrom": "_lessons_v_blocks_contacts_list",
           "tableTo": "_lessons_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -4138,12 +3986,8 @@
           "name": "_lessons_v_parent_id_lessons_id_fk",
           "tableFrom": "_lessons_v",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -4151,12 +3995,8 @@
           "name": "_lessons_v_version_chapter_id_chapters_id_fk",
           "tableFrom": "_lessons_v",
           "tableTo": "chapters",
-          "columnsFrom": [
-            "version_chapter_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["version_chapter_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -4278,12 +4118,8 @@
           "name": "pages_blocks_hero_block_parent_id_fk",
           "tableFrom": "pages_blocks_hero_block",
           "tableTo": "pages",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -4401,12 +4237,8 @@
           "name": "pages_blocks_section_title_parent_id_fk",
           "tableFrom": "pages_blocks_section_title",
           "tableTo": "pages",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -4510,12 +4342,8 @@
           "name": "pages_blocks_rich_text_block_parent_id_fk",
           "tableFrom": "pages_blocks_rich_text_block",
           "tableTo": "pages",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -4619,12 +4447,8 @@
           "name": "pages_blocks_text_block_parent_id_fk",
           "tableFrom": "pages_blocks_text_block",
           "tableTo": "pages",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -4755,12 +4579,8 @@
           "name": "pages_blocks_video_block_video_id_media_id_fk",
           "tableFrom": "pages_blocks_video_block",
           "tableTo": "media",
-          "columnsFrom": [
-            "video_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["video_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -4768,12 +4588,8 @@
           "name": "pages_blocks_video_block_parent_id_fk",
           "tableFrom": "pages_blocks_video_block",
           "tableTo": "pages",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -4850,12 +4666,8 @@
           "name": "pages_blocks_list_block_items_parent_id_fk",
           "tableFrom": "pages_blocks_list_block_items",
           "tableTo": "pages_blocks_list_block",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -4967,12 +4779,8 @@
           "name": "pages_blocks_list_block_parent_id_fk",
           "tableFrom": "pages_blocks_list_block",
           "tableTo": "pages",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -5055,12 +4863,8 @@
           "name": "pages_blocks_steps_list_steps_parent_id_fk",
           "tableFrom": "pages_blocks_steps_list_steps",
           "tableTo": "pages_blocks_steps_list",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -5164,12 +4968,8 @@
           "name": "pages_blocks_steps_list_parent_id_fk",
           "tableFrom": "pages_blocks_steps_list",
           "tableTo": "pages",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -5279,12 +5079,8 @@
           "name": "pages_blocks_button_block_parent_id_fk",
           "tableFrom": "pages_blocks_button_block",
           "tableTo": "pages",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -5381,12 +5177,8 @@
           "name": "pages_blocks_resources_list_resources_parent_id_fk",
           "tableFrom": "pages_blocks_resources_list_resources",
           "tableTo": "pages_blocks_resources_list",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -5496,12 +5288,8 @@
           "name": "pages_blocks_resources_list_parent_id_fk",
           "tableFrom": "pages_blocks_resources_list",
           "tableTo": "pages",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -5625,12 +5413,8 @@
           "name": "pages_blocks_contacts_list_contacts_photo_id_media_id_fk",
           "tableFrom": "pages_blocks_contacts_list_contacts",
           "tableTo": "media",
-          "columnsFrom": [
-            "photo_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["photo_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -5638,12 +5422,8 @@
           "name": "pages_blocks_contacts_list_contacts_parent_id_fk",
           "tableFrom": "pages_blocks_contacts_list_contacts",
           "tableTo": "pages_blocks_contacts_list",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -5760,12 +5540,8 @@
           "name": "pages_blocks_contacts_list_parent_id_fk",
           "tableFrom": "pages_blocks_contacts_list",
           "tableTo": "pages",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -6007,12 +5783,8 @@
           "name": "_pages_v_blocks_hero_block_parent_id_fk",
           "tableFrom": "_pages_v_blocks_hero_block",
           "tableTo": "_pages_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -6136,12 +5908,8 @@
           "name": "_pages_v_blocks_section_title_parent_id_fk",
           "tableFrom": "_pages_v_blocks_section_title",
           "tableTo": "_pages_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -6251,12 +6019,8 @@
           "name": "_pages_v_blocks_rich_text_block_parent_id_fk",
           "tableFrom": "_pages_v_blocks_rich_text_block",
           "tableTo": "_pages_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -6366,12 +6130,8 @@
           "name": "_pages_v_blocks_text_block_parent_id_fk",
           "tableFrom": "_pages_v_blocks_text_block",
           "tableTo": "_pages_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -6508,12 +6268,8 @@
           "name": "_pages_v_blocks_video_block_video_id_media_id_fk",
           "tableFrom": "_pages_v_blocks_video_block",
           "tableTo": "media",
-          "columnsFrom": [
-            "video_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["video_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -6521,12 +6277,8 @@
           "name": "_pages_v_blocks_video_block_parent_id_fk",
           "tableFrom": "_pages_v_blocks_video_block",
           "tableTo": "_pages_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -6609,12 +6361,8 @@
           "name": "_pages_v_blocks_list_block_items_parent_id_fk",
           "tableFrom": "_pages_v_blocks_list_block_items",
           "tableTo": "_pages_v_blocks_list_block",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -6732,12 +6480,8 @@
           "name": "_pages_v_blocks_list_block_parent_id_fk",
           "tableFrom": "_pages_v_blocks_list_block",
           "tableTo": "_pages_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -6826,12 +6570,8 @@
           "name": "_pages_v_blocks_steps_list_steps_parent_id_fk",
           "tableFrom": "_pages_v_blocks_steps_list_steps",
           "tableTo": "_pages_v_blocks_steps_list",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -6941,12 +6681,8 @@
           "name": "_pages_v_blocks_steps_list_parent_id_fk",
           "tableFrom": "_pages_v_blocks_steps_list",
           "tableTo": "_pages_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -7062,12 +6798,8 @@
           "name": "_pages_v_blocks_button_block_parent_id_fk",
           "tableFrom": "_pages_v_blocks_button_block",
           "tableTo": "_pages_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -7170,12 +6902,8 @@
           "name": "_pages_v_blocks_resources_list_resources_parent_id_fk",
           "tableFrom": "_pages_v_blocks_resources_list_resources",
           "tableTo": "_pages_v_blocks_resources_list",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -7291,12 +7019,8 @@
           "name": "_pages_v_blocks_resources_list_parent_id_fk",
           "tableFrom": "_pages_v_blocks_resources_list",
           "tableTo": "_pages_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -7426,12 +7150,8 @@
           "name": "_pages_v_blocks_contacts_list_contacts_photo_id_media_id_fk",
           "tableFrom": "_pages_v_blocks_contacts_list_contacts",
           "tableTo": "media",
-          "columnsFrom": [
-            "photo_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["photo_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -7439,12 +7159,8 @@
           "name": "_pages_v_blocks_contacts_list_contacts_parent_id_fk",
           "tableFrom": "_pages_v_blocks_contacts_list_contacts",
           "tableTo": "_pages_v_blocks_contacts_list",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -7567,12 +7283,8 @@
           "name": "_pages_v_blocks_contacts_list_parent_id_fk",
           "tableFrom": "_pages_v_blocks_contacts_list",
           "tableTo": "_pages_v",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -7779,12 +7491,8 @@
           "name": "_pages_v_parent_id_pages_id_fk",
           "tableFrom": "_pages_v",
           "tableTo": "pages",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -7867,12 +7575,8 @@
           "name": "accounts_sessions_parent_id_fk",
           "tableFrom": "accounts_sessions",
           "tableTo": "accounts",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -8103,12 +7807,8 @@
           "name": "users_sessions_parent_id_fk",
           "tableFrom": "users_sessions",
           "tableTo": "users",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -8748,12 +8448,8 @@
           "name": "payload_locked_documents_rels_parent_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "payload_locked_documents",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -8761,12 +8457,8 @@
           "name": "payload_locked_documents_rels_classes_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "classes",
-          "columnsFrom": [
-            "classes_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["classes_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -8774,12 +8466,8 @@
           "name": "payload_locked_documents_rels_chapters_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "chapters",
-          "columnsFrom": [
-            "chapters_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chapters_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -8787,12 +8475,8 @@
           "name": "payload_locked_documents_rels_lessons_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "lessons_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["lessons_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -8800,12 +8484,8 @@
           "name": "payload_locked_documents_rels_pages_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "pages",
-          "columnsFrom": [
-            "pages_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pages_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -8813,12 +8493,8 @@
           "name": "payload_locked_documents_rels_accounts_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "accounts",
-          "columnsFrom": [
-            "accounts_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["accounts_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -8826,12 +8502,8 @@
           "name": "payload_locked_documents_rels_users_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "users",
-          "columnsFrom": [
-            "users_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["users_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -8839,12 +8511,8 @@
           "name": "payload_locked_documents_rels_media_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "media",
-          "columnsFrom": [
-            "media_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["media_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -9069,12 +8737,8 @@
           "name": "payload_preferences_rels_parent_fk",
           "tableFrom": "payload_preferences_rels",
           "tableTo": "payload_preferences",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -9082,12 +8746,8 @@
           "name": "payload_preferences_rels_accounts_fk",
           "tableFrom": "payload_preferences_rels",
           "tableTo": "accounts",
-          "columnsFrom": [
-            "accounts_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["accounts_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -9095,12 +8755,8 @@
           "name": "payload_preferences_rels_users_fk",
           "tableFrom": "payload_preferences_rels",
           "tableTo": "users",
-          "columnsFrom": [
-            "users_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["users_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -9192,191 +8848,112 @@
     "public.enum_lessons_blocks_section_title_size": {
       "name": "enum_lessons_blocks_section_title_size",
       "schema": "public",
-      "values": [
-        "sm",
-        "md",
-        "lg"
-      ]
+      "values": ["sm", "md", "lg"]
     },
     "public.enum_lessons_blocks_list_block_list_style": {
       "name": "enum_lessons_blocks_list_block_list_style",
       "schema": "public",
-      "values": [
-        "unordered",
-        "ordered"
-      ]
+      "values": ["unordered", "ordered"]
     },
     "public.enum_lessons_blocks_resources_list_resources_type": {
       "name": "enum_lessons_blocks_resources_list_resources_type",
       "schema": "public",
-      "values": [
-        "link",
-        "video",
-        "download",
-        "other"
-      ]
+      "values": ["link", "video", "download", "other"]
     },
     "public.enum_lessons_blocks_contacts_list_contacts_category": {
       "name": "enum_lessons_blocks_contacts_list_contacts_category",
       "schema": "public",
-      "values": [
-        "staff",
-        "technical"
-      ]
+      "values": ["staff", "technical"]
     },
     "public.enum_lessons_status": {
       "name": "enum_lessons_status",
       "schema": "public",
-      "values": [
-        "draft",
-        "published"
-      ]
+      "values": ["draft", "published"]
     },
     "public.enum__lessons_v_blocks_section_title_size": {
       "name": "enum__lessons_v_blocks_section_title_size",
       "schema": "public",
-      "values": [
-        "sm",
-        "md",
-        "lg"
-      ]
+      "values": ["sm", "md", "lg"]
     },
     "public.enum__lessons_v_blocks_list_block_list_style": {
       "name": "enum__lessons_v_blocks_list_block_list_style",
       "schema": "public",
-      "values": [
-        "unordered",
-        "ordered"
-      ]
+      "values": ["unordered", "ordered"]
     },
     "public.enum__lessons_v_blocks_resources_list_resources_type": {
       "name": "enum__lessons_v_blocks_resources_list_resources_type",
       "schema": "public",
-      "values": [
-        "link",
-        "video",
-        "download",
-        "other"
-      ]
+      "values": ["link", "video", "download", "other"]
     },
     "public.enum__lessons_v_blocks_contacts_list_contacts_category": {
       "name": "enum__lessons_v_blocks_contacts_list_contacts_category",
       "schema": "public",
-      "values": [
-        "staff",
-        "technical"
-      ]
+      "values": ["staff", "technical"]
     },
     "public.enum__lessons_v_version_status": {
       "name": "enum__lessons_v_version_status",
       "schema": "public",
-      "values": [
-        "draft",
-        "published"
-      ]
+      "values": ["draft", "published"]
     },
     "public.enum_pages_blocks_section_title_size": {
       "name": "enum_pages_blocks_section_title_size",
       "schema": "public",
-      "values": [
-        "sm",
-        "md",
-        "lg"
-      ]
+      "values": ["sm", "md", "lg"]
     },
     "public.enum_pages_blocks_list_block_list_style": {
       "name": "enum_pages_blocks_list_block_list_style",
       "schema": "public",
-      "values": [
-        "unordered",
-        "ordered"
-      ]
+      "values": ["unordered", "ordered"]
     },
     "public.enum_pages_blocks_resources_list_resources_type": {
       "name": "enum_pages_blocks_resources_list_resources_type",
       "schema": "public",
-      "values": [
-        "link",
-        "video",
-        "download",
-        "other"
-      ]
+      "values": ["link", "video", "download", "other"]
     },
     "public.enum_pages_blocks_contacts_list_contacts_category": {
       "name": "enum_pages_blocks_contacts_list_contacts_category",
       "schema": "public",
-      "values": [
-        "staff",
-        "technical"
-      ]
+      "values": ["staff", "technical"]
     },
     "public.enum_pages_status": {
       "name": "enum_pages_status",
       "schema": "public",
-      "values": [
-        "draft",
-        "published"
-      ]
+      "values": ["draft", "published"]
     },
     "public.enum__pages_v_blocks_section_title_size": {
       "name": "enum__pages_v_blocks_section_title_size",
       "schema": "public",
-      "values": [
-        "sm",
-        "md",
-        "lg"
-      ]
+      "values": ["sm", "md", "lg"]
     },
     "public.enum__pages_v_blocks_list_block_list_style": {
       "name": "enum__pages_v_blocks_list_block_list_style",
       "schema": "public",
-      "values": [
-        "unordered",
-        "ordered"
-      ]
+      "values": ["unordered", "ordered"]
     },
     "public.enum__pages_v_blocks_resources_list_resources_type": {
       "name": "enum__pages_v_blocks_resources_list_resources_type",
       "schema": "public",
-      "values": [
-        "link",
-        "video",
-        "download",
-        "other"
-      ]
+      "values": ["link", "video", "download", "other"]
     },
     "public.enum__pages_v_blocks_contacts_list_contacts_category": {
       "name": "enum__pages_v_blocks_contacts_list_contacts_category",
       "schema": "public",
-      "values": [
-        "staff",
-        "technical"
-      ]
+      "values": ["staff", "technical"]
     },
     "public.enum__pages_v_version_status": {
       "name": "enum__pages_v_version_status",
       "schema": "public",
-      "values": [
-        "draft",
-        "published"
-      ]
+      "values": ["draft", "published"]
     },
     "public.enum_accounts_role": {
       "name": "enum_accounts_role",
       "schema": "public",
-      "values": [
-        "student",
-        "staff",
-        "admin"
-      ]
+      "values": ["student", "staff", "admin"]
     },
     "public.enum_users_role": {
       "name": "enum_users_role",
       "schema": "public",
-      "values": [
-        "admin",
-        "staff"
-      ]
+      "values": ["admin", "staff"]
     }
   },
   "schemas": {},

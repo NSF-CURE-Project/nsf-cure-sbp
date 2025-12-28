@@ -78,7 +78,9 @@ export default function PublicLayoutShell({
         <div
           className={cn(
             "flex-1 grid",
-            sidebarOpen ? "lg:grid-cols-[16rem_minmax(0,1fr)]" : "lg:grid-cols-[minmax(0,1fr)]"
+            sidebarOpen
+              ? "lg:grid-cols-[16rem_minmax(0,1fr)]"
+              : "lg:grid-cols-[minmax(0,1fr)]"
           )}
         >
           <div

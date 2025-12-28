@@ -25,11 +25,11 @@ export const metadata: Metadata = {
     description: defaultDescription,
   },
   icons: {
-  icon: [
-    {
-      url: "/assets/logos/sbp_logo_transparent.png",
-      href: "/assets/logos/sbp_logo_transparent.png",
-    }
+    icon: [
+      {
+        url: "/assets/logos/sbp_logo_transparent.png",
+        href: "/assets/logos/sbp_logo_transparent.png",
+      },
     ],
   },
 };

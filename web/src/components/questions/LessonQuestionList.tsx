@@ -68,7 +68,7 @@ export function LessonQuestionList({ lessonId, refreshKey = 0 }: Props) {
           {
             credentials: "include",
             signal: controller.signal,
-          },
+          }
         );
         if (!res.ok) {
           throw new Error("Could not load your questions.");
@@ -80,7 +80,7 @@ export function LessonQuestionList({ lessonId, refreshKey = 0 }: Props) {
           setError(
             loadError instanceof Error
               ? loadError.message
-              : "Could not load your questions.",
+              : "Could not load your questions."
           );
         }
       } finally {
@@ -111,14 +111,14 @@ export function LessonQuestionList({ lessonId, refreshKey = 0 }: Props) {
         prev.map((question) =>
           question.id === questionId
             ? { ...question, status: "resolved" }
-            : question,
-        ),
+            : question
+        )
       );
     } catch (resolveError) {
       setError(
         resolveError instanceof Error
           ? resolveError.message
-          : "Could not update this question.",
+          : "Could not update this question."
       );
     } finally {
       setResolvingId(null);
@@ -129,11 +129,13 @@ export function LessonQuestionList({ lessonId, refreshKey = 0 }: Props) {
 
   const statusBadge = useMemo(
     () => (status: Question["status"]) => {
-      if (status === "answered") return { label: "Answered", variant: "default" as const };
-      if (status === "resolved") return { label: "Resolved", variant: "secondary" as const };
+      if (status === "answered")
+        return { label: "Answered", variant: "default" as const };
+      if (status === "resolved")
+        return { label: "Resolved", variant: "secondary" as const };
       return { label: "Open", variant: "outline" as const };
     },
-    [],
+    []
   );
 
   if (!user) {
@@ -143,7 +145,9 @@ export function LessonQuestionList({ lessonId, refreshKey = 0 }: Props) {
   return (
     <section className="mt-6 space-y-3 rounded-2xl border border-border/60 bg-muted/10 p-5">
       <div>
-        <h3 className="text-base font-semibold text-foreground">Your questions</h3>
+        <h3 className="text-base font-semibold text-foreground">
+          Your questions
+        </h3>
         <p className="text-sm text-muted-foreground">
           Track responses and resolve when a staff answer helps.
         </p>

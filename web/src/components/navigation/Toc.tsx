@@ -34,9 +34,7 @@ export default function Toc() {
 
     const tocItems = headings.map((h) => {
       const id =
-        h.id ||
-        h.textContent?.toLowerCase().trim().replace(/\s+/g, "-") ||
-        "";
+        h.id || h.textContent?.toLowerCase().trim().replace(/\s+/g, "-") || "";
       h.id = id;
 
       return {
@@ -54,7 +52,6 @@ export default function Toc() {
   useEffect(() => {
     document.body.dataset.toc = open ? "open" : "closed";
   }, [open]);
-
 
   // Active section highlight
   useEffect(() => {

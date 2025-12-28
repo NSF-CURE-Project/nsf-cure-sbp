@@ -21,7 +21,7 @@ export default function SearchBox() {
       <input
         type="search"
         value={term}
-        onChange={e => setTerm(e.target.value)}
+        onChange={(e) => setTerm(e.target.value)}
         placeholder="Search program..."
         className="h-10 rounded-lg border-border/80 bg-muted/40 pl-9 pr-4 text-sm shadow-sm transition focus-visible:ring-2 focus-visible:ring-primary/50"
       />

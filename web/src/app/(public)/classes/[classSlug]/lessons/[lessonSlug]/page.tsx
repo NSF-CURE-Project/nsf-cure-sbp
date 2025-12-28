@@ -2,7 +2,10 @@
 import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import { LivePreviewLesson } from "@/components/live-preview/LivePreviewLesson";
-import { getLessonBySlug, getLessonsForChapter } from "@/lib/payloadSdk/lessons";
+import {
+  getLessonBySlug,
+  getLessonsForChapter,
+} from "@/lib/payloadSdk/lessons";
 import type { LessonDoc } from "@/lib/payloadSdk/types";
 import { buildMetadata } from "@/lib/seo";
 
@@ -45,7 +48,7 @@ function getLessonClassSlug(lesson: LessonDoc): string | null {
 async function fetchLessonForClass(
   classSlug: string,
   lessonSlug: string,
-  options?: { draft?: boolean },
+  options?: { draft?: boolean }
 ): Promise<LessonDoc | null> {
   const lesson = await getLessonBySlug(lessonSlug, options);
   if (!lesson) return null;
@@ -72,7 +75,11 @@ export default async function LessonPage({ params }: PageProps) {
   });
   if (!lesson) return notFound();
 
-  const chapterValue = lesson.chapter as { id?: string } | string | null | undefined;
+  const chapterValue = lesson.chapter as
+    | { id?: string }
+    | string
+    | null
+    | undefined;
   const chapterId =
     typeof chapterValue === "object" && chapterValue !== null
       ? chapterValue.id

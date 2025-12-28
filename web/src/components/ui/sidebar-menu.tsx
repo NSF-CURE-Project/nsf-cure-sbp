@@ -12,10 +12,7 @@ export type SidebarMenuProps = React.HTMLAttributes<HTMLUListElement>;
 
 export function SidebarMenu({ className, ...props }: SidebarMenuProps) {
   return (
-    <ul
-      className={cn("flex flex-col gap-1 px-2 py-1", className)}
-      {...props}
-    />
+    <ul className={cn("flex flex-col gap-1 px-2 py-1", className)} {...props} />
   );
 }
 
@@ -29,18 +26,14 @@ export function SidebarMenuItem({ className, ...props }: SidebarMenuItemProps) {
   return <li className={cn("relative", className)} {...props} />;
 }
 
-export interface SidebarMenuButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface SidebarMenuButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
 }
 
 export const SidebarMenuButton = React.forwardRef<
   HTMLButtonElement,
   SidebarMenuButtonProps
->(function SidebarMenuButton(
-  { asChild, className, ...props },
-  ref
-) {
+>(function SidebarMenuButton({ asChild, className, ...props }, ref) {
   const Comp = asChild ? Slot : "button";
 
   return (
@@ -66,10 +59,7 @@ export type SidebarMenuSubProps = React.HTMLAttributes<HTMLUListElement>;
 export function SidebarMenuSub({ className, ...props }: SidebarMenuSubProps) {
   return (
     <ul
-      className={cn(
-        "mt-1 space-y-1 border-l border-border/50 pl-3",
-        className
-      )}
+      className={cn("mt-1 space-y-1 border-l border-border/50 pl-3", className)}
       {...props}
     />
   );
@@ -84,18 +74,14 @@ export function SidebarMenuSubItem({
   return <li className={cn("relative", className)} {...props} />;
 }
 
-export interface SidebarMenuSubButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface SidebarMenuSubButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
 }
 
 export const SidebarMenuSubButton = React.forwardRef<
   HTMLButtonElement,
   SidebarMenuSubButtonProps
->(function SidebarMenuSubButton(
-  { asChild, className, ...props },
-  ref
-) {
+>(function SidebarMenuSubButton({ asChild, className, ...props }, ref) {
   const Comp = asChild ? Slot : "button";
 
   return (

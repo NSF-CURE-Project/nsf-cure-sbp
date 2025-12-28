@@ -7,7 +7,7 @@ import { useStore } from "@/hooks/use-store";
 import { cn } from "@/lib/utils";
 
 export default function AdminPanelLayout({
-  children
+  children,
 }: {
   children: React.ReactNode;
 }) {

@@ -1,4 +1,4 @@
-import type { Block } from 'payload';
+import type { Block } from 'payload'
 
 export const pageBlocks: Block[] = [
   {
@@ -261,4 +261,4 @@ export const pageBlocks: Block[] = [
       },
     ],
   },
-];
+]

@@ -37,9 +37,6 @@ export function SafeHtml({
   }, [purify, html]);
 
   return (
-    <div
-      className={className}
-      dangerouslySetInnerHTML={{ __html: safe }}
-    />
+    <div className={className} dangerouslySetInnerHTML={{ __html: safe }} />
   );
 }

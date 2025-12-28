@@ -1,8 +1,14 @@
-"use client"
-import Link from "next/link"
+"use client";
+import Link from "next/link";
 import React from "react";
 
-export function ThemedButton({ href, children }: { href: string; children: React.ReactNode }) {
+export function ThemedButton({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
   return (
     <Link
       href={href}
@@ -16,5 +22,5 @@ export function ThemedButton({ href, children }: { href: string; children: React
     >
       {children}
     </Link>
-  )
+  );
 }

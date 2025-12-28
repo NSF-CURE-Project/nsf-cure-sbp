@@ -20,7 +20,11 @@ type Props = {
   };
 };
 
-export function LivePreviewLesson({ initialData, className, lessonNav }: Props) {
+export function LivePreviewLesson({
+  initialData,
+  className,
+  lessonNav,
+}: Props) {
   const data = usePayloadLivePreview(initialData, {
     collectionSlug: "lessons",
   });
@@ -90,10 +94,7 @@ export function LivePreviewLesson({ initialData, className, lessonNav }: Props) 
             lessonTitle={title}
             onSubmitted={() => setQuestionRefresh((value) => value + 1)}
           />
-          <LessonQuestionList
-            lessonId={data.id}
-            refreshKey={questionRefresh}
-          />
+          <LessonQuestionList lessonId={data.id} refreshKey={questionRefresh} />
         </>
       ) : null}
       {navBottom}

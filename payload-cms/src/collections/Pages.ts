@@ -1,53 +1,50 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig } from 'payload'
 
-import { pageBlocks } from "../blocks/pageBlocks";
-import { ensureUniqueSlug, slugify } from "../utils/slug";
+import { pageBlocks } from '../blocks/pageBlocks'
+import { ensureUniqueSlug, slugify } from '../utils/slug'
 
 export const Pages: CollectionConfig = {
-  slug: "pages",
+  slug: 'pages',
   admin: {
-    useAsTitle: "title",
-    defaultColumns: ["navOrder", "title", "slug", "updatedAt"],
-    group: "Main Pages",
-    defaultSort: "navOrder",
+    useAsTitle: 'title',
+    defaultColumns: ['navOrder', 'title', 'slug', 'updatedAt'],
+    group: 'Main Pages',
+    defaultSort: 'navOrder',
     preview: {
       url: ({ data }) => {
-        const base = process.env.WEB_PREVIEW_URL ?? "http://localhost:3001";
-        const secret = process.env.PREVIEW_SECRET ?? "";
-        const slug = data?.slug ?? "";
+        const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
+        const secret = process.env.PREVIEW_SECRET ?? ''
+        const slug = data?.slug ?? ''
         const search = new URLSearchParams({
           secret,
-          type: "page",
+          type: 'page',
           slug,
-        });
-        return `${base}/api/preview?${search.toString()}`;
+        })
+        return `${base}/api/preview?${search.toString()}`
       },
     },
     livePreview: {
       url: ({ data }) => {
-        const base = process.env.WEB_PREVIEW_URL ?? "http://localhost:3001";
-        const secret = process.env.PREVIEW_SECRET ?? "";
-        const slug = data?.slug ?? "";
+        const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
+        const secret = process.env.PREVIEW_SECRET ?? ''
+        const slug = data?.slug ?? ''
         const search = new URLSearchParams({
           secret,
-          type: "page",
+          type: 'page',
           slug,
-        });
-        return `${base}/api/preview?${search.toString()}`;
+        })
+        return `${base}/api/preview?${search.toString()}`
       },
     },
   },
   access: {
     read: () => true,
     create: ({ req }) =>
-      req.user?.collection === "users" ||
-      ["admin", "staff"].includes(req.user?.role ?? ""),
+      req.user?.collection === 'users' || ['admin', 'staff'].includes(req.user?.role ?? ''),
     update: ({ req }) =>
-      req.user?.collection === "users" ||
-      ["admin", "staff"].includes(req.user?.role ?? ""),
+      req.user?.collection === 'users' || ['admin', 'staff'].includes(req.user?.role ?? ''),
     delete: ({ req }) =>
-      req.user?.collection === "users" ||
-      ["admin", "staff"].includes(req.user?.role ?? ""),
+      req.user?.collection === 'users' || ['admin', 'staff'].includes(req.user?.role ?? ''),
   },
   versions: {
     drafts: true,
@@ -55,74 +52,73 @@ export const Pages: CollectionConfig = {
   hooks: {
     beforeValidate: [
       async ({ data, req, originalDoc, id }) => {
-        if (!data) return data;
+        if (!data) return data
         if (!data.slug) {
-          const title = data.title ?? originalDoc?.title ?? "";
-          const normalizedTitle = String(title).trim().toLowerCase();
+          const title = data.title ?? originalDoc?.title ?? ''
+          const normalizedTitle = String(title).trim().toLowerCase()
           const base =
-            normalizedTitle === "home" || normalizedTitle === "home page"
-              ? "home"
-              : slugify(String(title));
+            normalizedTitle === 'home' || normalizedTitle === 'home page'
+              ? 'home'
+              : slugify(String(title))
           data.slug = await ensureUniqueSlug({
             base,
-            collection: "pages",
+            collection: 'pages',
             req,
             id,
-          });
+          })
         }
-        return data;
+        return data
       },
     ],
   },
   fields: [
     {
-      name: "pageOrderGuide",
-      type: "ui",
+      name: 'pageOrderGuide',
+      type: 'ui',
       admin: {
         components: {
-          Field: "@/views/PageOrderField#default",
+          Field: '@/views/PageOrderField#default',
         },
       },
     },
     {
-      name: "navOrder",
-      label: "Navigation Order",
-      type: "number",
+      name: 'navOrder',
+      label: 'Navigation Order',
+      type: 'number',
       min: 0,
       admin: {
-        position: "sidebar",
-        description: "Managed from the Reorder pages list.",
+        position: 'sidebar',
+        description: 'Managed from the Reorder pages list.',
         readOnly: true,
       },
     },
     {
-      name: "title",
-      type: "text",
+      name: 'title',
+      type: 'text',
       required: true,
     },
     {
-      name: "slug",
-      type: "text",
+      name: 'slug',
+      type: 'text',
       required: true,
       unique: true,
       admin: {
-        description:
-          "Auto-generated from the page title. Use 'Home' to create the homepage slug.",
+        description: "Auto-generated from the page title. Use 'Home' to create the homepage slug.",
         hidden: true,
       },
     },
     {
-      name: "layout",
-      label: "Page Layout",
-      type: "blocks",
+      name: 'layout',
+      label: 'Page Layout',
+      type: 'blocks',
       labels: {
-        singular: "Section",
-        plural: "Sections",
+        singular: 'Section',
+        plural: 'Sections',
       },
       blocks: pageBlocks,
       admin: {
-        description: "Build the page by adding and reordering content blocks.",
+        description: 'Build the page by adding and reordering content blocks.',
       },
     },
   ],
-};
+}

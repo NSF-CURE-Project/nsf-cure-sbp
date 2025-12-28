@@ -48,9 +48,7 @@ export default async function SearchPage({
       ])
     : [[], null];
 
-  const results = term
-    ? buildResults(classes, term, { home })
-    : [];
+  const results = term ? buildResults(classes, term, { home }) : [];
 
   return (
     <main
@@ -133,7 +131,7 @@ function buildResults(
   term: string,
   extra: {
     home: HomePageData | null;
-  },
+  }
 ): Result[] {
   const matches: Result[] = [];
 
@@ -219,7 +217,11 @@ function extractTextFromBlocks(blocks: PageLayoutBlock[]): string[] {
 
   for (const block of blocks) {
     if (block.blockType === "heroBlock") {
-      values.push(block.title ?? "", block.subtitle ?? "", block.buttonLabel ?? "");
+      values.push(
+        block.title ?? "",
+        block.subtitle ?? "",
+        block.buttonLabel ?? ""
+      );
     }
     if (block.blockType === "sectionTitle") {
       values.push(block.title ?? "", block.subtitle ?? "");
@@ -284,7 +286,11 @@ function extractTextFromRichText(value?: unknown): string {
 
 function extractTextFromLexicalNode(node: unknown): string {
   if (!node || typeof node !== "object") return "";
-  const current = node as { type?: string; text?: string; children?: unknown[] };
+  const current = node as {
+    type?: string;
+    text?: string;
+    children?: unknown[];
+  };
   if (current.type === "text") {
     return current.text ?? "";
   }

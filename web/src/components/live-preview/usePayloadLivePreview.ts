@@ -17,7 +17,7 @@ type LivePreviewOptions = {
 
 export function usePayloadLivePreview<T>(
   initialData: T | null,
-  options: LivePreviewOptions,
+  options: LivePreviewOptions
 ) {
   const [data, setData] = useState<T | null>(initialData);
   const { collectionSlug, globalSlug } = options;
@@ -27,7 +27,7 @@ export function usePayloadLivePreview<T>(
       collectionSlug,
       globalSlug,
     }),
-    [collectionSlug, globalSlug],
+    [collectionSlug, globalSlug]
   );
 
   useEffect(() => {
@@ -35,7 +35,10 @@ export function usePayloadLivePreview<T>(
       const message = event.data;
       if (!message || message.type !== "payload-live-preview") return;
       if (message.ready) return;
-      if (match.collectionSlug && message.collectionSlug !== match.collectionSlug)
+      if (
+        match.collectionSlug &&
+        message.collectionSlug !== match.collectionSlug
+      )
         return;
       if (match.globalSlug && message.globalSlug !== match.globalSlug) return;
       if (message.data) {
@@ -49,7 +52,7 @@ export function usePayloadLivePreview<T>(
         type: "payload-live-preview",
         ready: true,
       },
-      "*",
+      "*"
     );
 
     return () => {

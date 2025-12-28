@@ -1,6 +1,9 @@
 import { draftMode } from "next/headers";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
-import { getContactPage, type ContactPageData } from "@/lib/payloadSdk/contacts";
+import {
+  getContactPage,
+  type ContactPageData,
+} from "@/lib/payloadSdk/contacts";
 import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";

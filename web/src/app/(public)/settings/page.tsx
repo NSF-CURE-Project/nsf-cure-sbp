@@ -4,7 +4,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const PAYLOAD_URL = process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const PAYLOAD_URL =
+  process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
 
 type AccountUser = {
   email: string;
@@ -14,7 +15,9 @@ type AccountUser = {
 export default function SettingsPage() {
   const [user, setUser] = useState<AccountUser | null>(null);
   const [fullName, setFullName] = useState("");
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading"
+  );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -67,7 +70,9 @@ export default function SettingsPage() {
 
       setMessage("Profile updated.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to update settings.");
+      setMessage(
+        error instanceof Error ? error.message : "Unable to update settings."
+      );
     } finally {
       setSaving(false);
     }

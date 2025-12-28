@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 
-const PAYLOAD_URL = process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const PAYLOAD_URL =
+  process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "error" | "success">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "error" | "success"
+  >("idle");
   const [message, setMessage] = useState("");
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -45,7 +48,9 @@ export function LoginForm() {
   return (
     <form className="space-y-4" onSubmit={onSubmit}>
       <div>
-        <label className="block text-sm font-semibold text-foreground">Email</label>
+        <label className="block text-sm font-semibold text-foreground">
+          Email
+        </label>
         <input
           type="email"
           name="email"
@@ -58,7 +63,9 @@ export function LoginForm() {
         />
       </div>
       <div>
-        <label className="block text-sm font-semibold text-foreground">Password</label>
+        <label className="block text-sm font-semibold text-foreground">
+          Password
+        </label>
         <input
           type="password"
           name="password"

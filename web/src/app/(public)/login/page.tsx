@@ -20,7 +20,9 @@ export default function LoginPage() {
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
             Student Access
           </p>
-          <h1 className="text-3xl font-bold text-foreground">Sign in to NSF CURE SBP</h1>
+          <h1 className="text-3xl font-bold text-foreground">
+            Sign in to NSF CURE SBP
+          </h1>
           <p className="text-muted-foreground">
             Use your student account to access program content.
           </p>
@@ -32,13 +34,19 @@ export default function LoginPage() {
 
         <p className="mt-6 text-sm text-muted-foreground">
           Need an account?{" "}
-          <Link href="/register" className="font-semibold text-primary underline underline-offset-4">
+          <Link
+            href="/register"
+            className="font-semibold text-primary underline underline-offset-4"
+          >
             Create one
           </Link>
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
           Forgot your password?{" "}
-          <Link href="/forgot-password" className="font-semibold text-primary underline underline-offset-4">
+          <Link
+            href="/forgot-password"
+            className="font-semibold text-primary underline underline-offset-4"
+          >
             Reset it
           </Link>
         </p>

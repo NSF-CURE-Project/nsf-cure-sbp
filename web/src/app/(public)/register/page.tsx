@@ -20,7 +20,9 @@ export default function RegisterPage() {
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
             Student Access
           </p>
-          <h1 className="text-3xl font-bold text-foreground">Create your account</h1>
+          <h1 className="text-3xl font-bold text-foreground">
+            Create your account
+          </h1>
           <p className="text-muted-foreground">
             Register to access program content and lessons.
           </p>
@@ -32,7 +34,10 @@ export default function RegisterPage() {
 
         <p className="mt-6 text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-primary underline underline-offset-4">
+          <Link
+            href="/login"
+            className="font-semibold text-primary underline underline-offset-4"
+          >
             Sign in
           </Link>
         </p>

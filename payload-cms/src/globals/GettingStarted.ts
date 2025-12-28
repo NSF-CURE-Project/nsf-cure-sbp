@@ -1,5 +1,5 @@
-import type { GlobalConfig } from 'payload';
-import { pageBlocks } from '../blocks/pageBlocks';
+import type { GlobalConfig } from 'payload'
+import { pageBlocks } from '../blocks/pageBlocks'
 
 export const GettingStarted: GlobalConfig = {
   slug: 'getting-started',
@@ -11,25 +11,25 @@ export const GettingStarted: GlobalConfig = {
     drafts: true,
   },
   admin: {
-    group: "Main Pages",
+    group: 'Main Pages',
     preview: {
       url: () => {
-        const base = process.env.WEB_PREVIEW_URL ?? "http://localhost:3001";
+        const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
         const search = new URLSearchParams({
-          secret: process.env.PREVIEW_SECRET ?? "",
-          type: "getting-started",
-        });
-        return `${base}/api/preview?${search.toString()}`;
+          secret: process.env.PREVIEW_SECRET ?? '',
+          type: 'getting-started',
+        })
+        return `${base}/api/preview?${search.toString()}`
       },
     },
     livePreview: {
       url: () => {
-        const base = process.env.WEB_PREVIEW_URL ?? "http://localhost:3001";
+        const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
         const search = new URLSearchParams({
-          secret: process.env.PREVIEW_SECRET ?? "",
-          type: "getting-started",
-        });
-        return `${base}/api/preview?${search.toString()}`;
+          secret: process.env.PREVIEW_SECRET ?? '',
+          type: 'getting-started',
+        })
+        return `${base}/api/preview?${search.toString()}`
       },
     },
   },
@@ -48,4 +48,4 @@ export const GettingStarted: GlobalConfig = {
       },
     },
   ],
-};
+}

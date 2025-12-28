@@ -62,7 +62,7 @@ export function ClassProgressSummary({
           {
             credentials: "include",
             signal: controller.signal,
-          },
+          }
         );
         if (!res.ok) {
           setCompletedCount(0);
@@ -70,7 +70,7 @@ export function ClassProgressSummary({
         }
         const data = (await res.json()) as { docs?: ProgressDoc[] };
         const completed = (data.docs ?? []).filter(
-          (doc) => doc.completed,
+          (doc) => doc.completed
         ).length;
         setCompletedCount(completed);
       } catch (error) {
@@ -93,7 +93,8 @@ export function ClassProgressSummary({
   return (
     <div className="mt-3 rounded-lg border border-border/60 bg-muted/10 px-4 py-3 text-sm text-muted-foreground">
       You’re <span className="font-semibold text-foreground">{percent}%</span>{" "}
-      through <span className="font-semibold text-foreground">{classTitle}</span>.
+      through{" "}
+      <span className="font-semibold text-foreground">{classTitle}</span>.
     </div>
   );
 }

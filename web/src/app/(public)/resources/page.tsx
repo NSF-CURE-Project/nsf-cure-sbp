@@ -1,6 +1,9 @@
 import { draftMode } from "next/headers";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
-import { getResourcesPage, type ResourcesPageData } from "@/lib/payloadSdk/resources";
+import {
+  getResourcesPage,
+  type ResourcesPageData,
+} from "@/lib/payloadSdk/resources";
 import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";

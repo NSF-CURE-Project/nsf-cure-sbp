@@ -16,7 +16,9 @@ export const metadata = buildMetadata({
 
 export default async function Landing() {
   const { isEnabled: isPreview } = await draftMode();
-  const home: HomePageData | null = await getHomePage({ draft: isPreview }).catch(() => null);
+  const home: HomePageData | null = await getHomePage({
+    draft: isPreview,
+  }).catch(() => null);
 
   return (
     <div

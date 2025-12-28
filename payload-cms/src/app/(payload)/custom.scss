@@ -1,10 +1,10 @@
 /* Payload admin branding overrides */
-@import "katex/dist/katex.min.css";
+@import 'katex/dist/katex.min.css';
 
 :root,
-html[data-theme="light"] {
-  --font-body: "Avenir Next", "Avenir", "Segoe UI", "Helvetica Neue", sans-serif;
-  --font-mono: "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", monospace;
+html[data-theme='light'] {
+  --font-body: 'Avenir Next', 'Avenir', 'Segoe UI', 'Helvetica Neue', sans-serif;
+  --font-mono: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
 
   --theme-bg: #f7f5ef;
   --theme-text: #122019;
@@ -34,9 +34,9 @@ html[data-theme="light"] {
   --theme-error-600: #b42318;
 }
 
-html[data-theme="dark"] {
-  --font-body: "Avenir Next", "Avenir", "Segoe UI", "Helvetica Neue", sans-serif;
-  --font-mono: "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", monospace;
+html[data-theme='dark'] {
+  --font-body: 'Avenir Next', 'Avenir', 'Segoe UI', 'Helvetica Neue', sans-serif;
+  --font-mono: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
 
   --theme-bg: #0f1411;
   --theme-text: #f4f1e8;

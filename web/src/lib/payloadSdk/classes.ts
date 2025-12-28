@@ -5,7 +5,9 @@ import type { ClassDoc, PayloadFindResult } from "./types";
  * Get all classes, with nested chapters and lessons.
  * Sorted by custom `order` first, then by `title`.
  */
-export async function getClassesTree(options?: { draft?: boolean }): Promise<ClassDoc[]> {
+export async function getClassesTree(options?: {
+  draft?: boolean;
+}): Promise<ClassDoc[]> {
   const data = await payload.get<PayloadFindResult<ClassDoc>>(
     `/classes?limit=100&depth=3&sort=order&sort=title`,
     { draft: options?.draft }
@@ -28,7 +30,7 @@ export async function getClassesTree(options?: { draft?: boolean }): Promise<Cla
  */
 export async function getClassBySlug(
   slug: string,
-  options?: { draft?: boolean },
+  options?: { draft?: boolean }
 ): Promise<ClassDoc | null> {
   const data = await payload.get<PayloadFindResult<ClassDoc>>(
     `/classes?where[slug][equals]=${encodeURIComponent(slug)}&depth=3&limit=1`,

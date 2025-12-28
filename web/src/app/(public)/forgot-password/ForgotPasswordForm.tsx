@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 
-const PAYLOAD_URL = process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const PAYLOAD_URL =
+  process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "error" | "success">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "error" | "success"
+  >("idle");
   const [message, setMessage] = useState("");
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -32,14 +35,18 @@ export function ForgotPasswordForm() {
       window.location.href = "/check-email";
     } catch (error) {
       setStatus("error");
-      setMessage(error instanceof Error ? error.message : "Password reset failed.");
+      setMessage(
+        error instanceof Error ? error.message : "Password reset failed."
+      );
     }
   };
 
   return (
     <form className="space-y-4" onSubmit={onSubmit}>
       <div>
-        <label className="block text-sm font-semibold text-foreground">Email</label>
+        <label className="block text-sm font-semibold text-foreground">
+          Email
+        </label>
         <input
           type="email"
           name="email"

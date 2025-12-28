@@ -5,7 +5,15 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { Bell, ChevronDown, LogOut, Menu, Search, Settings, User as UserIcon } from "lucide-react";
+import {
+  Bell,
+  ChevronDown,
+  LogOut,
+  Menu,
+  Search,
+  Settings,
+  User as UserIcon,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/theme/ThemeToggle";
@@ -26,15 +34,26 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-const PAYLOAD_URL = process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const PAYLOAD_URL =
+  process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
 
 export default function Navbar() {
   const { resolvedTheme, theme, systemTheme } = useTheme();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [user, setUser] = useState<{ id: string; email: string; fullName?: string } | null>(null);
+  const [user, setUser] = useState<{
+    id: string;
+    email: string;
+    fullName?: string;
+  } | null>(null);
   const [notifications, setNotifications] = useState<
-    { id: string; title: string; body?: string; read?: boolean; createdAt?: string }[]
+    {
+      id: string;
+      title: string;
+      body?: string;
+      read?: boolean;
+      createdAt?: string;
+    }[]
   >([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationsBusy, setNotificationsBusy] = useState(false);
@@ -57,7 +76,10 @@ export default function Navbar() {
         tagName === "SELECT" ||
         target?.isContentEditable;
 
-      if ((event.key === "k" && (event.metaKey || event.ctrlKey)) || (event.key === "/" && !isTypingTarget)) {
+      if (
+        (event.key === "k" && (event.metaKey || event.ctrlKey)) ||
+        (event.key === "/" && !isTypingTarget)
+      ) {
         event.preventDefault();
         setSearchOpen(true);
         return;
@@ -91,7 +113,9 @@ export default function Navbar() {
           setUser(null);
           return;
         }
-        const data = (await res.json()) as { user?: { id: string; email: string; fullName?: string } };
+        const data = (await res.json()) as {
+          user?: { id: string; email: string; fullName?: string };
+        };
         setUser(data?.user ?? null);
       } catch (error) {
         if (!controller.signal.aborted) {
@@ -107,22 +131,36 @@ export default function Navbar() {
     const controller = new AbortController();
     const loadPages = async () => {
       try {
-        const res = await fetch(`${PAYLOAD_URL}/api/pages?limit=100&sort=navOrder`, {
-          signal: controller.signal,
-        });
+        const res = await fetch(
+          `${PAYLOAD_URL}/api/pages?limit=100&sort=navOrder`,
+          {
+            signal: controller.signal,
+          }
+        );
         if (!res.ok) {
           setPages([]);
           return;
         }
         const data = (await res.json()) as {
-          docs?: { id: string; slug: string; title: string; navOrder?: number | null }[];
+          docs?: {
+            id: string;
+            slug: string;
+            title: string;
+            navOrder?: number | null;
+          }[];
         };
         const cleaned = (data.docs ?? []).filter(
           (page) => page.slug && page.slug !== "home"
         );
         cleaned.sort((a, b) => {
-          const aOrder = typeof a.navOrder === "number" ? a.navOrder : Number.POSITIVE_INFINITY;
-          const bOrder = typeof b.navOrder === "number" ? b.navOrder : Number.POSITIVE_INFINITY;
+          const aOrder =
+            typeof a.navOrder === "number"
+              ? a.navOrder
+              : Number.POSITIVE_INFINITY;
+          const bOrder =
+            typeof b.navOrder === "number"
+              ? b.navOrder
+              : Number.POSITIVE_INFINITY;
           if (aOrder !== bOrder) return aOrder - bOrder;
           return (a.title ?? "").localeCompare(b.title ?? "");
         });
@@ -148,14 +186,20 @@ export default function Navbar() {
           {
             credentials: "include",
             signal: controller.signal,
-          },
+          }
         );
         if (!res.ok) {
           setNotifications([]);
           return;
         }
         const data = (await res.json()) as {
-          docs?: { id: string; title: string; body?: string; read?: boolean; createdAt?: string }[];
+          docs?: {
+            id: string;
+            title: string;
+            body?: string;
+            read?: boolean;
+            createdAt?: string;
+          }[];
         };
         setNotifications(data.docs ?? []);
       } catch (error) {
@@ -213,9 +257,7 @@ export default function Navbar() {
       : "/assets/logos/cpp_green.png";
 
   const nsfLogo =
-  mode === "dark"
-    ? "/assets/logos/nsf.png"
-    : "/assets/logos/nsf.png";
+    mode === "dark" ? "/assets/logos/nsf.png" : "/assets/logos/nsf.png";
 
   const displayName = user?.fullName ?? "Student";
   const initials =
@@ -228,7 +270,7 @@ export default function Navbar() {
 
   const unreadCount = useMemo(
     () => notifications.filter((notification) => !notification.read).length,
-    [notifications],
+    [notifications]
   );
 
   const handleNotificationRead = async (notificationId: string) => {
@@ -245,8 +287,8 @@ export default function Navbar() {
         prev.map((notification) =>
           notification.id === notificationId
             ? { ...notification, read: true }
-            : notification,
-        ),
+            : notification
+        )
       );
     } catch (error) {
       // Ignore notification read failures.
@@ -307,13 +349,13 @@ export default function Navbar() {
         {pages.map((page) => {
           const href = page.slug === "learning" ? "/learning" : `/${page.slug}`;
           return (
-          <Link
-            key={page.id}
-            href={href}
-            className="relative transition-colors hover:text-foreground after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:bg-foreground/70 after:origin-left after:scale-x-0 after:transition-transform after:duration-200 hover:after:scale-x-100"
-          >
-            {page.title}
-          </Link>
+            <Link
+              key={page.id}
+              href={href}
+              className="relative transition-colors hover:text-foreground after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:bg-foreground/70 after:origin-left after:scale-x-0 after:transition-transform after:duration-200 hover:after:scale-x-100"
+            >
+              {page.title}
+            </Link>
           );
         })}
       </div>
@@ -333,7 +375,10 @@ export default function Navbar() {
           </span>
         </button>
         {user ? (
-          <DropdownMenu open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+          <DropdownMenu
+            open={notificationsOpen}
+            onOpenChange={setNotificationsOpen}
+          >
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
@@ -434,7 +479,9 @@ export default function Navbar() {
             >
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{displayName}</p>
+                  <p className="text-sm font-medium leading-none">
+                    {displayName}
+                  </p>
                   <p className="text-xs leading-none text-muted-foreground">
                     {user.email}
                   </p>
@@ -575,7 +622,10 @@ export default function Navbar() {
                     <div className="rounded-md px-3 py-2">
                       <div className="flex items-center justify-between text-xs uppercase tracking-wide text-muted-foreground">
                         Theme
-                        <ThemeToggle variant="icon" className="hover:bg-muted/60" />
+                        <ThemeToggle
+                          variant="icon"
+                          className="hover:bg-muted/60"
+                        />
                       </div>
                     </div>
                     <button
@@ -640,7 +690,9 @@ export default function Navbar() {
                   onClick={() => setSearchOpen(false)}
                 >
                   Site Directory
-                  <span className="text-xs text-muted-foreground">Browse all pages</span>
+                  <span className="text-xs text-muted-foreground">
+                    Browse all pages
+                  </span>
                 </Link>
                 <Link
                   href="/classes"
@@ -648,7 +700,9 @@ export default function Navbar() {
                   onClick={() => setSearchOpen(false)}
                 >
                   Classes
-                  <span className="text-xs text-muted-foreground">Explore lessons</span>
+                  <span className="text-xs text-muted-foreground">
+                    Explore lessons
+                  </span>
                 </Link>
               </div>
             </div>

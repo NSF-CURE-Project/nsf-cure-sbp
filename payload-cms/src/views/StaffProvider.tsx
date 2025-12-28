@@ -1,45 +1,43 @@
-"use client";
+'use client'
 
-import React, { useEffect, useMemo, useState } from "react";
-import type { AdminViewServerProps } from "payload";
+import React, { useEffect, useMemo, useState } from 'react'
+import type { AdminViewServerProps } from 'payload'
 
-type ThemeMode = "light" | "dark";
+type ThemeMode = 'light' | 'dark'
 
-const StaffProvider = (
-  props: AdminViewServerProps & { children?: React.ReactNode },
-) => {
-  const role = (props as any)?.user?.role ?? (props as any)?.payload?.user?.role;
-  const [theme, setTheme] = useState<ThemeMode>("light");
+const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNode }) => {
+  const role = (props as any)?.user?.role ?? (props as any)?.payload?.user?.role
+  const [theme, setTheme] = useState<ThemeMode>('light')
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem("payload-admin-theme");
-    if (stored === "light" || stored === "dark") {
-      setTheme(stored);
-      document.documentElement.setAttribute("data-theme", stored);
-      return;
+    if (typeof window === 'undefined') return
+    const stored = window.localStorage.getItem('payload-admin-theme')
+    if (stored === 'light' || stored === 'dark') {
+      setTheme(stored)
+      document.documentElement.setAttribute('data-theme', stored)
+      return
     }
-    const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-    const initial = prefersDark ? "dark" : "light";
-    setTheme(initial);
-    document.documentElement.setAttribute("data-theme", initial);
-  }, []);
+    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches
+    const initial = prefersDark ? 'dark' : 'light'
+    setTheme(initial)
+    document.documentElement.setAttribute('data-theme', initial)
+  }, [])
 
   const toggleTheme = () => {
-    const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("data-theme", next);
+    const next = theme === 'dark' ? 'light' : 'dark'
+    setTheme(next)
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', next)
     }
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("payload-admin-theme", next);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('payload-admin-theme', next)
     }
-  };
+  }
 
   const themeLabel = useMemo(
-    () => (theme === "dark" ? "Switch to light mode" : "Switch to dark mode"),
+    () => (theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'),
     [theme],
-  );
+  )
 
   return (
     <>
@@ -294,7 +292,7 @@ const StaffProvider = (
           width: 100%;
         }
       `}</style>
-      {role === "staff" ? (
+      {role === 'staff' ? (
         <style>{`
           .nav__toggle, [data-element="nav-toggle"] {
             display: none !important;
@@ -305,14 +303,14 @@ const StaffProvider = (
         type="button"
         className="admin-theme-toggle"
         onClick={toggleTheme}
-        aria-pressed={theme === "dark"}
+        aria-pressed={theme === 'dark'}
         aria-label={themeLabel}
       >
-        {theme === "dark" ? "Light mode" : "Dark mode"}
+        {theme === 'dark' ? 'Light mode' : 'Dark mode'}
       </button>
       {props.children}
     </>
-  );
-};
+  )
+}
 
-export default StaffProvider;
+export default StaffProvider

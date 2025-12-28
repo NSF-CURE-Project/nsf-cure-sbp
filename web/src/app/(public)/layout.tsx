@@ -5,11 +5,7 @@ import { cookies, draftMode } from "next/headers";
 import PublicLayoutShell from "@/components/layout/PublicLayoutShell";
 
 import { getClassesTree } from "@/lib/payloadSdk/classes";
-import type {
-  ClassDoc,
-  ChapterDoc,
-  LessonDoc,
-} from "@/lib/payloadSdk/types";
+import type { ClassDoc, ChapterDoc, LessonDoc } from "@/lib/payloadSdk/types";
 
 // Ensure this layout is always rendered on the server with fresh data
 export const dynamic = "force-dynamic";
@@ -40,7 +36,10 @@ export default async function RootLayout({
   const sidebarClasses = normalizeClassesForSidebar(payloadClasses);
 
   return (
-    <PublicLayoutShell defaultOpen={defaultOpen} sidebarClasses={sidebarClasses}>
+    <PublicLayoutShell
+      defaultOpen={defaultOpen}
+      sidebarClasses={sidebarClasses}
+    >
       {children}
     </PublicLayoutShell>
   );
@@ -93,43 +92,45 @@ function normalizeClassesForSidebar(classes: ClassDoc[]): SidebarClass[] {
 
     const chapters: ChapterDoc[] = Array.isArray(c.chapters) ? c.chapters : [];
 
-    const modules = [...chapters].sort(byChapterNumberThenTitle).map((chapter) => {
-      const ch = chapter as ChapterDoc & { lessons?: LessonDoc[] };
-      const chapterTitle =
-        typeof ch.title === "string" && ch.title.trim()
-          ? ch.title
-          : "Untitled chapter";
+    const modules = [...chapters]
+      .sort(byChapterNumberThenTitle)
+      .map((chapter) => {
+        const ch = chapter as ChapterDoc & { lessons?: LessonDoc[] };
+        const chapterTitle =
+          typeof ch.title === "string" && ch.title.trim()
+            ? ch.title
+            : "Untitled chapter";
 
-      const chapterSlug = typeof ch.slug === "string" ? ch.slug : "";
-      const chapterNumber =
-        typeof ch.chapterNumber === "number" ? ch.chapterNumber : null;
+        const chapterSlug = typeof ch.slug === "string" ? ch.slug : "";
+        const chapterNumber =
+          typeof ch.chapterNumber === "number" ? ch.chapterNumber : null;
 
-      const rawLessons: LessonDoc[] = Array.isArray(ch.lessons)
-        ? ch.lessons
-        : [];
+        const rawLessons: LessonDoc[] = Array.isArray(ch.lessons)
+          ? ch.lessons
+          : [];
 
-      const lessons = [...rawLessons]
-        .sort(byOrderThenTitle)
-        .map((lesson) => {
-          const l = lesson as LessonDoc;
-          return {
-            id: l.id,
-            title:
-              typeof l.title === "string" && l.title.trim()
-                ? l.title
-                : "Untitled lesson",
-            slug: typeof l.slug === "string" ? l.slug : "",
-          };
-        })
-        .filter((l) => l.slug); // drop invalid entries
+        const lessons = [...rawLessons]
+          .sort(byOrderThenTitle)
+          .map((lesson) => {
+            const l = lesson as LessonDoc;
+            return {
+              id: l.id,
+              title:
+                typeof l.title === "string" && l.title.trim()
+                  ? l.title
+                  : "Untitled lesson",
+              slug: typeof l.slug === "string" ? l.slug : "",
+            };
+          })
+          .filter((l) => l.slug); // drop invalid entries
 
-      return {
-        title: chapterTitle,
-        slug: chapterSlug,
-        lessons,
-        chapterNumber,
-      };
-    });
+        return {
+          title: chapterTitle,
+          slug: chapterSlug,
+          lessons,
+          chapterNumber,
+        };
+      });
 
     return {
       title,

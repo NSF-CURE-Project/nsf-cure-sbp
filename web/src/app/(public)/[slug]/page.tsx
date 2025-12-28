@@ -14,7 +14,9 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const { isEnabled: isPreview } = await draftMode();
-  const page = await getPageBySlug(slug, { draft: isPreview }).catch(() => null);
+  const page = await getPageBySlug(slug, { draft: isPreview }).catch(
+    () => null
+  );
   const title = page?.title ?? "Page";
   return buildMetadata({
     title,

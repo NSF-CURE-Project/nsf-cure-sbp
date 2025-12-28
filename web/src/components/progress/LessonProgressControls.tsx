@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
 
 const PAYLOAD_URL =
@@ -67,7 +73,7 @@ export function LessonProgressControls({ lessonId, lessonTitle }: Props) {
           {
             credentials: "include",
             signal: controller.signal,
-          },
+          }
         );
         if (!res.ok) {
           setProgress(null);
@@ -101,7 +107,7 @@ export function LessonProgressControls({ lessonId, lessonTitle }: Props) {
             credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ completed: true }),
-          },
+          }
         );
         if (!res.ok) {
           throw new Error("Could not update progress.");
@@ -185,7 +191,8 @@ export function LessonProgressVideoBridge({
       }
     };
     window.addEventListener("lesson-progress", handler as EventListener);
-    return () => window.removeEventListener("lesson-progress", handler as EventListener);
+    return () =>
+      window.removeEventListener("lesson-progress", handler as EventListener);
   }, [onComplete]);
 
   return null;

@@ -58,7 +58,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "Something went wrong. Please try again.",
+          : "Something went wrong. Please try again."
       );
     } finally {
       setSending(false);
@@ -73,7 +73,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
         <div
           className={cn(
             "mx-auto w-full max-w-6xl px-4 py-10 pb-6 sm:px-6 lg:px-8",
-            contentOffsetClassName,
+            contentOffsetClassName
           )}
         >
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-4 sm:justify-items-center">
@@ -148,7 +148,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                   <Button
                     type="button"
                     variant="outline"
-                  className="rounded-lg border-border/60 bg-background/60 text-xs font-semibold"
+                    className="rounded-lg border-border/60 bg-background/60 text-xs font-semibold"
                   >
                     Open feedback
                   </Button>
@@ -160,7 +160,9 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                   className="w-[min(92vw,360px)] rounded-xl border border-border/70 bg-background p-4 shadow-xl"
                 >
                   <div>
-                    <div className="text-sm font-semibold text-foreground">Share feedback</div>
+                    <div className="text-sm font-semibold text-foreground">
+                      Share feedback
+                    </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       Let us know what’s working and where we can improve.
                     </p>
@@ -168,7 +170,10 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
 
                   <div className="mt-4 space-y-4">
                     <div className="space-y-2">
-                      <label className="sr-only" htmlFor="footer-feedback-email">
+                      <label
+                        className="sr-only"
+                        htmlFor="footer-feedback-email"
+                      >
                         Email address (optional)
                       </label>
                       <Input
@@ -182,7 +187,10 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="sr-only" htmlFor="footer-feedback-message">
+                      <label
+                        className="sr-only"
+                        htmlFor="footer-feedback-message"
+                      >
                         Feedback
                       </label>
                       <Textarea
@@ -208,43 +216,43 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                     {error ? (
                       <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                         {error}
-                    </div>
-                  ) : null}
-                  {success ? (
-                    <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-                      {success}
-                    </div>
-                  ) : null}
+                      </div>
+                    ) : null}
+                    {success ? (
+                      <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                        {success}
+                      </div>
+                    ) : null}
 
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
-                        className="h-8 w-8 rounded-full border border-border/60 bg-background text-base text-muted-foreground"
-                        aria-label="Reaction: confused"
-                      >
-                        😕
-                      </button>
-                      <button
-                        type="button"
-                        className="h-8 w-8 rounded-full border border-border/60 bg-background text-base text-muted-foreground"
-                        aria-label="Reaction: neutral"
-                      >
-                        😐
-                      </button>
-                      <button
-                        type="button"
-                        className="h-8 w-8 rounded-full border border-border/60 bg-background text-base text-muted-foreground"
-                        aria-label="Reaction: happy"
-                      >
-                        🙂
-                      </button>
-                      <button
-                        type="button"
-                        className="h-8 w-8 rounded-full border border-border/60 bg-background text-base text-muted-foreground"
-                        aria-label="Reaction: delighted"
-                      >
-                        😍
+                          className="h-8 w-8 rounded-full border border-border/60 bg-background text-base text-muted-foreground"
+                          aria-label="Reaction: confused"
+                        >
+                          😕
+                        </button>
+                        <button
+                          type="button"
+                          className="h-8 w-8 rounded-full border border-border/60 bg-background text-base text-muted-foreground"
+                          aria-label="Reaction: neutral"
+                        >
+                          😐
+                        </button>
+                        <button
+                          type="button"
+                          className="h-8 w-8 rounded-full border border-border/60 bg-background text-base text-muted-foreground"
+                          aria-label="Reaction: happy"
+                        >
+                          🙂
+                        </button>
+                        <button
+                          type="button"
+                          className="h-8 w-8 rounded-full border border-border/60 bg-background text-base text-muted-foreground"
+                          aria-label="Reaction: delighted"
+                        >
+                          😍
                         </button>
                       </div>
                       <Button

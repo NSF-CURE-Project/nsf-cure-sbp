@@ -20,7 +20,9 @@ export default function ForgotPasswordPage() {
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
             Student Access
           </p>
-          <h1 className="text-3xl font-bold text-foreground">Reset your password</h1>
+          <h1 className="text-3xl font-bold text-foreground">
+            Reset your password
+          </h1>
           <p className="text-muted-foreground">
             We’ll email you a link to reset your password.
           </p>
@@ -32,7 +34,10 @@ export default function ForgotPasswordPage() {
 
         <p className="mt-6 text-sm text-muted-foreground">
           Remembered your password?{" "}
-          <Link href="/login" className="font-semibold text-primary underline underline-offset-4">
+          <Link
+            href="/login"
+            className="font-semibold text-primary underline underline-offset-4"
+          >
             Sign in
           </Link>
         </p>

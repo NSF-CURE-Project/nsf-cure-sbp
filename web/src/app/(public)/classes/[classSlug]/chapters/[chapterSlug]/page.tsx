@@ -35,7 +35,9 @@ function getChapterClassSlug(chapter: ChapterDoc | null): string | null {
   return null;
 }
 
-function normalizeChapter(chapter: ChapterDoc | null): NormalizedChapter | null {
+function normalizeChapter(
+  chapter: ChapterDoc | null
+): NormalizedChapter | null {
   if (!chapter) return null;
 
   const c = chapter as ChapterDoc & {
@@ -81,7 +83,8 @@ async function fetchChapterForClass(classSlug: string, chapterSlug: string) {
   const chapter = await getChapterBySlug(chapterSlug);
   const normalized = normalizeChapter(chapter);
 
-  if (!normalized) return { mod: null as NormalizedChapter | null, raw: chapter };
+  if (!normalized)
+    return { mod: null as NormalizedChapter | null, raw: chapter };
 
   const matchesClass =
     normalized.classSlug &&
@@ -129,7 +132,7 @@ export default async function ChapterOverviewPage({
     if (DEBUG) {
       return (
         <pre className="p-4 text-xs border rounded max-w-3xl mx-auto my-8 whitespace-pre-wrap">
-{`DEBUG: No chapter matched
+          {`DEBUG: No chapter matched
 classSlug: ${classSlug}
 chapterSlug: ${chapterSlug}
 

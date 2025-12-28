@@ -8,7 +8,7 @@ function appendDraft(path: string, draft?: boolean) {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${API_ROUTE}${path}`, {
-    cache: "no-store",   // ← REQUIRED for immediate updates
+    cache: "no-store", // ← REQUIRED for immediate updates
     ...init,
     headers: {
       "Content-Type": "application/json",

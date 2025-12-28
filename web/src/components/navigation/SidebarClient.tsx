@@ -62,13 +62,15 @@ const getLessons = (ch: ChapterItem): LessonItem[] =>
 const getLessonSlug = (l: LessonItem) =>
   l.slug ?? l.lessonSlug ?? (l.id != null ? String(l.id) : "");
 const getLessonId = (l: LessonItem) =>
-  l.id != null ? String(l.id) : l.slug ?? l.lessonSlug ?? "";
+  l.id != null ? String(l.id) : (l.slug ?? l.lessonSlug ?? "");
 const getLessonTitle = (l: LessonItem) =>
   l.title ?? l.name ?? "Untitled Lesson";
 
 export default function SidebarClient({ classes }: Props) {
   const pathname = usePathname();
-  const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
+  const [completedLessons, setCompletedLessons] = useState<Set<string>>(
+    new Set()
+  );
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -80,7 +82,7 @@ export default function SidebarClient({ classes }: Props) {
           {
             credentials: "include",
             signal: controller.signal,
-          },
+          }
         );
         if (!res.ok) {
           setUserId(null);
@@ -108,7 +110,7 @@ export default function SidebarClient({ classes }: Props) {
           {
             credentials: "include",
             signal: controller.signal,
-          },
+          }
         );
         if (!res.ok) {
           setCompletedLessons(new Set());
@@ -156,7 +158,8 @@ export default function SidebarClient({ classes }: Props) {
       };
     }, [pathname]);
 
-  const showOnlyTopLevel = !currentClassSlug && !currentLessonSlug && !currentChapterSlug;
+  const showOnlyTopLevel =
+    !currentClassSlug && !currentLessonSlug && !currentChapterSlug;
 
   // lessonSlug -> { classSlug, chapterSlug }
   const lessonOwner = useMemo(() => {
@@ -209,8 +212,8 @@ export default function SidebarClient({ classes }: Props) {
     const defaultChapter = ownerFromLesson
       ? `${ownerFromLesson.classSlug}/${ownerFromLesson.chapterSlug}`
       : currentClassSlug && currentChapterSlug
-      ? `${currentClassSlug}/${currentChapterSlug}`
-      : null;
+        ? `${currentClassSlug}/${currentChapterSlug}`
+        : null;
 
     if (defaultClass && cMap[defaultClass] !== true) cMap[defaultClass] = true;
     if (defaultChapter) {
@@ -294,7 +297,9 @@ export default function SidebarClient({ classes }: Props) {
                     aria-controls={`panel-class-${cSlug}`}
                     onClick={() => toggleClass(cSlug)}
                     className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground/60 transition hover:bg-muted/20 hover:text-foreground"
-                    aria-label={classOpen ? "Collapse chapters" : "Expand chapters"}
+                    aria-label={
+                      classOpen ? "Collapse chapters" : "Expand chapters"
+                    }
                   >
                     <ChevronRight
                       className={[
@@ -319,114 +324,118 @@ export default function SidebarClient({ classes }: Props) {
                   ].join(" ")}
                 >
                   <ul className="min-h-0 overflow-hidden pl-6 pr-2 space-y-1">
-                  {getChapters(cls).map((ch) => {
-                    const chSlug = getChapterSlug(ch);
-                    if (!chSlug) return null;
-                    const chKey = `${cSlug}/${chSlug}`;
-                    const chOpen = !!openChapters[chKey];
+                    {getChapters(cls).map((ch) => {
+                      const chSlug = getChapterSlug(ch);
+                      if (!chSlug) return null;
+                      const chKey = `${cSlug}/${chSlug}`;
+                      const chOpen = !!openChapters[chKey];
 
-                    const lessons = getLessons(ch);
+                      const lessons = getLessons(ch);
 
-                    const chapterOverviewActive =
-                      currentClassSlug === cSlug &&
-                      currentChapterSlug === chSlug;
+                      const chapterOverviewActive =
+                        currentClassSlug === cSlug &&
+                        currentChapterSlug === chSlug;
 
-                    const chapterHasActiveLesson = lessons.some(
-                      (ls) => getLessonSlug(ls) === currentLessonSlug
-                    );
+                      const chapterHasActiveLesson = lessons.some(
+                        (ls) => getLessonSlug(ls) === currentLessonSlug
+                      );
 
-                    const chapterBarActive =
-                      chapterOverviewActive || chapterHasActiveLesson;
+                      const chapterBarActive =
+                        chapterOverviewActive || chapterHasActiveLesson;
 
-                    return (
-                      <li key={chSlug}>
-                        <div className="relative pl-3">
-                          <div
-                            className={[
-                              "group flex w-full items-center justify-between gap-2 px-2 py-1 pr-2 rounded-md transition-colors text-left border-l-2",
-                              chapterBarActive
-                                ? "bg-muted/10 text-foreground/85 border-foreground/20 pl-1"
-                                : "text-muted-foreground/60 border-transparent",
-                              "hover:text-foreground/85 hover:bg-muted/10",
-                            ].join(" ")}
-                          >
-                            <Link
-                              href={`/classes/${cSlug}/chapters/${chSlug}`}
-                              className="flex-1 text-left text-inherit"
+                      return (
+                        <li key={chSlug}>
+                          <div className="relative pl-3">
+                            <div
+                              className={[
+                                "group flex w-full items-center justify-between gap-2 px-2 py-1 pr-2 rounded-md transition-colors text-left border-l-2",
+                                chapterBarActive
+                                  ? "bg-muted/10 text-foreground/85 border-foreground/20 pl-1"
+                                  : "text-muted-foreground/60 border-transparent",
+                                "hover:text-foreground/85 hover:bg-muted/10",
+                              ].join(" ")}
                             >
-                              {getChapterLabel(ch)}
-                            </Link>
-                            <button
-                              type="button"
-                              aria-expanded={chOpen}
-                              aria-controls={`panel-ch-${chKey}`}
-                              onClick={() => toggleChapter(cSlug, chSlug)}
-                              className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground/60 transition hover:bg-muted/20 hover:text-foreground"
-                              aria-label={chOpen ? "Collapse lessons" : "Expand lessons"}
-                            >
-                              <ChevronRight
-                                className={[
-                                  "h-3 w-3 shrink-0 transition-transform",
-                                  chOpen ? "rotate-90 -translate-x-1" : "",
-                                ].join(" ")}
-                                aria-hidden="true"
-                              />
-                            </button>
-                          </div>
+                              <Link
+                                href={`/classes/${cSlug}/chapters/${chSlug}`}
+                                className="flex-1 text-left text-inherit"
+                              >
+                                {getChapterLabel(ch)}
+                              </Link>
+                              <button
+                                type="button"
+                                aria-expanded={chOpen}
+                                aria-controls={`panel-ch-${chKey}`}
+                                onClick={() => toggleChapter(cSlug, chSlug)}
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground/60 transition hover:bg-muted/20 hover:text-foreground"
+                                aria-label={
+                                  chOpen ? "Collapse lessons" : "Expand lessons"
+                                }
+                              >
+                                <ChevronRight
+                                  className={[
+                                    "h-3 w-3 shrink-0 transition-transform",
+                                    chOpen ? "rotate-90 -translate-x-1" : "",
+                                  ].join(" ")}
+                                  aria-hidden="true"
+                                />
+                              </button>
+                            </div>
 
-                          {/* Lessons */}
-                          <div
-                            id={`panel-ch-${chKey}`}
-                            className={[
-                              "grid transition-[grid-template-rows,opacity] duration-200 ease-out pl-5",
-                              chOpen
-                                ? "grid-rows-[1fr] opacity-100"
-                                : "grid-rows-[0fr] opacity-70",
-                            ].join(" ")}
-                          >
-                            <ul className="min-h-0 overflow-hidden py-0.5 space-y-1">
-                              {lessons.map((ls) => {
-                                const lsSlug = getLessonSlug(ls);
-                                const lsId = getLessonId(ls);
-                                if (!lsSlug) return null;
-                                const active = lsSlug === currentLessonSlug;
-                                return (
-                                  <li key={lsSlug}>
-                                    <Link
-                                      href={`/classes/${cSlug}/lessons/${lsSlug}`}
-                                      className={[
-                                        "block rounded-md px-2 py-1 transition-colors",
-                                        active
-                                          ? "bg-muted/10 text-foreground/85"
-                                          : "text-muted-foreground/60 hover:text-foreground/85 hover:bg-muted/10",
-                                      ].join(" ")}
-                                    >
-                                      <span
+                            {/* Lessons */}
+                            <div
+                              id={`panel-ch-${chKey}`}
+                              className={[
+                                "grid transition-[grid-template-rows,opacity] duration-200 ease-out pl-5",
+                                chOpen
+                                  ? "grid-rows-[1fr] opacity-100"
+                                  : "grid-rows-[0fr] opacity-70",
+                              ].join(" ")}
+                            >
+                              <ul className="min-h-0 overflow-hidden py-0.5 space-y-1">
+                                {lessons.map((ls) => {
+                                  const lsSlug = getLessonSlug(ls);
+                                  const lsId = getLessonId(ls);
+                                  if (!lsSlug) return null;
+                                  const active = lsSlug === currentLessonSlug;
+                                  return (
+                                    <li key={lsSlug}>
+                                      <Link
+                                        href={`/classes/${cSlug}/lessons/${lsSlug}`}
                                         className={[
-                                          "relative flex items-center gap-2 pl-2",
-                                          active ? "border-l-2 border-foreground/20" : "",
+                                          "block rounded-md px-2 py-1 transition-colors",
+                                          active
+                                            ? "bg-muted/10 text-foreground/85"
+                                            : "text-muted-foreground/60 hover:text-foreground/85 hover:bg-muted/10",
                                         ].join(" ")}
                                       >
-                                        {getLessonTitle(ls)}
-                                        {completedLessons.has(lsId) ? (
-                                          <Check className="h-3 w-3 text-emerald-500" />
-                                        ) : null}
-                                      </span>
-                                    </Link>
+                                        <span
+                                          className={[
+                                            "relative flex items-center gap-2 pl-2",
+                                            active
+                                              ? "border-l-2 border-foreground/20"
+                                              : "",
+                                          ].join(" ")}
+                                        >
+                                          {getLessonTitle(ls)}
+                                          {completedLessons.has(lsId) ? (
+                                            <Check className="h-3 w-3 text-emerald-500" />
+                                          ) : null}
+                                        </span>
+                                      </Link>
+                                    </li>
+                                  );
+                                })}
+                                {lessons.length === 0 && (
+                                  <li className="text-xs text-muted-foreground px-2 py-1">
+                                    No lessons yet.
                                   </li>
-                                );
-                              })}
-                              {lessons.length === 0 && (
-                                <li className="text-xs text-muted-foreground px-2 py-1">
-                                  No lessons yet.
-                                </li>
-                              )}
-                            </ul>
+                                )}
+                              </ul>
+                            </div>
                           </div>
-                        </div>
-                      </li>
-                    );
-                  })}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               )}

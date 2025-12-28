@@ -1,13 +1,13 @@
-import { RichText as RichTextConverter } from '@payloadcms/richtext-lexical/react'
-import { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical'
-import { jsxConverter } from '@/components/ui/RichText/converters'
+import { RichText as RichTextConverter } from "@payloadcms/richtext-lexical/react";
+import { SerializedEditorState } from "@payloadcms/richtext-lexical/lexical";
+import { jsxConverter } from "@/components/ui/RichText/converters";
 
 type Props = {
-  data: SerializedEditorState
-} & React.HTMLAttributes<HTMLDivElement>
+  data: SerializedEditorState;
+} & React.HTMLAttributes<HTMLDivElement>;
 
 export function RichText(props: Props) {
-  const { className, ...rest } = props
+  const { className, ...rest } = props;
 
   return (
     <RichTextConverter
@@ -15,5 +15,5 @@ export function RichText(props: Props) {
       className={className}
       converters={jsxConverter}
     />
-  )
+  );
 }

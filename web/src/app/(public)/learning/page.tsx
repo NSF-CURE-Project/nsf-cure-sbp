@@ -19,7 +19,7 @@ type ChapterWithLessons = ChapterDoc & { lessons?: LessonDoc[] };
 export default async function LearningPage() {
   const { isEnabled: isPreview } = await draftMode();
   const classes: ClassDoc[] = await getClassesTree({ draft: isPreview }).catch(
-    () => [],
+    () => []
   );
 
   return (
@@ -37,7 +37,10 @@ export default async function LearningPage() {
             ? (cls.chapters as ChapterWithLessons[])
             : [];
           const totalLessons = chapters.reduce((count, chapter) => {
-            return count + (Array.isArray(chapter.lessons) ? chapter.lessons.length : 0);
+            return (
+              count +
+              (Array.isArray(chapter.lessons) ? chapter.lessons.length : 0)
+            );
           }, 0);
           return (
             <div

@@ -1,10 +1,10 @@
-import type { CollectionConfig } from "payload";
-import { ensureUniqueSlug, slugify } from "../utils/slug";
+import type { CollectionConfig } from 'payload'
+import { ensureUniqueSlug, slugify } from '../utils/slug'
 
 export const Chapters: CollectionConfig = {
-  slug: "chapters",
+  slug: 'chapters',
   admin: {
-    useAsTitle: "title",
+    useAsTitle: 'title',
   },
   access: {
     read: () => true,
@@ -12,62 +12,62 @@ export const Chapters: CollectionConfig = {
   hooks: {
     beforeValidate: [
       async ({ data, req, originalDoc, id }) => {
-        if (!data) return data;
+        if (!data) return data
         if (!data.slug) {
-          const title = data.title ?? originalDoc?.title ?? "";
-          const base = slugify(String(title));
+          const title = data.title ?? originalDoc?.title ?? ''
+          const base = slugify(String(title))
           data.slug = await ensureUniqueSlug({
             base,
-            collection: "chapters",
+            collection: 'chapters',
             req,
             id,
-          });
+          })
         }
-        return data;
+        return data
       },
     ],
   },
   fields: [
     {
-      name: "lessonOrderGuide",
-      type: "ui",
+      name: 'lessonOrderGuide',
+      type: 'ui',
       admin: {
         components: {
-          Field: "@/views/ChapterLessonOrderField#default",
+          Field: '@/views/ChapterLessonOrderField#default',
         },
       },
     },
     {
-      name: "title",
-      type: "text",
+      name: 'title',
+      type: 'text',
       required: true,
     },
     {
-      name: "chapterNumber",
-      label: "Chapter number",
-      type: "number",
+      name: 'chapterNumber',
+      label: 'Chapter number',
+      type: 'number',
       min: 1,
       admin: {
-        description: "Shown as Ch {number} in the sidebar.",
+        description: 'Shown as Ch {number} in the sidebar.',
       },
     },
     {
-      name: "lessons",
-      label: "Lessons",
-      type: "relationship",
-      relationTo: "lessons" as any, // each chapter can link to many lessons
+      name: 'lessons',
+      label: 'Lessons',
+      type: 'relationship',
+      relationTo: 'lessons' as any, // each chapter can link to many lessons
       hasMany: true,
     },
     {
-      name: "class",
-      label: "Class",
-      type: "relationship",
-      relationTo: "classes" as any, // many chapters → one class
+      name: 'class',
+      label: 'Class',
+      type: 'relationship',
+      relationTo: 'classes' as any, // many chapters → one class
       required: true,
     },
     {
-      name: "slug",
-      type: "text",
+      name: 'slug',
+      type: 'text',
       required: true,
       unique: true,
       admin: {
@@ -75,11 +75,11 @@ export const Chapters: CollectionConfig = {
       },
     },
     {
-      name: "objective",
-      type: "richText", // same as before, just now “chapter objective”
+      name: 'objective',
+      type: 'richText', // same as before, just now “chapter objective”
       admin: {
-        description: "Use $...$ for inline math and $$...$$ for display math.",
+        description: 'Use $...$ for inline math and $$...$$ for display math.',
       },
     },
   ],
-};
+}

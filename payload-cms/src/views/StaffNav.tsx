@@ -1,42 +1,47 @@
-"use client";
+'use client'
 
-import React from "react";
-import { Link, useAuth } from "@payloadcms/ui";
-import PageOrderList from "./PageOrderList";
+import React from 'react'
+import { Link, useAuth } from '@payloadcms/ui'
+import PageOrderList from './PageOrderList'
 
 const navStyle: React.CSSProperties = {
-  padding: "64px 14px 18px",
-  display: "flex",
-  flexDirection: "column",
+  padding: '64px 14px 18px',
+  display: 'flex',
+  flexDirection: 'column',
   gap: 12,
-};
+  position: 'sticky',
+  top: 0,
+  alignSelf: 'flex-start',
+  maxHeight: '100vh',
+  overflowY: 'auto',
+}
 
 const sectionTitleStyle: React.CSSProperties = {
   fontSize: 12,
-  textTransform: "uppercase",
-  letterSpacing: "0.12em",
-  color: "var(--cpp-muted, #5b6f66)",
+  textTransform: 'uppercase',
+  letterSpacing: '0.12em',
+  color: 'var(--cpp-muted, #5b6f66)',
   fontWeight: 700,
   marginTop: 28,
   paddingTop: 12,
-};
+}
 
 const linkStyle: React.CSSProperties = {
-  display: "block",
-  padding: "10px 12px",
+  display: 'block',
+  padding: '10px 12px',
   borderRadius: 0,
-  background: "rgba(0, 80, 48, 0.08)",
-  color: "var(--cpp-ink, #0b3d27)",
-  textDecoration: "none",
+  background: 'rgba(0, 80, 48, 0.08)',
+  color: 'var(--cpp-ink, #0b3d27)',
+  textDecoration: 'none',
   fontWeight: 600,
-};
+}
 
 export default function StaffNav() {
-  const { user } = useAuth();
-  const role = (user as { role?: string } | null)?.role;
+  const { user } = useAuth()
+  const role = (user as { role?: string } | null)?.role
 
-  if (role !== "staff" && role !== "admin") {
-    return null;
+  if (role !== 'staff' && role !== 'admin') {
+    return null
   }
 
   return (
@@ -45,20 +50,20 @@ export default function StaffNav() {
       <Link href="/admin/collections/pages" style={linkStyle}>
         Manage Pages
       </Link>
-      <div style={{ height: 1, background: "rgba(15, 23, 42, 0.12)", margin: "8px 0" }} />
+      <div style={{ height: 1, background: 'rgba(15, 23, 42, 0.12)', margin: '8px 0' }} />
       <div style={{ marginTop: 8 }}>
         <div
           style={{
-            display: "inline-flex",
-            alignItems: "center",
+            display: 'inline-flex',
+            alignItems: 'center',
             gap: 8,
             fontSize: 12,
-            color: "#475569",
-            border: "1px dashed rgba(15, 23, 42, 0.2)",
-            background: "#f8fafc",
-            padding: "8px 10px",
+            color: '#475569',
+            border: '1px dashed rgba(15, 23, 42, 0.2)',
+            background: '#f8fafc',
+            padding: '8px 10px',
             borderRadius: 0,
-            width: "fit-content",
+            width: 'fit-content',
             marginBottom: 8,
           }}
         >
@@ -68,5 +73,5 @@ export default function StaffNav() {
         <PageOrderList title={null} compact showHint={false} showEditLinks />
       </div>
     </nav>
-  );
+  )
 }

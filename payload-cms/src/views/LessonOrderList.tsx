@@ -1,53 +1,53 @@
-"use client";
+'use client'
 
-import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "@payloadcms/ui";
+import React, { useEffect, useMemo, useState } from 'react'
+import { Link } from '@payloadcms/ui'
 
 type LessonLink = {
-  id: string;
-  title: string;
-  slug?: string | null;
-  order?: number | null;
-};
+  id: string
+  title: string
+  slug?: string | null
+  order?: number | null
+}
 
 type LessonOrderListProps = {
-  chapterId?: string | null;
-  title?: string;
-  showEditLinks?: boolean;
-  compact?: boolean;
-  showHint?: boolean;
-  pendingTitle?: string | null;
-  pendingOrder?: number | null;
-  onPendingOrderChange?: (order: number) => void;
-};
+  chapterId?: string | null
+  title?: string
+  showEditLinks?: boolean
+  compact?: boolean
+  showHint?: boolean
+  pendingTitle?: string | null
+  pendingOrder?: number | null
+  onPendingOrderChange?: (order: number) => void
+}
 
 const baseItemStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
+  display: 'flex',
+  alignItems: 'center',
   gap: 8,
-  padding: "8px 10px",
+  padding: '8px 10px',
   borderRadius: 10,
-  background: "rgba(0, 80, 48, 0.06)",
-  color: "var(--cpp-ink, #0b3d27)",
-};
+  background: 'rgba(0, 80, 48, 0.06)',
+  color: 'var(--cpp-ink, #0b3d27)',
+}
 
 const baseHandleStyle: React.CSSProperties = {
   width: 28,
   height: 28,
   borderRadius: 8,
-  border: "1px solid rgba(0, 80, 48, 0.16)",
-  background: "rgba(255, 255, 255, 0.8)",
-  cursor: "grab",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
+  border: '1px solid rgba(0, 80, 48, 0.16)',
+  background: 'rgba(255, 255, 255, 0.8)',
+  cursor: 'grab',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
   fontSize: 14,
-  color: "rgba(11, 61, 39, 0.7)",
-};
+  color: 'rgba(11, 61, 39, 0.7)',
+}
 
 export default function LessonOrderList({
   chapterId,
-  title = "Reorder lessons",
+  title = 'Reorder lessons',
   showEditLinks = false,
   compact = false,
   showHint = true,
@@ -55,148 +55,143 @@ export default function LessonOrderList({
   pendingOrder,
   onPendingOrderChange,
 }: LessonOrderListProps) {
-  const [lessons, setLessons] = useState<LessonLink[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [isSavingOrder, setIsSavingOrder] = useState(false);
-  const [pendingIndex, setPendingIndex] = useState<number | null>(null);
+  const [lessons, setLessons] = useState<LessonLink[]>([])
+  const [loading, setLoading] = useState(true)
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [isSavingOrder, setIsSavingOrder] = useState(false)
+  const [pendingIndex, setPendingIndex] = useState<number | null>(null)
 
   const chapterFilter = useMemo(() => {
-    if (!chapterId) return "";
-    return `&where[chapter][equals]=${encodeURIComponent(chapterId)}`;
-  }, [chapterId]);
+    if (!chapterId) return ''
+    return `&where[chapter][equals]=${encodeURIComponent(chapterId)}`
+  }, [chapterId])
 
   useEffect(() => {
     if (!chapterId) {
-      setLessons([]);
-      setLoading(false);
-      return;
+      setLessons([])
+      setLoading(false)
+      return
     }
-    const controller = new AbortController();
+    const controller = new AbortController()
     const loadLessons = async () => {
-      setLoading(true);
+      setLoading(true)
       try {
-        const res = await fetch(
-          `/api/lessons?limit=200&sort=order&sort=title${chapterFilter}`,
-          {
-            credentials: "include",
-            signal: controller.signal,
-          },
-        );
+        const res = await fetch(`/api/lessons?limit=200&sort=order&sort=title${chapterFilter}`, {
+          credentials: 'include',
+          signal: controller.signal,
+        })
         if (!res.ok) {
-          setLessons([]);
-          return;
+          setLessons([])
+          return
         }
         const data = (await res.json()) as {
-          docs?: LessonLink[];
-        };
-        setLessons(data.docs ?? []);
+          docs?: LessonLink[]
+        }
+        setLessons(data.docs ?? [])
       } catch (error) {
         if (!controller.signal.aborted) {
-          setLessons([]);
+          setLessons([])
         }
       } finally {
         if (!controller.signal.aborted) {
-          setLoading(false);
+          setLoading(false)
         }
       }
-    };
+    }
 
-    loadLessons();
-    return () => controller.abort();
-  }, [chapterFilter, chapterId]);
+    loadLessons()
+    return () => controller.abort()
+  }, [chapterFilter, chapterId])
 
   useEffect(() => {
     if (!pendingTitle) {
       if (pendingIndex !== null) {
-        setPendingIndex(null);
+        setPendingIndex(null)
       }
-      return;
+      return
     }
 
     const nextIndex = (() => {
-      if (!lessons.length) return 0;
+      if (!lessons.length) return 0
       if (pendingOrder && pendingOrder > 0 && pendingOrder <= lessons.length + 1) {
-        return pendingOrder - 1;
+        return pendingOrder - 1
       }
-      return lessons.length;
-    })();
+      return lessons.length
+    })()
 
     if (pendingIndex !== nextIndex) {
-      setPendingIndex(nextIndex);
+      setPendingIndex(nextIndex)
     }
 
-    const nextOrder = nextIndex + 1;
+    const nextOrder = nextIndex + 1
     if (pendingOrder !== nextOrder) {
-      onPendingOrderChange?.(nextOrder);
+      onPendingOrderChange?.(nextOrder)
     }
-  }, [lessons.length, pendingOrder, pendingTitle, onPendingOrderChange, pendingIndex]);
+  }, [lessons.length, pendingOrder, pendingTitle, onPendingOrderChange, pendingIndex])
 
   const persistLessonOrder = async (nextLessons: LessonLink[]) => {
-    if (!nextLessons.length) return;
-    setIsSavingOrder(true);
+    if (!nextLessons.length) return
+    setIsSavingOrder(true)
     try {
       const updates = nextLessons.map((item, index) => {
-        const nextOrder = index + 1;
-        if (item.order === nextOrder) return null;
+        const nextOrder = index + 1
+        if (item.order === nextOrder) return null
         return fetch(`/api/lessons/${item.id}`, {
-          method: "PATCH",
-          credentials: "include",
+          method: 'PATCH',
+          credentials: 'include',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({ order: nextOrder }),
-        });
-      });
-      await Promise.all(updates.filter(Boolean) as Promise<Response>[]);
-      setLessons((prev) =>
-        prev.map((item, index) => ({ ...item, order: index + 1 }))
-      );
+        })
+      })
+      await Promise.all(updates.filter(Boolean) as Promise<Response>[])
+      setLessons((prev) => prev.map((item, index) => ({ ...item, order: index + 1 })))
     } finally {
-      setIsSavingOrder(false);
+      setIsSavingOrder(false)
     }
-  };
+  }
 
   const handleDrop = async (targetId: string) => {
-    if (!draggingId || draggingId === targetId) return;
-    if (pendingTitle && draggingId === "__pending__") {
-      const items = [...lessons];
-      const targetIndex = items.findIndex((item) => item.id === targetId);
-      if (targetIndex < 0) return;
-      setPendingIndex(targetIndex);
-      onPendingOrderChange?.(targetIndex + 1);
-      return;
+    if (!draggingId || draggingId === targetId) return
+    if (pendingTitle && draggingId === '__pending__') {
+      const items = [...lessons]
+      const targetIndex = items.findIndex((item) => item.id === targetId)
+      if (targetIndex < 0) return
+      setPendingIndex(targetIndex)
+      onPendingOrderChange?.(targetIndex + 1)
+      return
     }
-    const current = [...lessons];
-    const fromIndex = current.findIndex((item) => item.id === draggingId);
-    const toIndex = current.findIndex((item) => item.id === targetId);
-    if (fromIndex < 0 || toIndex < 0) return;
-    const [moved] = current.splice(fromIndex, 1);
-    current.splice(toIndex, 0, moved);
-    setLessons(current);
-    await persistLessonOrder(current);
-  };
+    const current = [...lessons]
+    const fromIndex = current.findIndex((item) => item.id === draggingId)
+    const toIndex = current.findIndex((item) => item.id === targetId)
+    if (fromIndex < 0 || toIndex < 0) return
+    const [moved] = current.splice(fromIndex, 1)
+    current.splice(toIndex, 0, moved)
+    setLessons(current)
+    await persistLessonOrder(current)
+  }
 
   const listItems = (() => {
-    if (!pendingTitle) return lessons;
-    const index = pendingIndex == null ? lessons.length : Math.min(pendingIndex, lessons.length);
-    const withPending = [...lessons];
+    if (!pendingTitle) return lessons
+    const index = pendingIndex == null ? lessons.length : Math.min(pendingIndex, lessons.length)
+    const withPending = [...lessons]
     withPending.splice(index, 0, {
-      id: "__pending__",
+      id: '__pending__',
       title: pendingTitle,
       slug: null,
-    });
-    return withPending;
-  })();
+    })
+    return withPending
+  })()
 
   return (
     <div>
       <div
         style={{
           fontSize: compact ? 12 : 14,
-          textTransform: "uppercase",
-          letterSpacing: "0.12em",
-          color: "var(--cpp-muted, #5b6f66)",
+          textTransform: 'uppercase',
+          letterSpacing: '0.12em',
+          color: 'var(--cpp-muted, #5b6f66)',
           fontWeight: 700,
         }}
       >
@@ -206,20 +201,20 @@ export default function LessonOrderList({
         <div
           style={{
             fontSize: 11,
-            color: "var(--cpp-muted, #5b6f66)",
+            color: 'var(--cpp-muted, #5b6f66)',
             marginTop: 6,
           }}
         >
           Drag lessons to reorder.
-          {isSavingOrder ? " Saving…" : ""}
+          {isSavingOrder ? ' Saving…' : ''}
         </div>
       ) : null}
       {!chapterId ? (
         <div
           style={{
             fontSize: 12,
-            color: "var(--cpp-muted, #5b6f66)",
-            padding: "6px 8px",
+            color: 'var(--cpp-muted, #5b6f66)',
+            padding: '6px 8px',
           }}
         >
           Select a chapter to reorder its lessons.
@@ -227,8 +222,8 @@ export default function LessonOrderList({
       ) : (
         <div
           style={{
-            display: "flex",
-            flexDirection: "column",
+            display: 'flex',
+            flexDirection: 'column',
             gap: compact ? 6 : 8,
             paddingTop: 8,
           }}
@@ -237,23 +232,23 @@ export default function LessonOrderList({
             <div
               style={{
                 fontSize: 12,
-                color: "var(--cpp-muted, #5b6f66)",
-                padding: "4px 8px",
+                color: 'var(--cpp-muted, #5b6f66)',
+                padding: '4px 8px',
               }}
             >
               Loading lessons…
             </div>
           ) : listItems.length ? (
             listItems.map((item) => {
-              const isPending = item.id === "__pending__";
+              const isPending = item.id === '__pending__'
               return (
                 <div
                   key={item.id}
                   style={{
                     ...baseItemStyle,
-                    padding: compact ? "6px 8px" : baseItemStyle.padding,
+                    padding: compact ? '6px 8px' : baseItemStyle.padding,
                     opacity: isPending ? 0.85 : 1,
-                    border: isPending ? "1px dashed rgba(0, 80, 48, 0.35)" : "none",
+                    border: isPending ? '1px dashed rgba(0, 80, 48, 0.35)' : 'none',
                   }}
                   draggable
                   onDragStart={() => setDraggingId(item.id)}
@@ -274,13 +269,13 @@ export default function LessonOrderList({
                     ⋮⋮
                   </span>
                   <span style={{ flex: 1, fontWeight: 600 }}>
-                    {item.title || item.slug || "Untitled Lesson"}
+                    {item.title || item.slug || 'Untitled Lesson'}
                   </span>
                   {isPending ? (
                     <span
                       style={{
                         fontSize: 11,
-                        color: "var(--cpp-muted, #5b6f66)",
+                        color: 'var(--cpp-muted, #5b6f66)',
                         fontWeight: 600,
                       }}
                     >
@@ -290,12 +285,12 @@ export default function LessonOrderList({
                     <Link
                       href={`/admin/collections/lessons/${item.id}`}
                       style={{
-                        display: "block",
-                        padding: compact ? "4px 8px" : "6px 10px",
+                        display: 'block',
+                        padding: compact ? '4px 8px' : '6px 10px',
                         borderRadius: 8,
-                        background: "rgba(0, 80, 48, 0.08)",
-                        color: "var(--cpp-ink, #0b3d27)",
-                        textDecoration: "none",
+                        background: 'rgba(0, 80, 48, 0.08)',
+                        color: 'var(--cpp-ink, #0b3d27)',
+                        textDecoration: 'none',
                         fontWeight: 600,
                         fontSize: compact ? 12 : 13,
                       }}
@@ -304,14 +299,14 @@ export default function LessonOrderList({
                     </Link>
                   ) : null}
                 </div>
-              );
+              )
             })
           ) : (
             <div
               style={{
                 fontSize: 12,
-                color: "var(--cpp-muted, #5b6f66)",
-                padding: "4px 8px",
+                color: 'var(--cpp-muted, #5b6f66)',
+                padding: '4px 8px',
               }}
             >
               No lessons yet.
@@ -320,5 +315,5 @@ export default function LessonOrderList({
         </div>
       )}
     </div>
-  );
+  )
 }

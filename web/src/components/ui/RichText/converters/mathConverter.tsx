@@ -21,7 +21,11 @@ const MATH_REGEX = /\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g;
 
 const splitMathTokens = (value: string) => {
   const safeValue = value.replace(/\\\$/g, DOLLAR_PLACEHOLDER);
-  const tokens: Array<{ type: "text" | "math"; value: string; display?: boolean }> = [];
+  const tokens: Array<{
+    type: "text" | "math";
+    value: string;
+    display?: boolean;
+  }> = [];
   let lastIndex = 0;
 
   for (const match of safeValue.matchAll(MATH_REGEX)) {

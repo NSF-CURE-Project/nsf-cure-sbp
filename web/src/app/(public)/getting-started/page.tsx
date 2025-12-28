@@ -1,6 +1,9 @@
 import { draftMode } from "next/headers";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
-import { getGettingStarted, type GettingStartedPage } from "@/lib/payloadSdk/gettingStarted";
+import {
+  getGettingStarted,
+  type GettingStartedPage,
+} from "@/lib/payloadSdk/gettingStarted";
 import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";

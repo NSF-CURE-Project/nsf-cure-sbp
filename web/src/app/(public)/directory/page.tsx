@@ -30,7 +30,7 @@ const staticPages = [
 export default async function DirectoryPage() {
   const { isEnabled: isPreview } = await draftMode();
   const classes: ClassDoc[] = await getClassesTree({ draft: isPreview }).catch(
-    () => [],
+    () => []
   );
   const pages: PageDoc[] = await getPages({ draft: isPreview }).catch(() => []);
   const mainPages = pages.filter((page) => page.slug && page.slug !== "home");
@@ -80,7 +80,9 @@ export default async function DirectoryPage() {
         {classes.length ? (
           <ul className="space-y-5">
             {classes.map((cls) => {
-              const chapters = (cls.chapters ?? []).filter(isChapterDoc) as ChapterLike[];
+              const chapters = (cls.chapters ?? []).filter(
+                isChapterDoc
+              ) as ChapterLike[];
               return (
                 <li key={cls.id}>
                   <a
@@ -93,7 +95,9 @@ export default async function DirectoryPage() {
                   {chapters.length ? (
                     <ul className="mt-2 space-y-2 pl-5 text-sm text-muted-foreground">
                       {chapters.map((chapter) => {
-                        const lessons = (chapter.lessons ?? []).filter(isLessonDoc);
+                        const lessons = (chapter.lessons ?? []).filter(
+                          isLessonDoc
+                        );
                         return (
                           <li key={chapter.id}>
                             <a
