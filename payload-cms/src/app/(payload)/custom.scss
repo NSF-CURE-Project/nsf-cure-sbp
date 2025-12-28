@@ -89,3 +89,17 @@ body {
   --color: #1b1b1b;
   --hover-bg: #f0a800;
 }
+
+/* Keep admin sidebar permanently open */
+.nav-toggler,
+.app-header__mobile-nav-toggler {
+  display: none !important;
+}
+
+.nav,
+.nav--collapsed,
+.nav--closed {
+  transform: none !important;
+  width: 260px !important;
+  min-width: 260px !important;
+}
