@@ -1,23 +1,28 @@
 'use client'
 
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { AdminViewServerProps } from 'payload'
+import { useAuth } from '@payloadcms/ui'
 
 type ThemeMode = 'light' | 'dark'
 
 const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNode }) => {
-  const user = (props as any)?.user ?? (props as any)?.payload?.user
+  const auth = useAuth()
+  const serverUser = (props as any)?.user ?? (props as any)?.payload?.user
+  const user = auth?.user ?? serverUser
   const role = user?.role
   const [theme, setTheme] = useState<ThemeMode>('light')
   const [breadcrumbs, setBreadcrumbs] = useState<{ label: string; href?: string }[]>([])
   const isMountedRef = useRef(true)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === 'undefined') return
     const applyTheme = (value: ThemeMode) => {
       setTheme(value)
       document.documentElement.setAttribute('data-theme', value)
+      document.body?.setAttribute('data-theme', value)
       window.localStorage.setItem('payload-admin-theme', value)
+      window.localStorage.setItem('payload-theme', value)
     }
 
     const userTheme = user?.adminTheme
@@ -26,9 +31,17 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       return
     }
 
-    const stored = window.localStorage.getItem('payload-admin-theme')
+    const stored =
+      window.localStorage.getItem('payload-admin-theme') ??
+      window.localStorage.getItem('payload-theme')
     if (stored === 'light' || stored === 'dark') {
       applyTheme(stored)
+      return
+    }
+
+    const docTheme = document.documentElement.getAttribute('data-theme')
+    if (docTheme === 'light' || docTheme === 'dark') {
+      applyTheme(docTheme)
       return
     }
 
@@ -36,6 +49,28 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     const initial = prefersDark ? 'dark' : 'light'
     applyTheme(initial)
   }, [user?.adminTheme])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    document.documentElement.setAttribute('data-theme', theme)
+    document.body?.setAttribute('data-theme', theme)
+    window.localStorage.setItem('payload-admin-theme', theme)
+    window.localStorage.setItem('payload-theme', theme)
+
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type !== 'attributes') continue
+        const current = document.documentElement.getAttribute('data-theme')
+        if (current && current !== theme) {
+          document.documentElement.setAttribute('data-theme', theme)
+          document.body?.setAttribute('data-theme', theme)
+        }
+      }
+    })
+
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => observer.disconnect()
+  }, [theme])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -115,6 +150,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     }
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('payload-admin-theme', next)
+      window.localStorage.setItem('payload-theme', next)
     }
     if (user?.id) {
       fetch(`/api/users/${user.id}`, {
@@ -132,6 +168,33 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     () => (theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'),
     [theme],
   )
+  const showBreadcrumbs = breadcrumbs.length > 1
+  const initials = useMemo(() => {
+    const first = (user as any)?.firstName?.trim() ?? (user as any)?.first_name?.trim()
+    const last = (user as any)?.lastName?.trim() ?? (user as any)?.last_name?.trim()
+    if (first || last) {
+      return `${first?.[0] ?? ''}${last?.[0] ?? ''}`.toUpperCase() || 'U'
+    }
+    const email = (user as any)?.email ?? ''
+    if (email) {
+      return (
+        email
+          .split('@')[0]
+          .split(/[^a-zA-Z0-9]/)
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((part) => part[0]?.toUpperCase())
+          .join('') || 'U'
+      )
+    }
+    return 'U'
+  }, [user?.email, user?.firstName, user?.lastName])
+  const displayName = useMemo(() => {
+    const first = (user as any)?.firstName?.trim() ?? (user as any)?.first_name?.trim()
+    const last = (user as any)?.lastName?.trim() ?? (user as any)?.last_name?.trim()
+    const name = [first, last].filter(Boolean).join(' ')
+    return name || (user as any)?.email || 'User'
+  }, [user?.email, user?.firstName, user?.lastName])
 
   return (
     <>
@@ -200,6 +263,36 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           --color-success-250: #1f2937;
         }
 
+        @media (prefers-color-scheme: dark) {
+          :root:not([data-theme]) {
+            --cpp-cream: #070b14;
+            --cpp-ink: #e7edf6;
+            --cpp-muted: #9aa4b2;
+            --admin-surface: #0f1624;
+            --admin-surface-muted: #121b2a;
+            --admin-surface-border: rgba(148, 163, 184, 0.18);
+            --admin-hero-bg: var(--admin-surface);
+            --admin-hero-border: var(--admin-surface-border);
+            --admin-hero-grid: rgba(148, 163, 184, 0.08);
+            --admin-chip-bg: rgba(148, 163, 184, 0.14);
+            --admin-chip-primary-bg: #e7edf6;
+            --admin-chip-primary-text: #070b14;
+            --admin-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            --theme-bg: #070b14;
+            --theme-text: #e7edf6;
+            --theme-input-bg: #0c1220;
+            --theme-elevation-0: #070b14;
+            --theme-elevation-50: #0b111d;
+            --theme-elevation-100: #101827;
+            --theme-elevation-150: #151f30;
+            --theme-elevation-200: #1b263a;
+            --theme-elevation-800: #e7edf6;
+            --theme-elevation-900: #f3f6fb;
+            --theme-elevation-1000: #ffffff;
+            --color-success-250: #1f2937;
+          }
+        }
+
         body,
         #app {
           background: var(--theme-bg);
@@ -224,17 +317,19 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
 
         .admin-breadcrumb-bar {
-          position: sticky;
-          top: 0;
-          z-index: 1200;
-          background: var(--admin-surface);
-          border-bottom: 1px solid var(--admin-surface-border);
-          padding: 10px 18px;
-          display: flex;
+          display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: 8px;
-          font-size: 12px;
+          font-size: 13px;
           color: var(--cpp-muted);
+          padding: 0;
+          background: transparent;
+          border: 0;
+        }
+
+        .admin-breadcrumb-bar--hidden {
+          display: none;
         }
 
         .admin-breadcrumb-bar a {
@@ -249,11 +344,6 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
         .admin-breadcrumb-sep {
           color: rgba(15, 23, 42, 0.35);
-        }
-
-        :root[data-theme="dark"] .admin-breadcrumb-bar {
-          background: var(--admin-surface);
-          border-bottom: 1px solid var(--admin-surface-border);
         }
 
         :root[data-theme="dark"] .admin-breadcrumb-sep {
@@ -300,9 +390,13 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
 
         .btn--style-primary {
-          --bg-color: #111827;
-          --hover-bg: #0b1220;
-          --color: #ffffff;
+          --bg-color: var(--admin-chip-primary-bg);
+          --hover-bg: var(--admin-chip-primary-bg);
+          --color: var(--admin-chip-primary-text);
+        }
+
+        .btn--style-primary:hover {
+          filter: brightness(0.95);
         }
 
         .btn--style-secondary {
@@ -350,9 +444,13 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
 
         :root[data-theme="dark"] .btn--style-primary {
-          --bg-color: #e7edf6;
-          --hover-bg: #f3f6fb;
-          --color: #070b14;
+          --bg-color: var(--admin-chip-primary-bg);
+          --hover-bg: var(--admin-chip-primary-bg);
+          --color: var(--admin-chip-primary-text);
+        }
+
+        :root[data-theme="dark"] .btn--style-primary:hover {
+          filter: brightness(1.05);
         }
 
         :root[data-theme="dark"] .btn--style-secondary {
@@ -475,6 +573,121 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         .collection-edit--pages .collection-edit__main {
           width: 100%;
         }
+
+        .admin-topbar {
+          position: sticky;
+          top: 0;
+          z-index: 30;
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 10px 18px;
+          background: var(--admin-surface);
+          border-bottom: 1px solid var(--admin-surface-border);
+        }
+
+        .admin-topbar-center {
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          display: flex;
+          align-items: center;
+        }
+
+        .admin-topbar-actions {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          margin-left: auto;
+        }
+
+        .admin-user-menu summary {
+          list-style: none;
+          cursor: pointer;
+        }
+
+        .admin-user-menu summary::-webkit-details-marker {
+          display: none;
+        }
+
+        .admin-user-menu {
+          position: relative;
+        }
+
+        .admin-user-button {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 6px 12px 6px 8px;
+          border-radius: 999px;
+          border: 1px solid var(--admin-surface-border);
+          background: var(--admin-surface);
+          color: var(--cpp-ink);
+          font-weight: 600;
+          box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+        }
+
+        .admin-user-avatar {
+          width: 30px;
+          height: 30px;
+          border-radius: 999px;
+          border: 1px solid var(--admin-surface-border);
+          background: var(--admin-chip-primary-bg);
+          color: var(--admin-chip-primary-text);
+          font-weight: 700;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .admin-user-name {
+          max-width: 180px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          font-size: 13px;
+        }
+
+        .admin-user-caret {
+          width: 14px;
+          height: 14px;
+          opacity: 0.7;
+        }
+
+        .admin-user-dropdown {
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          margin-top: 10px;
+          background: var(--admin-surface);
+          border: 1px solid var(--admin-surface-border);
+          border-radius: 8px;
+          padding: 8px;
+          min-width: 180px;
+          box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
+        }
+
+        .admin-user-dropdown a {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 10px;
+          border-radius: 6px;
+          color: var(--cpp-ink);
+          text-decoration: none;
+          font-weight: 600;
+          font-size: 13px;
+        }
+
+        .admin-user-dropdown a:hover {
+          background: var(--admin-surface-muted);
+        }
+
+        .admin-user-divider {
+          height: 1px;
+          background: var(--admin-surface-border);
+          margin: 6px 4px;
+        }
       `}</style>
       {role === 'staff' ? (
         <style>{`
@@ -483,31 +696,86 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           }
         `}</style>
       ) : null}
-      <button
-        type="button"
-        className="admin-theme-toggle"
-        onClick={toggleTheme}
-        aria-pressed={theme === 'dark'}
-        aria-label={themeLabel}
-      >
-        {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-      </button>
-      {breadcrumbs.length ? (
-        <div className="admin-breadcrumb-bar" role="navigation" aria-label="Breadcrumb">
-          {breadcrumbs.map((crumb, index) => (
-            <React.Fragment key={`${crumb.label}-${index}`}>
-              {crumb.href && index < breadcrumbs.length - 1 ? (
-                <a href={crumb.href}>{crumb.label}</a>
-              ) : (
-                <span style={{ color: 'var(--cpp-ink)', fontWeight: 700 }}>{crumb.label}</span>
-              )}
-              {index < breadcrumbs.length - 1 ? (
-                <span className="admin-breadcrumb-sep">/</span>
-              ) : null}
-            </React.Fragment>
-          ))}
+      <div className="admin-topbar">
+        {showBreadcrumbs ? (
+          <div className="admin-topbar-center">
+            <div className="admin-breadcrumb-bar" role="navigation" aria-label="Breadcrumb">
+              {breadcrumbs.map((crumb, index) => (
+                <React.Fragment key={`${crumb.label}-${index}`}>
+                  {crumb.href && index < breadcrumbs.length - 1 ? (
+                    <a href={crumb.href}>{crumb.label}</a>
+                  ) : (
+                    <span style={{ color: 'var(--cpp-ink)', fontWeight: 700 }}>
+                      {crumb.label}
+                    </span>
+                  )}
+                  {index < breadcrumbs.length - 1 ? (
+                    <span className="admin-breadcrumb-sep">/</span>
+                  ) : null}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        <div className="admin-topbar-actions">
+          <button
+            type="button"
+            className="admin-theme-toggle"
+            onClick={toggleTheme}
+            aria-pressed={theme === 'dark'}
+            aria-label={themeLabel}
+          >
+            {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          </button>
+          <details className="admin-user-menu">
+            <summary className="admin-user-button" aria-label="User menu">
+              <span className="admin-user-avatar" aria-hidden="true">
+                {initials}
+              </span>
+              <span className="admin-user-name">{displayName}</span>
+              <svg
+                className="admin-user-caret"
+                viewBox="0 0 20 20"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M5 7.5L10 12.5L15 7.5"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </summary>
+            <div className="admin-user-dropdown">
+              <a href="/admin/account">Your Account</a>
+              <a href="/admin/help">Help</a>
+              <div className="admin-user-divider" />
+              <a href="/admin/logout">
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <svg
+                    aria-hidden="true"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                  Log out
+                </span>
+              </a>
+            </div>
+          </details>
         </div>
-      ) : null}
+      </div>
       {props.children}
     </>
   )

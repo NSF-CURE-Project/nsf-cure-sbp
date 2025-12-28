@@ -21,7 +21,7 @@ type CourseCardListProps = {
   initialCourses: CourseTree[]
 }
 
-const cppInk = '#0f172a'
+const cppInk = 'var(--cpp-ink)'
 
 const courseCardStyle: React.CSSProperties = {
   borderRadius: 0,
@@ -250,9 +250,11 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
           </div>
         </a>
       </div>
-      {isSavingOrder ? <div style={{ fontSize: 12, color: '#64748b' }}>Saving course order…</div> : null}
+      {isSavingOrder ? (
+        <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Saving course order…</div>
+      ) : null}
       {isSavingChapterOrder ? (
-        <div style={{ fontSize: 12, color: '#64748b' }}>Saving chapter order…</div>
+        <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Saving chapter order…</div>
       ) : null}
       {courses.map((course) => (
         <div
@@ -275,7 +277,7 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
           >
             <div>
               <div style={{ fontSize: 16, fontWeight: 700, color: cppInk }}>{course.title}</div>
-              <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+              <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
                 {course.chapters.length} chapter
                 {course.chapters.length === 1 ? '' : 's'}
               </div>
@@ -324,7 +326,7 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
                         {chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}: ` : ''}
                         {chapter.title}
                       </div>
-                      <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+                      <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
                         {chapter.lessons.length} lesson
                         {chapter.lessons.length === 1 ? '' : 's'}
                       </div>
@@ -367,13 +369,15 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
                         </a>
                       ))
                     ) : (
-                      <div style={{ fontSize: 12, color: '#64748b' }}>No lessons yet.</div>
+                      <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                        No lessons yet.
+                      </div>
                     )}
                   </div>
                 </div>
               ))
             ) : (
-              <div style={{ fontSize: 12, color: '#64748b' }}>No chapters yet.</div>
+              <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>No chapters yet.</div>
             )}
           </div>
         </div>

@@ -264,7 +264,8 @@ const containerStyle: React.CSSProperties = {
 const contentBoxStyle: React.CSSProperties = {
   width: '100%',
   maxWidth: 980,
-  alignSelf: 'flex-start',
+  alignSelf: 'center',
+  margin: '0 auto',
 }
 
 const sectionLabelStyle: React.CSSProperties = {
@@ -274,7 +275,10 @@ const sectionLabelStyle: React.CSSProperties = {
   color: 'var(--cpp-muted)',
   marginTop: 8,
   fontWeight: 700,
-  alignSelf: 'flex-start',
+  alignSelf: 'center',
+  textAlign: 'left',
+  width: '100%',
+  maxWidth: 980,
 }
 
 const helpBoxStyle: React.CSSProperties = {
@@ -286,6 +290,7 @@ const helpBoxStyle: React.CSSProperties = {
   padding: '14px 16px',
   color: 'var(--cpp-ink)',
   lineHeight: 1.5,
+  textAlign: 'center',
 }
 
 const contentHealthCardStyle: React.CSSProperties = {
@@ -480,34 +485,31 @@ const StaffDashboardContent = ({
                 Welcome, {(user as { firstName?: string } | null)?.firstName ?? user?.email ?? 'team member'}.
                 Use this dashboard to manage courses, pages, and administrative operations for the NSF CURE Summer Bridge Program.
               </p>
-              <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <a href="/admin/collections/questions" style={{ textDecoration: 'none' }}>
-                  <div
-                    style={{
-                      ...mockChipStyle,
-                      background: 'var(--admin-chip-primary-bg)',
-                      color: 'var(--admin-chip-primary-text)',
-                    }}
-                    className="dashboard-chip"
-                  >
-                    Questions Inbox
-                  </div>
-                </a>
-                <a href="/admin/collections/feedback" style={{ textDecoration: 'none' }}>
-                  <div style={mockChipStyle} className="dashboard-chip">
-                    Feedback Inbox
-                  </div>
-                </a>
-                <a href="/admin/account" style={{ textDecoration: 'none' }}>
-                  <div style={mockChipStyle} className="dashboard-chip">
-                    Your Account
-                  </div>
-                </a>
-                <a href="/admin/logout" style={{ textDecoration: 'none' }}>
-                  <div style={mockChipStyle} className="dashboard-chip">
-                    Log out
-                  </div>
-                </a>
+              <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                  <a href="/admin/collections/questions" style={{ textDecoration: 'none' }}>
+                    <div
+                      style={{
+                        ...mockChipStyle,
+                        background: 'var(--admin-chip-primary-bg)',
+                        color: 'var(--admin-chip-primary-text)',
+                      }}
+                      className="dashboard-chip"
+                    >
+                      Questions Inbox
+                    </div>
+                  </a>
+                  <a href="/admin/collections/feedback" style={{ textDecoration: 'none' }}>
+                    <div style={mockChipStyle} className="dashboard-chip">
+                      Feedback Inbox
+                    </div>
+                  </a>
+                  <a href="/admin/settings" style={{ textDecoration: 'none' }}>
+                    <div style={mockChipStyle} className="dashboard-chip">
+                      Site Settings
+                    </div>
+                  </a>
+                </div>
               </div>
             </div>
             <div style={heroCardStyle}>
@@ -531,7 +533,7 @@ const StaffDashboardContent = ({
                 >
                   <div style={mockPanelStyle} className="dashboard-panel">
                     <div style={{ fontSize: 13, fontWeight: 700, color: cppInk }}>View drafts</div>
-                    <div style={{ fontSize: 12, color: '#5b6f66', marginTop: 4 }}>
+                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
                       See lessons that are still in draft.
                     </div>
                   </div>
@@ -554,10 +556,10 @@ const StaffDashboardContent = ({
             }}
           >
             <div style={contentHealthCardStyle}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cpp-ink)' }}>
                 Low completion lessons
               </div>
-              <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+              <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
                 Lessons with completion rates below the threshold.
               </div>
               <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
@@ -566,25 +568,31 @@ const StaffDashboardContent = ({
                     <li key={String(item.id)}>
                       <a
                         href={`/admin/collections/lessons/${item.id}`}
-                        style={{ textDecoration: 'none', color: '#0f172a', fontWeight: 600 }}
+                        style={{
+                          textDecoration: 'none',
+                          color: 'var(--cpp-ink)',
+                          fontWeight: 600,
+                        }}
                       >
                         {item.title}
                       </a>
-                      <div style={{ fontSize: 12, color: '#64748b' }}>
+                      <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
                         {Math.round(item.rate * 100)}% complete
                       </div>
                     </li>
                   ))
                 ) : (
-                  <div style={{ fontSize: 12, color: '#64748b' }}>No low-completion lessons.</div>
+                  <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                    No low-completion lessons.
+                  </div>
                 )}
               </ul>
             </div>
             <div style={contentHealthCardStyle}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cpp-ink)' }}>
                 High question volume
               </div>
-              <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+              <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
                 Lessons with unusually high student questions.
               </div>
               <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
@@ -593,23 +601,31 @@ const StaffDashboardContent = ({
                     <li key={String(item.id)}>
                       <a
                         href={`/admin/collections/lessons/${item.id}`}
-                        style={{ textDecoration: 'none', color: '#0f172a', fontWeight: 600 }}
+                        style={{
+                          textDecoration: 'none',
+                          color: 'var(--cpp-ink)',
+                          fontWeight: 600,
+                        }}
                       >
                         {item.title}
                       </a>
-                      <div style={{ fontSize: 12, color: '#64748b' }}>{item.count} questions</div>
+                      <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                        {item.count} questions
+                      </div>
                     </li>
                   ))
                 ) : (
-                  <div style={{ fontSize: 12, color: '#64748b' }}>No high-volume lessons.</div>
+                  <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                    No high-volume lessons.
+                  </div>
                 )}
               </ul>
             </div>
             <div style={contentHealthCardStyle}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cpp-ink)' }}>
                 Low helpfulness
               </div>
-              <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+              <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
                 Lessons with low average helpfulness ratings.
               </div>
               <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
@@ -618,17 +634,23 @@ const StaffDashboardContent = ({
                     <li key={String(item.id)}>
                       <a
                         href={`/admin/collections/lessons/${item.id}`}
-                        style={{ textDecoration: 'none', color: '#0f172a', fontWeight: 600 }}
+                        style={{
+                          textDecoration: 'none',
+                          color: 'var(--cpp-ink)',
+                          fontWeight: 600,
+                        }}
                       >
                         {item.title}
                       </a>
-                      <div style={{ fontSize: 12, color: '#64748b' }}>
+                      <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
                         {item.rating.toFixed(1)} / 4
                       </div>
                     </li>
                   ))
                 ) : (
-                  <div style={{ fontSize: 12, color: '#64748b' }}>No low-rated lessons.</div>
+                  <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                    No low-rated lessons.
+                  </div>
                 )}
               </ul>
             </div>
