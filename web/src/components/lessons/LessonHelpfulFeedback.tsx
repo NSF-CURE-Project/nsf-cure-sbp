@@ -12,15 +12,15 @@ type Props = {
 };
 
 const ratings = [
-  { value: 1, label: "Not helpful", emoji: "😕" },
-  { value: 2, label: "Somewhat helpful", emoji: "😐" },
-  { value: 3, label: "Helpful", emoji: "🙂" },
-  { value: 4, label: "Very helpful", emoji: "😍" },
+  { value: "not_helpful", label: "Not helpful", emoji: "😕" },
+  { value: "somewhat_helpful", label: "Somewhat helpful", emoji: "😐" },
+  { value: "helpful", label: "Helpful", emoji: "🙂" },
+  { value: "very_helpful", label: "Very helpful", emoji: "😍" },
 ];
 
 export function LessonHelpfulFeedback({ lessonId }: Props) {
   const [open, setOpen] = useState(false);
-  const [rating, setRating] = useState<number | null>(null);
+  const [rating, setRating] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +51,7 @@ export function LessonHelpfulFeedback({ lessonId }: Props) {
     [lessonId, rating, sending],
   );
 
-  const handleSelect = (value: number) => {
+  const handleSelect = (value: string) => {
     setRating(value);
     setOpen(true);
     setError(null);

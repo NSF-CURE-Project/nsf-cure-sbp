@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from '@payloadcms/ui'
 
 type PageLink = {
@@ -25,17 +26,18 @@ const baseItemStyle: React.CSSProperties = {
   alignItems: 'center',
   gap: 8,
   padding: '8px 10px',
-  borderRadius: 10,
-  background: 'rgba(0, 80, 48, 0.06)',
+  borderRadius: 6,
+  background: 'var(--admin-surface-muted)',
   color: 'var(--cpp-ink, #0b3d27)',
+  border: '1px solid var(--admin-surface-border)',
 }
 
 const baseHandleStyle: React.CSSProperties = {
   width: 28,
   height: 28,
   borderRadius: 8,
-  border: '1px solid rgba(0, 80, 48, 0.16)',
-  background: 'rgba(255, 255, 255, 0.8)',
+  border: '1px solid var(--admin-surface-border)',
+  background: 'var(--admin-surface)',
   cursor: 'grab',
   display: 'inline-flex',
   alignItems: 'center',
@@ -254,7 +256,9 @@ export default function PageOrderList({
                   ...baseItemStyle,
                   padding: compact ? '6px 8px' : baseItemStyle.padding,
                   opacity: isPending ? 0.85 : 1,
-                  border: isPending ? '1px dashed rgba(0, 80, 48, 0.35)' : 'none',
+                  border: isPending
+                    ? '1px dashed rgba(15, 23, 42, 0.35)'
+                    : '1px solid var(--admin-surface-border)',
                 }}
                 draggable
                 onDragStart={() => setDraggingId(item.id)}
@@ -294,8 +298,9 @@ export default function PageOrderList({
                       display: 'block',
                       padding: compact ? '4px 8px' : '6px 10px',
                       borderRadius: 8,
-                      background: 'rgba(0, 80, 48, 0.08)',
+                      background: 'var(--admin-chip-bg)',
                       color: 'var(--cpp-ink, #0b3d27)',
+                      border: '1px solid var(--admin-surface-border)',
                       textDecoration: 'none',
                       fontWeight: 600,
                       fontSize: compact ? 12 : 13,
@@ -319,76 +324,85 @@ export default function PageOrderList({
           </div>
         )}
       </div>
-      {confirmOpen ? (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.35)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: 16,
-          }}
-        >
-          <div
-            style={{
-              width: 'min(92vw, 420px)',
-              background: '#ffffff',
-              borderRadius: 0,
-              border: '1px solid rgba(15, 23, 42, 0.16)',
-              boxShadow: '0 20px 40px rgba(15, 23, 42, 0.2)',
-              padding: 18,
-            }}
-          >
-            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--cpp-ink, #0b3d27)' }}>
-              Save new page order?
-            </div>
-            <p style={{ marginTop: 6, fontSize: 13, color: '#64748b' }}>
-              This will update the order shown in the main navigation.
-            </p>
+      {confirmOpen && typeof document !== 'undefined'
+        ? createPortal(
             <div
               style={{
-                marginTop: 16,
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(15, 23, 42, 0.35)',
                 display: 'flex',
-                justifyContent: 'flex-end',
-                gap: 8,
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 2000,
+                padding: 16,
               }}
             >
-              <button
-                type="button"
-                onClick={handleCancel}
+              <div
                 style={{
-                  padding: '8px 12px',
+                  width: 'min(92vw, 420px)',
+                  background: '#ffffff',
                   borderRadius: 0,
                   border: '1px solid rgba(15, 23, 42, 0.16)',
-                  background: '#f8fafc',
-                  fontWeight: 600,
-                  cursor: 'pointer',
+                  boxShadow: '0 20px 40px rgba(15, 23, 42, 0.2)',
+                  padding: 18,
                 }}
               >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirm}
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: 0,
-                  border: '1px solid rgba(15, 23, 42, 0.16)',
-                  background: '#0f172a',
-                  color: '#f8fafc',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                Save order
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+                <div
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 700,
+                    color: 'var(--cpp-ink, #0b3d27)',
+                  }}
+                >
+                  Save new page order?
+                </div>
+                <p style={{ marginTop: 6, fontSize: 13, color: '#64748b' }}>
+                  This will update the order shown in the main navigation.
+                </p>
+                <div
+                  style={{
+                    marginTop: 16,
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    gap: 8,
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: 0,
+                      border: '1px solid rgba(15, 23, 42, 0.16)',
+                      background: '#f8fafc',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirm}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: 0,
+                      border: '1px solid rgba(15, 23, 42, 0.16)',
+                      background: '#0f172a',
+                      color: '#f8fafc',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Save order
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   )
 }

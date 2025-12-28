@@ -10,6 +10,107 @@ export const Chapters: CollectionConfig = {
     read: () => true,
   },
   hooks: {
+    afterChange: [
+      async ({ doc, originalDoc, req }) => {
+        if (!req?.payload) return
+        const nextClass = doc?.class
+        const prevClass = originalDoc?.class
+
+        const getId = (value: unknown) =>
+          typeof value === 'object' && value !== null && 'id' in value
+            ? String((value as { id?: string | number }).id ?? '')
+            : value != null
+              ? String(value)
+              : null
+
+        const nextClassId = getId(nextClass)
+        const prevClassId = getId(prevClass)
+
+        if (!nextClassId) return
+
+        const attachChapter = async (classId: string) => {
+          const current = await req.payload.findByID({
+            collection: 'classes',
+            id: classId,
+            depth: 0,
+          })
+          const existing = Array.isArray((current as { chapters?: unknown[] }).chapters)
+            ? (current as { chapters?: unknown[] }).chapters
+            : []
+          const exists = existing.some((item) => getId(item) === String(doc.id))
+          if (exists) return
+          await req.payload.update({
+            collection: 'classes',
+            id: classId,
+            data: {
+              chapters: [...existing, doc.id],
+            },
+            depth: 0,
+          })
+        }
+
+        const detachChapter = async (classId: string) => {
+          const current = await req.payload.findByID({
+            collection: 'classes',
+            id: classId,
+            depth: 0,
+          })
+          const existing = Array.isArray((current as { chapters?: unknown[] }).chapters)
+            ? (current as { chapters?: unknown[] }).chapters
+            : []
+          const filtered = existing.filter((item) => getId(item) !== String(doc.id))
+          if (filtered.length === existing.length) return
+          await req.payload.update({
+            collection: 'classes',
+            id: classId,
+            data: {
+              chapters: filtered,
+            },
+            depth: 0,
+          })
+        }
+
+        if (prevClassId && prevClassId !== nextClassId) {
+          await detachChapter(prevClassId)
+        }
+
+        await attachChapter(nextClassId)
+      },
+    ],
+    afterDelete: [
+      async ({ doc, req }) => {
+        if (!req?.payload || !doc) return
+        const getId = (value: unknown) =>
+          typeof value === 'object' && value !== null && 'id' in value
+            ? String((value as { id?: string | number }).id ?? '')
+            : value != null
+              ? String(value)
+              : null
+
+        const classId = getId(doc.class)
+        if (!classId) return
+
+        const current = await req.payload.findByID({
+          collection: 'classes',
+          id: classId,
+          depth: 0,
+        })
+        const existing = Array.isArray((current as { chapters?: unknown[] }).chapters)
+          ? (current as { chapters?: unknown[] }).chapters
+          : []
+        const filtered = existing.filter((item) => getId(item) !== String(doc.id))
+        if (filtered.length === existing.length) return
+
+        await req.payload.update({
+          collection: 'classes',
+          id: classId,
+          data: {
+            chapters: filtered,
+          },
+          depth: 0,
+        })
+      },
+    ],
     beforeValidate: [
       async ({ data, req, originalDoc, id }) => {
         if (!data) return data

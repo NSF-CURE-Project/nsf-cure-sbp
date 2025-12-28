@@ -25,18 +25,18 @@ const cppInk = '#0f172a'
 
 const courseCardStyle: React.CSSProperties = {
   borderRadius: 0,
-  border: '1px solid rgba(15, 23, 42, 0.12)',
-  background: '#ffffff',
+  border: '1px solid var(--admin-surface-border)',
+  background: 'var(--admin-surface)',
   padding: '16px',
-  boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+  boxShadow: 'var(--admin-shadow)',
   cursor: 'grab',
 }
 
 const chapterCardStyle: React.CSSProperties = {
   borderRadius: 0,
-  border: '1px solid rgba(15, 23, 42, 0.1)',
-  background: '#f8fafc',
-  padding: '12px 14px',
+  border: '1px solid var(--admin-surface-border)',
+  background: 'var(--admin-surface-muted)',
+  padding: '10px 14px',
 }
 
 const actionChipStyle: React.CSSProperties = {
@@ -44,17 +44,30 @@ const actionChipStyle: React.CSSProperties = {
   padding: '6px 10px',
   fontSize: 12,
   fontWeight: 600,
-  background: '#f8fafc',
+  background: 'var(--admin-surface-muted)',
   color: cppInk,
-  border: '1px solid rgba(15, 23, 42, 0.14)',
+  border: '1px solid var(--admin-surface-border)',
+}
+
+const primaryActionStyle: React.CSSProperties = {
+  ...actionChipStyle,
+  background: 'var(--admin-chip-primary-bg)',
+  color: 'var(--admin-chip-primary-text)',
+  borderColor: 'var(--admin-surface-border)',
 }
 
 export default function CourseCardList({ initialCourses }: CourseCardListProps) {
   const [courses, setCourses] = useState<CourseTree[]>(initialCourses)
   const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [draggingChapterId, setDraggingChapterId] = useState<string | null>(null)
   const [isSavingOrder, setIsSavingOrder] = useState(false)
+  const [isSavingChapterOrder, setIsSavingChapterOrder] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [pendingCourses, setPendingCourses] = useState<CourseTree[] | null>(null)
+  const [pendingChapters, setPendingChapters] = useState<{
+    courseId: string
+    chapters: CourseTree['chapters']
+  } | null>(null)
   const previousCoursesRef = useRef<CourseTree[]>(initialCourses)
 
   const persistClassOrder = async (nextCourses: CourseTree[]) => {
@@ -78,6 +91,26 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
     }
   }
 
+  const persistChapterOrder = async (courseId: string, chapters: CourseTree['chapters']) => {
+    if (!chapters.length) return
+    setIsSavingChapterOrder(true)
+    try {
+      const updates = chapters.map((chapter, index) =>
+        fetch(`/api/chapters/${chapter.id}`, {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ chapterNumber: index + 1 }),
+        }),
+      )
+      await Promise.all(updates)
+    } finally {
+      setIsSavingChapterOrder(false)
+    }
+  }
+
   const handleDrop = async (targetId: string) => {
     if (confirmOpen) return
     if (!draggingId || draggingId === targetId) return
@@ -93,46 +126,134 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
     setConfirmOpen(true)
   }
 
+  const handleChapterDrop = async (courseId: string, targetChapterId: string) => {
+    if (confirmOpen) return
+    if (!draggingChapterId || draggingChapterId === targetChapterId) return
+    const current = courses.map((course) => ({ ...course, chapters: [...course.chapters] }))
+    const courseIndex = current.findIndex((course) => String(course.id) === courseId)
+    if (courseIndex < 0) return
+    const chapters = current[courseIndex].chapters
+    const fromIndex = chapters.findIndex((chapter) => String(chapter.id) === draggingChapterId)
+    const toIndex = chapters.findIndex((chapter) => String(chapter.id) === targetChapterId)
+    if (fromIndex < 0 || toIndex < 0) return
+    const [moved] = chapters.splice(fromIndex, 1)
+    chapters.splice(toIndex, 0, moved)
+    const reindexed = chapters.map((chapter, index) => ({
+      ...chapter,
+      chapterNumber: index + 1,
+    }))
+    current[courseIndex] = { ...current[courseIndex], chapters: reindexed }
+    previousCoursesRef.current = courses
+    setCourses(current)
+    setPendingChapters({ courseId, chapters: reindexed })
+    setConfirmOpen(true)
+  }
+
   const handleConfirm = async () => {
-    if (!pendingCourses) {
+    if (!pendingCourses && !pendingChapters) {
       setConfirmOpen(false)
       return
     }
     setConfirmOpen(false)
-    await persistClassOrder(pendingCourses)
-    setPendingCourses(null)
+    if (pendingCourses) {
+      await persistClassOrder(pendingCourses)
+      setPendingCourses(null)
+    }
+    if (pendingChapters) {
+      await persistChapterOrder(pendingChapters.courseId, pendingChapters.chapters)
+      setPendingChapters(null)
+    }
   }
 
   const handleCancel = () => {
     setCourses(previousCoursesRef.current)
     setPendingCourses(null)
+    setPendingChapters(null)
     setConfirmOpen(false)
   }
 
   if (!courses.length) {
-    return <div style={{ fontSize: 12, color: '#64748b' }}>No classes yet.</div>
+    return (
+      <div
+        style={{
+          borderRadius: 0,
+          border: '1px dashed rgba(15, 23, 42, 0.2)',
+          background: '#f8fafc',
+          padding: '14px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+          flexWrap: 'wrap',
+        }}
+      >
+        <div style={{ fontSize: 12, color: '#64748b' }}>
+          No classes yet. Create your first class to get started.
+        </div>
+        <a href="/admin/collections/classes/create" style={{ textDecoration: 'none' }}>
+          <div style={primaryActionStyle} className="dashboard-chip">
+            Create first class
+          </div>
+        </a>
+      </div>
+    )
   }
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
       <div
         style={{
-          display: 'inline-flex',
+          display: 'flex',
           alignItems: 'center',
-          gap: 8,
-          fontSize: 12,
-          color: '#475569',
-          border: '1px dashed rgba(15, 23, 42, 0.2)',
-          background: '#f8fafc',
-          padding: '8px 10px',
-          borderRadius: 0,
-          width: 'fit-content',
+          justifyContent: 'space-between',
+          gap: 12,
+          flexWrap: 'wrap',
         }}
       >
-        <span style={{ fontWeight: 700 }}>Tip</span>
-        <span>Drag a course card to reorder classes across the site.</span>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 12,
+            color: 'var(--cpp-muted)',
+            border: '1px dashed var(--admin-surface-border)',
+            background: 'var(--admin-surface-muted)',
+            padding: '8px 10px',
+            borderRadius: 0,
+            width: 'fit-content',
+          }}
+        >
+          <span style={{ fontWeight: 700 }}>Tip</span>
+          <span>Drag a course card to reorder classes across the site.</span>
+        </div>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 12,
+            color: 'var(--cpp-muted)',
+            border: '1px dashed var(--admin-surface-border)',
+            background: 'var(--admin-surface-muted)',
+            padding: '8px 10px',
+            borderRadius: 0,
+            width: 'fit-content',
+          }}
+        >
+          <span style={{ fontWeight: 700 }}>Tip</span>
+          <span>Drag chapter cards to reorder chapters inside a course.</span>
+        </div>
+        <a href="/admin/collections/classes/create" style={{ textDecoration: 'none' }}>
+          <div style={primaryActionStyle} className="dashboard-chip">
+            Add course
+          </div>
+        </a>
       </div>
-      {isSavingOrder ? <div style={{ fontSize: 12, color: '#64748b' }}>Saving order…</div> : null}
+      {isSavingOrder ? <div style={{ fontSize: 12, color: '#64748b' }}>Saving course order…</div> : null}
+      {isSavingChapterOrder ? (
+        <div style={{ fontSize: 12, color: '#64748b' }}>Saving chapter order…</div>
+      ) : null}
       {courses.map((course) => (
         <div
           key={String(course.id)}
@@ -161,19 +282,19 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <a
+                href={`/admin/collections/chapters/create?class=${course.id}`}
+                style={{ textDecoration: 'none' }}
+              >
+                <div style={primaryActionStyle} className="dashboard-chip">
+                  Add chapter
+                </div>
+              </a>
+              <a
                 href={`/admin/collections/classes/${course.id}`}
                 style={{ textDecoration: 'none' }}
               >
                 <div style={actionChipStyle} className="dashboard-chip">
-                  Manage
-                </div>
-              </a>
-              <a
-                href={`/admin/collections/chapters/create?class=${course.id}`}
-                style={{ textDecoration: 'none' }}
-              >
-                <div style={actionChipStyle} className="dashboard-chip">
-                  Add chapter
+                  Course settings
                 </div>
               </a>
             </div>
@@ -181,7 +302,15 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
           <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
             {course.chapters.length ? (
               course.chapters.map((chapter) => (
-                <div key={String(chapter.id)} style={chapterCardStyle}>
+                <div
+                  key={String(chapter.id)}
+                  style={chapterCardStyle}
+                  draggable
+                  onDragStart={() => setDraggingChapterId(String(chapter.id))}
+                  onDragEnd={() => setDraggingChapterId(null)}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={() => handleChapterDrop(String(course.id), String(chapter.id))}
+                >
                   <div
                     style={{
                       display: 'flex',
@@ -202,19 +331,21 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
                     </div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       <a
-                        href={`/admin/collections/chapters/${chapter.id}`}
+                        href={`/admin/collections/lessons/create?chapter=${chapter.id}`}
                         style={{ textDecoration: 'none' }}
+                        draggable={false}
                       >
-                        <div style={actionChipStyle} className="dashboard-chip">
-                          Manage
+                        <div style={primaryActionStyle} className="dashboard-chip">
+                          Add lesson
                         </div>
                       </a>
                       <a
-                        href={`/admin/collections/lessons/create?chapter=${chapter.id}`}
+                        href={`/admin/collections/chapters/${chapter.id}`}
                         style={{ textDecoration: 'none' }}
+                        draggable={false}
                       >
                         <div style={actionChipStyle} className="dashboard-chip">
-                          Add lesson
+                          Edit chapter
                         </div>
                       </a>
                     </div>

@@ -114,10 +114,10 @@ export const LessonFeedback: CollectionConfig = {
       type: "select",
       required: true,
       options: [
-        { label: "Not helpful", value: 1 },
-        { label: "Somewhat helpful", value: 2 },
-        { label: "Helpful", value: 3 },
-        { label: "Very helpful", value: 4 },
+        { label: "Not helpful", value: "not_helpful" },
+        { label: "Somewhat helpful", value: "somewhat_helpful" },
+        { label: "Helpful", value: "helpful" },
+        { label: "Very helpful", value: "very_helpful" },
       ],
     },
     {

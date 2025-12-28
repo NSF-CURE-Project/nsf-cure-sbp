@@ -2,10 +2,24 @@ import type { AdminViewServerProps } from 'payload'
 import { Gutter } from '@payloadcms/ui'
 import React from 'react'
 
-const cppGreen = '#334155'
-const cppGold = '#94a3b8'
-const cppCream = '#f8fafc'
-const cppInk = '#0f172a'
+const cppGreen = 'var(--cpp-ink)'
+const cppGold = 'var(--cpp-muted)'
+const cppCream = 'var(--cpp-cream)'
+const cppInk = 'var(--cpp-ink)'
+const ratingScoreMap: Record<string, number> = {
+  not_helpful: 1,
+  somewhat_helpful: 2,
+  helpful: 3,
+  very_helpful: 4,
+}
+
+const resolveRatingScore = (value: unknown) => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'string' && ratingScoreMap[value] != null) {
+    return ratingScoreMap[value]
+  }
+  return null
+}
 const cardStyle: React.CSSProperties = {
   border: '1px solid rgba(0, 80, 48, 0.12)',
   borderRadius: 0,
@@ -35,11 +49,11 @@ const quickCardStyle: React.CSSProperties = {
 }
 
 const statCardStyle: React.CSSProperties = {
-  border: '1px solid rgba(0, 80, 48, 0.12)',
+  border: '1px solid var(--admin-surface-border)',
   borderRadius: 0,
   padding: '14px 16px',
-  background: 'rgba(255, 255, 255, 0.85)',
-  boxShadow: '0 10px 24px rgba(0, 0, 0, 0.08)',
+  background: 'var(--admin-surface)',
+  boxShadow: 'var(--admin-shadow)',
   minWidth: 140,
 }
 
@@ -257,7 +271,7 @@ const sectionLabelStyle: React.CSSProperties = {
   fontSize: 14,
   letterSpacing: 0.6,
   textTransform: 'uppercase',
-  color: '#334155',
+  color: 'var(--cpp-muted)',
   marginTop: 8,
   fontWeight: 700,
   alignSelf: 'flex-start',
@@ -267,17 +281,17 @@ const helpBoxStyle: React.CSSProperties = {
   width: '100%',
   maxWidth: 720,
   borderRadius: 0,
-  border: '1px solid rgba(0, 80, 48, 0.15)',
-  background: '#f8f6f0',
+  border: '1px solid var(--admin-surface-border)',
+  background: 'var(--admin-surface-muted)',
   padding: '14px 16px',
-  color: '#1f2937',
+  color: 'var(--cpp-ink)',
   lineHeight: 1.5,
 }
 
 const contentHealthCardStyle: React.CSSProperties = {
   borderRadius: 0,
-  border: '1px solid rgba(15, 23, 42, 0.12)',
-  background: '#ffffff',
+  border: '1px solid var(--admin-surface-border)',
+  background: 'var(--admin-surface)',
   padding: '14px 16px',
   boxShadow: '0 8px 20px rgba(15, 23, 42, 0.08)',
 }
@@ -295,18 +309,18 @@ const heroGridStyle: React.CSSProperties = {
 const heroCardStyle: React.CSSProperties = {
   borderRadius: 0,
   padding: '20px 22px',
-  background: '#ffffff',
-  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.12)',
-  border: '1px solid rgba(0, 80, 48, 0.08)',
+  background: 'var(--admin-surface)',
+  boxShadow: 'var(--admin-shadow)',
+  border: '1px solid var(--admin-surface-border)',
   maxWidth: 520,
   width: '100%',
 }
 
 const mockPanelStyle: React.CSSProperties = {
-  background: '#ffffff',
+  background: 'var(--admin-surface)',
   borderRadius: 0,
-  border: '1px solid rgba(0, 80, 48, 0.12)',
-  boxShadow: '0 18px 38px rgba(0, 0, 0, 0.12)',
+  border: '1px solid var(--admin-surface-border)',
+  boxShadow: 'var(--admin-shadow)',
   padding: '18px',
 }
 
@@ -322,8 +336,9 @@ const mockChipStyle: React.CSSProperties = {
   padding: '6px 10px',
   fontSize: 12,
   fontWeight: 600,
-  background: 'rgba(0, 80, 48, 0.08)',
+  background: 'transparent',
   color: cppInk,
+  border: '1px solid var(--admin-surface-border)',
 }
 
 type CourseTree = {
@@ -420,8 +435,8 @@ const StaffDashboardContent = ({
             margin: '0 auto',
             borderRadius: 0,
             padding: '22px 22px 24px',
-            background: `linear-gradient(135deg, rgba(148,163,184,0.16) 0%, rgba(226,232,240,0.5) 100%)`,
-            border: '1px solid rgba(148, 163, 184, 0.28)',
+            background: 'var(--admin-hero-bg)',
+            border: '1px solid var(--admin-hero-border)',
             position: 'relative',
             overflow: 'hidden',
           }}
@@ -431,7 +446,7 @@ const StaffDashboardContent = ({
               position: 'absolute',
               inset: 0,
               backgroundImage:
-                'linear-gradient(to right, rgba(148, 163, 184, 0.16) 1px, transparent 1px), linear-gradient(to bottom, rgba(148, 163, 184, 0.16) 1px, transparent 1px)',
+                'linear-gradient(to right, var(--admin-hero-grid) 1px, transparent 1px), linear-gradient(to bottom, var(--admin-hero-grid) 1px, transparent 1px)',
               backgroundSize: '120px 120px',
               opacity: 0.18,
               pointerEvents: 'none',
@@ -444,7 +459,7 @@ const StaffDashboardContent = ({
                   fontSize: 12,
                   letterSpacing: 1.2,
                   textTransform: 'uppercase',
-                  color: cppGreen,
+                  color: cppGold,
                   fontWeight: 800,
                 }}
               >
@@ -461,14 +476,18 @@ const StaffDashboardContent = ({
               >
                 NSF CURE Summer Bridge Program
               </h1>
-              <p style={{ fontSize: 16, color: '#4b5f56', maxWidth: 460 }}>
-                Welcome, {user?.email ?? 'team member'}, <br />
-                This is the dashboard for managing NSF CURE SBP operations.
+              <p style={{ fontSize: 16, color: 'var(--cpp-muted)', maxWidth: 460 }}>
+                Welcome, {(user as { firstName?: string } | null)?.firstName ?? user?.email ?? 'team member'}.
+                Use this dashboard to manage courses, pages, and administrative operations for the NSF CURE Summer Bridge Program.
               </p>
               <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <a href="/admin/collections/questions" style={{ textDecoration: 'none' }}>
                   <div
-                    style={{ ...mockChipStyle, background: cppGreen, color: '#ffffff' }}
+                    style={{
+                      ...mockChipStyle,
+                      background: 'var(--admin-chip-primary-bg)',
+                      color: 'var(--admin-chip-primary-text)',
+                    }}
                     className="dashboard-chip"
                   >
                     Questions Inbox
@@ -899,8 +918,8 @@ export default async function StaffDashboardView({
           : lessonValue?.id != null
             ? String(lessonValue.id)
             : null
-      const rating = Number(doc.rating)
-      if (!id || !Number.isFinite(rating)) return
+      const rating = resolveRatingScore(doc.rating)
+      if (!id || rating == null) return
       const current = feedbackTotals.get(id) ?? { sum: 0, count: 0 }
       feedbackTotals.set(id, { sum: current.sum + rating, count: current.count + 1 })
     })

@@ -1,26 +1,110 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import type { AdminViewServerProps } from 'payload'
 
 type ThemeMode = 'light' | 'dark'
 
 const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNode }) => {
-  const role = (props as any)?.user?.role ?? (props as any)?.payload?.user?.role
+  const user = (props as any)?.user ?? (props as any)?.payload?.user
+  const role = user?.role
   const [theme, setTheme] = useState<ThemeMode>('light')
+  const [breadcrumbs, setBreadcrumbs] = useState<{ label: string; href?: string }[]>([])
+  const isMountedRef = useRef(true)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const stored = window.localStorage.getItem('payload-admin-theme')
-    if (stored === 'light' || stored === 'dark') {
-      setTheme(stored)
-      document.documentElement.setAttribute('data-theme', stored)
+    const applyTheme = (value: ThemeMode) => {
+      setTheme(value)
+      document.documentElement.setAttribute('data-theme', value)
+      window.localStorage.setItem('payload-admin-theme', value)
+    }
+
+    const userTheme = user?.adminTheme
+    if (userTheme === 'light' || userTheme === 'dark') {
+      applyTheme(userTheme)
       return
     }
+
+    const stored = window.localStorage.getItem('payload-admin-theme')
+    if (stored === 'light' || stored === 'dark') {
+      applyTheme(stored)
+      return
+    }
+
     const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches
     const initial = prefersDark ? 'dark' : 'light'
-    setTheme(initial)
-    document.documentElement.setAttribute('data-theme', initial)
+    applyTheme(initial)
+  }, [user?.adminTheme])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const formatLabel = (value: string) =>
+      value
+        .replace(/[-_]/g, ' ')
+        .replace(/\b\w/g, (char) => char.toUpperCase())
+
+    const buildCrumbs = (pathname: string) => {
+      const segments = pathname.split('/').filter(Boolean)
+      const crumbs: { label: string; href?: string }[] = [
+        { label: 'Home', href: '/admin' },
+      ]
+
+      if (segments[0] !== 'admin') return crumbs
+      const rest = segments.slice(1)
+
+      if (!rest.length) return crumbs
+      if (rest[0] === 'collections' && rest[1]) {
+        const collection = rest[1]
+        crumbs.push({ label: formatLabel(collection), href: `/admin/collections/${collection}` })
+        if (rest[2]) {
+          crumbs.push({ label: rest[2] === 'create' ? 'Create' : 'Edit' })
+        }
+        return crumbs
+      }
+
+      if (rest[0] === 'globals' && rest[1]) {
+        crumbs.push({ label: formatLabel(rest[1]) })
+        return crumbs
+      }
+
+      rest.forEach((segment, index) => {
+        const href = `/admin/${rest.slice(0, index + 1).join('/')}`
+        crumbs.push({ label: formatLabel(segment), href })
+      })
+
+      return crumbs
+    }
+
+    const scheduleUpdate = () => {
+      window.setTimeout(() => {
+        if (!isMountedRef.current) return
+        setBreadcrumbs(buildCrumbs(window.location.pathname))
+      }, 0)
+    }
+
+    const originalPushState = window.history.pushState
+    const originalReplaceState = window.history.replaceState
+
+    window.history.pushState = function (...args) {
+      originalPushState.apply(this, args as any)
+      scheduleUpdate()
+    }
+    window.history.replaceState = function (...args) {
+      originalReplaceState.apply(this, args as any)
+      scheduleUpdate()
+    }
+
+    window.addEventListener('popstate', scheduleUpdate)
+    scheduleUpdate()
+
+    return () => {
+      isMountedRef.current = false
+      window.history.pushState = originalPushState
+      window.history.replaceState = originalReplaceState
+      window.removeEventListener('popstate', scheduleUpdate)
+    }
   }, [])
 
   const toggleTheme = () => {
@@ -31,6 +115,16 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     }
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('payload-admin-theme', next)
+    }
+    if (user?.id) {
+      fetch(`/api/users/${user.id}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ adminTheme: next }),
+      }).catch(() => undefined)
     }
   }
 
@@ -43,46 +137,72 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     <>
       <style>{`
         :root {
-          --cpp-green: #475569;
-          --cpp-gold: #94a3b8;
-          --cpp-cream: #f8fafc;
-          --cpp-ink: #0f172a;
-          --cpp-muted: #64748b;
-          --theme-bg: var(--cpp-cream);
-          --theme-text: var(--cpp-ink);
+          --cpp-green: #0f172a;
+          --cpp-gold: #64748b;
+          --cpp-cream: #f7f9ff;
+          --cpp-ink: #111827;
+          --cpp-muted: #6b7280;
+          --admin-surface: #ffffff;
+          --admin-surface-muted: #f3f4f6;
+          --admin-surface-border: rgba(15, 23, 42, 0.12);
+          --admin-hero-bg: var(--admin-surface);
+          --admin-hero-border: var(--admin-surface-border);
+          --admin-hero-grid: rgba(15, 23, 42, 0.04);
+          --admin-chip-bg: rgba(15, 23, 42, 0.06);
+          --admin-chip-primary-bg: #111827;
+          --admin-chip-primary-text: #ffffff;
+          --admin-shadow: 0 18px 34px rgba(15, 23, 42, 0.12);
+          --theme-bg: #f7f9ff;
+          --theme-text: #111827;
           --theme-input-bg: #ffffff;
-          --theme-elevation-0: var(--cpp-cream);
-          --theme-elevation-50: #f1f5f9;
-          --theme-elevation-100: #e2e8f0;
-          --theme-elevation-150: #dbe2ea;
-          --theme-elevation-200: #cbd5e1;
-          --theme-elevation-800: var(--cpp-ink);
+          --theme-elevation-0: #f7f9ff;
+          --theme-elevation-50: #f2f5fb;
+          --theme-elevation-100: #e3e9f3;
+          --theme-elevation-150: #d4ddec;
+          --theme-elevation-200: #c2cfe6;
+          --theme-elevation-800: #0f172a;
           --theme-elevation-900: #0b1220;
           --theme-elevation-1000: #05080f;
           --color-success-250: #e2e8f0;
         }
 
+        :root[data-theme="light"] {
+          --cpp-cream: #f7f9ff;
+          --theme-bg: #f7f9ff;
+          --theme-elevation-0: #f7f9ff;
+        }
+
         :root[data-theme="dark"] {
-          --cpp-cream: #0f1115;
-          --cpp-ink: #e5e7eb;
-          --cpp-muted: #94a3b8;
-          --theme-bg: #0f1115;
-          --theme-text: #e5e7eb;
-          --theme-input-bg: #161a20;
-          --theme-elevation-0: #0f1115;
-          --theme-elevation-50: #12161c;
-          --theme-elevation-100: #151a21;
-          --theme-elevation-150: #191f27;
-          --theme-elevation-200: #1f2630;
-          --theme-elevation-800: #e5e7eb;
-          --theme-elevation-900: #f1f5f9;
+          --cpp-cream: #070b14;
+          --cpp-ink: #e7edf6;
+          --cpp-muted: #9aa4b2;
+          --admin-surface: #0f1624;
+          --admin-surface-muted: #121b2a;
+          --admin-surface-border: rgba(148, 163, 184, 0.18);
+          --admin-hero-bg: var(--admin-surface);
+          --admin-hero-border: var(--admin-surface-border);
+          --admin-hero-grid: rgba(148, 163, 184, 0.08);
+          --admin-chip-bg: rgba(148, 163, 184, 0.14);
+          --admin-chip-primary-bg: #e7edf6;
+          --admin-chip-primary-text: #070b14;
+          --admin-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+          --theme-bg: #070b14;
+          --theme-text: #e7edf6;
+          --theme-input-bg: #0c1220;
+          --theme-elevation-0: #070b14;
+          --theme-elevation-50: #0b111d;
+          --theme-elevation-100: #101827;
+          --theme-elevation-150: #151f30;
+          --theme-elevation-200: #1b263a;
+          --theme-elevation-800: #e7edf6;
+          --theme-elevation-900: #f3f6fb;
           --theme-elevation-1000: #ffffff;
           --color-success-250: #1f2937;
         }
 
         body,
         #app {
-          background: var(--cpp-cream);
+          background: var(--theme-bg);
           color: var(--cpp-ink);
         }
 
@@ -92,7 +212,52 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
 
         .app-header {
-          border-bottom: 1px solid rgba(0, 80, 48, 0.15);
+          border-bottom: 1px solid rgba(15, 23, 42, 0.12);
+        }
+
+        .app-header {
+          display: none;
+        }
+
+        .app-header + .template {
+          padding-top: 0;
+        }
+
+        .admin-breadcrumb-bar {
+          position: sticky;
+          top: 0;
+          z-index: 1200;
+          background: var(--admin-surface);
+          border-bottom: 1px solid var(--admin-surface-border);
+          padding: 10px 18px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 12px;
+          color: var(--cpp-muted);
+        }
+
+        .admin-breadcrumb-bar a {
+          color: var(--cpp-muted);
+          text-decoration: none;
+          font-weight: 600;
+        }
+
+        .admin-breadcrumb-bar a:hover {
+          color: var(--cpp-ink);
+        }
+
+        .admin-breadcrumb-sep {
+          color: rgba(15, 23, 42, 0.35);
+        }
+
+        :root[data-theme="dark"] .admin-breadcrumb-bar {
+          background: var(--admin-surface);
+          border-bottom: 1px solid var(--admin-surface-border);
+        }
+
+        :root[data-theme="dark"] .admin-breadcrumb-sep {
+          color: rgba(226, 232, 240, 0.4);
         }
 
         :root {
@@ -112,10 +277,19 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           align-items: center;
         }
 
+        .nav__link {
+          background: var(--admin-chip-primary-bg);
+          color: var(--admin-chip-primary-text);
+          border-radius: calc(var(--base) * 0.4);
+          border: 1px solid var(--admin-surface-border);
+        }
+
         .nav__link:hover,
         .nav__link:focus,
         .nav__link--active {
-          background: rgba(0, 80, 48, 0.08);
+          background: var(--admin-chip-primary-bg);
+          color: var(--admin-chip-primary-text);
+          filter: brightness(0.96);
         }
 
         a,
@@ -126,36 +300,36 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
 
         .btn--style-primary {
-          --bg-color: var(--cpp-green);
-          --hover-bg: #006d40;
+          --bg-color: #111827;
+          --hover-bg: #0b1220;
           --color: #ffffff;
         }
 
         .btn--style-secondary {
-          --color: var(--cpp-green);
-          --box-shadow: inset 0 0 0 1px rgba(0, 80, 48, 0.4);
-          --hover-color: var(--cpp-green);
-          --hover-box-shadow: inset 0 0 0 1px rgba(0, 80, 48, 0.6);
+          --color: #111827;
+          --box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.25);
+          --hover-color: #111827;
+          --hover-box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.4);
         }
 
         .pill,
         .btn--style-pill {
-          --bg-color: rgba(0, 80, 48, 0.08);
+          --bg-color: rgba(15, 23, 42, 0.08);
           --color: var(--cpp-ink);
         }
 
         .table {
-          --table-border-color: rgba(0, 80, 48, 0.12);
+          --table-border-color: rgba(15, 23, 42, 0.12);
         }
 
         .card {
-          border-color: rgba(0, 80, 48, 0.12);
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+          border-color: rgba(15, 23, 42, 0.12);
+          box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
         }
 
         :root[data-theme="dark"] .app-header,
         :root[data-theme="dark"] .nav {
-          background: #111419;
+          background: #070b14;
         }
 
         :root[data-theme="dark"] .app-header {
@@ -176,22 +350,22 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
 
         :root[data-theme="dark"] .btn--style-primary {
-          --bg-color: #334155;
-          --hover-bg: #3b4a5e;
-          --color: #f8fafc;
+          --bg-color: #e7edf6;
+          --hover-bg: #f3f6fb;
+          --color: #070b14;
         }
 
         :root[data-theme="dark"] .btn--style-secondary {
-          --color: #cbd5e1;
-          --box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.35);
-          --hover-color: #e2e8f0;
-          --hover-box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.55);
+          --color: #e7edf6;
+          --box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2);
+          --hover-color: #ffffff;
+          --hover-box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.45);
         }
 
         :root[data-theme="dark"] .pill,
         :root[data-theme="dark"] .btn--style-pill {
           --bg-color: rgba(148, 163, 184, 0.18);
-          --color: #e5e7eb;
+          --color: #e7edf6;
         }
 
         :root[data-theme="dark"] .table {
@@ -199,9 +373,9 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
 
         :root[data-theme="dark"] .card {
-          border-color: rgba(148, 163, 184, 0.25);
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-          background: #1b2129;
+          border-color: rgba(148, 163, 184, 0.2);
+          box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
+          background: #0f1624;
         }
 
         :root[data-theme="dark"] .field-type {
@@ -221,25 +395,25 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         :root[data-theme="dark"] .quick-action-card > div,
         :root[data-theme="dark"] .dashboard-stat-card,
         :root[data-theme="dark"] .dashboard-panel {
-          background: #f8fafc;
-          border-color: rgba(148, 163, 184, 0.4);
-          box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+          background: var(--admin-surface);
+          border-color: var(--admin-surface-border);
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
         }
 
         :root[data-theme="dark"] .dashboard-card div,
         :root[data-theme="dark"] .quick-action-card > div div,
         :root[data-theme="dark"] .dashboard-stat-card div,
         :root[data-theme="dark"] .dashboard-panel div {
-          color: #111827 !important;
+          color: var(--cpp-ink) !important;
         }
 
         :root[data-theme="dark"] .dashboard-panel div + div {
-          color: #4b5563 !important;
+          color: var(--cpp-muted) !important;
         }
 
         :root[data-theme="dark"] .dashboard-chip {
-          background: rgba(148, 163, 184, 0.18) !important;
-          color: #111827 !important;
+          background: var(--admin-chip-bg) !important;
+          color: var(--cpp-ink) !important;
         }
 
         .admin-theme-toggle {
@@ -248,8 +422,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           bottom: 22px;
           z-index: 9999;
           border-radius: 0;
-          border: 1px solid rgba(15, 23, 42, 0.2);
-          background: rgba(255, 255, 255, 0.9);
+          border: 1px solid var(--admin-surface-border);
+          background: var(--admin-surface);
           color: var(--cpp-ink);
           padding: 10px 14px;
           font-size: 12px;
@@ -257,13 +431,23 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           letter-spacing: 0.08em;
           text-transform: uppercase;
           cursor: pointer;
-          box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+          box-shadow: var(--admin-shadow);
+          transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+        }
+
+        .admin-theme-toggle:hover {
+          filter: brightness(0.97);
+          transform: translateY(-1px);
+        }
+
+        .admin-theme-toggle:active {
+          transform: translateY(0);
         }
 
         :root[data-theme="dark"] .admin-theme-toggle {
-          background: rgba(15, 28, 22, 0.95);
-          color: #e9f3ee;
-          border-color: rgba(255, 255, 255, 0.12);
+          background: var(--admin-surface);
+          color: var(--cpp-ink);
+          border-color: var(--admin-surface-border);
         }
 
         .collection-edit--lessons .collection-edit__main-wrapper,
@@ -308,6 +492,22 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       >
         {theme === 'dark' ? 'Light mode' : 'Dark mode'}
       </button>
+      {breadcrumbs.length ? (
+        <div className="admin-breadcrumb-bar" role="navigation" aria-label="Breadcrumb">
+          {breadcrumbs.map((crumb, index) => (
+            <React.Fragment key={`${crumb.label}-${index}`}>
+              {crumb.href && index < breadcrumbs.length - 1 ? (
+                <a href={crumb.href}>{crumb.label}</a>
+              ) : (
+                <span style={{ color: 'var(--cpp-ink)', fontWeight: 700 }}>{crumb.label}</span>
+              )}
+              {index < breadcrumbs.length - 1 ? (
+                <span className="admin-breadcrumb-sep">/</span>
+              ) : null}
+            </React.Fragment>
+          ))}
+        </div>
+      ) : null}
       {props.children}
     </>
   )

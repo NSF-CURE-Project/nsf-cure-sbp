@@ -22,6 +22,36 @@ export const Users: CollectionConfig = {
   },
   fields: [
     {
+      name: 'firstName',
+      label: 'First name',
+      type: 'text',
+      admin: {
+        placeholder: 'First name',
+      },
+    },
+    {
+      name: 'lastName',
+      label: 'Last name',
+      type: 'text',
+      admin: {
+        placeholder: 'Last name',
+      },
+    },
+    {
+      name: 'adminTheme',
+      label: 'Admin theme',
+      type: 'select',
+      defaultValue: 'light',
+      options: [
+        { label: 'Light', value: 'light' },
+        { label: 'Dark', value: 'dark' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description: 'Syncs with the theme toggle in the admin UI.',
+      },
+    },
+    {
       name: 'role',
       label: 'Role',
       type: 'select',

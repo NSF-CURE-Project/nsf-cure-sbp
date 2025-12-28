@@ -7,18 +7,40 @@ type IdValue = string | number | null | undefined
 
 type FeedbackEntry = {
   id: string | number
-  rating?: number
+  rating?: string | number
   message?: string
   reply?: string
   createdAt?: string
   user?: { email?: string } | string | null
 }
 
-const ratingLabels: Record<number, string> = {
-  1: 'Not helpful',
-  2: 'Somewhat helpful',
-  3: 'Helpful',
-  4: 'Very helpful',
+const ratingLabels: Record<string, string> = {
+  not_helpful: 'Not helpful',
+  somewhat_helpful: 'Somewhat helpful',
+  helpful: 'Helpful',
+  very_helpful: 'Very helpful',
+}
+
+const ratingScores: Record<string, number> = {
+  not_helpful: 1,
+  somewhat_helpful: 2,
+  helpful: 3,
+  very_helpful: 4,
+}
+
+const resolveRatingScore = (value: FeedbackEntry['rating']) => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'string' && ratingScores[value] != null) return ratingScores[value]
+  return null
+}
+
+const resolveRatingLabel = (value: FeedbackEntry['rating']) => {
+  if (typeof value === 'string' && ratingLabels[value]) return ratingLabels[value]
+  const numeric = resolveRatingScore(value)
+  if (numeric == null) return 'Unrated'
+  return ratingLabels[
+    Object.keys(ratingScores).find((key) => ratingScores[key] === numeric) ?? ''
+  ] || 'Unrated'
 }
 
 export default function LessonFeedbackPanel() {
@@ -118,8 +140,8 @@ export default function LessonFeedbackPanel() {
     if (!feedback.length) return null
     const totals = feedback.reduce(
       (acc, entry) => {
-        const rating = Number(entry.rating)
-        if (!Number.isFinite(rating)) return acc
+        const rating = resolveRatingScore(entry.rating)
+        if (rating == null) return acc
         return { sum: acc.sum + rating, count: acc.count + 1 }
       },
       { sum: 0, count: 0 },
@@ -162,7 +184,7 @@ export default function LessonFeedbackPanel() {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
-                  {ratingLabels[Number(entry.rating) || 0] ?? 'Unrated'}
+                  {resolveRatingLabel(entry.rating)}
                 </div>
                 <div style={{ fontSize: 11, color: '#64748b' }}>
                   {entry.createdAt ? new Date(entry.createdAt).toLocaleString() : ''}

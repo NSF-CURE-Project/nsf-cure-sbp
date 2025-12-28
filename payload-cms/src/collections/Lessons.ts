@@ -58,6 +58,104 @@ export const Lessons: CollectionConfig = {
     drafts: true,
   },
   hooks: {
+    afterChange: [
+      async ({ doc, originalDoc, req }) => {
+        if (!req?.payload) return
+        const getId = (value: unknown) =>
+          typeof value === 'object' && value !== null && 'id' in value
+            ? String((value as { id?: string | number }).id ?? '')
+            : value != null
+              ? String(value)
+              : null
+
+        const nextChapterId = getId(doc?.chapter)
+        const prevChapterId = getId(originalDoc?.chapter)
+
+        if (!nextChapterId) return
+
+        const attachLesson = async (chapterId: string) => {
+          const current = await req.payload.findByID({
+            collection: 'chapters',
+            id: chapterId,
+            depth: 0,
+          })
+          const existing = Array.isArray((current as { lessons?: unknown[] }).lessons)
+            ? (current as { lessons?: unknown[] }).lessons
+            : []
+          const exists = existing.some((item) => getId(item) === String(doc.id))
+          if (exists) return
+          await req.payload.update({
+            collection: 'chapters',
+            id: chapterId,
+            data: {
+              lessons: [...existing, doc.id],
+            },
+            depth: 0,
+          })
+        }
+
+        const detachLesson = async (chapterId: string) => {
+          const current = await req.payload.findByID({
+            collection: 'chapters',
+            id: chapterId,
+            depth: 0,
+          })
+          const existing = Array.isArray((current as { lessons?: unknown[] }).lessons)
+            ? (current as { lessons?: unknown[] }).lessons
+            : []
+          const filtered = existing.filter((item) => getId(item) !== String(doc.id))
+          if (filtered.length === existing.length) return
+          await req.payload.update({
+            collection: 'chapters',
+            id: chapterId,
+            data: {
+              lessons: filtered,
+            },
+            depth: 0,
+          })
+        }
+
+        if (prevChapterId && prevChapterId !== nextChapterId) {
+          await detachLesson(prevChapterId)
+        }
+
+        await attachLesson(nextChapterId)
+      },
+    ],
+    afterDelete: [
+      async ({ doc, req }) => {
+        if (!req?.payload || !doc) return
+        const getId = (value: unknown) =>
+          typeof value === 'object' && value !== null && 'id' in value
+            ? String((value as { id?: string | number }).id ?? '')
+            : value != null
+              ? String(value)
+              : null
+
+        const chapterId = getId(doc.chapter)
+        if (!chapterId) return
+
+        const current = await req.payload.findByID({
+          collection: 'chapters',
+          id: chapterId,
+          depth: 0,
+        })
+        const existing = Array.isArray((current as { lessons?: unknown[] }).lessons)
+          ? (current as { lessons?: unknown[] }).lessons
+          : []
+        const filtered = existing.filter((item) => getId(item) !== String(doc.id))
+        if (filtered.length === existing.length) return
+
+        await req.payload.update({
+          collection: 'chapters',
+          id: chapterId,
+          data: {
+            lessons: filtered,
+          },
+          depth: 0,
+        })
+      },
+    ],
     beforeValidate: [
       async ({ data, req, originalDoc, id }) => {
         if (!data) return data

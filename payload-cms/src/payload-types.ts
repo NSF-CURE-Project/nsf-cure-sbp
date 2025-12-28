@@ -595,6 +595,12 @@ export interface Account {
  */
 export interface User {
   id: number;
+  firstName?: string | null;
+  lastName?: string | null;
+  /**
+   * Syncs with the theme toggle in the admin UI.
+   */
+  adminTheme?: ('light' | 'dark') | null;
   /**
    * Admins can manage users, settings, and the entire CMS. Staff can edit content only.
    */
@@ -722,7 +728,7 @@ export interface LessonFeedback {
   lesson: number | Lesson;
   chapter?: (number | null) | Chapter;
   class?: (number | null) | Class;
-  rating: 1 | 2 | 3 | 4;
+  rating: 'not_helpful' | 'somewhat_helpful' | 'helpful' | 'very_helpful';
   /**
    * Optional comments from the student.
    */
@@ -1183,6 +1189,9 @@ export interface AccountsSelect<T extends boolean = true> {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  firstName?: T;
+  lastName?: T;
+  adminTheme?: T;
   role?: T;
   updatedAt?: T;
   createdAt?: T;
