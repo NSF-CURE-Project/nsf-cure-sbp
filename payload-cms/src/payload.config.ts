@@ -27,6 +27,7 @@ import { HomePage } from './globals/HomePage'
 import { ResourcesPage } from './globals/ResourcesPage'
 import { ContactPage } from './globals/ContactPage'
 import { GettingStarted } from './globals/GettingStarted'
+import { AdminHelp } from './globals/AdminHelp'
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
   path: '@/views/StaffDashboardView#default',
@@ -152,7 +153,7 @@ export default buildConfig({
     Feedback,
     LessonFeedback,
   ],
-  globals: [HomePage, ResourcesPage, ContactPage, GettingStarted],
+  globals: [HomePage, ResourcesPage, ContactPage, GettingStarted, AdminHelp],
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [
       ...defaultFeatures,

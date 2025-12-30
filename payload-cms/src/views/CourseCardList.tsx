@@ -296,7 +296,7 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
                 style={{ textDecoration: 'none' }}
               >
                 <div style={actionChipStyle} className="dashboard-chip">
-                  Course settings
+                  Edit course
                 </div>
               </a>
             </div>

@@ -13,10 +13,19 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
   const role = user?.role
   const [theme, setTheme] = useState<ThemeMode>('light')
   const [breadcrumbs, setBreadcrumbs] = useState<{ label: string; href?: string }[]>([])
+  const [isLoginPage, setIsLoginPage] = useState(false)
   const isMountedRef = useRef(true)
+  const getIsLoginPath = (pathname: string) =>
+    pathname.startsWith('/admin/login') ||
+    pathname.startsWith('/admin/forgot-password') ||
+    pathname.startsWith('/admin/reset-password')
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return
+    const loginPage = getIsLoginPath(window.location.pathname)
+    setIsLoginPage(loginPage)
+    document.documentElement.setAttribute('data-admin-login', loginPage ? 'true' : 'false')
+
     const applyTheme = (value: ThemeMode) => {
       setTheme(value)
       document.documentElement.setAttribute('data-theme', value)
@@ -119,7 +128,11 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     const scheduleUpdate = () => {
       window.setTimeout(() => {
         if (!isMountedRef.current) return
-        setBreadcrumbs(buildCrumbs(window.location.pathname))
+        const pathname = window.location.pathname
+        setBreadcrumbs(buildCrumbs(pathname))
+        const loginPage = getIsLoginPath(pathname)
+        setIsLoginPage(loginPage)
+        document.documentElement.setAttribute('data-admin-login', loginPage ? 'true' : 'false')
       }, 0)
     }
 
@@ -143,8 +156,19 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       window.history.pushState = originalPushState
       window.history.replaceState = originalReplaceState
       window.removeEventListener('popstate', scheduleUpdate)
+      document.documentElement.removeAttribute('data-admin-login')
     }
   }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!user?.id) return
+    const pathname = window.location.pathname
+    if (!getIsLoginPath(pathname)) {
+      setIsLoginPage(false)
+      document.documentElement.setAttribute('data-admin-login', 'false')
+    }
+  }, [user?.id])
 
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark'
@@ -518,6 +542,51 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           color: var(--cpp-ink) !important;
         }
 
+        .dashboard-chip {
+          transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+        }
+
+        .dashboard-chip:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 10px 18px rgba(15, 23, 42, 0.16);
+          border-color: rgba(148, 163, 184, 0.35);
+        }
+
+        :root[data-theme="dark"] .dashboard-chip:hover {
+          box-shadow: 0 10px 18px rgba(0, 0, 0, 0.5);
+          border-color: rgba(148, 163, 184, 0.4);
+        }
+
+        .dashboard-chip--link {
+          border: none !important;
+          box-shadow: none !important;
+          background: transparent !important;
+          color: var(--cpp-muted) !important;
+        }
+
+        .dashboard-chip--link:hover {
+          transform: none;
+          box-shadow: none;
+          color: var(--cpp-ink) !important;
+        }
+
+        .dashboard-chip--secondary {
+          background: transparent !important;
+          box-shadow: none !important;
+        }
+
+        :root[data-theme="dark"] .admin-quick-overview {
+          background: #131c2b;
+          border-color: rgba(148, 163, 184, 0.22);
+          box-shadow: 0 12px 28px rgba(8, 12, 20, 0.4);
+        }
+
+        :root[data-theme="dark"] .admin-dashboard-hero {
+          background: #182235 !important;
+          border-color: rgba(148, 163, 184, 0.2);
+          box-shadow: 0 16px 36px rgba(7, 10, 16, 0.45);
+        }
+
         .admin-theme-toggle {
           position: fixed;
           right: 22px;
@@ -700,86 +769,88 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           }
         `}</style>
       ) : null}
-      <div className="admin-topbar">
-        {showBreadcrumbs ? (
-          <div className="admin-topbar-center">
-            <div className="admin-breadcrumb-bar" role="navigation" aria-label="Breadcrumb">
-              {breadcrumbs.map((crumb, index) => (
-                <React.Fragment key={`${crumb.label}-${index}`}>
-                  {crumb.href && index < breadcrumbs.length - 1 ? (
-                    <a href={crumb.href}>{crumb.label}</a>
-                  ) : (
-                    <span style={{ color: 'var(--cpp-ink)', fontWeight: 700 }}>
-                      {crumb.label}
-                    </span>
-                  )}
-                  {index < breadcrumbs.length - 1 ? (
-                    <span className="admin-breadcrumb-sep">/</span>
-                  ) : null}
-                </React.Fragment>
-              ))}
+      {!isLoginPage ? (
+        <div className="admin-topbar">
+          {showBreadcrumbs ? (
+            <div className="admin-topbar-center">
+              <div className="admin-breadcrumb-bar" role="navigation" aria-label="Breadcrumb">
+                {breadcrumbs.map((crumb, index) => (
+                  <React.Fragment key={`${crumb.label}-${index}`}>
+                    {crumb.href && index < breadcrumbs.length - 1 ? (
+                      <a href={crumb.href}>{crumb.label}</a>
+                    ) : (
+                      <span style={{ color: 'var(--cpp-ink)', fontWeight: 700 }}>
+                        {crumb.label}
+                      </span>
+                    )}
+                    {index < breadcrumbs.length - 1 ? (
+                      <span className="admin-breadcrumb-sep">/</span>
+                    ) : null}
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
-          </div>
-        ) : null}
-        <div className="admin-topbar-actions">
-          <button
-            type="button"
-            className="admin-theme-toggle"
-            onClick={toggleTheme}
-            aria-pressed={theme === 'dark'}
-            aria-label={themeLabel}
-          >
-            {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-          </button>
-          <details className="admin-user-menu">
-            <summary className="admin-user-button" aria-label="User menu">
-              <span className="admin-user-avatar" aria-hidden="true">
-                {initials}
-              </span>
-              <span className="admin-user-name">{displayName}</span>
-              <svg
-                className="admin-user-caret"
-                viewBox="0 0 20 20"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M5 7.5L10 12.5L15 7.5"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </summary>
-            <div className="admin-user-dropdown">
-              <a href="/admin/account">Your Account</a>
-              <a href="/admin/help">Help</a>
-              <div className="admin-user-divider" />
-              <a href="/admin/logout">
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  <svg
-                    aria-hidden="true"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
+          ) : null}
+          <div className="admin-topbar-actions">
+            <button
+              type="button"
+              className="admin-theme-toggle"
+              onClick={toggleTheme}
+              aria-pressed={theme === 'dark'}
+              aria-label={themeLabel}
+            >
+              {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+            </button>
+            <details className="admin-user-menu">
+              <summary className="admin-user-button" aria-label="User menu">
+                <span className="admin-user-avatar" aria-hidden="true">
+                  {initials}
+                </span>
+                <span className="admin-user-name">{displayName}</span>
+                <svg
+                  className="admin-user-caret"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M5 7.5L10 12.5L15 7.5"
                     stroke="currentColor"
-                    strokeWidth="2"
+                    strokeWidth="1.6"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                  >
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                  </svg>
-                  Log out
-                </span>
-              </a>
-            </div>
-          </details>
+                  />
+                </svg>
+              </summary>
+              <div className="admin-user-dropdown">
+                <a href="/admin/account">Your Account</a>
+                <a href="/admin/help">Help</a>
+                <div className="admin-user-divider" />
+                <a href="/admin/logout">
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <svg
+                      aria-hidden="true"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    Log out
+                  </span>
+                </a>
+              </div>
+            </details>
+          </div>
         </div>
-      </div>
+      ) : null}
       {props.children}
     </>
   )

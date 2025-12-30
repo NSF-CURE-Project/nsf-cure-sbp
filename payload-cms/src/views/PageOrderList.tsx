@@ -25,7 +25,7 @@ const baseItemStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: 8,
-  padding: '8px 10px',
+  padding: '9px 14px',
   borderRadius: 6,
   background: 'var(--admin-surface-muted)',
   color: 'var(--cpp-ink, #0b3d27)',
@@ -221,6 +221,7 @@ export default function PageOrderList({
           style={{
             fontSize: 11,
             color: 'var(--cpp-muted, #5b6f66)',
+            opacity: 0.75,
             marginTop: 6,
           }}
         >

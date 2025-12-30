@@ -49,12 +49,14 @@ const quickCardStyle: React.CSSProperties = {
 }
 
 const statCardStyle: React.CSSProperties = {
-  border: '1px solid var(--admin-surface-border)',
-  borderRadius: 0,
-  padding: '14px 16px',
-  background: 'var(--admin-surface)',
-  boxShadow: 'var(--admin-shadow)',
-  minWidth: 140,
+  border: 'none',
+  borderRadius: 12,
+  padding: '6px 10px',
+  background: 'transparent',
+  boxShadow: 'none',
+  minWidth: 92,
+  flex: '0 0 auto',
+  textAlign: 'center',
 }
 
 const ManagePagesCard = () => (
@@ -106,16 +108,20 @@ const StatCard = ({ label, value }: { label: string; value: string }) => (
   <div style={statCardStyle} className="dashboard-stat-card">
     <div
       style={{
-        fontSize: 12,
+        fontSize: 11,
         textTransform: 'uppercase',
-        letterSpacing: '0.12em',
-        color: '#5b6f66',
+        letterSpacing: '0.08em',
+        color: 'var(--cpp-muted)',
+        opacity: 0.8,
         fontWeight: 700,
+        lineHeight: 1.1,
       }}
     >
       {label}
     </div>
-    <div style={{ fontSize: 22, fontWeight: 800, color: cppInk, marginTop: 6 }}>{value}</div>
+    <div style={{ fontSize: 18, fontWeight: 900, color: cppInk, marginTop: 2, lineHeight: 1.1 }}>
+      {value}
+    </div>
   </div>
 )
 
@@ -263,22 +269,22 @@ const containerStyle: React.CSSProperties = {
 }
 const contentBoxStyle: React.CSSProperties = {
   width: '100%',
-  maxWidth: 980,
+  maxWidth: 1120,
   alignSelf: 'center',
   margin: '0 auto',
 }
 
 const sectionLabelStyle: React.CSSProperties = {
-  fontSize: 14,
-  letterSpacing: 0.6,
+  fontSize: 13,
+  letterSpacing: 0.4,
   textTransform: 'uppercase',
   color: 'var(--cpp-muted)',
-  marginTop: 8,
+  marginTop: 10,
   fontWeight: 700,
   alignSelf: 'center',
   textAlign: 'left',
   width: '100%',
-  maxWidth: 980,
+  maxWidth: 1120,
 }
 
 const helpBoxStyle: React.CSSProperties = {
@@ -295,29 +301,56 @@ const helpBoxStyle: React.CSSProperties = {
 
 const contentHealthCardStyle: React.CSSProperties = {
   borderRadius: 0,
+  border: '1px solid transparent',
+  background: 'var(--admin-surface)',
+  padding: '12px 14px',
+  boxShadow: 'none',
+}
+
+const workspaceCardStyle: React.CSSProperties = {
+  borderRadius: 10,
   border: '1px solid var(--admin-surface-border)',
   background: 'var(--admin-surface)',
-  padding: '14px 16px',
-  boxShadow: '0 8px 20px rgba(15, 23, 42, 0.08)',
+  padding: '8px',
+  boxShadow: 'none',
+  width: 110,
+  height: 96,
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  alignItems: 'center',
+  gap: 4,
+  textAlign: 'center',
+}
+
+const analyticsRowStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: 12,
+  flexWrap: 'nowrap',
+  justifyContent: 'center',
+  alignItems: 'center',
+  padding: '8px 12px',
+  borderRadius: 999,
+  border: '1px solid var(--admin-surface-border)',
+  background: 'var(--admin-surface-muted)',
 }
 
 import CourseCardList from './CourseCardList'
 
 const heroGridStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: 'minmax(280px, 1fr) minmax(320px, 1.2fr)',
-  gap: 28,
+  gridTemplateColumns: 'minmax(280px, 1fr)',
+  gap: 22,
   width: '100%',
   alignItems: 'center',
 }
 
 const heroCardStyle: React.CSSProperties = {
   borderRadius: 0,
-  padding: '20px 22px',
+  padding: '16px 20px',
   background: 'var(--admin-surface)',
   boxShadow: 'var(--admin-shadow)',
-  border: '1px solid var(--admin-surface-border)',
-  maxWidth: 520,
+  border: '1px solid transparent',
   width: '100%',
 }
 
@@ -337,13 +370,50 @@ const mockHeaderStyle: React.CSSProperties = {
 }
 
 const mockChipStyle: React.CSSProperties = {
-  borderRadius: 0,
-  padding: '6px 10px',
-  fontSize: 12,
-  fontWeight: 600,
-  background: 'transparent',
+  borderRadius: 8,
+  padding: '8px 14px',
+  fontSize: 13,
+  fontWeight: 700,
+  letterSpacing: 0.1,
+  background: 'var(--admin-surface)',
   color: cppInk,
   border: '1px solid var(--admin-surface-border)',
+  boxShadow: '0 4px 10px rgba(15, 23, 42, 0.12)',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  minHeight: 34,
+}
+
+const heroPrimaryStyle: React.CSSProperties = {
+  ...mockChipStyle,
+  background: 'var(--admin-chip-primary-bg)',
+  color: 'var(--admin-chip-primary-text)',
+  borderColor: 'rgba(148, 163, 184, 0.35)',
+  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
+}
+
+const heroSecondaryStyle: React.CSSProperties = {
+  ...mockChipStyle,
+  background: 'transparent',
+  borderColor: 'rgba(148, 163, 184, 0.4)',
+  color: cppInk,
+  boxShadow: 'none',
+}
+
+const heroLinkStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  fontSize: 12,
+  fontWeight: 600,
+  color: 'var(--cpp-muted)',
+  textDecoration: 'none',
+  padding: '6px 2px',
+  background: 'transparent',
+  border: 'none',
+  boxShadow: 'none',
+  filter: 'none',
 }
 
 type CourseTree = {
@@ -373,6 +443,9 @@ const StaffDashboardContent = ({
     unanswered: number
     unreadFeedback: number
     helpfulnessAvg: number | null
+    activeStudents: number
+    publishedLessons: number
+    avgCompletion: number | null
   }
   contentHealth: {
     lowCompletion: { id: string | number; title: string; rate: number }[]
@@ -414,6 +487,16 @@ const StaffDashboardContent = ({
         transform: translateY(-1px);
         box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
       }
+      .dashboard-chip--link {
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        filter: none !important;
+      }
+      .dashboard-chip--link:hover {
+        box-shadow: none;
+        transform: none;
+      }
       .dashboard-stat-card {
         transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
       }
@@ -430,21 +513,43 @@ const StaffDashboardContent = ({
         box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
         border-color: rgba(15, 23, 42, 0.22);
       }
+      [data-theme='dark'] .dashboard-chip,
+      [data-theme='dark'] .dashboard-chip:hover,
+      [data-theme='dark'] .dashboard-chip:focus,
+      [data-theme='dark'] .dashboard-chip:focus-visible,
+      [data-theme='dark'] .dashboard-stat-card,
+      [data-theme='dark'] .dashboard-stat-card:hover,
+      [data-theme='dark'] .dashboard-stat-card:focus,
+      [data-theme='dark'] .dashboard-stat-card:focus-visible,
+      [data-theme='dark'] .dashboard-panel,
+      [data-theme='dark'] .dashboard-panel:hover,
+      [data-theme='dark'] .dashboard-panel:focus,
+      [data-theme='dark'] .dashboard-panel:focus-visible,
+      [data-theme='dark'] .dashboard-card,
+      [data-theme='dark'] .dashboard-card:hover,
+      [data-theme='dark'] .dashboard-card:focus,
+      [data-theme='dark'] .dashboard-card:focus-visible {
+        box-shadow: none !important;
+        filter: none !important;
+        transform: none !important;
+      }
     `}</style>
     <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
       <div style={containerStyle}>
         <div
           style={{
             width: '100%',
-            maxWidth: 1080,
+            maxWidth: 1120,
             margin: '0 auto',
             borderRadius: 0,
-            padding: '22px 22px 24px',
+            padding: '16px 20px 18px',
             background: 'var(--admin-hero-bg)',
-            border: '1px solid var(--admin-hero-border)',
+            border: 'none',
             position: 'relative',
             overflow: 'hidden',
+            boxShadow: '0 16px 36px rgba(15, 23, 42, 0.16)',
           }}
+          className="admin-dashboard-hero"
         >
           <div
             style={{
@@ -468,73 +573,162 @@ const StaffDashboardContent = ({
                   fontWeight: 800,
                 }}
               >
-                Dashboard
+                Admin Dashboard
               </div>
               <h1
                 style={{
-                  fontSize: 42,
+                  fontSize: 36,
                   fontWeight: 900,
                   margin: '8px 0 12px',
                   color: cppInk,
                   lineHeight: 1.05,
+                  letterSpacing: -0.2,
                 }}
               >
                 NSF CURE Summer Bridge Program
               </h1>
-              <p style={{ fontSize: 16, color: 'var(--cpp-muted)', maxWidth: 460 }}>
-                Welcome, {(user as { firstName?: string } | null)?.firstName ?? user?.email ?? 'team member'}.
-                Use this dashboard to manage courses, pages, and administrative operations for the NSF CURE Summer Bridge Program.
+              <p
+                style={{
+                  fontSize: 16,
+                  color: 'var(--cpp-muted)',
+                  maxWidth: 460,
+                  lineHeight: 1.6,
+                }}
+              >
+                <span style={{ display: 'block', marginBottom: 6 }}>
+                  Welcome, {(user as { firstName?: string } | null)?.firstName ?? user?.email ?? 'team member'}.
+                </span>
+                <span style={{ whiteSpace: 'nowrap' }}>
+                  Manage program content, access analytics, and support students.
+                </span>
               </p>
-              <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                  <a href="/admin/collections/questions" style={{ textDecoration: 'none' }}>
-                    <div
-                      style={{
-                        ...mockChipStyle,
-                        background: 'var(--admin-chip-primary-bg)',
-                        color: 'var(--admin-chip-primary-text)',
-                      }}
-                      className="dashboard-chip"
-                    >
-                      Questions Inbox
-                    </div>
-                  </a>
-                  <a href="/admin/collections/feedback" style={{ textDecoration: 'none' }}>
-                    <div style={mockChipStyle} className="dashboard-chip">
-                      Feedback Inbox
-                    </div>
-                  </a>
-                  <a href="/admin/settings" style={{ textDecoration: 'none' }}>
-                    <div style={mockChipStyle} className="dashboard-chip">
-                      Site Settings
-                    </div>
-                  </a>
-                </div>
+              <div style={{ marginTop: 16 }} />
+            </div>
+          </div>
+        </div>
+        <div
+          style={{
+            width: '100%',
+            maxWidth: 1120,
+            margin: '0 auto',
+            marginTop: 18,
+            marginBottom: 8,
+            background: 'transparent',
+            border: 'none',
+            boxShadow: 'none',
+            padding: 0,
+          }}
+        >
+          <div
+              style={{
+                display: 'grid',
+                gap: 16,
+              gridTemplateColumns: 'minmax(260px, 1fr) minmax(360px, 1fr)',
+                alignItems: 'start',
+                justifyContent: 'center',
+              }}
+            >
+            <div
+              style={{
+                minWidth: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                background: 'transparent',
+                border: 'none',
+                boxShadow: 'none',
+                padding: 0,
+              }}
+            >
+              <div style={{ ...mockHeaderStyle, justifyContent: 'center' }}>
+                <div style={{ fontWeight: 700, color: cppInk, textAlign: 'center' }}>Analytics</div>
+              </div>
+              <div style={analyticsRowStyle}>
+                <StatCard label="Active (7d)" value={`${stats.activeStudents}`} />
+                <StatCard label="Published" value={`${stats.publishedLessons}`} />
+                <StatCard
+                  label="Avg completion"
+                  value={
+                    stats.avgCompletion != null ? `${Math.round(stats.avgCompletion * 100)}%` : '—'
+                  }
+                />
               </div>
             </div>
-            <div style={heroCardStyle}>
-              <div style={mockHeaderStyle}>
-                <div style={{ fontWeight: 700, color: cppInk }}>Quick Overview</div>
-                <div style={mockChipStyle}>Live</div>
-              </div>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <StatCard label="Student Accounts" value={`${stats.accounts}`} />
-              <StatCard label="Unanswered Questions" value={`${stats.unanswered}`} />
-              <StatCard label="Unread Feedback" value={`${stats.unreadFeedback}`} />
-              <StatCard
-                label="Avg Helpfulness"
-                value={stats.helpfulnessAvg != null ? `${stats.helpfulnessAvg.toFixed(1)} / 4` : '—'}
-              />
-            </div>
-              <div style={{ marginTop: 14 }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: 12,
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'column',
+                borderLeft: '1px solid var(--admin-surface-border)',
+                paddingLeft: 16,
+              }}
+            >
+              <div style={{ fontWeight: 700, color: cppInk, textAlign: 'center' }}>Quick Actions</div>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'nowrap', justifyContent: 'center' }}>
                 <a
-                  href="/admin/collections/lessons?where[_status][equals]=draft"
+                  href="/admin/collections/questions?where[status][equals]=open"
                   style={{ textDecoration: 'none' }}
                 >
-                  <div style={mockPanelStyle} className="dashboard-panel">
-                    <div style={{ fontSize: 13, fontWeight: 700, color: cppInk }}>View drafts</div>
-                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
-                      See lessons that are still in draft.
+                  <div style={workspaceCardStyle} className="dashboard-panel">
+                    <div
+                      style={{
+                        fontSize: 11,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        color: 'var(--cpp-muted)',
+                        lineHeight: 1.1,
+                        marginBottom: 2,
+                      }}
+                    >
+                      Questions
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 22,
+                        fontWeight: 800,
+                        color: 'var(--cpp-ink)',
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      {stats.unanswered}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--cpp-muted)', marginTop: 2 }}>
+                      Unanswered questions
+                    </div>
+                  </div>
+                </a>
+                <a
+                  href="/admin/collections/feedback?where[read][equals]=false"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <div style={workspaceCardStyle} className="dashboard-panel">
+                    <div
+                      style={{
+                        fontSize: 11,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        color: 'var(--cpp-muted)',
+                        lineHeight: 1.1,
+                        marginBottom: 2,
+                      }}
+                    >
+                      Feedback
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 22,
+                        fontWeight: 800,
+                        color: 'var(--cpp-ink)',
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      {stats.unreadFeedback}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--cpp-muted)', marginTop: 2 }}>
+                      Unread feedback
                     </div>
                   </div>
                 </a>
@@ -542,9 +736,95 @@ const StaffDashboardContent = ({
             </div>
           </div>
         </div>
-        <div style={sectionLabelStyle}>Courses</div>
+        <div style={sectionLabelStyle}>Content Management</div>
+        <div
+          style={{
+            width: '100%',
+            maxWidth: 1120,
+            color: 'var(--cpp-muted)',
+            fontSize: 13,
+            lineHeight: 1.5,
+            marginTop: -4,
+            marginBottom: 8,
+          }}
+        >
+          Manage course structure, chapters, and lessons from a dedicated workspace.
+        </div>
         <div style={{ ...contentBoxStyle }}>
-          <CourseCardList initialCourses={courseTree} />
+          <div style={{ display: 'grid', gap: 12 }}>
+            <div
+              style={{
+                borderRadius: 0,
+                border: '1px solid transparent',
+                background: 'var(--admin-surface)',
+                padding: '18px',
+                boxShadow: 'var(--admin-shadow)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+                flexWrap: 'wrap',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cpp-ink)' }}>
+                  Course Workspace
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
+                  Open courses to edit chapters, lessons, and ordering.
+                </div>
+              </div>
+              <a href="/admin/courses" style={{ textDecoration: 'none' }}>
+                <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
+                  Manage Courses
+                </div>
+              </a>
+            </div>
+            <div
+              style={{
+                borderRadius: 0,
+                border: '1px solid transparent',
+                background: 'var(--admin-surface)',
+                padding: '16px 18px',
+                boxShadow: 'var(--admin-shadow)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+                flexWrap: 'wrap',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cpp-ink)' }}>
+                  Program Settings
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
+                  Manage navigation order, global pages, and site settings.
+                </div>
+              </div>
+              <a href="/admin/settings" style={{ textDecoration: 'none' }}>
+                <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <svg
+                      aria-hidden="true"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="3" />
+                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 5 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 5 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 5a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 5a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15z" />
+                    </svg>
+                    Site Settings
+                  </span>
+                </div>
+              </a>
+            </div>
+          </div>
         </div>
         <div style={sectionLabelStyle}>Content health</div>
         <div style={{ ...contentBoxStyle }}>
@@ -657,10 +937,16 @@ const StaffDashboardContent = ({
           </div>
         </div>
 
-        <div style={helpBoxStyle}>
-          <strong style={{ color: cppGreen }}>How to publish:</strong> open a page or lesson, click
-          <strong> Save Draft</strong> while editing, then choose <strong>Publish changes</strong>{' '}
-          when ready. Use the left menu for all content.
+        <div
+          style={{
+            marginTop: 16,
+            fontSize: 12,
+            color: 'var(--cpp-muted)',
+            textAlign: 'center',
+            width: '100%',
+          }}
+        >
+          © 2025 Cal Poly Pomona Engineering — NSF CURE Summer Bridge Program
         </div>
       </div>
     </div>
@@ -681,6 +967,9 @@ export default async function StaffDashboardView({
   let pagesDraftCount = 0
   let unreadFeedbackCount = 0
   let accountsCount = 0
+  let activeStudentsCount = 0
+  let publishedLessonsCount = 0
+  let avgCompletionRate: number | null = null
   let helpfulnessAvg: number | null = null
   let courseTree: CourseTree[] = []
   const LOW_COMPLETION_THRESHOLD = 0.4
@@ -765,6 +1054,50 @@ export default async function StaffDashboardView({
     unreadFeedbackCount = unreadFeedback.totalDocs ?? 0
   } catch {
     unreadFeedbackCount = 0
+  }
+
+  try {
+    const publishedLessons = await payload.find({
+      collection: 'lessons',
+      depth: 0,
+      limit: 0,
+      where: {
+        _status: {
+          equals: 'published',
+        },
+      },
+    })
+    publishedLessonsCount = publishedLessons.totalDocs ?? 0
+  } catch {
+    publishedLessonsCount = 0
+  }
+
+  try {
+    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    const recentProgress = await payload.find({
+      collection: 'lesson-progress',
+      depth: 0,
+      limit: 5000,
+      where: {
+        updatedAt: {
+          greater_than: since,
+        },
+      },
+    })
+    const activeUsers = new Set<string>()
+    recentProgress.docs.forEach((doc: any) => {
+      const userValue = doc.user
+      const id =
+        typeof userValue === 'string'
+          ? userValue
+          : userValue?.id != null
+            ? String(userValue.id)
+            : null
+      if (id) activeUsers.add(id)
+    })
+    activeStudentsCount = activeUsers.size
+  } catch {
+    activeStudentsCount = 0
   }
 
   try {
@@ -963,6 +1296,9 @@ export default async function StaffDashboardView({
     })
 
     helpfulnessAvg = totalCount ? totalRating / totalCount : null
+    const totalProgressCount = Array.from(progressTotals.values()).reduce((sum, value) => sum + value, 0)
+    const totalCompletedCount = Array.from(progressCompleted.values()).reduce((sum, value) => sum + value, 0)
+    avgCompletionRate = totalProgressCount ? totalCompletedCount / totalProgressCount : null
     contentHealth.lowHelpfulness = lowHelpfulness
       .sort((a, b) => a.rating - b.rating)
       .slice(0, 6)
@@ -975,6 +1311,9 @@ export default async function StaffDashboardView({
     unanswered: unansweredCount,
     unreadFeedback: unreadFeedbackCount,
     helpfulnessAvg,
+    activeStudents: activeStudentsCount,
+    publishedLessons: publishedLessonsCount,
+    avgCompletion: avgCompletionRate,
   }
 
   return (

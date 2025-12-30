@@ -66,6 +66,33 @@ html[data-theme='dark'] {
   --theme-error-600: #f97066;
 }
 
+html[data-admin-login='true'] {
+  --theme-bg: #f5f7fb;
+  --theme-text: #111827;
+  --theme-input-bg: #ffffff;
+  --theme-elevation-0: #ffffff;
+  --theme-elevation-50: #f3f4f6;
+  --theme-elevation-100: #e5e7eb;
+  --theme-elevation-150: #dbe1ea;
+  --theme-elevation-200: #cfd6e2;
+  --theme-elevation-250: #c2cbd8;
+  --theme-elevation-300: #b3bccb;
+  --theme-elevation-350: #a3acbd;
+  --theme-elevation-400: #919bad;
+  --theme-elevation-450: #7d879a;
+  --theme-elevation-500: #677187;
+  --theme-elevation-600: #4c5668;
+  --theme-elevation-700: #374151;
+  --theme-elevation-800: #1f2937;
+  --theme-elevation-900: #111827;
+  --theme-elevation-950: #0b1220;
+  --theme-elevation-1000: #060b16;
+  --theme-success-100: #e7f6ee;
+  --theme-success-600: #1f7a4a;
+  --theme-error-100: #feecec;
+  --theme-error-600: #b42318;
+}
+
 body {
   background: var(--theme-bg);
   color: var(--theme-text);

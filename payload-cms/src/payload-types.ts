@@ -113,12 +113,14 @@ export interface Config {
     'resources-page': ResourcesPage;
     'contact-page': ContactPage;
     'getting-started': GettingStarted;
+    'admin-help': AdminHelp;
   };
   globalsSelect: {
     'home-page': HomePageSelect<false> | HomePageSelect<true>;
     'resources-page': ResourcesPageSelect<false> | ResourcesPageSelect<true>;
     'contact-page': ContactPageSelect<false> | ContactPageSelect<true>;
     'getting-started': GettingStartedSelect<false> | GettingStartedSelect<true>;
+    'admin-help': AdminHelpSelect<false> | AdminHelpSelect<true>;
   };
   locale: null;
   user:
@@ -1963,6 +1965,34 @@ export interface GettingStarted {
   createdAt?: string | null;
 }
 /**
+ * Guidance content shown on the admin Help page.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "admin-help".
+ */
+export interface AdminHelp {
+  id: number;
+  title: string;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home-page_select".
  */
@@ -2473,6 +2503,18 @@ export interface GettingStartedSelect<T extends boolean = true> {
               blockName?: T;
             };
       };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "admin-help_select".
+ */
+export interface AdminHelpSelect<T extends boolean = true> {
+  title?: T;
+  body?: T;
   _status?: T;
   updatedAt?: T;
   createdAt?: T;
