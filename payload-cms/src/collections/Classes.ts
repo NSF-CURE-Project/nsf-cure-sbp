@@ -104,16 +104,6 @@ export const Classes: CollectionConfig = {
       name: 'description',
       type: 'textarea',
     },
-    {
-      name: 'classOrderGuide',
-      type: 'ui',
-      admin: {
-        components: {
-          Field: '@/views/ClassOrderField#default',
-        },
-      },
-    },
-
     // 🔽 NEW: Sidebar ordering
     {
       name: 'order',
@@ -121,9 +111,7 @@ export const Classes: CollectionConfig = {
       type: 'number',
       required: false,
       admin: {
-        position: 'sidebar',
-        description: 'Managed from the Reorder classes list.',
-        readOnly: true,
+        hidden: true,
       },
     },
 

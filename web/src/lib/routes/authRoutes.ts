@@ -16,6 +16,7 @@ export const PERSONAL_ROUTES = [
   "/account",
   "/privacy",
   "/notifications",
+  "/join-classroom",
 ];
 
 export const isAuthRoute = (pathname: string | null) => {

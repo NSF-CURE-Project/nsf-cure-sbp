@@ -72,6 +72,8 @@ export interface Config {
     chapters: Chapter;
     lessons: Lesson;
     pages: Page;
+    classrooms: Classroom;
+    'classroom-memberships': ClassroomMembership;
     accounts: Account;
     users: User;
     media: Media;
@@ -91,6 +93,8 @@ export interface Config {
     chapters: ChaptersSelect<false> | ChaptersSelect<true>;
     lessons: LessonsSelect<false> | LessonsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
+    classrooms: ClassroomsSelect<false> | ClassroomsSelect<true>;
+    'classroom-memberships': ClassroomMembershipsSelect<false> | ClassroomMembershipsSelect<true>;
     accounts: AccountsSelect<false> | AccountsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -179,9 +183,6 @@ export interface Class {
   id: number;
   title: string;
   description?: string | null;
-  /**
-   * Managed from the Reorder classes list.
-   */
   order?: number | null;
   chapters?: (number | Chapter)[] | null;
   slug: string;
@@ -566,23 +567,47 @@ export interface Page {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "accounts".
+ * via the `definition` "classrooms".
  */
-export interface Account {
+export interface Classroom {
   id: number;
+  title: string;
+  class: number | Class;
+  professor: number | User;
   /**
-   * Default is student. Staff/admin can be used for special access.
+   * Share this code with students to join the classroom.
    */
-  role: 'student' | 'staff' | 'admin';
-  fullName?: string | null;
+  joinCode: string;
   /**
-   * Reserved for CPP SSO integration (e.g., Okta, Azure AD).
+   * Controls the length of newly generated join codes.
    */
-  ssoProvider?: string | null;
+  joinCodeLength?: number | null;
   /**
-   * Reserved for CPP SSO integration (unique external user id).
+   * How long new join codes remain valid.
    */
-  ssoSubject?: string | null;
+  joinCodeDurationHours?: number | null;
+  joinCodeExpiresAt?: string | null;
+  joinCodeLastRotatedAt?: string | null;
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  firstName?: string | null;
+  lastName?: string | null;
+  /**
+   * Syncs with the theme toggle in the admin UI.
+   */
+  adminTheme?: ('light' | 'dark') | null;
+  /**
+   * Admins can manage users, settings, and the entire CMS. Staff can edit content only.
+   */
+  role: 'admin' | 'professor' | 'staff';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -603,20 +628,42 @@ export interface Account {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
+ * via the `definition` "classroom-memberships".
  */
-export interface User {
+export interface ClassroomMembership {
   id: number;
-  firstName?: string | null;
-  lastName?: string | null;
+  classroom: number | Classroom;
+  student: number | Account;
+  joinedAt?: string | null;
+  totalLessons?: number | null;
+  completedLessons?: number | null;
   /**
-   * Syncs with the theme toggle in the admin UI.
+   * Completed lessons divided by lessons started.
    */
-  adminTheme?: ('light' | 'dark') | null;
+  completionRate?: number | null;
+  lastActivityAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "accounts".
+ */
+export interface Account {
+  id: number;
   /**
-   * Admins can manage users, settings, and the entire CMS. Staff can edit content only.
+   * Default is student. Staff/admin can be used for special access.
    */
-  role: 'admin' | 'staff';
+  role: 'student' | 'staff' | 'admin';
+  fullName?: string | null;
+  /**
+   * Reserved for CPP SSO integration (e.g., Okta, Azure AD).
+   */
+  ssoProvider?: string | null;
+  /**
+   * Reserved for CPP SSO integration (unique external user id).
+   */
+  ssoSubject?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -795,6 +842,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'pages';
         value: number | Page;
+      } | null)
+    | ({
+        relationTo: 'classrooms';
+        value: number | Classroom;
+      } | null)
+    | ({
+        relationTo: 'classroom-memberships';
+        value: number | ClassroomMembership;
       } | null)
     | ({
         relationTo: 'accounts';
@@ -1169,6 +1224,38 @@ export interface PagesSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "classrooms_select".
+ */
+export interface ClassroomsSelect<T extends boolean = true> {
+  title?: T;
+  class?: T;
+  professor?: T;
+  joinCode?: T;
+  joinCodeLength?: T;
+  joinCodeDurationHours?: T;
+  joinCodeExpiresAt?: T;
+  joinCodeLastRotatedAt?: T;
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "classroom-memberships_select".
+ */
+export interface ClassroomMembershipsSelect<T extends boolean = true> {
+  classroom?: T;
+  student?: T;
+  joinedAt?: T;
+  totalLessons?: T;
+  completedLessons?: T;
+  completionRate?: T;
+  lastActivityAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

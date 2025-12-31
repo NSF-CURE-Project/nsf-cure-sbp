@@ -23,11 +23,18 @@ import { Notifications } from './collections/Notifications'
 import { LessonProgress } from './collections/LessonProgress'
 import { Feedback } from './collections/Feedback'
 import { LessonFeedback } from './collections/LessonFeedback'
+import { Classrooms } from './collections/Classrooms'
+import { ClassroomMemberships } from './collections/ClassroomMemberships'
 import { HomePage } from './globals/HomePage'
 import { ResourcesPage } from './globals/ResourcesPage'
 import { ContactPage } from './globals/ContactPage'
 import { GettingStarted } from './globals/GettingStarted'
 import { AdminHelp } from './globals/AdminHelp'
+import {
+  joinClassroomHandler,
+  regenerateClassroomCodeHandler,
+} from './endpoints/classroomEndpoints'
+import { previewUrlHandler } from './endpoints/previewUrl'
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
   path: '@/views/StaffDashboardView#default',
@@ -144,6 +151,8 @@ export default buildConfig({
     Chapters,
     Lessons,
     Pages,
+    Classrooms,
+    ClassroomMemberships,
     Accounts,
     Users,
     Media,
@@ -182,4 +191,26 @@ export default buildConfig({
   }),
   sharp,
   plugins: [],
+  endpoints: [
+    {
+      path: '/classrooms/join',
+      method: 'post',
+      handler: joinClassroomHandler,
+    },
+    {
+      path: '/classrooms/regenerate-code',
+      method: 'post',
+      handler: regenerateClassroomCodeHandler,
+    },
+    {
+      path: '/preview-url',
+      method: 'post',
+      handler: previewUrlHandler,
+    },
+    {
+      path: '/preview-url',
+      method: 'get',
+      handler: previewUrlHandler,
+    },
+  ],
 })

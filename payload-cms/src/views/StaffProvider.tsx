@@ -11,20 +11,38 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
   const serverUser = (props as any)?.user ?? (props as any)?.payload?.user
   const user = auth?.user ?? serverUser
   const role = user?.role
-  const [theme, setTheme] = useState<ThemeMode>('light')
-  const [breadcrumbs, setBreadcrumbs] = useState<{ label: string; href?: string }[]>([])
-  const [isLoginPage, setIsLoginPage] = useState(false)
-  const isMountedRef = useRef(true)
   const getIsLoginPath = (pathname: string) =>
     pathname.startsWith('/admin/login') ||
     pathname.startsWith('/admin/forgot-password') ||
     pathname.startsWith('/admin/reset-password')
+  const getIsHelpPath = (pathname: string) => pathname.startsWith('/admin/help')
+  const [theme, setTheme] = useState<ThemeMode>('light')
+  const [breadcrumbs, setBreadcrumbs] = useState<{ label: string; href?: string }[]>([])
+  const [isLoginPage, setIsLoginPage] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return getIsLoginPath(window.location.pathname)
+  })
+  const [previewGate, setPreviewGate] = useState<{
+    open: boolean
+    url: string | null
+    loading: boolean
+    error: string | null
+  }>({ open: false, url: null, loading: false, error: null })
+  const isMountedRef = useRef(true)
+  const pendingPublishRef = useRef<HTMLButtonElement | null>(null)
+  const allowPublishRef = useRef(false)
+  const previewRequestRef = useRef(0)
+  const isLoginPath =
+    typeof window === 'undefined' ? isLoginPage : getIsLoginPath(window.location.pathname)
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return
     const loginPage = getIsLoginPath(window.location.pathname)
     setIsLoginPage(loginPage)
     document.documentElement.setAttribute('data-admin-login', loginPage ? 'true' : 'false')
+    const helpPage = getIsHelpPath(window.location.pathname)
+    const context = loginPage ? 'login' : helpPage ? 'help' : 'app'
+    document.documentElement.setAttribute('data-admin-context', context)
 
     const applyTheme = (value: ThemeMode) => {
       setTheme(value)
@@ -133,6 +151,9 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         const loginPage = getIsLoginPath(pathname)
         setIsLoginPage(loginPage)
         document.documentElement.setAttribute('data-admin-login', loginPage ? 'true' : 'false')
+        const helpPage = getIsHelpPath(pathname)
+        const context = loginPage ? 'login' : helpPage ? 'help' : 'app'
+        document.documentElement.setAttribute('data-admin-context', context)
       }, 0)
     }
 
@@ -157,6 +178,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       window.history.replaceState = originalReplaceState
       window.removeEventListener('popstate', scheduleUpdate)
       document.documentElement.removeAttribute('data-admin-login')
+      document.documentElement.removeAttribute('data-admin-context')
     }
   }, [])
 
@@ -167,6 +189,9 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     if (!getIsLoginPath(pathname)) {
       setIsLoginPage(false)
       document.documentElement.setAttribute('data-admin-login', 'false')
+      if (!getIsHelpPath(pathname)) {
+        document.documentElement.setAttribute('data-admin-context', 'app')
+      }
     }
   }, [user?.id])
 
@@ -223,6 +248,136 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     const name = [first, last].filter(Boolean).join(' ')
     return name || (user as any)?.email || 'User'
   }, [user?.email, user?.firstName, user?.lastName])
+
+  const hideAdminThemePreference = () => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return
+    if (!window.location.pathname.startsWith('/admin/account')) return
+
+    const labels = Array.from(document.querySelectorAll('label, legend, span, h3, h4, p, div'))
+    let hidden = false
+    labels.forEach((el) => {
+      const text = el.textContent?.trim()
+      if (!text || text !== 'Admin Theme') return
+      const container = el.closest(
+        '[data-field="adminTheme"], [data-field-name="adminTheme"], .field, .field-type, .form-field, .preferences__field, .account__field, .card, .group-field, .array-field',
+      )
+      if (container instanceof HTMLElement) {
+        container.style.display = 'none'
+        hidden = true
+      } else if (el instanceof HTMLElement) {
+        el.style.display = 'none'
+        hidden = true
+      }
+    })
+
+    if (hidden) return
+
+    const themeRadios = Array.from(
+      document.querySelectorAll<HTMLInputElement>('input[type="radio"]'),
+    ).filter((input) => ['automatic', 'light', 'dark'].includes(input.value))
+    const container = themeRadios[0]?.closest(
+      '.field, .field-type, .form-field, .preferences__field, .account__field, .card, .group-field, .array-field',
+    )
+    if (container instanceof HTMLElement) {
+      container.style.display = 'none'
+    }
+  }
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return
+    hideAdminThemePreference()
+    const observer = new MutationObserver(() => hideAdminThemePreference())
+    observer.observe(document.body, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return
+
+    const getPreviewTarget = () => {
+      const path = window.location.pathname
+      const collectionMatch = path.match(/\/admin\/collections\/([^/]+)\/([^/]+)/)
+      if (collectionMatch && collectionMatch[1] && collectionMatch[2]) {
+        const collection = collectionMatch[1]
+        const id = collectionMatch[2]
+        if (id !== 'create') {
+          return { type: 'collection' as const, slug: collection, id }
+        }
+      }
+      const globalMatch = path.match(/\/admin\/globals\/([^/]+)/)
+      if (globalMatch && globalMatch[1]) {
+        const slug = globalMatch[1]
+        return { type: 'global' as const, slug }
+      }
+      return null
+    }
+
+    const isPublishButton = (button: HTMLButtonElement) => {
+      const label = button.textContent?.trim().toLowerCase() ?? ''
+      if (!label) return false
+      if (label.includes('unpublish')) return false
+      return label.includes('publish')
+    }
+
+    const onClickCapture = (event: MouseEvent) => {
+      if (allowPublishRef.current) return
+      if (previewGate.open) return
+      const target = event.target as HTMLElement | null
+      if (!target) return
+      const button = target.closest('button')
+      if (!button) return
+      if (!isPublishButton(button)) return
+      const targetInfo = getPreviewTarget()
+      if (!targetInfo) return
+
+      event.preventDefault()
+      event.stopPropagation()
+      pendingPublishRef.current = button
+      const requestId = previewRequestRef.current + 1
+      previewRequestRef.current = requestId
+      setPreviewGate({ open: true, url: null, loading: true, error: null })
+
+      const query = new URLSearchParams()
+      query.set('type', targetInfo.type)
+      query.set('slug', targetInfo.slug)
+      if (targetInfo.type === 'collection') {
+        query.set('id', targetInfo.id)
+      }
+
+      fetch(`/api/preview-url?${query.toString()}`, {
+        method: 'GET',
+        credentials: 'include',
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            const data = await res.json().catch(() => null)
+            throw new Error(data?.message ?? 'Unable to load preview URL.')
+          }
+          return res.json()
+        })
+        .then((data: { url?: string }) => {
+          if (previewRequestRef.current !== requestId) return
+          if (!data?.url) {
+            throw new Error('Preview URL is missing.')
+          }
+          setPreviewGate({ open: true, url: data.url, loading: false, error: null })
+        })
+        .catch((error) => {
+          if (previewRequestRef.current !== requestId) return
+          setPreviewGate({
+            open: true,
+            url: null,
+            loading: false,
+            error: error instanceof Error ? error.message : 'Unable to load preview URL.',
+          })
+        })
+    }
+
+    document.addEventListener('click', onClickCapture, true)
+    return () => {
+      document.removeEventListener('click', onClickCapture, true)
+    }
+  }, [previewGate.open])
 
   return (
     <>
@@ -447,6 +602,311 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         .card {
           border-color: rgba(15, 23, 42, 0.12);
           box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+        }
+
+        .collection-list {
+          background: transparent;
+          padding-top: 12px;
+        }
+
+        .collection-list__header {
+          margin-top: 14px;
+          padding: 24px 18px 16px;
+          border-radius: 16px;
+          border: 1px solid var(--admin-surface-border);
+          background: linear-gradient(135deg, rgba(15, 23, 42, 0.12), rgba(15, 23, 42, 0.04));
+          box-shadow: 0 18px 36px rgba(15, 23, 42, 0.22);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .collection-list__header::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image:
+            linear-gradient(to right, rgba(148, 163, 184, 0.18) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(148, 163, 184, 0.18) 1px, transparent 1px);
+          background-size: 140px 140px;
+          opacity: 0.16;
+          pointer-events: none;
+        }
+
+        .collection-list__header h1 {
+          font-size: 30px;
+          letter-spacing: -0.4px;
+          font-weight: 900;
+          color: var(--cpp-ink);
+          margin-top: 8px;
+        }
+
+        .collection-list__title,
+        .collection-list__header .view-title,
+        .collection-list__header-title {
+          padding-top: 8px;
+        }
+
+        .collection-list__actions .btn {
+          border-radius: 999px;
+          border: 1px solid rgba(148, 163, 184, 0.4);
+          background: var(--admin-chip-primary-bg);
+          color: var(--admin-chip-primary-text);
+          box-shadow: 0 14px 30px rgba(15, 23, 42, 0.28);
+        }
+
+        .collection-list__actions .btn--style-primary {
+          background: var(--admin-chip-primary-bg);
+          color: var(--admin-chip-primary-text);
+          border: 1px solid rgba(148, 163, 184, 0.4);
+          box-shadow: 0 14px 30px rgba(15, 23, 42, 0.28);
+        }
+
+        .collection-list__actions .btn--style-primary:hover {
+          filter: brightness(1.05);
+        }
+
+        .list-controls {
+          margin-top: 14px;
+          padding: 14px 16px;
+          border-radius: 16px;
+          background: linear-gradient(135deg, rgba(15, 23, 42, 0.18), rgba(15, 23, 42, 0.06));
+          border: 1px solid var(--admin-surface-border);
+          box-shadow: 0 18px 36px rgba(15, 23, 42, 0.22);
+        }
+
+        .list-controls__search {
+          border-radius: 999px;
+          background: rgba(15, 23, 42, 0.12);
+          border: 1px solid rgba(148, 163, 184, 0.24);
+          box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.06);
+        }
+
+        .list-controls__search input {
+          background: transparent;
+          color: var(--cpp-ink);
+        }
+
+        .list-controls__buttons .btn {
+          border-radius: 999px;
+          border: 1px solid rgba(148, 163, 184, 0.4);
+          background: rgba(15, 23, 42, 0.12);
+          color: var(--cpp-ink);
+          box-shadow: 0 10px 22px rgba(15, 23, 42, 0.2);
+        }
+
+        .list-controls__buttons .btn:hover {
+          filter: brightness(1.05);
+        }
+
+        .table {
+          margin-top: 14px;
+          background: linear-gradient(180deg, rgba(15, 23, 42, 0.04), rgba(15, 23, 42, 0.02));
+          border-radius: 18px;
+          overflow: hidden;
+          border: 1px solid var(--admin-surface-border);
+          box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+        }
+
+        .table thead th {
+          background: rgba(15, 23, 42, 0.08);
+          color: var(--cpp-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          font-size: 11px;
+        }
+
+        .table tbody tr {
+          background: transparent;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+        }
+
+        .table tbody tr:hover {
+          background: rgba(15, 23, 42, 0.08);
+        }
+
+        .table tbody td a {
+          color: var(--cpp-ink);
+          font-weight: 600;
+        }
+
+        .list-selection {
+          border-radius: 8px;
+          background: rgba(15, 23, 42, 0.14);
+          border: 1px solid var(--admin-surface-border);
+          box-shadow: 0 12px 26px rgba(15, 23, 42, 0.2);
+        }
+
+        .collection-list__no-results,
+        .list__no-results,
+        .list__no-results-message {
+          color: var(--cpp-muted);
+          font-size: 13px;
+        }
+
+        .collection-list__no-results > p,
+        .list__no-results > p {
+          display: none;
+        }
+
+        .collection-list__no-results::before,
+        .list__no-results::before {
+          content: 'No classes found. Create one below.';
+          display: block;
+          color: var(--cpp-muted);
+          font-size: 13px;
+          margin-bottom: 10px;
+        }
+
+        .collection-list__no-results .btn,
+        .list__no-results .btn,
+        .collection-list__no-results button,
+        .list__no-results button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          padding: 8px 14px;
+          min-height: 34px;
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          border-radius: 8px;
+          background: var(--admin-chip-primary-bg);
+          color: var(--admin-chip-primary-text);
+          border: 1px solid rgba(148, 163, 184, 0.35);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+
+        .collection-list__no-results .btn:hover,
+        .list__no-results .btn:hover,
+        .collection-list__no-results button:hover,
+        .list__no-results button:hover {
+          filter: brightness(1.05);
+        }
+
+        html[data-admin-context='app'] .collection-edit,
+        html[data-admin-context='app'] .global-edit,
+        html[data-admin-context='app'] .edit-view {
+          background: transparent;
+        }
+
+        html[data-admin-context='app'] .collection-edit__header,
+        html[data-admin-context='app'] .global-edit__header,
+        html[data-admin-context='app'] .edit-view__header,
+        html[data-admin-context='app'] .document-header {
+          margin-top: 12px;
+          padding: 18px 20px;
+          border-radius: 16px;
+          border: 1px solid var(--admin-surface-border);
+          background: linear-gradient(135deg, rgba(15, 23, 42, 0.16), rgba(15, 23, 42, 0.04));
+          box-shadow: 0 18px 36px rgba(15, 23, 42, 0.24);
+        }
+
+        html[data-admin-context='app'] .collection-edit__header h1,
+        html[data-admin-context='app'] .global-edit__header h1,
+        html[data-admin-context='app'] .edit-view__header h1,
+        html[data-admin-context='app'] .document-header h1 {
+          font-weight: 900;
+          letter-spacing: -0.3px;
+        }
+
+        html[data-admin-context='app'] .collection-edit__main,
+        html[data-admin-context='app'] .global-edit__main,
+        html[data-admin-context='app'] .edit-view__content {
+          background: transparent;
+        }
+
+        html[data-admin-context='app'] .document-fields,
+        html[data-admin-context='app'] .document-fields__tabs,
+        html[data-admin-context='app'] .form,
+        html[data-admin-context='app'] .drawer__content,
+        html[data-admin-context='app'] .popup,
+        html[data-admin-context='app'] .modal,
+        html[data-admin-context='app'] .card {
+          background: var(--admin-surface);
+          border: 1px solid var(--admin-surface-border);
+          border-radius: 16px;
+          box-shadow: var(--admin-shadow);
+        }
+
+        html[data-admin-context='app'] .document-fields,
+        html[data-admin-context='app'] .document-fields__tabs {
+          padding: 18px;
+        }
+
+        html[data-admin-context='app'] .tabs,
+        html[data-admin-context='app'] .tabs__list {
+          border-radius: 999px;
+          padding: 6px;
+          background: rgba(15, 23, 42, 0.08);
+          border: 1px solid rgba(148, 163, 184, 0.25);
+          box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+        }
+
+        html[data-admin-context='app'] .tabs__tab {
+          border-radius: 999px;
+          padding: 6px 14px;
+          font-weight: 700;
+          color: var(--cpp-muted);
+        }
+
+        html[data-admin-context='app'] .tabs__tab--active,
+        html[data-admin-context='app'] .tabs__tab[aria-selected='true'] {
+          background: var(--admin-chip-primary-bg);
+          color: var(--admin-chip-primary-text);
+          box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
+        }
+
+        html[data-admin-context='app'] .field-type,
+        html[data-admin-context='app'] .field-type--group,
+        html[data-admin-context='app'] .array-field,
+        html[data-admin-context='app'] .group-field {
+          background: rgba(15, 23, 42, 0.04);
+          border: 1px solid rgba(148, 163, 184, 0.2);
+          border-radius: 14px;
+          padding: 12px 14px;
+          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+        }
+
+        html[data-admin-context='app'] .array-field__header,
+        html[data-admin-context='app'] .group-field__header {
+          padding-bottom: 8px;
+          margin-bottom: 10px;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        html[data-admin-context='app'] .array-field__row {
+          background: var(--admin-surface);
+          border: 1px solid var(--admin-surface-border);
+          border-radius: 12px;
+          padding: 12px;
+          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+        }
+
+        html[data-admin-context='app'] .table [data-field='createdAt'],
+        html[data-admin-context='app'] .table [data-field='updatedAt'],
+        html[data-admin-context='app'] .table [data-field='lastModified'],
+        html[data-admin-context='app'] .table td[data-column='createdAt'],
+        html[data-admin-context='app'] .table td[data-column='updatedAt'],
+        html[data-admin-context='app'] .table td[data-column='lastModified'] {
+          font-size: 12px;
+          color: var(--cpp-muted);
+          font-weight: 600;
+          letter-spacing: 0.02em;
+        }
+
+        html[data-admin-context='app'] .document-header__meta,
+        html[data-admin-context='app'] .document-header__meta *,
+        html[data-admin-context='app'] .collection-edit__meta,
+        html[data-admin-context='app'] .collection-edit__meta *,
+        html[data-admin-context='app'] .global-edit__meta,
+        html[data-admin-context='app'] .global-edit__meta *,
+        html[data-admin-context='app'] .edit-view__meta,
+        html[data-admin-context='app'] .edit-view__meta * {
+          font-size: 12px;
+          color: var(--cpp-muted);
+          font-weight: 600;
+          letter-spacing: 0.02em;
         }
 
         :root[data-theme="dark"] .app-header,
@@ -761,6 +1221,59 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           background: var(--admin-surface-border);
           margin: 6px 4px;
         }
+
+        .admin-preview-gate {
+          position: fixed;
+          inset: 0;
+          background: rgba(2, 6, 23, 0.7);
+          backdrop-filter: blur(6px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10000;
+          padding: 24px;
+        }
+
+        .admin-preview-panel {
+          width: min(1100px, 95vw);
+          height: min(80vh, 760px);
+          background: var(--admin-surface);
+          border: 1px solid var(--admin-surface-border);
+          box-shadow: 0 30px 60px rgba(15, 23, 42, 0.45);
+          border-radius: 16px;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .admin-preview-panel header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 16px;
+          border-bottom: 1px solid var(--admin-surface-border);
+          background: var(--admin-surface-muted);
+        }
+
+        .admin-preview-panel h3 {
+          font-size: 14px;
+          font-weight: 700;
+          color: var(--cpp-ink);
+          margin: 0;
+        }
+
+        .admin-preview-panel iframe {
+          flex: 1;
+          border: none;
+          width: 100%;
+          background: var(--theme-bg);
+        }
+
+        .admin-preview-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
       `}</style>
       {role === 'staff' ? (
         <style>{`
@@ -769,7 +1282,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           }
         `}</style>
       ) : null}
-      {!isLoginPage ? (
+      {!isLoginPath ? (
         <div className="admin-topbar">
           {showBreadcrumbs ? (
             <div className="admin-topbar-center">
@@ -848,6 +1361,59 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                 </a>
               </div>
             </details>
+          </div>
+        </div>
+      ) : null}
+      {previewGate.open ? (
+        <div className="admin-preview-gate">
+          <div className="admin-preview-panel" role="dialog" aria-modal="true">
+            <header>
+              <h3>Review live preview before publishing</h3>
+              <div className="admin-preview-actions">
+                <button
+                  type="button"
+                  className="btn btn--style-secondary"
+                  onClick={() => {
+                    setPreviewGate({ open: false, url: null, loading: false, error: null })
+                    pendingPublishRef.current = null
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--style-primary"
+                  disabled={previewGate.loading || Boolean(previewGate.error)}
+                  onClick={() => {
+                    const pendingButton = pendingPublishRef.current
+                    setPreviewGate({ open: false, url: null, loading: false, error: null })
+                    pendingPublishRef.current = null
+                    if (pendingButton) {
+                      allowPublishRef.current = true
+                      pendingButton.click()
+                      window.setTimeout(() => {
+                        allowPublishRef.current = false
+                      }, 0)
+                    }
+                  }}
+                >
+                  Publish now
+                </button>
+              </div>
+            </header>
+            {previewGate.loading ? (
+              <div style={{ padding: 16, color: 'var(--cpp-muted)' }}>
+                Loading preview…
+              </div>
+            ) : previewGate.error ? (
+              <div style={{ padding: 16, color: '#dc2626' }}>{previewGate.error}</div>
+            ) : previewGate.url ? (
+              <iframe title="Live preview" src={previewGate.url} />
+            ) : (
+              <div style={{ padding: 16, color: 'var(--cpp-muted)' }}>
+                Preview unavailable.
+              </div>
+            )}
           </div>
         </div>
       ) : null}

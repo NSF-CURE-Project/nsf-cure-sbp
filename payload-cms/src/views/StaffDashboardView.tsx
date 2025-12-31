@@ -640,14 +640,17 @@ const StaffDashboardContent = ({
                 padding: 0,
               }}
             >
-              <div style={{ ...mockHeaderStyle, justifyContent: 'center' }}>
+              <div style={{ ...mockHeaderStyle, justifyContent: 'center', flexDirection: 'column', gap: 4 }}>
                 <div style={{ fontWeight: 700, color: cppInk, textAlign: 'center' }}>Analytics</div>
+                <div style={{ fontSize: 12, color: 'var(--cpp-muted)', textAlign: 'center' }}>
+                  Snapshot of student activity, content status, and progress.
+                </div>
               </div>
               <div style={analyticsRowStyle}>
-                <StatCard label="Active (7d)" value={`${stats.activeStudents}`} />
-                <StatCard label="Published" value={`${stats.publishedLessons}`} />
+                <StatCard label="Active students (7d)" value={`${stats.activeStudents}`} />
+                <StatCard label="Published lessons" value={`${stats.publishedLessons}`} />
                 <StatCard
-                  label="Avg completion"
+                  label="Avg completion rate"
                   value={
                     stats.avgCompletion != null ? `${Math.round(stats.avgCompletion * 100)}%` : '—'
                   }
@@ -819,10 +822,48 @@ const StaffDashboardContent = ({
                       <circle cx="12" cy="12" r="3" />
                       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 5 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 5 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 5a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 5a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15z" />
                     </svg>
-                    Site Settings
+                    Settings
                   </span>
                 </div>
               </a>
+            </div>
+            <div
+              style={{
+                borderRadius: 0,
+                border: '1px solid transparent',
+                background: 'var(--admin-surface)',
+                padding: '16px 18px',
+                boxShadow: 'var(--admin-shadow)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+                flexWrap: 'wrap',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cpp-ink)' }}>
+                  Classrooms
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
+                  Create join codes and track student enrollments for credit.
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <a href="/admin/collections/classrooms" style={{ textDecoration: 'none' }}>
+                  <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
+                    Manage Classrooms
+                  </div>
+                </a>
+                <a
+                  href="/admin/collections/classroom-memberships"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <div style={heroSecondaryStyle} className="dashboard-chip dashboard-chip--secondary">
+                    View Enrollments
+                  </div>
+                </a>
+              </div>
             </div>
           </div>
         </div>

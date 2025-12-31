@@ -2,7 +2,7 @@ import React from 'react'
 import { Gutter } from '@payloadcms/ui'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import { RichText } from '@payloadcms/richtext-lexical/rsc'
+import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { AdminHelp as AdminHelpType } from '@/payload-types'
 
 export default async function AdminHelpPage() {

@@ -49,6 +49,7 @@ export const Users: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description: 'Syncs with the theme toggle in the admin UI.',
+        hidden: true,
       },
     },
     {
@@ -59,6 +60,7 @@ export const Users: CollectionConfig = {
       defaultValue: 'staff',
       options: [
         { label: 'Admin', value: 'admin' },
+        { label: 'Professor', value: 'professor' },
         { label: 'Staff', value: 'staff' },
       ],
       admin: {

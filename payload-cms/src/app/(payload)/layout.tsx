@@ -23,8 +23,8 @@ const serverFunction: ServerFunctionClient = async function (args) {
   })
 }
 
-const Layout = ({ children }: Args) => {
-  const cookieStore = cookies()
+const Layout = async ({ children }: Args) => {
+  const cookieStore = await cookies()
   const storedTheme =
     cookieStore.get('payload-admin-theme')?.value ?? cookieStore.get('payload-theme')?.value
   const theme = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : undefined

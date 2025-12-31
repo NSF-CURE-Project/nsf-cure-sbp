@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 const isStaff = (req?: { user?: { collection?: string; role?: string } }) =>
-  req?.user?.collection === 'users' || ['admin', 'staff'].includes(req?.user?.role ?? '')
+  req?.user?.collection === 'users' || ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
 
 export const LessonProgress: CollectionConfig = {
   slug: 'lesson-progress',

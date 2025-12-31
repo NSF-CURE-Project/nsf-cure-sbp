@@ -30,7 +30,10 @@ export const Accounts: CollectionConfig = {
   },
   access: {
     read: ({ req, id }) =>
-      req.user?.role === 'admin' || req.user?.role === 'staff' || req.user?.id === id,
+      req.user?.role === 'admin' ||
+      req.user?.role === 'staff' ||
+      req.user?.role === 'professor' ||
+      req.user?.id === id,
     create: () => true,
     update: ({ req, id }) =>
       req.user?.role === 'admin' || req.user?.role === 'staff' || req.user?.id === id,

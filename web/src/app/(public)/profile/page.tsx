@@ -8,9 +8,20 @@ const PAYLOAD_URL =
   process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
 
 type AccountUser = {
+  id: string;
   email: string;
   fullName?: string;
   role?: string;
+};
+
+type ClassroomMembership = {
+  id: string;
+  joinedAt?: string;
+  classroom?: {
+    id?: string;
+    title?: string;
+    class?: { slug?: string; title?: string };
+  };
 };
 
 export default function ProfilePage() {
@@ -18,6 +29,10 @@ export default function ProfilePage() {
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
     "loading"
   );
+  const [classrooms, setClassrooms] = useState<ClassroomMembership[]>([]);
+  const [classroomsStatus, setClassroomsStatus] = useState<
+    "idle" | "loading" | "ready" | "error"
+  >("idle");
   const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
@@ -45,6 +60,38 @@ export default function ProfilePage() {
     loadUser();
     return () => controller.abort();
   }, []);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const controller = new AbortController();
+    const loadClassrooms = async () => {
+      setClassroomsStatus("loading");
+      try {
+        const res = await fetch(
+          `${PAYLOAD_URL}/api/classroom-memberships?where[student][equals]=${user.id}&depth=2`,
+          {
+            credentials: "include",
+            signal: controller.signal,
+          }
+        );
+        if (!res.ok) {
+          setClassrooms([]);
+          setClassroomsStatus("error");
+          return;
+        }
+        const data = (await res.json()) as { docs?: ClassroomMembership[] };
+        setClassrooms(data.docs ?? []);
+        setClassroomsStatus("ready");
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setClassrooms([]);
+          setClassroomsStatus("error");
+        }
+      }
+    };
+    loadClassrooms();
+    return () => controller.abort();
+  }, [user?.id]);
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -122,6 +169,90 @@ export default function ProfilePage() {
                   <span className="text-foreground capitalize">
                     {user.role}
                   </span>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {status === "ready" && user ? (
+            <div className="rounded-md border border-border/60 bg-background/80 p-6 text-sm space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Joined classrooms
+                  </span>
+                  <p className="text-sm text-muted-foreground">
+                    Your enrollments and credit-tracked classrooms.
+                  </p>
+                </div>
+                <Link
+                  href="/join-classroom"
+                  className="text-xs font-semibold text-primary underline underline-offset-4"
+                >
+                  Join a classroom
+                </Link>
+              </div>
+
+              {classroomsStatus === "loading" ? (
+                <div className="rounded-md border border-border/60 bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
+                  Loading classrooms...
+                </div>
+              ) : null}
+
+              {classroomsStatus === "error" ? (
+                <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+                  We could not load your classrooms.
+                </div>
+              ) : null}
+
+              {classroomsStatus === "ready" && classrooms.length === 0 ? (
+                <div className="rounded-md border border-border/60 bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
+                  You have not joined any classrooms yet.
+                </div>
+              ) : null}
+
+              {classroomsStatus === "ready" && classrooms.length > 0 ? (
+                <div className="grid gap-3">
+                  {classrooms.map((membership) => {
+                    const classroomTitle =
+                      membership.classroom?.title ?? "Classroom";
+                    const classTitle = membership.classroom?.class?.title;
+                    const classSlug = membership.classroom?.class?.slug;
+                    const joinedAt = membership.joinedAt
+                      ? new Date(membership.joinedAt).toLocaleDateString()
+                      : null;
+
+                    return (
+                      <div
+                        key={membership.id}
+                        className="flex flex-col gap-1 rounded-md border border-border/60 bg-background px-4 py-3"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="text-sm font-semibold text-foreground">
+                            {classroomTitle}
+                          </div>
+                          {joinedAt ? (
+                            <div className="text-xs text-muted-foreground">
+                              Joined {joinedAt}
+                            </div>
+                          ) : null}
+                        </div>
+                        {classTitle ? (
+                          <div className="text-xs text-muted-foreground">
+                            Class: {classTitle}
+                          </div>
+                        ) : null}
+                        {classSlug ? (
+                          <Link
+                            href={`/classes/${classSlug}`}
+                            className="text-xs font-semibold text-primary underline underline-offset-4"
+                          >
+                            Go to class
+                          </Link>
+                        ) : null}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : null}
             </div>
