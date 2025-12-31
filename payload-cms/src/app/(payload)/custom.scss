@@ -93,6 +93,91 @@ html[data-admin-login='true'] {
   --theme-error-600: #b42318;
 }
 
+html[data-admin-login='true'] body {
+  background: radial-gradient(circle at top, #ffffff 0%, #eef2f7 40%, #e7ebf2 100%);
+}
+
+html[data-admin-login='true'] .template-default {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 24px;
+  flex-direction: column;
+  gap: 20px;
+}
+
+html[data-admin-login='true'] .admin-login-logo {
+  display: flex;
+  justify-content: center;
+  width: min(440px, 100%);
+  margin: 0 auto;
+}
+
+html[data-admin-login='true'] .admin-login-logo img {
+  width: min(320px, 70vw);
+  height: auto;
+}
+
+html[data-admin-login='true'] form {
+  width: min(440px, 100%);
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  padding: 30px 30px 26px;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.16);
+  backdrop-filter: blur(8px);
+  margin: 0 auto;
+}
+
+html[data-admin-login='true'] label {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+html[data-admin-login='true'] input,
+html[data-admin-login='true'] textarea,
+html[data-admin-login='true'] select {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid #d6dbe6;
+  padding: 12px 14px;
+  background: #f7f9fc;
+  color: #0f172a;
+}
+
+html[data-admin-login='true'] input:focus,
+html[data-admin-login='true'] textarea:focus,
+html[data-admin-login='true'] select:focus {
+  border-color: #0f3d2e;
+  box-shadow: 0 0 0 3px rgba(15, 61, 46, 0.15);
+}
+
+html[data-admin-login='true'] button[type='submit'] {
+  width: 100%;
+  border-radius: 999px;
+  background: #0f3d2e;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 12px 16px;
+  border: none;
+  box-shadow: 0 14px 28px rgba(15, 61, 46, 0.28);
+}
+
+html[data-admin-login='true'] button[type='submit']:hover {
+  background: #0a2b20;
+}
+
+html[data-admin-login='true'] a {
+  color: #0f3d2e;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+html[data-admin-login='true'] a:hover {
+  text-decoration: underline;
+}
+
 body {
   background: var(--theme-bg);
   color: var(--theme-text);
@@ -117,33 +202,34 @@ body {
   --hover-bg: #f0a800;
 }
 
-/* Hide admin sidebar globally */
-.nav,
-.nav--collapsed,
-.nav--closed {
+/* Hide admin sidebar only in the authenticated app shell. */
+html[data-admin-context='app'] .nav,
+html[data-admin-context='app'] .nav--collapsed,
+html[data-admin-context='app'] .nav--closed {
   display: none !important;
   width: 0 !important;
 }
 
-.nav-toggler,
-.nav-toggle,
-.nav__toggle {
+html[data-admin-context='app'] .nav-toggler,
+html[data-admin-context='app'] .nav-toggle,
+html[data-admin-context='app'] .nav__toggle,
+html[data-admin-context='app'] [data-element='nav-toggle'] {
   display: none !important;
 }
 
-.template,
-.template__body,
-.template__content {
+html[data-admin-context='app'] .template,
+html[data-admin-context='app'] .template__body,
+html[data-admin-context='app'] .template__content {
   margin-left: 0 !important;
   padding-left: 0 !important;
 }
 
-.template-default--nav-hydrated aside.nav,
-#nav-toggler {
+html[data-admin-context='app'] .template-default--nav-hydrated aside.nav,
+html[data-admin-context='app'] #nav-toggler {
   display: none !important;
 }
 
-.template-default {
+html[data-admin-context='app'] .template-default {
   display: inherit !important;
   grid-template-columns: 0 auto !important;
 }

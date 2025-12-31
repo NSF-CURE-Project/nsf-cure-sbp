@@ -1,0 +1,4 @@
+.env*
+
+# Mac OS Junk
+.DS_Store
