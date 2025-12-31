@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 const PAYLOAD_URL =
   process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
 
@@ -114,12 +117,12 @@ export default function JoinClassroomPage() {
             <label className="block text-sm font-semibold text-foreground">
               Classroom code
             </label>
-            <input
+            <Input
               type="text"
               name="code"
               value={code}
               onChange={(event) => setCode(event.target.value.toUpperCase())}
-              className="mt-2 w-full rounded-md border border-border/70 bg-background px-4 py-3 text-sm tracking-[0.3em] font-semibold uppercase shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              className="mt-2 text-center tracking-[0.3em] font-semibold uppercase"
               placeholder="ABC123"
               required
             />
@@ -150,13 +153,13 @@ export default function JoinClassroomPage() {
             </div>
           ) : null}
 
-          <button
+          <Button
             type="submit"
             disabled={status === "loading"}
-            className="w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full"
           >
             {status === "loading" ? "Joining..." : "Join Classroom"}
-          </button>
+          </Button>
 
           {classLink ? (
             <Link

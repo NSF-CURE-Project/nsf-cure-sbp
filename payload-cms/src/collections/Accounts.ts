@@ -8,6 +8,40 @@ export const Accounts: CollectionConfig = {
     group: 'Students',
   },
   hooks: {
+    afterChange: [
+      async ({ doc, operation, req }) => {
+        if (operation !== 'create') return doc
+        if (!req?.payload?.sendEmail || !doc?.email) return doc
+
+        const { buildEmailConfirmation } = await import('../utils/emailConfirmation')
+        const { confirmUrl, expiresAt, tokenHash } = buildEmailConfirmation()
+
+        await req.payload.update({
+          collection: 'accounts',
+          id: doc.id,
+          data: {
+            emailVerificationTokenHash: tokenHash,
+            emailVerificationExpiresAt: expiresAt,
+            emailVerified: false,
+            emailVerifiedAt: null,
+          },
+          overrideAccess: true,
+        })
+
+        await req.payload.sendEmail({
+          to: doc.email,
+          subject: 'Confirm your NSF CURE account email',
+          text: `Confirm your email address by visiting ${confirmUrl}. This link expires in 24 hours.`,
+          html: `
+            <p>Confirm your email address by clicking the link below:</p>
+            <p><a href="${confirmUrl}">Confirm email address</a></p>
+            <p>This link expires in 24 hours.</p>
+          `,
+        })
+
+        return doc
+      },
+    ],
     beforeOperation: [
       async ({ args, operation, req }) => {
         if (operation === 'forgotPassword' && req?.payload?.config?.email) {
@@ -40,6 +74,41 @@ export const Accounts: CollectionConfig = {
     delete: ({ req }) => req.user?.role === 'admin',
   },
   fields: [
+    {
+      name: 'emailVerified',
+      label: 'Email verified',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'emailVerifiedAt',
+      label: 'Email verified at',
+      type: 'date',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'emailVerificationTokenHash',
+      label: 'Email verification token hash',
+      type: 'text',
+      admin: {
+        hidden: true,
+      },
+    },
+    {
+      name: 'emailVerificationExpiresAt',
+      label: 'Email verification expires at',
+      type: 'date',
+      admin: {
+        hidden: true,
+      },
+    },
     {
       name: 'role',
       type: 'select',

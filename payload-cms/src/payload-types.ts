@@ -651,6 +651,10 @@ export interface ClassroomMembership {
  */
 export interface Account {
   id: number;
+  emailVerified?: boolean | null;
+  emailVerifiedAt?: string | null;
+  emailVerificationTokenHash?: string | null;
+  emailVerificationExpiresAt?: string | null;
   /**
    * Default is student. Staff/admin can be used for special access.
    */
@@ -1262,6 +1266,10 @@ export interface ClassroomMembershipsSelect<T extends boolean = true> {
  * via the `definition` "accounts_select".
  */
 export interface AccountsSelect<T extends boolean = true> {
+  emailVerified?: T;
+  emailVerifiedAt?: T;
+  emailVerificationTokenHash?: T;
+  emailVerificationExpiresAt?: T;
   role?: T;
   fullName?: T;
   ssoProvider?: T;

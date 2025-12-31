@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const siteName = "NSF CURE SBP";
+export const siteName = "NSF CURE Summer Bridge Program";
 export const defaultDescription =
   "NSF CURE Summer Bridge Program helps engineering students build a strong foundation in Statics and Mechanics of Materials.";
 export const siteUrl =

@@ -4,6 +4,9 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 const PAYLOAD_URL =
   process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
 
@@ -124,22 +127,22 @@ export default function SettingsPage() {
                 <label className="block text-sm font-semibold text-foreground">
                   Email
                 </label>
-                <input
+                <Input
                   type="email"
                   value={user.email}
                   disabled
-                  className="mt-2 w-full rounded-md border border-border/70 bg-muted/40 px-4 py-3 text-sm text-muted-foreground"
+                  className="mt-2 bg-muted/40 text-muted-foreground"
                 />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-foreground">
                   Display name
                 </label>
-                <input
+                <Input
                   type="text"
                   value={fullName}
                   onChange={(event) => setFullName(event.target.value)}
-                  className="mt-2 w-full rounded-md border border-border/70 bg-background px-4 py-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                  className="mt-2"
                   placeholder="Your name"
                 />
               </div>
@@ -157,13 +160,13 @@ export default function SettingsPage() {
               ) : null}
 
               <div className="flex items-center gap-3">
-                <button
+                <Button
                   type="submit"
                   disabled={saving}
-                  className="rounded-md border border-border/70 bg-muted/40 px-5 py-2 text-sm font-semibold text-foreground shadow-sm transition hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-60"
+                  variant="outline"
                 >
                   {saving ? "Saving..." : "Save changes"}
-                </button>
+                </Button>
                 <Link
                   href="/profile"
                   className="inline-flex items-center gap-2 rounded-md border border-border/50 bg-transparent px-4 py-2 text-sm font-semibold text-foreground/80 transition hover:border-border hover:bg-muted/30 hover:text-foreground"

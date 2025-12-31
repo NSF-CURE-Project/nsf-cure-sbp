@@ -1,6 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const PAYLOAD_URL =
   process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
@@ -37,8 +41,9 @@ export function RegisterForm() {
       }
 
       setStatus("success");
-      setMessage("Account created. You can now sign in.");
-      window.location.href = "/login";
+      setMessage(
+        "Account created. Check your email for a confirmation link before signing in."
+      );
     } catch (error) {
       setStatus("error");
       setMessage(
@@ -53,13 +58,13 @@ export function RegisterForm() {
         <label className="block text-sm font-semibold text-foreground">
           Full name
         </label>
-        <input
+        <Input
           type="text"
           name="fullName"
           autoComplete="name"
           value={fullName}
           onChange={(event) => setFullName(event.target.value)}
-          className="mt-2 w-full rounded-md border border-border/70 bg-background px-4 py-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          className="mt-2"
           placeholder="Jane Doe"
         />
       </div>
@@ -67,14 +72,14 @@ export function RegisterForm() {
         <label className="block text-sm font-semibold text-foreground">
           Email
         </label>
-        <input
+        <Input
           type="email"
           name="email"
           autoComplete="email"
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="mt-2 w-full rounded-md border border-border/70 bg-background px-4 py-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          className="mt-2"
           placeholder="student@cpp.edu"
         />
       </div>
@@ -82,14 +87,14 @@ export function RegisterForm() {
         <label className="block text-sm font-semibold text-foreground">
           Password
         </label>
-        <input
+        <Input
           type="password"
           name="password"
           autoComplete="new-password"
           required
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="mt-2 w-full rounded-md border border-border/70 bg-background px-4 py-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          className="mt-2"
           placeholder="Create a password"
         />
       </div>
@@ -106,13 +111,19 @@ export function RegisterForm() {
         </div>
       ) : null}
 
-      <button
-        type="submit"
-        disabled={status === "loading"}
-        className="w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {status === "loading" ? "Creating account..." : "Create account"}
-      </button>
+      {status !== "success" ? (
+        <Button
+          type="submit"
+          disabled={status === "loading"}
+          className="w-full"
+        >
+          {status === "loading" ? "Creating account..." : "Create account"}
+        </Button>
+      ) : (
+        <Button asChild className="w-full">
+          <Link href="/login">Go to sign in</Link>
+        </Button>
+      )}
     </form>
   );
 }

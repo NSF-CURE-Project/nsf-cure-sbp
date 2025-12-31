@@ -10,6 +10,8 @@ import type {
   PageLayoutBlock,
 } from "@/lib/payloadSdk/types";
 import { buildMetadata } from "@/lib/seo";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -70,18 +72,18 @@ export default async function SearchPage({
         action="/search"
         className="flex flex-col gap-3 sm:flex-row sm:items-center"
       >
-        <input
+        <Input
           name="q"
           defaultValue={query ?? ""}
           placeholder="Search titles, chapters, or lessons..."
-          className="w-full rounded-lg border border-border bg-background px-4 py-3 text-base shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          className="w-full text-base"
         />
-        <button
+        <Button
           type="submit"
-          className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow transition hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className="h-11 px-5"
         >
           Search
-        </button>
+        </Button>
       </form>
 
       {!term ? (

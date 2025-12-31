@@ -375,85 +375,6 @@ export default function Navbar() {
           </span>
         </button>
         {user ? (
-          <DropdownMenu
-            open={notificationsOpen}
-            onOpenChange={setNotificationsOpen}
-          >
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-muted/40 text-foreground shadow-sm transition hover:bg-muted/60"
-                aria-label="Open notifications"
-              >
-                <Bell className="h-4 w-4" />
-                {unreadCount > 0 ? (
-                  <span className="absolute -right-1 -top-1 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">
-                    {unreadCount}
-                  </span>
-                ) : null}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              side="bottom"
-              align="end"
-              sideOffset={12}
-              className="z-[9999] w-80 bg-background shadow-xl"
-            >
-              <div className="flex items-center justify-between px-3 py-2">
-                <span className="text-sm font-semibold">Notifications</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleMarkAllRead}
-                  disabled={unreadCount === 0}
-                >
-                  Mark all read
-                </Button>
-              </div>
-              <DropdownMenuSeparator />
-              <div className="max-h-80 overflow-auto">
-                {notificationsBusy ? (
-                  <div className="px-3 py-3 text-sm text-muted-foreground">
-                    Loading notifications...
-                  </div>
-                ) : null}
-                {!notificationsBusy && notifications.length === 0 ? (
-                  <div className="px-3 py-3 text-sm text-muted-foreground">
-                    No notifications yet.
-                  </div>
-                ) : null}
-                {notifications.map((notification) => (
-                  <DropdownMenuItem
-                    key={notification.id}
-                    className="flex cursor-pointer flex-col items-start gap-1 py-2"
-                    onClick={() => handleNotificationRead(notification.id)}
-                  >
-                    <div className="flex w-full items-center justify-between gap-2">
-                      <span className="text-sm font-medium text-foreground">
-                        {notification.title}
-                      </span>
-                      {!notification.read ? (
-                        <span className="h-2 w-2 rounded-full bg-primary" />
-                      ) : null}
-                    </div>
-                    {notification.body ? (
-                      <span className="text-xs text-muted-foreground">
-                        {notification.body}
-                      </span>
-                    ) : null}
-                    {notification.createdAt ? (
-                      <span className="text-[11px] text-muted-foreground">
-                        {formatNotificationDate(notification.createdAt)}
-                      </span>
-                    ) : null}
-                  </DropdownMenuItem>
-                ))}
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : null}
-        {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -534,6 +455,85 @@ export default function Navbar() {
             </Link>
           </>
         )}
+        {user ? (
+          <DropdownMenu
+            open={notificationsOpen}
+            onOpenChange={setNotificationsOpen}
+          >
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-muted/40 text-foreground shadow-sm transition hover:bg-muted/60"
+                aria-label="Open notifications"
+              >
+                <Bell className="h-4 w-4" />
+                {unreadCount > 0 ? (
+                  <span className="absolute -right-1 -top-1 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">
+                    {unreadCount}
+                  </span>
+                ) : null}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              side="bottom"
+              align="end"
+              sideOffset={12}
+              className="z-[9999] w-80 bg-background shadow-xl"
+            >
+              <div className="flex items-center justify-between px-3 py-2">
+                <span className="text-sm font-semibold">Notifications</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleMarkAllRead}
+                  disabled={unreadCount === 0}
+                >
+                  Mark all read
+                </Button>
+              </div>
+              <DropdownMenuSeparator />
+              <div className="max-h-80 overflow-auto">
+                {notificationsBusy ? (
+                  <div className="px-3 py-3 text-sm text-muted-foreground">
+                    Loading notifications...
+                  </div>
+                ) : null}
+                {!notificationsBusy && notifications.length === 0 ? (
+                  <div className="px-3 py-3 text-sm text-muted-foreground">
+                    No notifications yet.
+                  </div>
+                ) : null}
+                {notifications.map((notification) => (
+                  <DropdownMenuItem
+                    key={notification.id}
+                    className="flex cursor-pointer flex-col items-start gap-1 py-2"
+                    onClick={() => handleNotificationRead(notification.id)}
+                  >
+                    <div className="flex w-full items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-foreground">
+                        {notification.title}
+                      </span>
+                      {!notification.read ? (
+                        <span className="h-2 w-2 rounded-full bg-primary" />
+                      ) : null}
+                    </div>
+                    {notification.body ? (
+                      <span className="text-xs text-muted-foreground">
+                        {notification.body}
+                      </span>
+                    ) : null}
+                    {notification.createdAt ? (
+                      <span className="text-[11px] text-muted-foreground">
+                        {formatNotificationDate(notification.createdAt)}
+                      </span>
+                    ) : null}
+                  </DropdownMenuItem>
+                ))}
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
 
         {/* Mobile menu */}
         <Sheet>
@@ -662,12 +662,12 @@ export default function Navbar() {
             <div className="flex items-center gap-2 border-b border-border/60 px-4 py-3">
               <Search className="h-4 w-4 text-muted-foreground" />
               <form className="flex-1" onSubmit={handleSearchSubmit}>
-                <input
+                <Input
                   ref={searchInputRef}
                   value={searchValue}
                   onChange={(event) => setSearchValue(event.target.value)}
                   placeholder="What are you searching for?"
-                  className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                  className="w-full border-border/60 bg-muted/20 px-3 text-sm shadow-sm"
                 />
               </form>
               <button

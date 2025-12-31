@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 const PAYLOAD_URL =
   process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
 
@@ -47,14 +50,14 @@ export function ResetPasswordForm({ token }: { token: string }) {
         <label className="block text-sm font-semibold text-foreground">
           New password
         </label>
-        <input
+        <Input
           type="password"
           name="password"
           autoComplete="new-password"
           required
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="mt-2 w-full rounded-md border border-border/70 bg-background px-4 py-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          className="mt-2"
           placeholder="Enter a new password"
         />
       </div>
@@ -71,13 +74,13 @@ export function ResetPasswordForm({ token }: { token: string }) {
         </div>
       ) : null}
 
-      <button
+      <Button
         type="submit"
         disabled={status === "loading"}
-        className="w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full"
       >
         {status === "loading" ? "Updating..." : "Reset password"}
-      </button>
+      </Button>
     </form>
   );
 }
