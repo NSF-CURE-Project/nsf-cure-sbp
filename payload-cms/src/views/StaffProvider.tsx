@@ -1274,6 +1274,15 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           align-items: center;
           gap: 8px;
         }
+
+        .admin-global-footer {
+          text-align: center;
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--cpp-muted);
+          letter-spacing: 0.02em;
+          margin: 32px 0 24px;
+        }
       `}</style>
       {role === 'staff' ? (
         <style>{`
@@ -1418,6 +1427,9 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         </div>
       ) : null}
       {props.children}
+      <footer className="admin-global-footer">
+        © 2025 Cal Poly Pomona Engineering — NSF CURE Summer Bridge Program
+      </footer>
     </>
   )
 }

@@ -4,28 +4,24 @@ import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import AppSidebar from "@/components/admin-panel/sidebar";
-import { MobileSidebar } from "@/components/admin-panel/mobile-sidebar";
 import Footer from "@/components/Footer";
 import { isAuthRoute, shouldHideSidebar } from "@/lib/routes/authRoutes";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { useStore } from "@/hooks/use-store";
 import { cn } from "@/lib/utils";
 
-type SidebarLesson = { title: string; slug: string };
-type SidebarModule = { title: string; slug: string; lessons: SidebarLesson[] };
-type SidebarClass = { title: string; slug: string; modules: SidebarModule[] };
-
 type PublicLayoutShellProps = {
   children: React.ReactNode;
   defaultOpen: boolean;
-  sidebarClasses: SidebarClass[];
+  sidebarSlot?: React.ReactNode;
+  mobileSidebarSlot?: React.ReactNode;
 };
 
 export default function PublicLayoutShell({
   children,
   defaultOpen,
-  sidebarClasses,
+  sidebarSlot,
+  mobileSidebarSlot,
 }: PublicLayoutShellProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -91,7 +87,7 @@ export default function PublicLayoutShell({
                 : "lg:fixed lg:left-0 lg:top-[var(--nav-h,4rem)] lg:h-[calc(100dvh-var(--nav-h,4rem))] lg:w-14 lg:z-30"
             )}
           >
-            <AppSidebar classes={sidebarClasses} />
+            {sidebarSlot}
           </div>
 
           <SidebarInset
@@ -107,7 +103,7 @@ export default function PublicLayoutShell({
             >
               <main className="min-w-0 px-4 pt-3 pb-4 sm:px-6 sm:pt-4 sm:pb-6 lg:px-8 flex-1">
                 <div className="lg:hidden mb-4 flex items-center justify-between gap-3">
-                  <MobileSidebar classes={sidebarClasses} />
+                  {mobileSidebarSlot}
                   <span className="text-xs text-muted-foreground">
                     Tap to browse classes and lessons
                   </span>
