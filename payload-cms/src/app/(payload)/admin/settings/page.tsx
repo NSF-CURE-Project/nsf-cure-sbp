@@ -42,53 +42,49 @@ export default function AdminSettingsPage() {
       <div style={{ maxWidth: 960, margin: '24px auto 80px' }}>
         <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--cpp-ink)' }}>Settings</div>
         <p style={{ marginTop: 8, color: 'var(--cpp-muted)', maxWidth: 560 }}>
-          Manage global navigation, header/footer content, and high-level pages for the NSF CURE
-          admin experience.
+          Manage navigation order, page content, and admin guidance for the NSF CURE admin
+          experience.
         </p>
 
-        <div style={sectionTitleStyle}>Navigation order</div>
+        <div style={sectionTitleStyle}>Header & Footer</div>
         <div style={{ ...cardStyle, marginTop: 12 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cpp-ink)' }}>
-            Navigation bar pages
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+            }}
+          >
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cpp-ink)' }}>
+              Navigation Pages
+            </div>
+            <a
+              href="/admin/collections/pages/create"
+              style={{
+                padding: '6px 12px',
+                borderRadius: 8,
+                border: '1px solid var(--admin-surface-border)',
+                background: 'var(--admin-chip-bg)',
+                color: 'var(--cpp-ink)',
+                textDecoration: 'none',
+                fontWeight: 600,
+                fontSize: 12,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Create page
+            </a>
           </div>
-          <p style={{ marginTop: 6, fontSize: 13, color: 'var(--cpp-muted)' }}>
-            Drag to reorder how pages appear in the main site navigation.
-          </p>
+          <div style={{ marginTop: 6, fontSize: 12, color: 'var(--cpp-muted)' }}>
+            Drag to reorder navigation pages.
+          </div>
           <div style={{ marginTop: 12 }}>
-            <PageOrderList title={null} showEditLinks compact showHint />
+            <PageOrderList title={null} showEditLinks compact showHint={false} />
           </div>
         </div>
 
-        <div style={sectionTitleStyle}>Header & footer</div>
-        <div
-          style={{
-            marginTop: 12,
-            display: 'grid',
-            gap: 12,
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          }}
-        >
-          <a href="/admin/collections/pages" style={linkCardStyle}>
-            <div style={{ fontWeight: 700 }}>Header navigation pages</div>
-            <div style={linkDescriptionStyle}>
-              Manage titles, slugs, and visibility for pages that appear in the header.
-            </div>
-          </a>
-          <a href="/admin/globals/contact-page" style={linkCardStyle}>
-            <div style={{ fontWeight: 700 }}>Footer contact content</div>
-            <div style={linkDescriptionStyle}>
-              Update address, email, and other footer contact details.
-            </div>
-          </a>
-          <a href="/admin/globals/resources-page" style={linkCardStyle}>
-            <div style={{ fontWeight: 700 }}>Footer resources</div>
-            <div style={linkDescriptionStyle}>
-              Curate resource links shown in the footer and resources page.
-            </div>
-          </a>
-        </div>
-
-        <div style={sectionTitleStyle}>Global pages</div>
+        <div style={sectionTitleStyle}>Admin</div>
         <div
           style={{
             marginTop: 12,
@@ -97,17 +93,11 @@ export default function AdminSettingsPage() {
             gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
           }}
         >
-          <a href="/admin/globals/home-page" style={linkCardStyle}>
-            <div style={{ fontWeight: 700 }}>Home page</div>
-            <div style={linkDescriptionStyle}>Edit the primary landing page content.</div>
-          </a>
-          <a href="/admin/globals/getting-started" style={linkCardStyle}>
-            <div style={{ fontWeight: 700 }}>Getting started</div>
-            <div style={linkDescriptionStyle}>Manage onboarding steps and resources.</div>
-          </a>
-          <a href="/admin/globals/resources-page" style={linkCardStyle}>
-            <div style={{ fontWeight: 700 }}>Resources page</div>
-            <div style={linkDescriptionStyle}>Organize support materials and links.</div>
+          <a href="/admin/globals/admin-help" style={linkCardStyle}>
+            <div style={{ fontWeight: 700 }}>Admin help</div>
+            <div style={linkDescriptionStyle}>
+              Update guidance and onboarding content for staff.
+            </div>
           </a>
         </div>
       </div>

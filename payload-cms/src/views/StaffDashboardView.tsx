@@ -978,17 +978,6 @@ const StaffDashboardContent = ({
           </div>
         </div>
 
-        <div
-          style={{
-            marginTop: 16,
-            fontSize: 12,
-            color: 'var(--cpp-muted)',
-            textAlign: 'center',
-            width: '100%',
-          }}
-        >
-          © 2025 Cal Poly Pomona Engineering — NSF CURE Summer Bridge Program
-        </div>
       </div>
     </div>
   </Gutter>

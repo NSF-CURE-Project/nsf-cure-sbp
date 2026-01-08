@@ -25,10 +25,6 @@ import { Feedback } from './collections/Feedback'
 import { LessonFeedback } from './collections/LessonFeedback'
 import { Classrooms } from './collections/Classrooms'
 import { ClassroomMemberships } from './collections/ClassroomMemberships'
-import { HomePage } from './globals/HomePage'
-import { ResourcesPage } from './globals/ResourcesPage'
-import { ContactPage } from './globals/ContactPage'
-import { GettingStarted } from './globals/GettingStarted'
 import { AdminHelp } from './globals/AdminHelp'
 import {
   joinClassroomHandler,
@@ -164,7 +160,7 @@ export default buildConfig({
     Feedback,
     LessonFeedback,
   ],
-  globals: [HomePage, ResourcesPage, ContactPage, GettingStarted, AdminHelp],
+  globals: [AdminHelp],
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [
       ...defaultFeatures,

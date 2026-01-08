@@ -1,9 +1,6 @@
 import { draftMode } from "next/headers";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
-import {
-  getContactPage,
-  type ContactPageData,
-} from "@/lib/payloadSdk/contacts";
+import { getPageBySlug, type PageDoc } from "@/lib/payloadSdk/pages";
 import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -17,15 +14,15 @@ export const metadata = buildMetadata({
 
 export default async function ContactUsPage() {
   const { isEnabled: isPreview } = await draftMode();
-  const data: ContactPageData | null = await getContactPage({
+  const page: PageDoc | null = await getPageBySlug("contact-us", {
     draft: isPreview,
   }).catch(() => null);
 
   return (
     <main className="max-w-6xl mx-auto pt-6 pb-10 px-6">
       <LivePreviewBlocks
-        initialData={data}
-        globalSlug="contact-page"
+        initialData={page}
+        collectionSlug="pages"
         className="space-y-10"
         emptyMessage="No contact information available."
       />

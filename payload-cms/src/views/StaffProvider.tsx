@@ -319,6 +319,29 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       return label.includes('publish')
     }
 
+    const findDraftButton = () => {
+      const buttons = Array.from(document.querySelectorAll('button'))
+      return buttons.find((btn) => {
+        const label = btn.textContent?.trim().toLowerCase() ?? ''
+        return label.includes('save draft')
+      }) as HTMLButtonElement | undefined
+    }
+
+    const waitForDraftSave = async () => {
+      const draftButton = findDraftButton()
+      if (!draftButton || draftButton.disabled) return
+      draftButton.click()
+
+      const start = Date.now()
+      while (Date.now() - start < 4000) {
+        await new Promise((resolve) => window.setTimeout(resolve, 120))
+        const current = findDraftButton()
+        if (!current) break
+        const label = current.textContent?.trim().toLowerCase() ?? ''
+        if (!current.disabled && !label.includes('saving')) break
+      }
+    }
+
     const onClickCapture = (event: MouseEvent) => {
       if (allowPublishRef.current) return
       if (previewGate.open) return
@@ -333,44 +356,51 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       event.preventDefault()
       event.stopPropagation()
       pendingPublishRef.current = button
+
       const requestId = previewRequestRef.current + 1
       previewRequestRef.current = requestId
       setPreviewGate({ open: true, url: null, loading: true, error: null })
 
-      const query = new URLSearchParams()
-      query.set('type', targetInfo.type)
-      query.set('slug', targetInfo.slug)
-      if (targetInfo.type === 'collection') {
-        query.set('id', targetInfo.id)
+      const runPreview = async () => {
+        await waitForDraftSave()
+
+        const query = new URLSearchParams()
+        query.set('type', targetInfo.type)
+        query.set('slug', targetInfo.slug)
+        if (targetInfo.type === 'collection') {
+          query.set('id', targetInfo.id)
+        }
+
+        return fetch(`/api/preview-url?${query.toString()}`, {
+          method: 'GET',
+          credentials: 'include',
+        })
+          .then(async (res) => {
+            if (!res.ok) {
+              const data = await res.json().catch(() => null)
+              throw new Error(data?.message ?? 'Unable to load preview URL.')
+            }
+            return res.json()
+          })
+          .then((data: { url?: string }) => {
+            if (previewRequestRef.current !== requestId) return
+            if (!data?.url) {
+              throw new Error('Preview URL is missing.')
+            }
+            setPreviewGate({ open: true, url: data.url, loading: false, error: null })
+          })
+          .catch((error) => {
+            if (previewRequestRef.current !== requestId) return
+            setPreviewGate({
+              open: true,
+              url: null,
+              loading: false,
+              error: error instanceof Error ? error.message : 'Unable to load preview URL.',
+            })
+          })
       }
 
-      fetch(`/api/preview-url?${query.toString()}`, {
-        method: 'GET',
-        credentials: 'include',
-      })
-        .then(async (res) => {
-          if (!res.ok) {
-            const data = await res.json().catch(() => null)
-            throw new Error(data?.message ?? 'Unable to load preview URL.')
-          }
-          return res.json()
-        })
-        .then((data: { url?: string }) => {
-          if (previewRequestRef.current !== requestId) return
-          if (!data?.url) {
-            throw new Error('Preview URL is missing.')
-          }
-          setPreviewGate({ open: true, url: data.url, loading: false, error: null })
-        })
-        .catch((error) => {
-          if (previewRequestRef.current !== requestId) return
-          setPreviewGate({
-            open: true,
-            url: null,
-            loading: false,
-            error: error instanceof Error ? error.message : 'Unable to load preview URL.',
-          })
-        })
+      void runPreview()
     }
 
     document.addEventListener('click', onClickCapture, true)
@@ -1081,15 +1111,13 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           border-color: var(--admin-surface-border);
         }
 
-        .collection-edit--lessons .collection-edit__main-wrapper,
-        .collection-edit--pages .collection-edit__main-wrapper {
+        .collection-edit--lessons .collection-edit__main-wrapper {
           display: flex;
           flex-direction: column;
           gap: 24px;
         }
 
-        .collection-edit--lessons .live-preview-window,
-        .collection-edit--pages .live-preview-window {
+        .collection-edit--lessons .live-preview-window {
           order: -1;
           width: 100%;
           height: 70vh;
@@ -1097,12 +1125,22 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           top: 0;
         }
 
-        .collection-edit--lessons .live-preview-window__wrapper,
-        .collection-edit--pages .live-preview-window__wrapper {
+        .collection-edit--lessons .live-preview-window__wrapper {
           height: 100%;
         }
 
-        .collection-edit--lessons .collection-edit__main,
+        .collection-edit--lessons .collection-edit__main {
+          width: 100%;
+        }
+
+        .collection-edit--pages .document-fields__sidebar-wrap,
+        .collection-edit--pages .document-fields__sidebar,
+        .collection-edit--pages .document-fields__sidebar-fields,
+        .collection-edit--pages .document-fields__sidebar-wrap > *,
+        .collection-edit--pages .document-fields__sidebar > * {
+          display: none !important;
+        }
+
         .collection-edit--pages .collection-edit__main {
           width: 100%;
         }

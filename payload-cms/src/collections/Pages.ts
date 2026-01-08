@@ -19,6 +19,7 @@ export const Pages: CollectionConfig = {
           secret,
           type: 'page',
           slug,
+          ts: Date.now().toString(),
         })
         return `${base}/api/preview?${search.toString()}`
       },
@@ -32,6 +33,7 @@ export const Pages: CollectionConfig = {
           secret,
           type: 'page',
           slug,
+          ts: Date.now().toString(),
         })
         return `${base}/api/preview?${search.toString()}`
       },
@@ -90,6 +92,7 @@ export const Pages: CollectionConfig = {
         position: 'sidebar',
         description: 'Managed from the Reorder pages list.',
         readOnly: true,
+        hidden: true,
       },
     },
     {

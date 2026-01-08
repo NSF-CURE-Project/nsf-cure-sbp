@@ -146,20 +146,35 @@ export const previewUrlHandler = async (req: PayloadRequest) => {
           typeof (doc as any)?.chapter?.class === 'object' &&
           (doc as any)?.chapter?.class?.slug) ||
         ''
-      const search = new URLSearchParams({ secret, type: 'lesson', slug: lessonSlug })
+      const search = new URLSearchParams({
+        secret,
+        type: 'lesson',
+        slug: lessonSlug,
+        ts: Date.now().toString(),
+      })
       if (classSlug) search.set('classSlug', classSlug)
       return jsonResponse({ url: `${previewBase}/api/preview?${search.toString()}` }, 200)
     }
 
     if (slug === 'pages') {
       const pageSlug = (doc as any)?.slug ?? ''
-      const search = new URLSearchParams({ secret, type: 'page', slug: pageSlug })
+      const search = new URLSearchParams({
+        secret,
+        type: 'page',
+        slug: pageSlug,
+        ts: Date.now().toString(),
+      })
       return jsonResponse({ url: `${previewBase}/api/preview?${search.toString()}` }, 200)
     }
 
     if (slug === 'classes') {
       const classSlug = (doc as any)?.slug ?? ''
-      const search = new URLSearchParams({ secret, type: 'class', slug: classSlug })
+      const search = new URLSearchParams({
+        secret,
+        type: 'class',
+        slug: classSlug,
+        ts: Date.now().toString(),
+      })
       return jsonResponse({ url: `${previewBase}/api/preview?${search.toString()}` }, 200)
     }
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { draftMode } from "next/headers";
 
 import { getClassesTree } from "@/lib/payloadSdk/classes";
-import { getHomePage, type HomePageData } from "@/lib/payloadSdk/home";
+import { getPageBySlug, type PageDoc } from "@/lib/payloadSdk/pages";
 import type {
   ClassDoc,
   ChapterDoc,
@@ -46,7 +46,7 @@ export default async function SearchPage({
   const [classes, home] = term
     ? await Promise.all([
         getClassesTree({ draft: isPreview }),
-        getHomePage({ draft: isPreview }).catch(() => null),
+        getPageBySlug("home", { draft: isPreview }).catch(() => null),
       ])
     : [[], null];
 
@@ -132,7 +132,7 @@ function buildResults(
   classes: ClassDoc[],
   term: string,
   extra: {
-    home: HomePageData | null;
+    home: PageDoc | null;
   }
 ): Result[] {
   const matches: Result[] = [];

@@ -1,7 +1,7 @@
 import React from "react";
 import { draftMode } from "next/headers";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
-import { getHomePage, type HomePageData } from "@/lib/payloadSdk/home";
+import { getPageBySlug, type PageDoc } from "@/lib/payloadSdk/pages";
 import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +16,7 @@ export const metadata = buildMetadata({
 
 export default async function Landing() {
   const { isEnabled: isPreview } = await draftMode();
-  const home: HomePageData | null = await getHomePage({
+  const home: PageDoc | null = await getPageBySlug("home", {
     draft: isPreview,
   }).catch(() => null);
 
