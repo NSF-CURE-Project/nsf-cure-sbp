@@ -114,9 +114,11 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     'admin-help': AdminHelp;
+    footer: Footer;
   };
   globalsSelect: {
     'admin-help': AdminHelpSelect<false> | AdminHelpSelect<true>;
+    footer: FooterSelect<false> | FooterSelect<true>;
   };
   locale: null;
   user:
@@ -1481,11 +1483,103 @@ export interface AdminHelp {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer".
+ */
+export interface Footer {
+  id: number;
+  exploreLinks?:
+    | {
+        label: string;
+        href: string;
+        id?: string | null;
+      }[]
+    | null;
+  resourcesLinks?:
+    | {
+        label: string;
+        href: string;
+        id?: string | null;
+      }[]
+    | null;
+  connect?: {
+    email?: string | null;
+    /**
+     * Use line breaks for multi-line addresses.
+     */
+    address?: string | null;
+    externalLabel?: string | null;
+    externalUrl?: string | null;
+  };
+  feedback?: {
+    enabled?: boolean | null;
+    title?: string | null;
+    description?: string | null;
+    buttonLabel?: string | null;
+  };
+  bottom?: {
+    /**
+     * Use {year} to insert the current year.
+     */
+    copyrightLine?: string | null;
+    subLine?: string | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "admin-help_select".
  */
 export interface AdminHelpSelect<T extends boolean = true> {
   title?: T;
   body?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer_select".
+ */
+export interface FooterSelect<T extends boolean = true> {
+  exploreLinks?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        id?: T;
+      };
+  resourcesLinks?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        id?: T;
+      };
+  connect?:
+    | T
+    | {
+        email?: T;
+        address?: T;
+        externalLabel?: T;
+        externalUrl?: T;
+      };
+  feedback?:
+    | T
+    | {
+        enabled?: T;
+        title?: T;
+        description?: T;
+        buttonLabel?: T;
+      };
+  bottom?:
+    | T
+    | {
+        copyrightLine?: T;
+        subLine?: T;
+      };
   _status?: T;
   updatedAt?: T;
   createdAt?: T;

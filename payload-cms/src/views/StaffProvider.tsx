@@ -1288,16 +1288,22 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 12px 16px;
+          padding: 16px 20px;
           border-bottom: 1px solid var(--admin-surface-border);
-          background: var(--admin-surface-muted);
+          background: #f8fafc;
         }
 
         .admin-preview-panel h3 {
-          font-size: 14px;
+          font-size: 16px;
           font-weight: 700;
-          color: var(--cpp-ink);
+          color: #0f172a;
           margin: 0;
+        }
+
+        .admin-preview-panel p {
+          margin: 4px 0 0;
+          font-size: 13px;
+          color: #475569;
         }
 
         .admin-preview-panel iframe {
@@ -1311,6 +1317,47 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           display: flex;
           align-items: center;
           gap: 8px;
+        }
+
+        .admin-preview-button {
+          border-radius: 999px;
+          padding: 12px 20px;
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: 0.01em;
+          border: 1px solid transparent;
+          transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+        }
+
+        .admin-preview-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          box-shadow: none;
+          transform: none;
+        }
+
+        .admin-preview-button--ghost {
+          background: #e2e8f0;
+          border-color: #cbd5f5;
+          color: #0f172a;
+        }
+
+        .admin-preview-button--ghost:hover {
+          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+          transform: translateY(-1px);
+          background: #d8e1ec;
+        }
+
+        .admin-preview-button--primary {
+          background: #111827;
+          color: #f8fafc;
+          border-color: #111827;
+          box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
+        }
+
+        .admin-preview-button--primary:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 14px 28px rgba(15, 23, 42, 0.25);
         }
 
         .admin-global-footer {
@@ -1415,11 +1462,14 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         <div className="admin-preview-gate">
           <div className="admin-preview-panel" role="dialog" aria-modal="true">
             <header>
-              <h3>Review live preview before publishing</h3>
+              <div>
+                <h3>Review changes before publishing</h3>
+                <p>Confirm content changes, layout, and links to proceed.</p>
+              </div>
               <div className="admin-preview-actions">
                 <button
                   type="button"
-                  className="btn btn--style-secondary"
+                  className="admin-preview-button admin-preview-button--ghost"
                   onClick={() => {
                     setPreviewGate({ open: false, url: null, loading: false, error: null })
                     pendingPublishRef.current = null
@@ -1429,7 +1479,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                 </button>
                 <button
                   type="button"
-                  className="btn btn--style-primary"
+                  className="admin-preview-button admin-preview-button--primary"
                   disabled={previewGate.loading || Boolean(previewGate.error)}
                   onClick={() => {
                     const pendingButton = pendingPublishRef.current
@@ -1444,7 +1494,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                     }
                   }}
                 >
-                  Publish now
+                  Publish Live
                 </button>
               </div>
             </header>

@@ -26,6 +26,9 @@ export async function GET(req: NextRequest) {
       }
       break;
     }
+    case "footer":
+      redirect = "/";
+      break;
     case "lesson":
       redirect = `/preview/lesson/${slug}`;
       break;

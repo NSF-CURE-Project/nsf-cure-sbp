@@ -26,6 +26,7 @@ import { LessonFeedback } from './collections/LessonFeedback'
 import { Classrooms } from './collections/Classrooms'
 import { ClassroomMemberships } from './collections/ClassroomMemberships'
 import { AdminHelp } from './globals/AdminHelp'
+import { Footer } from './globals/Footer'
 import {
   joinClassroomHandler,
   regenerateClassroomCodeHandler,
@@ -160,7 +161,7 @@ export default buildConfig({
     Feedback,
     LessonFeedback,
   ],
-  globals: [AdminHelp],
+  globals: [AdminHelp, Footer],
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [
       ...defaultFeatures,

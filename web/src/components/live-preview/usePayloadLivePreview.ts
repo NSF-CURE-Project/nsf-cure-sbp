@@ -22,6 +22,10 @@ export function usePayloadLivePreview<T>(
   const [data, setData] = useState<T | null>(initialData);
   const { collectionSlug, globalSlug } = options;
 
+  useEffect(() => {
+    setData(initialData);
+  }, [initialData]);
+
   const match = useMemo(
     () => ({
       collectionSlug,

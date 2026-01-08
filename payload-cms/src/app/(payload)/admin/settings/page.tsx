@@ -84,6 +84,22 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
+        <div
+          style={{
+            marginTop: 12,
+            display: 'grid',
+            gap: 12,
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          }}
+        >
+          <a href="/admin/globals/footer" style={linkCardStyle}>
+            <div style={{ fontWeight: 700 }}>Footer Content</div>
+            <div style={linkDescriptionStyle}>
+              Edit footer links, contact info, and enable/disable feedback.
+            </div>
+          </a>
+        </div>
+
         <div style={sectionTitleStyle}>Admin</div>
         <div
           style={{
@@ -94,7 +110,7 @@ export default function AdminSettingsPage() {
           }}
         >
           <a href="/admin/globals/admin-help" style={linkCardStyle}>
-            <div style={{ fontWeight: 700 }}>Admin help</div>
+            <div style={{ fontWeight: 700 }}>Admin Help Page</div>
             <div style={linkDescriptionStyle}>
               Update guidance and onboarding content for staff.
             </div>
