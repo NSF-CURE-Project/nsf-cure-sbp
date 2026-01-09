@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { draftMode } from "next/headers";
 import { getClassesTree } from "@/lib/payloadSdk/classes";
 import type { ChapterDoc, ClassDoc, LessonDoc } from "@/lib/payloadSdk/types";
+import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 import { ClassProgressSummary } from "@/components/progress/ClassProgressSummary";
 
@@ -17,7 +17,7 @@ export const metadata = buildMetadata({
 type ChapterWithLessons = ChapterDoc & { lessons?: LessonDoc[] };
 
 export default async function LearningPage() {
-  const { isEnabled: isPreview } = await draftMode();
+  const isPreview = await resolvePreview();
   const classes: ClassDoc[] = await getClassesTree({ draft: isPreview }).catch(
     () => []
   );

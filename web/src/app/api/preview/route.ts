@@ -4,6 +4,25 @@ import { NextRequest, NextResponse } from "next/server";
 const PREVIEW_SECRET = process.env.PREVIEW_SECRET || "";
 
 export async function GET(req: NextRequest) {
+  const rawPreviewHost =
+    process.env.PREVIEW_HOST || process.env.NEXT_PUBLIC_PREVIEW_URL || "";
+  const previewHost = rawPreviewHost
+    ? rawPreviewHost.includes("://")
+      ? new URL(rawPreviewHost).hostname
+      : rawPreviewHost.split(":")[0]
+    : "";
+  if (previewHost) {
+    const requestHost = req.nextUrl.hostname;
+    const alreadyRedirected =
+      req.nextUrl.searchParams.get("previewHostRedirect") === "1";
+    if (requestHost !== previewHost && !alreadyRedirected) {
+      const target = new URL(req.url);
+      target.hostname = previewHost;
+      target.searchParams.set("previewHostRedirect", "1");
+      return NextResponse.redirect(target);
+    }
+  }
+
   const { searchParams } = new URL(req.url);
   const secret = searchParams.get("secret");
   const type = searchParams.get("type");
@@ -42,5 +61,9 @@ export async function GET(req: NextRequest) {
       redirect = "/";
   }
 
-  return NextResponse.redirect(new URL(redirect, req.url));
+  const target = new URL(redirect, req.url);
+  target.searchParams.set("preview", "1");
+  target.searchParams.set("secret", secret ?? "");
+  target.searchParams.set("ts", Date.now().toString());
+  return NextResponse.redirect(target);
 }

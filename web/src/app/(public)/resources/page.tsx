@@ -1,6 +1,6 @@
-import { draftMode } from "next/headers";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
 import { getPageBySlug, type PageDoc } from "@/lib/payloadSdk/pages";
+import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export const metadata = buildMetadata({
 });
 
 export default async function ResourcesPage() {
-  const { isEnabled: isPreview } = await draftMode();
+  const isPreview = await resolvePreview();
   const page: PageDoc | null = await getPageBySlug("resources", {
     draft: isPreview,
   }).catch(() => null);

@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { draftMode } from "next/headers";
-
 import { getClassesTree } from "@/lib/payloadSdk/classes";
 import { getPageBySlug, type PageDoc } from "@/lib/payloadSdk/pages";
 import type {
@@ -9,6 +7,7 @@ import type {
   LessonDoc,
   PageLayoutBlock,
 } from "@/lib/payloadSdk/types";
+import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,8 +36,8 @@ export default async function SearchPage({
 }: {
   searchParams?: SearchParams;
 }) {
-  const { isEnabled: isPreview } = await draftMode();
   const sp = (await searchParams) ?? {};
+  const isPreview = await resolvePreview(sp);
   const rawQ = sp.q;
   const query = Array.isArray(rawQ) ? rawQ[0] : rawQ;
   const term = (query ?? "").trim().toLowerCase();
@@ -227,6 +226,9 @@ function extractTextFromBlocks(blocks: PageLayoutBlock[]): string[] {
     }
     if (block.blockType === "sectionTitle") {
       values.push(block.title ?? "", block.subtitle ?? "");
+    }
+    if (block.blockType === "sectionBlock") {
+      values.push(block.title ?? "", extractTextFromRichText(block.text));
     }
     if (block.blockType === "richTextBlock") {
       values.push(extractTextFromRichText(block.body));

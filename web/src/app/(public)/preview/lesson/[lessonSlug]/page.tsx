@@ -1,4 +1,3 @@
-import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import { LivePreviewLesson } from "@/components/live-preview/LivePreviewLesson";
 import {
@@ -6,6 +5,7 @@ import {
   getLessonsForChapter,
 } from "@/lib/payloadSdk/lessons";
 import type { LessonDoc } from "@/lib/payloadSdk/types";
+import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -15,11 +15,13 @@ type RouteParams = { lessonSlug: string };
 
 export default async function PreviewLessonPage({
   params,
+  searchParams,
 }: {
   params: Promise<RouteParams>;
+  searchParams?: Record<string, string | string[] | undefined>;
 }) {
   const { lessonSlug } = await params;
-  const { isEnabled: isPreview } = await draftMode();
+  const isPreview = await resolvePreview(searchParams);
 
   const lesson: LessonDoc | null = await getLessonBySlug(lessonSlug, {
     draft: isPreview,

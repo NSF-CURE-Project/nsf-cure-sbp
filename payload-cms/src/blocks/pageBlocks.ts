@@ -50,6 +50,31 @@ export const pageBlocks: Block[] = [
     ],
   },
   {
+    slug: 'sectionBlock',
+    labels: { singular: 'Section', plural: 'Sections' },
+    fields: [
+      {
+        name: 'title',
+        type: 'text',
+        required: true,
+      },
+      {
+        name: 'text',
+        type: 'richText',
+      },
+      {
+        name: 'size',
+        type: 'select',
+        options: [
+          { label: 'Small', value: 'sm' },
+          { label: 'Medium', value: 'md' },
+          { label: 'Large', value: 'lg' },
+        ],
+        defaultValue: 'md',
+      },
+    ],
+  },
+  {
     slug: 'richTextBlock',
     labels: { singular: 'Rich Text', plural: 'Rich Text' },
     fields: [

@@ -1,8 +1,8 @@
 import React from "react";
-import { draftMode } from "next/headers";
 import type { ChapterDoc, ClassDoc, LessonDoc } from "@/lib/payloadSdk/types";
 import { getClassesTree } from "@/lib/payloadSdk/classes";
 import { getPages, type PageDoc } from "@/lib/payloadSdk/pages";
+import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
@@ -28,7 +28,7 @@ const staticPages = [
 ];
 
 export default async function DirectoryPage() {
-  const { isEnabled: isPreview } = await draftMode();
+  const isPreview = await resolvePreview();
   const classes: ClassDoc[] = await getClassesTree({ draft: isPreview }).catch(
     () => []
   );

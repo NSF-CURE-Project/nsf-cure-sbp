@@ -1,5 +1,4 @@
 // src/app/(public)/classes/[classSlug]/lessons/[lessonSlug]/page.tsx
-import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import { LivePreviewLesson } from "@/components/live-preview/LivePreviewLesson";
 import {
@@ -7,6 +6,7 @@ import {
   getLessonsForChapter,
 } from "@/lib/payloadSdk/lessons";
 import type { LessonDoc } from "@/lib/payloadSdk/types";
+import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -66,9 +66,10 @@ async function fetchLessonForClass(
   return lesson;
 }
 
-export default async function LessonPage({ params }: PageProps) {
+export default async function LessonPage({ params, searchParams }: PageProps) {
   const { classSlug, lessonSlug } = await params;
-  const { isEnabled: isPreview } = await draftMode();
+  const sp = (await searchParams) ?? {};
+  const isPreview = await resolvePreview(sp);
 
   const lesson = await fetchLessonForClass(classSlug, lessonSlug, {
     draft: isPreview,
@@ -113,7 +114,7 @@ export async function generateMetadata({
   params: Promise<RouteParams>;
 }) {
   const { classSlug, lessonSlug } = await params;
-  const { isEnabled: isPreview } = await draftMode();
+  const isPreview = await resolvePreview();
   const lesson = await fetchLessonForClass(classSlug, lessonSlug, {
     draft: isPreview,
   });

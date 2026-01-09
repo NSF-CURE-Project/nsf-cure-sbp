@@ -61,6 +61,14 @@ export type SectionTitleBlock = {
   size?: "sm" | "md" | "lg";
 };
 
+export type SectionBlock = {
+  id?: string;
+  blockType: "sectionBlock";
+  title?: string;
+  text?: unknown;
+  size?: "sm" | "md" | "lg";
+};
+
 export type RichTextBlock = {
   id?: string;
   blockType: "richTextBlock";
@@ -152,6 +160,7 @@ export type ContactsListBlock = {
 export type PageLayoutBlock =
   | HeroBlock
   | SectionTitleBlock
+  | SectionBlock
   | RichTextBlock
   | TextBlock
   | VideoBlock

@@ -260,6 +260,28 @@ export interface Lesson {
             blockType: 'sectionTitle';
           }
         | {
+            title: string;
+            text?: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            } | null;
+            size?: ('sm' | 'md' | 'lg') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'sectionBlock';
+          }
+        | {
             body: {
               root: {
                 type: string;
@@ -436,6 +458,28 @@ export interface Page {
             id?: string | null;
             blockName?: string | null;
             blockType: 'sectionTitle';
+          }
+        | {
+            title: string;
+            text?: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            } | null;
+            size?: ('sm' | 'md' | 'lg') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'sectionBlock';
           }
         | {
             body: {
@@ -991,6 +1035,15 @@ export interface LessonsSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        sectionBlock?:
+          | T
+          | {
+              title?: T;
+              text?: T;
+              size?: T;
+              id?: T;
+              blockName?: T;
+            };
         richTextBlock?:
           | T
           | {
@@ -1118,6 +1171,15 @@ export interface PagesSelect<T extends boolean = true> {
           | {
               title?: T;
               subtitle?: T;
+              size?: T;
+              id?: T;
+              blockName?: T;
+            };
+        sectionBlock?:
+          | T
+          | {
+              title?: T;
+              text?: T;
               size?: T;
               id?: T;
               blockName?: T;

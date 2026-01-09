@@ -32,6 +32,83 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
   const pendingPublishRef = useRef<HTMLButtonElement | null>(null)
   const allowPublishRef = useRef(false)
   const previewRequestRef = useRef(0)
+  const fetchRef = useRef<typeof window.fetch | null>(null)
+  const fetchWrappedRef = useRef(false)
+  const allowDraftSaveRef = useRef(false)
+  const publishIntentRef = useRef(false)
+  const autoSaveTimerRef = useRef<number | null>(null)
+  const autoSaveInFlightRef = useRef(false)
+
+  const getStatusStorageKey = () => {
+    if (typeof window === 'undefined') return null
+    const path = window.location.pathname
+    const collectionMatch = path.match(/\/admin\/collections\/([^/]+)\/([^/]+)/)
+    if (collectionMatch?.[1] && collectionMatch?.[2] && collectionMatch[2] !== 'create') {
+      return `admin-status:collection:${collectionMatch[1]}:${collectionMatch[2]}`
+    }
+    const globalMatch = path.match(/\/admin\/globals\/([^/]+)/)
+    if (globalMatch?.[1]) {
+      return `admin-status:global:${globalMatch[1]}`
+    }
+    return null
+  }
+
+  const forceStatusPublished = () => {
+    const status = document.querySelector<HTMLElement>('.admin-status-pill')
+    if (!status) return false
+    const text = status.textContent?.toLowerCase() ?? ''
+    if (!text.includes('draft') && !text.includes('changed')) return false
+    status.textContent = 'Status: Published'
+    status.classList.add('admin-status-published')
+    const key = getStatusStorageKey()
+    if (key) {
+      window.localStorage.setItem(key, 'published')
+    }
+    return true
+  }
+
+  const forceStatusChanged = () => {
+    const status = document.querySelector<HTMLElement>('.admin-status-pill')
+    if (!status) return false
+    status.textContent = 'Status: Changed'
+    status.classList.remove('admin-status-published')
+    const key = getStatusStorageKey()
+    if (key) {
+      window.localStorage.removeItem(key)
+    }
+    return true
+  }
+
+  const syncStatusFromDoc = () => {
+    const status = document.querySelector<HTMLElement>('.admin-status-pill')
+    if (!status) return false
+    const hasRevert = Boolean(
+      document.querySelector('.doc-controls__meta a[href*="revert"]') ||
+        document.querySelector('.doc-controls__meta a[href*="revert-to-published"]') ||
+        document.querySelector('.doc-controls__meta button[aria-label*="Revert"]')
+    )
+    if (hasRevert) {
+      return forceStatusChanged()
+    }
+    status.textContent = 'Status: Published'
+    status.classList.add('admin-status-published')
+    const key = getStatusStorageKey()
+    if (key) {
+      window.localStorage.setItem(key, 'published')
+    }
+    return true
+  }
+
+  const triggerPreviewDisable = (previewUrl?: string | null) => {
+    if (!previewUrl) return
+    try {
+      const origin = new URL(previewUrl).origin
+      const img = new Image()
+      img.src = `${origin}/api/preview/disable?ts=${Date.now()}`
+    } catch {
+      // ignore invalid URL
+    }
+  }
   const isLoginPath =
     typeof window === 'undefined' ? isLoginPage : getIsLoginPath(window.location.pathname)
 
@@ -111,11 +188,9 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         .replace(/[-_]/g, ' ')
         .replace(/\b\w/g, (char) => char.toUpperCase())
 
-    const buildCrumbs = (pathname: string) => {
+    const buildCrumbs = (pathname: string, title?: string) => {
       const segments = pathname.split('/').filter(Boolean)
-      const crumbs: { label: string; href?: string }[] = [
-        { label: 'Home', href: '/admin' },
-      ]
+      const crumbs: { label: string; href?: string }[] = [{ label: 'Home', href: '/admin' }]
 
       if (segments[0] !== 'admin') return crumbs
       const rest = segments.slice(1)
@@ -123,6 +198,16 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       if (!rest.length) return crumbs
       if (rest[0] === 'collections' && rest[1]) {
         const collection = rest[1]
+        const isEdit = Boolean(rest[2] && rest[2] !== 'create')
+        if (collection === 'pages' && isEdit) {
+          const label = title ? `Edit ${title}` : 'Edit'
+          return [
+            { label: 'Home', href: '/admin' },
+            { label: 'Settings', href: '/admin/settings' },
+            { label },
+          ]
+        }
+        crumbs[0] = { label: 'Site Content', href: '/admin' }
         crumbs.push({ label: formatLabel(collection), href: `/admin/collections/${collection}` })
         if (rest[2]) {
           crumbs.push({ label: rest[2] === 'create' ? 'Create' : 'Edit' })
@@ -131,6 +216,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       }
 
       if (rest[0] === 'globals' && rest[1]) {
+        crumbs[0] = { label: 'Global Content', href: '/admin' }
         crumbs.push({ label: formatLabel(rest[1]) })
         return crumbs
       }
@@ -147,7 +233,10 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       window.setTimeout(() => {
         if (!isMountedRef.current) return
         const pathname = window.location.pathname
-        setBreadcrumbs(buildCrumbs(pathname))
+        const title =
+          document.querySelector('.doc-header__title')?.textContent?.trim() ||
+          document.querySelector('.doc-header__header h1')?.textContent?.trim()
+        setBreadcrumbs(buildCrumbs(pathname, title || undefined))
         const loginPage = getIsLoginPath(pathname)
         setIsLoginPage(loginPage)
         document.documentElement.setAttribute('data-admin-login', loginPage ? 'true' : 'false')
@@ -194,6 +283,164 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       }
     }
   }, [user?.id])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    let rafId = 0
+
+    const updateEditHeader = () => {
+      const path = window.location.pathname
+      const isEditView =
+        /\/admin\/collections\/[^/]+\/[^/]+/.test(path) ||
+        /\/admin\/globals\/[^/]+/.test(path)
+      if (!isEditView) return
+
+      const header = document.querySelector(
+        '.doc-controls, .document-header, .collection-edit__header, .global-edit__header, .edit-view__header',
+      ) as HTMLElement | null
+        if (!header) return
+
+      header.classList.add('admin-edit-header')
+
+      const meta = header.querySelector(
+        '.doc-controls__meta, .document-header__meta, .collection-edit__meta, .global-edit__meta, .edit-view__meta',
+      ) as HTMLElement | null
+      if (meta) {
+        meta.classList.add('admin-edit-meta')
+        const statusItem = Array.from(meta.children).find((child) =>
+          child.textContent?.toLowerCase().includes('status'),
+        ) as HTMLElement | undefined
+        if (statusItem) {
+          statusItem.classList.add('admin-status-pill')
+          const statusText = statusItem.textContent?.toLowerCase() ?? ''
+          const key = getStatusStorageKey()
+          if (
+            key &&
+            statusText.includes('draft') &&
+            !statusText.includes('changed') &&
+            window.localStorage.getItem(key) === 'published'
+          ) {
+            statusItem.textContent = 'Status: Published'
+            statusItem.classList.add('admin-status-published')
+          }
+        }
+      }
+
+      const actions = header.querySelector(
+        '.doc-controls__actions, .document-header__actions, .document-controls__actions, .document-header__action-buttons',
+      ) as HTMLElement | null
+      if (actions) actions.classList.add('admin-edit-actions')
+
+      if (actions) {
+        const livePreviewButton = actions.querySelector<HTMLButtonElement>(
+          '.live-preview-toggler',
+        )
+        if (livePreviewButton && !livePreviewButton.querySelector('.admin-live-preview-label')) {
+          const label = document.createElement('span')
+          label.className = 'admin-live-preview-label'
+          label.textContent = 'Live preview'
+          livePreviewButton.appendChild(label)
+        }
+      }
+
+        const headerTabs = Array.from(
+          header.querySelectorAll<HTMLAnchorElement | HTMLButtonElement>('a, button'),
+        )
+        const globalTabs = Array.from(
+          document.querySelectorAll<HTMLAnchorElement | HTMLButtonElement>('.tabs a, .tabs button'),
+        )
+        const tabCandidates = Array.from(new Set([...headerTabs, ...globalTabs]))
+        const moreLinks: { label: string; href?: string }[] = []
+
+        tabCandidates.forEach((tab) => {
+          const label = tab.textContent?.trim() ?? ''
+          const normalized = label.toLowerCase()
+          if (normalized === 'versions' || normalized === 'api') {
+            tab.classList.add('admin-hidden-tab')
+            const href =
+              tab instanceof HTMLAnchorElement
+                ? tab.href
+                : (tab.getAttribute('href') ?? undefined)
+            if (normalized !== 'api' || role === 'admin') {
+              moreLinks.push({ label, href })
+            }
+          }
+          if (normalized === 'api' && role !== 'admin') {
+            tab.classList.add('admin-hide-api')
+          }
+          if (normalized === 'edit') {
+            tab.textContent = 'Edit mode'
+          }
+        })
+
+      const existingMenu = header.querySelector('.admin-edit-more')
+      if (!moreLinks.length) {
+        existingMenu?.remove()
+        return
+      }
+
+        const menu = existingMenu ?? document.createElement('details')
+        if (!existingMenu) {
+          menu.className = 'admin-edit-more'
+        }
+        if (!existingMenu) {
+          const summary = document.createElement('summary')
+          summary.textContent = 'More'
+          menu.appendChild(summary)
+          const list = document.createElement('div')
+          list.className = 'admin-edit-more__menu'
+          menu.appendChild(list)
+        const target = actions ?? header
+        target.appendChild(menu)
+      }
+
+        const list = menu.querySelector('.admin-edit-more__menu')
+        if (list) {
+          list.innerHTML = ''
+          moreLinks.forEach((link) => {
+            if (link.href) {
+              const item = document.createElement('a')
+              item.textContent = link.label
+              item.href = link.href
+              list.appendChild(item)
+              return
+            }
+
+            const item = document.createElement('button')
+            item.type = 'button'
+            item.textContent = link.label
+            item.className = 'admin-edit-more__button'
+            item.addEventListener('click', () => {
+              const fallback = tabCandidates.find(
+                (tab) => tab.textContent?.trim() === link.label,
+              ) as HTMLButtonElement | HTMLAnchorElement | undefined
+              fallback?.click()
+            })
+            list.appendChild(item)
+          })
+        }
+      }
+
+    const scheduleUpdate = () => {
+      if (rafId) return
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0
+        updateEditHeader()
+      })
+    }
+
+    scheduleUpdate()
+    const observer = new MutationObserver(scheduleUpdate)
+    observer.observe(document.body, { childList: true, subtree: true })
+
+    const intervalId = window.setInterval(updateEditHeader, 750)
+
+    return () => {
+      observer.disconnect()
+      if (rafId) window.cancelAnimationFrame(rafId)
+      window.clearInterval(intervalId)
+    }
+  }, [])
 
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark'
@@ -314,13 +561,22 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
     const isPublishButton = (button: HTMLButtonElement) => {
       const label = button.textContent?.trim().toLowerCase() ?? ''
+      const id = button.getAttribute('id')?.toLowerCase() ?? ''
       if (!label) return false
       if (label.includes('unpublish')) return false
-      return label.includes('publish')
+      if (label.includes('publish')) return true
+      return id === 'action-save' || id.includes('publish')
     }
 
     const findDraftButton = () => {
-      const buttons = Array.from(document.querySelectorAll('button'))
+      const selectorMatches = Array.from(
+        document.querySelectorAll<HTMLButtonElement>(
+          'button#action-save-draft, button[data-action="save-draft"], button[aria-label*="Save Draft"], button[title*="Save Draft"]',
+        ),
+      )
+      if (selectorMatches.length) return selectorMatches[0]
+
+      const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
       return buttons.find((btn) => {
         const label = btn.textContent?.trim().toLowerCase() ?? ''
         return label.includes('save draft')
@@ -330,31 +586,37 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     const waitForDraftSave = async () => {
       const draftButton = findDraftButton()
       if (!draftButton || draftButton.disabled) return
-      draftButton.click()
+      allowDraftSaveRef.current = true
+      const originalLabel = draftButton.textContent
+      draftButton.textContent = 'Autosaving...'
+      try {
+        draftButton.click()
 
-      const start = Date.now()
-      while (Date.now() - start < 4000) {
-        await new Promise((resolve) => window.setTimeout(resolve, 120))
+        const start = Date.now()
+        while (Date.now() - start < 4000) {
+          await new Promise((resolve) => window.setTimeout(resolve, 120))
+          const current = findDraftButton()
+          if (!current) break
+          const label = current.textContent?.trim().toLowerCase() ?? ''
+          if (!current.disabled && !label.includes('saving')) break
+        }
+      } finally {
         const current = findDraftButton()
-        if (!current) break
-        const label = current.textContent?.trim().toLowerCase() ?? ''
-        if (!current.disabled && !label.includes('saving')) break
+        if (current) {
+          current.textContent = originalLabel ?? 'Save Draft'
+        }
+        allowDraftSaveRef.current = false
+        window.setTimeout(() => {
+          syncStatusFromDoc()
+        }, 300)
       }
     }
 
-    const onClickCapture = (event: MouseEvent) => {
-      if (allowPublishRef.current) return
-      if (previewGate.open) return
-      const target = event.target as HTMLElement | null
-      if (!target) return
-      const button = target.closest('button')
-      if (!button) return
-      if (!isPublishButton(button)) return
+    const beginPreviewGate = (button: HTMLButtonElement) => {
       const targetInfo = getPreviewTarget()
       if (!targetInfo) return
 
-      event.preventDefault()
-      event.stopPropagation()
+      publishIntentRef.current = true
       pendingPublishRef.current = button
 
       const requestId = previewRequestRef.current + 1
@@ -403,9 +665,215 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       void runPreview()
     }
 
+    const isEditableInput = (element: HTMLElement | null) => {
+      if (!element) return false
+      if (element.closest('[contenteditable="true"]')) return true
+      if (element.matches('input, textarea, select')) return true
+      return false
+    }
+
+    const scheduleAutoSave = () => {
+      if (previewGate.open) return
+      if (autoSaveTimerRef.current) {
+        window.clearTimeout(autoSaveTimerRef.current)
+      }
+      autoSaveTimerRef.current = window.setTimeout(async () => {
+        if (autoSaveInFlightRef.current) return
+        autoSaveInFlightRef.current = true
+        try {
+          await waitForDraftSave()
+        } finally {
+          autoSaveInFlightRef.current = false
+        }
+      }, 700)
+    }
+
+    const onInputCapture = (event: Event) => {
+      const target = event.target as HTMLElement | null
+      if (!isEditableInput(target)) return
+      const form = target?.closest('form.collection-edit__form, form.global-edit__form')
+      if (!form) return
+      forceStatusChanged()
+      scheduleAutoSave()
+    }
+
+    const interceptPublish = (event: Event, target: HTMLElement | null) => {
+      if (allowPublishRef.current) return
+      if (previewGate.open) return
+      if (!target) return
+      const button = target.closest('button')
+      if (!button) return
+      if (!isPublishButton(button)) return
+      event.preventDefault()
+      event.stopPropagation()
+      if ('stopImmediatePropagation' in event) {
+        ;(event as Event).stopImmediatePropagation()
+      }
+      beginPreviewGate(button)
+    }
+
+    const onPointerDownCapture = (event: PointerEvent) => {
+      interceptPublish(event, event.target as HTMLElement | null)
+    }
+
+    const onClickCapture = (event: MouseEvent) => {
+      interceptPublish(event, event.target as HTMLElement | null)
+    }
+
+    const onSubmitCapture = (event: Event) => {
+      if (allowPublishRef.current) return
+      if (previewGate.open) return
+      const submitEvent = event as SubmitEvent
+      const submitter = submitEvent.submitter as HTMLButtonElement | null
+      const candidate = submitter ?? (document.activeElement as HTMLButtonElement | null)
+      if (!candidate || candidate.tagName !== 'BUTTON') return
+      if (!isPublishButton(candidate)) return
+
+      event.preventDefault()
+      event.stopPropagation()
+      if ('stopImmediatePropagation' in event) {
+        ;(event as Event).stopImmediatePropagation()
+      }
+      beginPreviewGate(candidate)
+    }
+
+    const onKeyDownCapture = (event: KeyboardEvent) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return
+      interceptPublish(event, event.target as HTMLElement | null)
+    }
+
+    const attachPublishGateButtons = () => {
+      const buttons = Array.from(
+        document.querySelectorAll<HTMLButtonElement>('button#action-save, button[data-action="publish"]'),
+      )
+      buttons.forEach((button) => {
+        if (button.dataset.publishGateBound === 'true') return
+        button.dataset.publishGateBound = 'true'
+        if (!button.dataset.publishGateType) {
+          button.dataset.publishGateType = button.type || 'submit'
+        }
+        button.type = 'button'
+        const parent = button.parentElement
+        if (!parent) return
+
+        let proxy = parent.querySelector<HTMLButtonElement>('[data-publish-gate-proxy="true"]')
+        if (!proxy) {
+          proxy = document.createElement('button')
+          proxy.type = 'button'
+          proxy.className = button.className
+          proxy.dataset.publishGateProxy = 'true'
+          proxy.textContent = button.textContent?.trim() || 'Publish changes'
+          parent.insertBefore(proxy, button.nextSibling)
+        }
+
+        const syncState = () => {
+          proxy!.disabled = button.disabled
+          if (button.textContent?.trim()) {
+            proxy!.textContent = button.textContent.trim()
+          }
+        }
+        syncState()
+
+        button.style.display = 'none'
+
+        proxy.addEventListener(
+          'click',
+          (event) => {
+            if (allowPublishRef.current || previewGate.open) return
+            event.preventDefault()
+            event.stopPropagation()
+            event.stopImmediatePropagation()
+            beginPreviewGate(button)
+          },
+          true,
+        )
+
+        const stateObserver = new MutationObserver(syncState)
+        stateObserver.observe(button, {
+          attributes: true,
+          attributeFilter: ['disabled', 'class', 'data-state'],
+          childList: true,
+          subtree: true,
+        })
+      })
+    }
+
+    attachPublishGateButtons()
+    const buttonObserver = new MutationObserver(attachPublishGateButtons)
+    buttonObserver.observe(document.body, { childList: true, subtree: true })
+
+    if (!fetchWrappedRef.current && typeof window.fetch === 'function') {
+      fetchWrappedRef.current = true
+      fetchRef.current = window.fetch.bind(window)
+      const originalFetch = fetchRef.current
+
+      window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url =
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : input.url
+        const method = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase()
+
+        const targetInfo = getPreviewTarget()
+        const targetPrefix =
+          targetInfo?.type === 'collection'
+            ? `/api/${targetInfo.slug}/`
+            : targetInfo?.type === 'global'
+              ? `/api/globals/${targetInfo.slug}`
+              : null
+        const shouldGate =
+          Boolean(targetPrefix) &&
+          url.includes(targetPrefix) &&
+          ['POST', 'PATCH', 'PUT', 'DELETE'].includes(method) &&
+          publishIntentRef.current &&
+          pendingPublishRef.current &&
+          !allowPublishRef.current &&
+          !allowDraftSaveRef.current
+
+        if (shouldGate) {
+          return new Promise<Response>((resolve) => {
+            const interval = window.setInterval(() => {
+              if (allowPublishRef.current && originalFetch) {
+                window.clearInterval(interval)
+                resolve(originalFetch(input, init))
+              }
+              if (!pendingPublishRef.current && !allowPublishRef.current) {
+                window.clearInterval(interval)
+                resolve(
+                  new Response(JSON.stringify({ message: 'Publish canceled.' }), {
+                    status: 409,
+                    headers: { 'Content-Type': 'application/json' },
+                  }),
+                )
+              }
+            }, 80)
+          })
+        }
+
+        return originalFetch ? originalFetch(input, init) : fetch(input, init)
+      }
+    }
+
+    document.addEventListener('pointerdown', onPointerDownCapture, true)
     document.addEventListener('click', onClickCapture, true)
+    document.addEventListener('submit', onSubmitCapture, true)
+    document.addEventListener('keydown', onKeyDownCapture, true)
+    document.addEventListener('input', onInputCapture, true)
+    document.addEventListener('change', onInputCapture, true)
     return () => {
+      buttonObserver.disconnect()
+      document.removeEventListener('pointerdown', onPointerDownCapture, true)
       document.removeEventListener('click', onClickCapture, true)
+      document.removeEventListener('submit', onSubmitCapture, true)
+      document.removeEventListener('keydown', onKeyDownCapture, true)
+      document.removeEventListener('input', onInputCapture, true)
+      document.removeEventListener('change', onInputCapture, true)
+      if (autoSaveTimerRef.current) {
+        window.clearTimeout(autoSaveTimerRef.current)
+        autoSaveTimerRef.current = null
+      }
     }
   }, [previewGate.open])
 
@@ -820,16 +1288,223 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           background: transparent;
         }
 
+        html[data-admin-context='app'] {
+          --admin-content-gutter: 20px;
+        }
+
         html[data-admin-context='app'] .collection-edit__header,
         html[data-admin-context='app'] .global-edit__header,
         html[data-admin-context='app'] .edit-view__header,
         html[data-admin-context='app'] .document-header {
           margin-top: 12px;
-          padding: 18px 20px;
-          border-radius: 16px;
-          border: 1px solid var(--admin-surface-border);
-          background: linear-gradient(135deg, rgba(15, 23, 42, 0.16), rgba(15, 23, 42, 0.04));
-          box-shadow: 0 18px 36px rgba(15, 23, 42, 0.24);
+          padding: 14px var(--admin-content-gutter, 60px);
+          border-radius: 0;
+          border: none;
+          background: transparent;
+          box-shadow: none;
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 12px 16px;
+        }
+
+        html[data-admin-context='app'] .doc-header,
+        html[data-admin-context='app'] .doc-header__title {
+          padding-top: 0;
+          padding-bottom: 0;
+          margin: 0;
+        }
+
+        html[data-admin-context='app'] .doc-controls {
+          border: none;
+          border-radius: 0;
+          box-shadow: none;
+          background: transparent;
+          padding: 8px var(--admin-content-gutter, 40px);
+          border-top: none !important;
+          border-bottom: none !important;
+        }
+
+        html[data-admin-context='app'] .doc-header__header {
+          padding-left: var(--admin-content-gutter, 40px);
+        }
+
+        html[data-admin-context='app'] .doc-header__title {
+          margin-left: 0;
+        }
+
+        html[data-admin-context='app'] .collection-edit__form,
+        html[data-admin-context='app'] .global-edit__form,
+        html[data-admin-context='app'] .edit-view__content {
+          background: transparent;
+          border: none;
+          border-radius: 0;
+          box-shadow: none;
+          overflow: hidden;
+        }
+
+        html[data-admin-context='app'] form.collection-edit__form {
+          border-left: none !important;
+          border-right: none !important;
+          border-top: none !important;
+        }
+
+        html[data-admin-context='app'] .doc-controls,
+        html[data-admin-context='app'] .document-fields,
+        html[data-admin-context='app'] .document-fields__tabs,
+        html[data-admin-context='app'] .collection-edit__main-wrapper,
+        html[data-admin-context='app'] .global-edit__main-wrapper {
+          background: transparent;
+          border: none;
+          box-shadow: none;
+        }
+
+        html[data-admin-context='app'] .document-fields,
+        html[data-admin-context='app'] .document-fields__tabs,
+        html[data-admin-context='app'] .field-type,
+        html[data-admin-context='app'] .array-field,
+        html[data-admin-context='app'] .group-field,
+        html[data-admin-context='app'] .card,
+        html[data-admin-context='app'] .collection-edit__form,
+        html[data-admin-context='app'] .global-edit__form,
+        html[data-admin-context='app'] .document-fields__main,
+        html[data-admin-context='app'] .document-fields__edit {
+          border-radius: 0 !important;
+        }
+
+        html[data-admin-context='app'] .document-fields,
+        html[data-admin-context='app'] .document-fields__tabs,
+        html[data-admin-context='app'] .collection-edit__main-wrapper,
+        html[data-admin-context='app'] .global-edit__main-wrapper,
+        html[data-admin-context='app'] .document-fields__main,
+        html[data-admin-context='app'] .document-fields__edit {
+          border-left: none !important;
+          border-right: none !important;
+          border-top: none !important;
+        }
+
+        html[data-admin-context='app'] .collection-edit__main-wrapper,
+        html[data-admin-context='app'] .global-edit__main-wrapper {
+          border-left: none !important;
+          border-right: none !important;
+          border-top: none !important;
+          box-shadow: none !important;
+          outline: none !important;
+        }
+
+        html[data-admin-context='app'] .collection-edit__main,
+        html[data-admin-context='app'] .global-edit__main,
+        html[data-admin-context='app'] .edit-view__content {
+          border: none !important;
+          box-shadow: none !important;
+          outline: none !important;
+          background: transparent !important;
+        }
+
+        :root[data-theme="dark"] html[data-admin-context='app'] .collection-edit__main,
+        :root[data-theme="dark"] html[data-admin-context='app'] .global-edit__main,
+        :root[data-theme="dark"] html[data-admin-context='app'] .edit-view__content,
+        :root[data-theme="dark"] html[data-admin-context='app'] .document-fields,
+        :root[data-theme="dark"] html[data-admin-context='app'] .document-fields__main,
+        :root[data-theme="dark"] html[data-admin-context='app'] .document-fields__edit,
+        :root[data-theme="dark"] html[data-admin-context='app'] .collection-edit__main-wrapper {
+          border-left: none !important;
+          border-right: none !important;
+          box-shadow: none !important;
+          outline: none !important;
+        }
+
+        :root[data-theme="dark"] html[data-admin-context='app'] form.collection-edit__form {
+          border-left: none !important;
+          border-right: none !important;
+          border-top: none !important;
+        }
+
+        html[data-admin-context='app'] .collection-edit__form,
+        html[data-admin-context='app'] .global-edit__form,
+        html[data-admin-context='app'] .document-fields__main,
+        html[data-admin-context='app'] .document-fields__edit,
+        html[data-admin-context='app'] .document-fields__wrapper,
+        html[data-admin-context='app'] .document-fields__sidebar-wrap {
+          box-shadow: none !important;
+          outline: none !important;
+        }
+
+        html[data-admin-context='app'] .gutter.document-fields__edit,
+        html[data-admin-context='app'] .gutter.document-fields__main {
+          border-left: none !important;
+          border-right: none !important;
+          border-top: none !important;
+          box-shadow: none !important;
+          outline: none !important;
+        }
+
+        html[data-admin-context='app'] .document-fields {
+          margin-top: 0;
+        }
+
+        html[data-admin-context='app'] .doc-controls__meta {
+          margin: 0;
+          padding: 12px var(--admin-content-gutter, 60px);
+          border-top: none !important;
+          border-bottom: none !important;
+          display: grid;
+          grid-template-columns: auto 1fr auto;
+          align-items: center;
+          gap: 10px 18px;
+          font-size: 11px;
+          color: rgba(148, 163, 184, 0.9);
+          font-weight: 600;
+        }
+
+        html[data-admin-context='app'] .admin-doc-header-inline {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          min-width: 260px;
+          font-size: 12px;
+          letter-spacing: 0.02em;
+          grid-column: 1;
+        }
+
+        html[data-admin-context='app'] .admin-meta-cluster {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          gap: 14px;
+          flex-wrap: wrap;
+          grid-column: 2;
+          transform: translateX(120px);
+        }
+
+        html[data-admin-context='app'] .admin-doc-header-inline .doc-header__title {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          min-width: 0;
+        }
+
+        html[data-admin-context='app'] .admin-doc-header-inline h1 {
+          font-size: 20px;
+          font-weight: 800;
+          margin: 0;
+          color: #e2e8f0;
+          white-space: nowrap;
+        }
+
+        html[data-admin-context='app'] .admin-doc-header-inline .doc-tabs__tabs {
+          display: inline-flex;
+          gap: 8px;
+          background: rgba(148, 163, 184, 0.08);
+          border-radius: 999px;
+          padding: 2px;
+        }
+
+        html[data-admin-context='app'] .admin-doc-header-inline .doc-tabs__tabs .btn {
+          padding: 4px 10px;
+          font-size: 11px;
+          border-radius: 999px;
         }
 
         html[data-admin-context='app'] .collection-edit__header h1,
@@ -838,6 +1513,147 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         html[data-admin-context='app'] .document-header h1 {
           font-weight: 900;
           letter-spacing: -0.3px;
+          font-size: 20px;
+          line-height: 1.1;
+          margin: 0;
+        }
+
+        html[data-admin-context='app'] .admin-edit-meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px 12px;
+          align-items: center;
+        }
+
+        html[data-admin-context='app'] .admin-status-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 10px 4px 14px;
+          border-radius: 6px;
+          background: rgba(16, 185, 129, 0.12);
+          color: #0b4d3f;
+          border: 1px solid rgba(16, 185, 129, 0.25);
+          font-weight: 700;
+          letter-spacing: 0.01em;
+          text-transform: none;
+          font-size: 11px;
+          box-shadow: none;
+        }
+
+        html[data-admin-context='app'] .admin-status-published {
+          background: rgba(16, 185, 129, 0.12);
+          border-color: rgba(16, 185, 129, 0.25);
+          color: #0b4d3f;
+        }
+
+        html[data-admin-context='app'] .admin-status-pill * {
+          color: inherit;
+          font-weight: inherit;
+        }
+
+        html[data-admin-context='app'] .doc-controls__meta a {
+          color: inherit;
+          text-decoration: underline;
+        }
+
+        html[data-admin-context='app'] .admin-edit-actions {
+          margin-left: auto;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          grid-column: 3;
+          justify-self: end;
+        }
+
+        html[data-admin-context='app'] .admin-tab-muted,
+        html[data-admin-context='app'] .admin-hidden-tab {
+          display: none !important;
+        }
+
+        html[data-admin-context='app'] .admin-hide-api {
+          display: none !important;
+        }
+
+        html[data-admin-context='app'] .admin-edit-more {
+          position: relative;
+        }
+
+        html[data-admin-context='app'] .admin-edit-more summary {
+          list-style: none;
+          cursor: pointer;
+          border-radius: 999px;
+          padding: 6px 12px;
+          font-size: 12px;
+          font-weight: 700;
+          border: 1px solid var(--admin-surface-border);
+          color: var(--cpp-ink);
+          background: var(--admin-surface-muted);
+        }
+
+        html[data-admin-context='app'] .admin-edit-more summary::-webkit-details-marker {
+          display: none;
+        }
+
+        html[data-admin-context='app'] .admin-edit-more__menu {
+          position: absolute;
+          right: 0;
+          top: calc(100% + 8px);
+          min-width: 160px;
+          background: var(--admin-surface);
+          border: 1px solid var(--admin-surface-border);
+          border-radius: 10px;
+          box-shadow: 0 18px 32px rgba(15, 23, 42, 0.16);
+          padding: 8px;
+          display: grid;
+          gap: 4px;
+          z-index: 20;
+        }
+
+        html[data-admin-context='app'] .admin-edit-more__menu a {
+          display: block;
+          width: 100%;
+          padding: 8px 10px;
+          border-radius: 8px;
+          text-decoration: none;
+          color: var(--cpp-ink);
+          font-weight: 600;
+          font-size: 13px;
+        }
+
+        html[data-admin-context='app'] .admin-edit-more__button {
+          display: block;
+          width: 100%;
+          padding: 8px 10px;
+          border-radius: 8px;
+          text-decoration: none;
+          color: var(--cpp-ink);
+          font-weight: 600;
+          font-size: 13px;
+          background: transparent;
+          border: none;
+          text-align: left;
+        }
+
+        html[data-admin-context='app'] .admin-edit-more__menu a:hover {
+          background: var(--admin-surface-muted);
+        }
+
+        html[data-admin-context='app'] .admin-edit-more__button:hover {
+          background: var(--admin-surface-muted);
+        }
+
+        html[data-admin-context='app'] .doc-controls__actions .live-preview-toggler {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        html[data-admin-context='app'] .admin-live-preview-label {
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.02em;
+          color: var(--cpp-muted);
         }
 
         html[data-admin-context='app'] .collection-edit__main,
@@ -1295,15 +2111,16 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
         .admin-preview-panel h3 {
           font-size: 16px;
-          font-weight: 700;
-          color: #0f172a;
+          font-weight: 800;
+          color: #0b1220;
           margin: 0;
         }
 
         .admin-preview-panel p {
           margin: 4px 0 0;
           font-size: 13px;
-          color: #475569;
+          color: #334155;
+          font-weight: 500;
         }
 
         .admin-preview-panel iframe {
@@ -1372,6 +2189,10 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       {role === 'staff' ? (
         <style>{`
           .nav__toggle, [data-element="nav-toggle"] {
+            display: none !important;
+          }
+          .doc-tabs__tabs [aria-label='API'],
+          .doc-tabs__tabs [title='API'] {
             display: none !important;
           }
         `}</style>
@@ -1471,8 +2292,10 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                   type="button"
                   className="admin-preview-button admin-preview-button--ghost"
                   onClick={() => {
+                    triggerPreviewDisable(previewGate.url)
                     setPreviewGate({ open: false, url: null, loading: false, error: null })
                     pendingPublishRef.current = null
+                    publishIntentRef.current = false
                   }}
                 >
                   Cancel
@@ -1484,13 +2307,31 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                   onClick={() => {
                     const pendingButton = pendingPublishRef.current
                     setPreviewGate({ open: false, url: null, loading: false, error: null })
-                    pendingPublishRef.current = null
                     if (pendingButton) {
                       allowPublishRef.current = true
-                      pendingButton.click()
+                      const originalType = pendingButton.dataset.publishGateType || 'submit'
+                      pendingButton.type = originalType
+                      const form = pendingButton.closest('form')
+                      if (form && 'requestSubmit' in form) {
+                        ;(form as HTMLFormElement).requestSubmit(pendingButton)
+                      } else {
+                        pendingButton.click()
+                      }
                       window.setTimeout(() => {
+                        pendingButton.type = 'button'
                         allowPublishRef.current = false
-                      }, 0)
+                        publishIntentRef.current = false
+                        pendingPublishRef.current = null
+                        triggerPreviewDisable(previewGate.url)
+                      }, 3000)
+
+                      let attempts = 0
+                      const statusTimer = window.setInterval(() => {
+                        attempts += 1
+                        if (forceStatusPublished() || attempts > 12) {
+                          window.clearInterval(statusTimer)
+                        }
+                      }, 300)
                     }
                   }}
                 >

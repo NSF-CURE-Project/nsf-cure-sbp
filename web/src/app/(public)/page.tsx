@@ -1,7 +1,7 @@
 import React from "react";
-import { draftMode } from "next/headers";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
 import { getPageBySlug, type PageDoc } from "@/lib/payloadSdk/pages";
+import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -14,8 +14,12 @@ export const metadata = buildMetadata({
   path: "/",
 });
 
-export default async function Landing() {
-  const { isEnabled: isPreview } = await draftMode();
+export default async function Landing({
+  searchParams,
+}: {
+  searchParams?: Record<string, string | string[] | undefined>;
+}) {
+  const isPreview = await resolvePreview(searchParams);
   const home: PageDoc | null = await getPageBySlug("home", {
     draft: isPreview,
   }).catch(() => null);

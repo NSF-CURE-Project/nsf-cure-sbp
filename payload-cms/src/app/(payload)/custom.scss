@@ -146,6 +146,14 @@ html[data-admin-login='true'] select {
   color: #0f172a;
 }
 
+html[data-admin-login='true'][data-theme='dark'] input,
+html[data-admin-login='true'][data-theme='dark'] textarea,
+html[data-admin-login='true'][data-theme='dark'] select {
+  background: #f7f9fc !important;
+  color: #0f172a !important;
+  border-color: #d6dbe6 !important;
+}
+
 html[data-admin-login='true'] input:focus,
 html[data-admin-login='true'] textarea:focus,
 html[data-admin-login='true'] select:focus {

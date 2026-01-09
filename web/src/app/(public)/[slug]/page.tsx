@@ -1,7 +1,7 @@
-import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
 import { getPageBySlug, type PageData } from "@/lib/payloadSdk/pages";
+import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const { isEnabled: isPreview } = await draftMode();
+  const isPreview = await resolvePreview();
   const page = await getPageBySlug(slug, { draft: isPreview }).catch(
     () => null
   );
@@ -27,11 +27,13 @@ export async function generateMetadata({
 
 export default async function PageBySlug({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams?: Record<string, string | string[] | undefined>;
 }) {
   const { slug } = await params;
-  const { isEnabled: isPreview } = await draftMode();
+  const isPreview = await resolvePreview(searchParams);
   const page: PageData | null = await getPageBySlug(slug, {
     draft: isPreview,
   }).catch(() => null);

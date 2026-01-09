@@ -34,6 +34,7 @@ import {
 import { previewUrlHandler } from './endpoints/previewUrl'
 import { confirmEmailHandler, requestEmailConfirmationHandler } from './endpoints/emailConfirmation'
 import { logoutAllSessionsHandler } from './endpoints/logoutAll'
+import { accountsMeHandler } from './endpoints/accountsMe'
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
   path: '@/views/StaffDashboardView#default',
@@ -210,6 +211,11 @@ export default buildConfig({
       path: '/preview-url',
       method: 'get',
       handler: previewUrlHandler,
+    },
+    {
+      path: '/accounts/me',
+      method: 'get',
+      handler: accountsMeHandler,
     },
     {
       path: '/accounts/request-email-confirmation',

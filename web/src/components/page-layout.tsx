@@ -221,6 +221,23 @@ export function PageLayout({
           );
         }
 
+        if (block.blockType === "sectionBlock") {
+          const TitleTag = getTitleTag(block.size);
+          const titleClass = getTitleClass(block.size);
+          return (
+            <section key={block.id ?? idx} className="space-y-2">
+              <TitleTag className={`${titleClass} font-semibold`}>
+                {block.title}
+              </TitleTag>
+              {block.text &&
+                renderRichTextOrText(
+                  block.text,
+                  "prose dark:prose-invert prose-invert leading-7 max-w-none text-muted-foreground"
+                )}
+            </section>
+          );
+        }
+
         if (block.blockType === "richTextBlock") {
           return (
             <section key={block.id ?? idx}>

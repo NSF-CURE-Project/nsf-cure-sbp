@@ -21,6 +21,10 @@ export function usePayloadLivePreview<T>(
 ) {
   const [data, setData] = useState<T | null>(initialData);
   const { collectionSlug, globalSlug } = options;
+  const initialId =
+    initialData && typeof initialData === "object" && "id" in initialData
+      ? (initialData as { id?: string | number }).id ?? null
+      : null;
 
   useEffect(() => {
     setData(initialData);
@@ -39,12 +43,22 @@ export function usePayloadLivePreview<T>(
       const message = event.data;
       if (!message || message.type !== "payload-live-preview") return;
       if (message.ready) return;
-      if (
-        match.collectionSlug &&
-        message.collectionSlug !== match.collectionSlug
-      )
-        return;
-      if (match.globalSlug && message.globalSlug !== match.globalSlug) return;
+      if (match.collectionSlug && message.collectionSlug) {
+        if (message.collectionSlug !== match.collectionSlug) {
+          const messageId =
+            message.data &&
+            typeof message.data === "object" &&
+            "id" in message.data
+              ? (message.data as { id?: string | number }).id ?? null
+              : null;
+          if (!messageId || !initialId || messageId !== initialId) {
+            return;
+          }
+        }
+      }
+      if (match.globalSlug && message.globalSlug) {
+        if (message.globalSlug !== match.globalSlug) return;
+      }
       if (message.data) {
         setData(message.data);
       }

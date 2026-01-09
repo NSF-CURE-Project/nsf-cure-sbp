@@ -1,7 +1,7 @@
-import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import { getClassBySlug } from "@/lib/payloadSdk/classes";
 import Link from "next/link";
+import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 import type { ChapterDoc, LessonDoc } from "@/lib/payloadSdk/types";
 import { ClassProgressSummary } from "@/components/progress/ClassProgressSummary";
@@ -15,7 +15,8 @@ export async function generateMetadata(props: {
   searchParams: SearchParams;
 }) {
   const { classSlug } = await props.params;
-  const { isEnabled: isPreview } = await draftMode();
+  const searchParams = await props.searchParams;
+  const isPreview = await resolvePreview(searchParams);
 
   const c = await getClassBySlug(classSlug, { draft: isPreview });
   const title = c?.title ?? "Class";
@@ -37,7 +38,8 @@ export default async function ClassPage(props: {
   searchParams: SearchParams;
 }) {
   const { classSlug } = await props.params;
-  const { isEnabled: isPreview } = await draftMode();
+  const searchParams = await props.searchParams;
+  const isPreview = await resolvePreview(searchParams);
 
   const c = await getClassBySlug(classSlug, { draft: isPreview });
 
