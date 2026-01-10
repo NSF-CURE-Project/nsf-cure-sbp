@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Check, ChevronRight } from "lucide-react";
+import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
 type LessonItem = {
   slug?: string;
@@ -37,6 +38,7 @@ type ClassItem = {
 } & Record<string, unknown>;
 
 type Props = { classes: ClassItem[] };
+const PAYLOAD_URL = getPayloadBaseUrl();
 
 // ---------- Accessors ----------
 const getClassSlug = (c: ClassItem) =>
@@ -77,20 +79,17 @@ export default function SidebarClient({ classes }: Props) {
     const controller = new AbortController();
     const loadUser = async () => {
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000"}/api/accounts/me`,
-          {
-            credentials: "include",
-            signal: controller.signal,
-          }
-        );
+        const res = await fetch(`${PAYLOAD_URL}/api/accounts/me`, {
+          credentials: "include",
+          signal: controller.signal,
+        });
         if (!res.ok) {
           setUserId(null);
           return;
         }
         const data = (await res.json()) as { user?: { id?: string } };
         setUserId(data?.user?.id ?? null);
-      } catch (error) {
+      } catch {
         if (!controller.signal.aborted) {
           setUserId(null);
         }
@@ -106,7 +105,7 @@ export default function SidebarClient({ classes }: Props) {
     const loadProgress = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000"}/api/lesson-progress?limit=500&where[completed][equals]=true`,
+          `${PAYLOAD_URL}/api/lesson-progress?limit=500&where[completed][equals]=true`,
           {
             credentials: "include",
             signal: controller.signal,
@@ -134,7 +133,7 @@ export default function SidebarClient({ classes }: Props) {
           }
         });
         setCompletedLessons(next);
-      } catch (error) {
+      } catch {
         if (!controller.signal.aborted) {
           setCompletedLessons(new Set());
         }

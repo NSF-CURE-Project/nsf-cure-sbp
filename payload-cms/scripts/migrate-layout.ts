@@ -1,6 +1,14 @@
-import type { Payload } from 'payload'
+import type { GlobalSlug, Payload } from 'payload'
 
 type LayoutBlock = Record<string, unknown>
+type LegacyGlobalSlug =
+  | GlobalSlug
+  | 'home-page'
+  | 'resources-page'
+  | 'contact-page'
+  | 'getting-started'
+
+const toGlobalSlug = (slug: LegacyGlobalSlug) => slug as GlobalSlug
 
 const toTextBlock = (text?: unknown): LayoutBlock | null =>
   typeof text === 'string' && text.trim() ? { blockType: 'textBlock', text } : null
@@ -60,13 +68,14 @@ const toButtonBlock = (label?: string | null, href?: string | null) => {
 
 export default async function migrateLayout(payload: Payload) {
   const updates: string[] = []
-  const updateGlobalBoth = async (slug: string, blocks: LayoutBlock[]) => {
-    await payload.updateGlobal({ slug, data: { layout: blocks }, draft: true })
-    await payload.updateGlobal({ slug, data: { layout: blocks }, draft: false })
+  const updateGlobalBoth = async (slug: LegacyGlobalSlug, blocks: LayoutBlock[]) => {
+    const data = { layout: blocks } as unknown as Record<string, unknown>
+    await payload.updateGlobal({ slug: toGlobalSlug(slug), data, draft: true })
+    await payload.updateGlobal({ slug: toGlobalSlug(slug), data, draft: false })
   }
 
   // ----- Globals -----
-  const home = await payload.findGlobal({ slug: 'home-page', depth: 0 })
+  const home = await payload.findGlobal({ slug: toGlobalSlug('home-page'), depth: 0 })
   if (home && isLayoutEmpty((home as any).layout)) {
     const blocks: LayoutBlock[] = []
     const hero = toHeroBlock({
@@ -119,7 +128,7 @@ export default async function migrateLayout(payload: Payload) {
     }
   }
 
-  const resources = await payload.findGlobal({ slug: 'resources-page', depth: 0 })
+  const resources = await payload.findGlobal({ slug: toGlobalSlug('resources-page'), depth: 0 })
   if (resources && isLayoutEmpty((resources as any).layout)) {
     const blocks: LayoutBlock[] = []
     const hero = toSectionTitle(
@@ -144,7 +153,7 @@ export default async function migrateLayout(payload: Payload) {
     }
   }
 
-  const contact = await payload.findGlobal({ slug: 'contact-page', depth: 0 })
+  const contact = await payload.findGlobal({ slug: toGlobalSlug('contact-page'), depth: 0 })
   if (contact && isLayoutEmpty((contact as any).layout)) {
     const blocks: LayoutBlock[] = []
     const hero = toSectionTitle(
@@ -166,7 +175,10 @@ export default async function migrateLayout(payload: Payload) {
     }
   }
 
-  const gettingStarted = await payload.findGlobal({ slug: 'getting-started', depth: 0 })
+  const gettingStarted = await payload.findGlobal({
+    slug: toGlobalSlug('getting-started'),
+    depth: 0,
+  })
   if (gettingStarted && isLayoutEmpty((gettingStarted as any).layout)) {
     const blocks: LayoutBlock[] = []
     const hero = toSectionTitle((gettingStarted as any).title ?? '', null)

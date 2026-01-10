@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, PayloadRequest } from 'payload'
 
 import { generateUniqueJoinCode } from '../utils/joinCode'
 
@@ -10,17 +10,17 @@ const clampNumber = (value: unknown, fallback: number, min: number, max: number)
   return Math.min(Math.max(parsed, min), max)
 }
 
-const isStaff = (req?: { user?: { collection?: string; role?: string } }) =>
+const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' &&
-  ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
+  ['admin', 'staff', 'professor'].includes(req.user?.role ?? '')
 
 export const Classrooms: CollectionConfig = {
   slug: 'classrooms',
+  defaultSort: '-updatedAt',
   admin: {
     useAsTitle: 'title',
     group: 'Classrooms',
     defaultColumns: ['title', 'class', 'professor', 'joinCode', 'active', 'updatedAt'],
-    defaultSort: '-updatedAt',
   },
   access: {
     read: ({ req }) => {
@@ -71,7 +71,7 @@ export const Classrooms: CollectionConfig = {
         data.joinCodeLength = length
 
         if (!data.joinCode) {
-          data.joinCode = await generateUniqueJoinCode(req.payload, length)
+          data.joinCode = await generateUniqueJoinCode(req.payload as typeof req.payload, length)
         }
         if (typeof data.joinCode === 'string') {
           data.joinCode = data.joinCode.toUpperCase()
@@ -130,14 +130,14 @@ export const Classrooms: CollectionConfig = {
       name: 'class',
       label: 'Class',
       type: 'relationship',
-      relationTo: 'classes' as any,
+      relationTo: 'classes',
       required: true,
     },
     {
       name: 'professor',
       label: 'Professor',
       type: 'relationship',
-      relationTo: 'users' as any,
+      relationTo: 'users',
       required: true,
       admin: {
         position: 'sidebar',

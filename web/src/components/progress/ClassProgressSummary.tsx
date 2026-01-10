@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
-const PAYLOAD_URL =
-  process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const PAYLOAD_URL = getPayloadBaseUrl();
 
 type Props = {
   classId: string | number;
@@ -42,7 +42,7 @@ export function ClassProgressSummary({
         }
         const data = (await res.json()) as { user?: AccountUser };
         setUser(data?.user ?? null);
-      } catch (error) {
+      } catch {
         if (!controller.signal.aborted) {
           setUser(null);
         }
@@ -73,7 +73,7 @@ export function ClassProgressSummary({
           (doc) => doc.completed
         ).length;
         setCompletedCount(completed);
-      } catch (error) {
+      } catch {
         if (!controller.signal.aborted) {
           setCompletedCount(0);
         }

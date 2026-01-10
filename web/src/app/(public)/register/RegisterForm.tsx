@@ -5,9 +5,9 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
-const PAYLOAD_URL =
-  process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const PAYLOAD_URL = getPayloadBaseUrl();
 
 export function RegisterForm() {
   const [fullName, setFullName] = useState("");

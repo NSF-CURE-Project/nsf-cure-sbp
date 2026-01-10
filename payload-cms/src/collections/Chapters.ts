@@ -11,10 +11,10 @@ export const Chapters: CollectionConfig = {
   },
   hooks: {
     afterChange: [
-      async ({ doc, originalDoc, req }) => {
+      async ({ doc, previousDoc, req }) => {
         if (!req?.payload) return
         const nextClass = doc?.class
-        const prevClass = originalDoc?.class
+        const prevClass = previousDoc?.class
 
         const getId = (value: unknown) =>
           typeof value === 'object' && value !== null && 'id' in value
@@ -35,7 +35,7 @@ export const Chapters: CollectionConfig = {
             depth: 0,
           })
           const existing = Array.isArray((current as { chapters?: unknown[] }).chapters)
-            ? (current as { chapters?: unknown[] }).chapters
+            ? ((current as { chapters?: unknown[] }).chapters ?? [])
             : []
           const exists = existing.some((item) => getId(item) === String(doc.id))
           if (exists) return
@@ -43,7 +43,7 @@ export const Chapters: CollectionConfig = {
             collection: 'classes',
             id: classId,
             data: {
-              chapters: [...existing, doc.id],
+              chapters: [...existing, doc.id] as unknown as Array<number | { id?: number }>,
             },
             depth: 0,
           })
@@ -56,7 +56,7 @@ export const Chapters: CollectionConfig = {
             depth: 0,
           })
           const existing = Array.isArray((current as { chapters?: unknown[] }).chapters)
-            ? (current as { chapters?: unknown[] }).chapters
+            ? ((current as { chapters?: unknown[] }).chapters ?? [])
             : []
           const filtered = existing.filter((item) => getId(item) !== String(doc.id))
           if (filtered.length === existing.length) return
@@ -64,7 +64,7 @@ export const Chapters: CollectionConfig = {
             collection: 'classes',
             id: classId,
             data: {
-              chapters: filtered,
+              chapters: filtered as unknown as Array<number | { id?: number }>,
             },
             depth: 0,
           })
@@ -96,7 +96,7 @@ export const Chapters: CollectionConfig = {
           depth: 0,
         })
         const existing = Array.isArray((current as { chapters?: unknown[] }).chapters)
-          ? (current as { chapters?: unknown[] }).chapters
+          ? ((current as { chapters?: unknown[] }).chapters ?? [])
           : []
         const filtered = existing.filter((item) => getId(item) !== String(doc.id))
         if (filtered.length === existing.length) return
@@ -105,14 +105,14 @@ export const Chapters: CollectionConfig = {
           collection: 'classes',
           id: classId,
           data: {
-            chapters: filtered,
+            chapters: filtered as unknown as Array<number | { id?: number }>,
           },
           depth: 0,
         })
       },
     ],
     beforeValidate: [
-      async ({ data, req, originalDoc, id }) => {
+      async ({ data, req, originalDoc }) => {
         if (!data) return data
         if (!data.slug) {
           const title = data.title ?? originalDoc?.title ?? ''
@@ -121,7 +121,7 @@ export const Chapters: CollectionConfig = {
             base,
             collection: 'chapters',
             req,
-            id,
+            id: originalDoc?.id,
           })
         }
         return data
@@ -156,14 +156,14 @@ export const Chapters: CollectionConfig = {
       name: 'lessons',
       label: 'Lessons',
       type: 'relationship',
-      relationTo: 'lessons' as any, // each chapter can link to many lessons
+      relationTo: 'lessons', // each chapter can link to many lessons
       hasMany: true,
     },
     {
       name: 'class',
       label: 'Class',
       type: 'relationship',
-      relationTo: 'classes' as any, // many chapters → one class
+      relationTo: 'classes', // many chapters → one class
       required: true,
     },
     {

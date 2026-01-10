@@ -11,16 +11,14 @@ export const Footer: GlobalConfig = {
   },
   admin: {
     group: 'Admin',
-    preview: {
-      url: () => {
-        const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
-        const search = new URLSearchParams({
-          secret: process.env.PREVIEW_SECRET ?? '',
-          type: 'footer',
-          ts: Date.now().toString(),
-        })
-        return `${base}/api/preview?${search.toString()}`
-      },
+    preview: () => {
+      const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
+      const search = new URLSearchParams({
+        secret: process.env.PREVIEW_SECRET ?? '',
+        type: 'footer',
+        ts: Date.now().toString(),
+      })
+      return `${base}/api/preview?${search.toString()}`
     },
     livePreview: {
       url: () => {

@@ -1,7 +1,9 @@
-import type { Payload } from 'payload'
+import type { GlobalSlug, Payload } from 'payload'
+
+type LegacyGlobalSlug = GlobalSlug | 'home-page' | 'resources-page' | 'contact-page' | 'getting-started'
 
 type Mapping = {
-  globalSlug: string
+  globalSlug: LegacyGlobalSlug
   pageSlug: string
   title: string
 }
@@ -27,7 +29,7 @@ export default async function migrateGlobalsToPages(payload: Payload) {
   for (const mapping of mappings) {
     const published = await payload
       .findGlobal({
-        slug: mapping.globalSlug,
+        slug: mapping.globalSlug as GlobalSlug,
         draft: false,
         depth: 0,
       })
@@ -35,7 +37,7 @@ export default async function migrateGlobalsToPages(payload: Payload) {
 
     const draft = await payload
       .findGlobal({
-        slug: mapping.globalSlug,
+        slug: mapping.globalSlug as GlobalSlug,
         draft: true,
         depth: 0,
       })
@@ -56,14 +58,14 @@ export default async function migrateGlobalsToPages(payload: Payload) {
       draft: true,
     })
 
-    let pageId = existing.docs[0]?.id as string | undefined
+    let pageId = existing.docs[0]?.id
 
     if (published) {
       const data = {
         title: mapping.title,
         slug: mapping.pageSlug,
         layout: publishedLayout,
-        _status: 'published',
+        _status: 'published' as const,
       }
 
       if (pageId) {
@@ -79,7 +81,7 @@ export default async function migrateGlobalsToPages(payload: Payload) {
           data,
           draft: false,
         })
-        pageId = created.id as string
+        pageId = created.id
       }
     }
 
@@ -91,7 +93,7 @@ export default async function migrateGlobalsToPages(payload: Payload) {
         title: mapping.title,
         slug: mapping.pageSlug,
         layout: draftLayout,
-        _status: 'draft',
+        _status: 'draft' as const,
       }
 
       if (pageId) {
@@ -107,7 +109,7 @@ export default async function migrateGlobalsToPages(payload: Payload) {
           data,
           draft: true,
         })
-        pageId = created.id as string
+        pageId = created.id
       }
     }
 

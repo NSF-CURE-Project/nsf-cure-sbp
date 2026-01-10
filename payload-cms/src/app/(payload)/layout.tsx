@@ -34,7 +34,9 @@ const Layout = async ({ children }: Args) => {
       config={config}
       importMap={importMap}
       serverFunction={serverFunction}
-      htmlProps={theme ? { 'data-theme': theme } : undefined}
+      htmlProps={
+        theme ? ({ 'data-theme': theme } as React.HtmlHTMLAttributes<HTMLHtmlElement>) : undefined
+      }
     >
       {children}
     </RootLayout>

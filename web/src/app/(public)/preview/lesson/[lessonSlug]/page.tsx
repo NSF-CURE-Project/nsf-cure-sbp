@@ -18,10 +18,11 @@ export default async function PreviewLessonPage({
   searchParams,
 }: {
   params: Promise<RouteParams>;
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { lessonSlug } = await params;
-  const isPreview = await resolvePreview(searchParams);
+  const sp = (await searchParams) ?? {};
+  const isPreview = await resolvePreview(sp);
 
   const lesson: LessonDoc | null = await getLessonBySlug(lessonSlug, {
     draft: isPreview,
@@ -53,11 +54,15 @@ export default async function PreviewLessonPage({
   };
 
   return (
-    <LivePreviewLesson
-      initialData={lesson}
-      className="mx-auto w-full max-w-[var(--content-max,100ch)] -mt-3 pt-2 pb-10 px-4 sm:-mt-4"
-      lessonNav={lessonNav}
-    />
+    <main className="min-w-0 overflow-x-hidden">
+      <div className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 sm:px-6 lg:px-8 py-6">
+        <LivePreviewLesson
+          initialData={lesson}
+          className="w-full -mt-3 pt-2 pb-10 sm:-mt-4"
+          lessonNav={lessonNav}
+        />
+      </div>
+    </main>
   );
 }
 

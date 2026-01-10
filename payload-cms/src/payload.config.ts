@@ -5,7 +5,7 @@ import {
   lexicalEditor,
 } from '@payloadcms/richtext-lexical'
 import path from 'path'
-import { buildConfig, type PayloadComponent } from 'payload'
+import { buildConfig, type CustomComponent, type PayloadComponent } from 'payload'
 import nodemailer from 'nodemailer'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
@@ -42,14 +42,11 @@ const StaffDashboardView: PayloadComponent = {
 const StaffProvider: PayloadComponent = {
   path: '@/views/StaffProvider#default',
 }
-const AdminLogo: PayloadComponent = {
+const AdminLogo: CustomComponent = {
   path: '@/views/AdminLogo#default',
 }
-const AdminIcon: PayloadComponent = {
+const AdminIcon: CustomComponent = {
   path: '@/views/AdminIcon#default',
-}
-const StaffNav: PayloadComponent = {
-  path: '@/views/StaffNav#default',
 }
 
 const filename = fileURLToPath(import.meta.url)
@@ -70,6 +67,7 @@ const parseFrom = (value?: string) => {
 const { fromName, fromAddress } = parseFrom(process.env.SMTP_FROM)
 const frontendURL = process.env.FRONTEND_URL ?? 'http://localhost:3001'
 const serverURL = process.env.PAYLOAD_PUBLIC_SERVER_URL ?? 'http://localhost:3000'
+const allowedOrigins = [frontendURL, serverURL].filter(Boolean)
 const defaultFromAddress = fromAddress ?? process.env.SMTP_USER ?? 'info@payloadcms.com'
 const defaultFromName = fromName ?? 'NSF CURE SBP'
 const transport = nodemailer.createTransport({
@@ -94,8 +92,8 @@ const buildEmailAdapter = () => ({
 
 export default buildConfig({
   serverURL,
-  cors: [frontendURL],
-  csrf: [frontendURL],
+  cors: allowedOrigins,
+  csrf: allowedOrigins,
   admin: {
     user: Users.slug,
     meta: {
@@ -137,7 +135,6 @@ export default buildConfig({
         Logo: AdminLogo,
         Icon: AdminIcon,
       },
-      Nav: StaffNav,
       views: {
         dashboard: {
           Component: StaffDashboardView,

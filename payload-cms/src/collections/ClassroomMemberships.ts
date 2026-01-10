@@ -1,11 +1,12 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, PayloadRequest, Where } from 'payload'
 
-const isStaff = (req?: { user?: { collection?: string; role?: string } }) =>
+const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' &&
-  ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
+  ['admin', 'staff', 'professor'].includes(req.user?.role ?? '')
 
 export const ClassroomMemberships: CollectionConfig = {
   slug: 'classroom-memberships',
+  defaultSort: '-joinedAt',
   admin: {
     useAsTitle: 'student',
     group: 'Classrooms',
@@ -18,7 +19,6 @@ export const ClassroomMemberships: CollectionConfig = {
       'completionRate',
       'lastActivityAt',
     ],
-    defaultSort: '-joinedAt',
   },
   access: {
     read: async ({ req }) => {
@@ -35,22 +35,27 @@ export const ClassroomMemberships: CollectionConfig = {
               },
             },
           })
-          const classroomIds = classrooms.docs?.map((doc: any) => doc.id).filter(Boolean) ?? []
+          const classroomIds =
+            classrooms.docs
+              ?.map((doc) => (doc as { id?: string | number }).id)
+              .filter((id): id is string | number => id != null) ?? []
           if (!classroomIds.length) return false
-          return {
+          const classroomWhere: Where = {
             classroom: {
               in: classroomIds,
             },
           }
+          return classroomWhere
         }
         return true
       }
       if (req.user?.collection === 'accounts') {
-        return {
+        const studentWhere: Where = {
           student: {
             equals: req.user.id,
           },
         }
+        return studentWhere
       }
       return false
     },
@@ -69,13 +74,17 @@ export const ClassroomMemberships: CollectionConfig = {
             },
           },
         })
-        const classroomIds = classrooms.docs?.map((doc: any) => doc.id).filter(Boolean) ?? []
+        const classroomIds =
+          classrooms.docs
+            ?.map((doc) => (doc as { id?: string | number }).id)
+            .filter((id): id is string | number => id != null) ?? []
         if (!classroomIds.length) return false
-        return {
+        const classroomWhere: Where = {
           classroom: {
             in: classroomIds,
           },
         }
+        return classroomWhere
       }
       return true
     },
@@ -93,13 +102,17 @@ export const ClassroomMemberships: CollectionConfig = {
             },
           },
         })
-        const classroomIds = classrooms.docs?.map((doc: any) => doc.id).filter(Boolean) ?? []
+        const classroomIds =
+          classrooms.docs
+            ?.map((doc) => (doc as { id?: string | number }).id)
+            .filter((id): id is string | number => id != null) ?? []
         if (!classroomIds.length) return false
-        return {
+        const classroomWhere: Where = {
           classroom: {
             in: classroomIds,
           },
         }
+        return classroomWhere
       }
       return true
     },
@@ -174,10 +187,10 @@ export const ClassroomMemberships: CollectionConfig = {
           })
           const totalLessons = progress.docs?.length ?? 0
           const completedLessons = (progress.docs ?? []).filter(
-            (entry: any) => entry?.completed,
+            (entry) => (entry as { completed?: boolean })?.completed,
           ).length
           const lastActivityAt = (progress.docs ?? [])
-            .map((entry: any) => entry?.updatedAt)
+            .map((entry) => (entry as { updatedAt?: string })?.updatedAt)
             .filter(Boolean)
             .sort()
             .slice(-1)[0]
@@ -199,13 +212,13 @@ export const ClassroomMemberships: CollectionConfig = {
     {
       name: 'classroom',
       type: 'relationship',
-      relationTo: 'classrooms' as any,
+      relationTo: 'classrooms',
       required: true,
     },
     {
       name: 'student',
       type: 'relationship',
-      relationTo: 'accounts' as any,
+      relationTo: 'accounts',
       required: true,
       admin: {
         position: 'sidebar',

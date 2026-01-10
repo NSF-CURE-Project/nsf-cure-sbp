@@ -1,6 +1,6 @@
 import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
-export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
+export async function up({ db, payload: _payload, req: _req }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
   DO $$ BEGIN
     CREATE TYPE "public"."enum_lessons_blocks_resources_list_resources_type" AS ENUM('link', 'video', 'download', 'other');
@@ -1131,7 +1131,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   DROP TYPE IF EXISTS "public"."enum__getting_started_v_version_status";`)
 }
 
-export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
+export async function down({ db, payload: _payload, req: _req }: MigrateDownArgs): Promise<void> {
   await db.execute(sql`
    CREATE TYPE "public"."enum_classes_blocks_section_title_size" AS ENUM('sm', 'md', 'lg');
   CREATE TYPE "public"."enum_classes_blocks_list_block_list_style" AS ENUM('unordered', 'ordered');

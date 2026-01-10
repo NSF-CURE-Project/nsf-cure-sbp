@@ -32,7 +32,7 @@ export default async function promoteAdmin(payload: Payload) {
     depth: 0,
   })
 
-  const user = res.docs[0] as { id?: string; role?: string } | undefined
+  const user = res.docs[0] as { id?: string | number; role?: string } | undefined
 
   if (!user?.id) {
     payload.logger.error(`No admin user found with email "${email}".`)

@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 
+const payloadProxyTarget =
+  process.env.PAYLOAD_PROXY_TARGET ?? "http://localhost:3000";
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
@@ -25,6 +28,18 @@ const nextConfig: NextConfig = {
         port: "3000",
         pathname: "/api/media/**",
       },
+      {
+        protocol: "http",
+        hostname: "admin.sbp.local",
+        port: "3000",
+        pathname: "/api/media/**",
+      },
+      {
+        protocol: "http",
+        hostname: "app.sbp.local",
+        port: "3001",
+        pathname: "/api/media/**",
+      },
       // Optional: add your production Strapi domain later
       // {
       //   protocol: "https",
@@ -33,6 +48,14 @@ const nextConfig: NextConfig = {
       // },
     ],
   },
+  rewrites: async () => ({
+    afterFiles: [
+      {
+        source: "/api/:path*",
+        destination: `${payloadProxyTarget}/api/:path*`,
+      },
+    ],
+  }),
 };
 
 export default nextConfig;

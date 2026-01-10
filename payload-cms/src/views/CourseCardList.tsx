@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useRef, useState } from 'react'
+import Link from 'next/link'
 
 type CourseTree = {
   id: string | number
@@ -190,11 +191,11 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
         <div style={{ fontSize: 12, color: '#64748b' }}>
           No classes yet. Create your first class to get started.
         </div>
-        <a href="/admin/collections/classes/create" style={{ textDecoration: 'none' }}>
+        <Link href="/admin/collections/classes/create" style={{ textDecoration: 'none' }}>
           <div style={primaryActionStyle} className="dashboard-chip">
             Create first class
           </div>
-        </a>
+        </Link>
       </div>
     )
   }
@@ -244,11 +245,11 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
           <span style={{ fontWeight: 700 }}>Tip</span>
           <span>Drag chapter cards to reorder chapters inside a course.</span>
         </div>
-        <a href="/admin/collections/classes/create" style={{ textDecoration: 'none' }}>
+        <Link href="/admin/collections/classes/create" style={{ textDecoration: 'none' }}>
           <div style={primaryActionStyle} className="dashboard-chip">
             Add course
           </div>
-        </a>
+        </Link>
       </div>
       {isSavingOrder ? (
         <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Saving course order…</div>

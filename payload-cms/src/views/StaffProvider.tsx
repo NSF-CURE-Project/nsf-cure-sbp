@@ -1,16 +1,29 @@
 'use client'
 
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 import type { AdminViewServerProps } from 'payload'
 import { useAuth } from '@payloadcms/ui'
 
 type ThemeMode = 'light' | 'dark'
+type AdminUser = {
+  email?: string
+  role?: string
+  firstName?: string
+  lastName?: string
+  first_name?: string
+  last_name?: string
+}
 
 const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNode }) => {
   const auth = useAuth()
-  const serverUser = (props as any)?.user ?? (props as any)?.payload?.user
-  const user = auth?.user ?? serverUser
+  const serverUser =
+    (props as { user?: AdminUser; payload?: { user?: AdminUser } })?.user ??
+    (props as { payload?: { user?: AdminUser } })?.payload?.user
+  const user = (auth?.user as AdminUser | undefined) ?? serverUser
   const role = user?.role
+  const userTheme = (user as { adminTheme?: string } | null)?.adminTheme
+  const userId = (user as { id?: string | number } | null)?.id
   const getIsLoginPath = (pathname: string) =>
     pathname.startsWith('/admin/login') ||
     pathname.startsWith('/admin/forgot-password') ||
@@ -39,7 +52,38 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
   const autoSaveTimerRef = useRef<number | null>(null)
   const autoSaveInFlightRef = useRef(false)
 
-  const getStatusStorageKey = () => {
+  const expandPageLayout = useCallback(() => {
+    if (typeof document === 'undefined') return
+    const form = document.querySelector<HTMLElement>(
+      'form.collection-edit__form, form.global-edit__form',
+    )
+    if (!form) {
+      document.documentElement.setAttribute('data-layout-ready', 'false')
+      return
+    }
+    if (form.dataset.layoutExpanded === 'true') {
+      document.documentElement.setAttribute('data-layout-ready', 'true')
+      return
+    }
+
+    const showAllButtons = Array.from(
+      form.querySelectorAll<HTMLButtonElement>('button, a'),
+    ).filter((btn) => {
+      const label = btn.textContent?.trim().toLowerCase() ?? ''
+      return label === 'show all' || label === 'expand all'
+    })
+
+    showAllButtons.forEach((btn) => {
+      if (!btn.disabled) {
+        btn.click()
+      }
+    })
+
+    form.dataset.layoutExpanded = 'true'
+    document.documentElement.setAttribute('data-layout-ready', 'true')
+  }, [])
+
+  const getStatusStorageKey = useCallback(() => {
     if (typeof window === 'undefined') return null
     const path = window.location.pathname
     const collectionMatch = path.match(/\/admin\/collections\/([^/]+)\/([^/]+)/)
@@ -51,9 +95,9 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       return `admin-status:global:${globalMatch[1]}`
     }
     return null
-  }
+  }, [])
 
-  const forceStatusPublished = () => {
+  const forceStatusPublished = useCallback(() => {
     const status = document.querySelector<HTMLElement>('.admin-status-pill')
     if (!status) return false
     const text = status.textContent?.toLowerCase() ?? ''
@@ -65,9 +109,9 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       window.localStorage.setItem(key, 'published')
     }
     return true
-  }
+  }, [getStatusStorageKey])
 
-  const forceStatusChanged = () => {
+  const forceStatusChanged = useCallback(() => {
     const status = document.querySelector<HTMLElement>('.admin-status-pill')
     if (!status) return false
     status.textContent = 'Status: Changed'
@@ -77,9 +121,9 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       window.localStorage.removeItem(key)
     }
     return true
-  }
+  }, [getStatusStorageKey])
 
-  const syncStatusFromDoc = () => {
+  const syncStatusFromDoc = useCallback(() => {
     const status = document.querySelector<HTMLElement>('.admin-status-pill')
     if (!status) return false
     const hasRevert = Boolean(
@@ -97,7 +141,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       window.localStorage.setItem(key, 'published')
     }
     return true
-  }
+  }, [forceStatusChanged, getStatusStorageKey])
 
   const triggerPreviewDisable = (previewUrl?: string | null) => {
     if (!previewUrl) return
@@ -131,7 +175,6 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       document.cookie = `payload-theme=${value}; path=/; max-age=31536000`
     }
 
-    const userTheme = user?.adminTheme
     if (userTheme === 'light' || userTheme === 'dark') {
       applyTheme(userTheme)
       return
@@ -154,7 +197,15 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches
     const initial = prefersDark ? 'dark' : 'light'
     applyTheme(initial)
-  }, [user?.adminTheme])
+  }, [userTheme])
+
+  useLayoutEffect(() => {
+    expandPageLayout()
+    document.documentElement.setAttribute('data-layout-ready', 'false')
+    const layoutObserver = new MutationObserver(expandPageLayout)
+    layoutObserver.observe(document.body, { childList: true, subtree: true })
+    return () => layoutObserver.disconnect()
+  }, [expandPageLayout])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -189,8 +240,14 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         .replace(/\b\w/g, (char) => char.toUpperCase())
 
     const buildCrumbs = (pathname: string, title?: string) => {
-      const segments = pathname.split('/').filter(Boolean)
       const crumbs: { label: string; href?: string }[] = [{ label: 'Home', href: '/admin' }]
+
+      if (pathname.startsWith('/admin/site-management') || pathname.startsWith('/admin/settings')) {
+        crumbs.push({ label: 'Site Management', href: '/admin/site-management' })
+        return crumbs
+      }
+
+      const segments = pathname.split('/').filter(Boolean)
 
       if (segments[0] !== 'admin') return crumbs
       const rest = segments.slice(1)
@@ -203,7 +260,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           const label = title ? `Edit ${title}` : 'Edit'
           return [
             { label: 'Home', href: '/admin' },
-            { label: 'Settings', href: '/admin/settings' },
+            { label: 'Site Management', href: '/admin/site-management' },
             { label },
           ]
         }
@@ -246,15 +303,15 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       }, 0)
     }
 
-    const originalPushState = window.history.pushState
-    const originalReplaceState = window.history.replaceState
+    const originalPushState = window.history.pushState.bind(window.history)
+    const originalReplaceState = window.history.replaceState.bind(window.history)
 
-    window.history.pushState = function (...args) {
-      originalPushState.apply(this, args as any)
+    window.history.pushState = function (...args: Parameters<History['pushState']>) {
+      originalPushState(...args)
       scheduleUpdate()
     }
-    window.history.replaceState = function (...args) {
-      originalReplaceState.apply(this, args as any)
+    window.history.replaceState = function (...args: Parameters<History['replaceState']>) {
+      originalReplaceState(...args)
       scheduleUpdate()
     }
 
@@ -269,11 +326,11 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       document.documentElement.removeAttribute('data-admin-login')
       document.documentElement.removeAttribute('data-admin-context')
     }
-  }, [])
+  }, [role])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    if (!user?.id) return
+    if (!userId) return
     const pathname = window.location.pathname
     if (!getIsLoginPath(pathname)) {
       setIsLoginPage(false)
@@ -282,7 +339,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         document.documentElement.setAttribute('data-admin-context', 'app')
       }
     }
-  }, [user?.id])
+  }, [userId])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -440,7 +497,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       if (rafId) window.cancelAnimationFrame(rafId)
       window.clearInterval(intervalId)
     }
-  }, [])
+  }, [getStatusStorageKey, role])
 
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark'
@@ -452,8 +509,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       window.localStorage.setItem('payload-admin-theme', next)
       window.localStorage.setItem('payload-theme', next)
     }
-    if (user?.id) {
-      fetch(`/api/users/${user.id}`, {
+    if (userId) {
+      fetch(`/api/users/${userId}`, {
         method: 'PATCH',
         credentials: 'include',
         headers: {
@@ -470,12 +527,13 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
   )
   const showBreadcrumbs = breadcrumbs.length > 1
   const initials = useMemo(() => {
-    const first = (user as any)?.firstName?.trim() ?? (user as any)?.first_name?.trim()
-    const last = (user as any)?.lastName?.trim() ?? (user as any)?.last_name?.trim()
+    const userInfo = user ?? {}
+    const first = userInfo.firstName?.trim() ?? userInfo.first_name?.trim()
+    const last = userInfo.lastName?.trim() ?? userInfo.last_name?.trim()
     if (first || last) {
       return `${first?.[0] ?? ''}${last?.[0] ?? ''}`.toUpperCase() || 'U'
     }
-    const email = (user as any)?.email ?? ''
+    const email = userInfo.email ?? ''
     if (email) {
       return (
         email
@@ -488,17 +546,48 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       )
     }
     return 'U'
-  }, [user?.email, user?.firstName, user?.lastName])
+  }, [user])
   const displayName = useMemo(() => {
-    const first = (user as any)?.firstName?.trim() ?? (user as any)?.first_name?.trim()
-    const last = (user as any)?.lastName?.trim() ?? (user as any)?.last_name?.trim()
+    const userInfo = user ?? {}
+    const first = userInfo.firstName?.trim() ?? userInfo.first_name?.trim()
+    const last = userInfo.lastName?.trim() ?? userInfo.last_name?.trim()
     const name = [first, last].filter(Boolean).join(' ')
-    return name || (user as any)?.email || 'User'
-  }, [user?.email, user?.firstName, user?.lastName])
+    return name || userInfo.email || 'User'
+  }, [user])
+  const handleAccountClick = useCallback(
+    async (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault()
+      if (typeof window === 'undefined') return
+      let targetId = userId
+      if (!targetId) {
+        try {
+          const res = await fetch('/api/users/me', {
+            credentials: 'include',
+            cache: 'no-store',
+          })
+          if (res.ok) {
+            const data = (await res.json()) as { user?: { id?: string | number } }
+            targetId = data?.user?.id
+          }
+        } catch {
+          targetId = undefined
+        }
+      }
+      if (targetId) {
+        window.location.assign(`/admin/collections/users/${targetId}`)
+        return
+      }
+      window.location.assign('/admin/login?redirect=%2Fadmin%2Faccount')
+    },
+    [userId],
+  )
 
   const hideAdminThemePreference = () => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return
-    if (!window.location.pathname.startsWith('/admin/account')) return
+    const path = window.location.pathname
+    if (!path.startsWith('/admin/account') && !/\/admin\/collections\/users\/[^/]+/.test(path)) {
+      return
+    }
 
     const labels = Array.from(document.querySelectorAll('label, legend, span, h3, h4, p, div'))
     let hidden = false
@@ -537,6 +626,14 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     observer.observe(document.body, { childList: true, subtree: true })
     return () => observer.disconnect()
   }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!userId) return
+    if (window.location.pathname === '/admin/account') {
+      window.location.replace(`/admin/collections/users/${userId}`)
+    }
+  }, [userId])
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return
@@ -823,9 +920,11 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
             : targetInfo?.type === 'global'
               ? `/api/globals/${targetInfo.slug}`
               : null
+        const urlString = typeof url === 'string' ? url : ''
+        const targetPrefixValue = targetPrefix ?? ''
         const shouldGate =
-          Boolean(targetPrefix) &&
-          url.includes(targetPrefix) &&
+          Boolean(targetPrefixValue) &&
+          urlString.includes(targetPrefixValue) &&
           ['POST', 'PATCH', 'PUT', 'DELETE'].includes(method) &&
           publishIntentRef.current &&
           pendingPublishRef.current &&
@@ -875,7 +974,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         autoSaveTimerRef.current = null
       }
     }
-  }, [previewGate.open])
+  }, [previewGate.open, forceStatusChanged, syncStatusFromDoc])
 
   return (
     <>
@@ -1443,6 +1542,17 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           margin-top: 0;
         }
 
+        html[data-admin-context='app'][data-layout-ready='false'] .collection-edit__main-wrapper,
+        html[data-admin-context='app'][data-layout-ready='false'] .document-fields {
+          opacity: 0;
+        }
+
+        html[data-admin-context='app'][data-layout-ready='true'] .collection-edit__main-wrapper,
+        html[data-admin-context='app'][data-layout-ready='true'] .document-fields {
+          opacity: 1;
+          transition: opacity 120ms ease;
+        }
+
         html[data-admin-context='app'] .doc-controls__meta {
           margin: 0;
           padding: 12px var(--admin-content-gutter, 60px);
@@ -1961,6 +2071,17 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           width: 100%;
         }
 
+        html[data-admin-context='app'] .nav,
+        html[data-admin-context='app'] .template__nav,
+        html[data-admin-context='app'] .template-default__nav {
+          display: none !important;
+        }
+
+        html[data-admin-context='app'] .template__wrap,
+        html[data-admin-context='app'] .template-default__wrap {
+          grid-template-columns: 1fr !important;
+        }
+
         .admin-topbar {
           position: sticky;
           top: 0;
@@ -2054,7 +2175,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
         }
 
-        .admin-user-dropdown a {
+        .admin-user-dropdown a,
+        .admin-user-dropdown button {
           display: flex;
           align-items: center;
           gap: 8px;
@@ -2064,9 +2186,15 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           text-decoration: none;
           font-weight: 600;
           font-size: 13px;
+          background: transparent;
+          border: none;
+          width: 100%;
+          text-align: left;
+          cursor: pointer;
         }
 
-        .admin-user-dropdown a:hover {
+        .admin-user-dropdown a:hover,
+        .admin-user-dropdown button:hover {
           background: var(--admin-surface-muted);
         }
 
@@ -2074,6 +2202,12 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           height: 1px;
           background: var(--admin-surface-border);
           margin: 6px 4px;
+        }
+
+        .doc-controls__controls [aria-label='Preview'],
+        .doc-controls__controls [title='Preview'],
+        .doc-controls__controls [data-tooltip='Preview'] {
+          display: none !important;
         }
 
         .admin-preview-gate {
@@ -2251,10 +2385,12 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                 </svg>
               </summary>
               <div className="admin-user-dropdown">
-                <a href="/admin/account">Your Account</a>
-                <a href="/admin/help">Help</a>
+                <button type="button" onClick={handleAccountClick}>
+                  Your Account
+                </button>
+                <Link href="/admin/help">Help</Link>
                 <div className="admin-user-divider" />
-                <a href="/admin/logout">
+                <Link href="/admin/logout">
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                     <svg
                       aria-hidden="true"
@@ -2273,7 +2409,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                     </svg>
                     Log out
                   </span>
-                </a>
+                </Link>
               </div>
             </details>
           </div>
@@ -2309,7 +2445,11 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                     setPreviewGate({ open: false, url: null, loading: false, error: null })
                     if (pendingButton) {
                       allowPublishRef.current = true
-                      const originalType = pendingButton.dataset.publishGateType || 'submit'
+                      const originalType = (pendingButton.dataset.publishGateType as
+                        | 'submit'
+                        | 'button'
+                        | 'reset'
+                        | undefined) ?? 'submit'
                       pendingButton.type = originalType
                       const form = pendingButton.closest('form')
                       if (form && 'requestSubmit' in form) {

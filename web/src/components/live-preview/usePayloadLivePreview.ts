@@ -76,7 +76,7 @@ export function usePayloadLivePreview<T>(
     return () => {
       window.removeEventListener("message", handler);
     };
-  }, [match.collectionSlug, match.globalSlug]);
+  }, [match.collectionSlug, match.globalSlug, initialId]);
 
   return data;
 }

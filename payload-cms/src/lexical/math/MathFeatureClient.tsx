@@ -84,14 +84,15 @@ const MathPlugin = () => {
       const tokens = splitMathTokens(node.getTextContent())
       if (!tokens.some((token) => token.type === 'math')) return
 
-      const nextNodes = tokens.flatMap((token) => {
+      const nextNodes: Array<TextNode | ReturnType<typeof $createMathNode>> = []
+      for (const token of tokens) {
+        if (!token.value) continue
         if (token.type === 'math') {
-          if (!token.value) return []
-          return [$createMathNode(token.value, Boolean(token.display))]
+          nextNodes.push($createMathNode(token.value, Boolean(token.display)))
+          continue
         }
-        if (!token.value) return []
-        return [cloneTextNode(node, token.value)]
-      })
+        nextNodes.push(cloneTextNode(node, token.value))
+      }
 
       replaceWithNodes(node, nextNodes)
     })

@@ -1,16 +1,16 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig, PayloadRequest } from "payload";
 
-const isStaff = (req?: { user?: { collection?: string; role?: string } }) =>
+const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === "users" ||
   ["admin", "staff", "professor"].includes(req?.user?.role ?? "");
 
 export const LessonFeedback: CollectionConfig = {
   slug: "lesson-feedback",
+  defaultSort: "-createdAt",
   admin: {
     useAsTitle: "message",
     group: "Student Support",
     defaultColumns: ["lesson", "rating", "user", "createdAt"],
-    defaultSort: "-createdAt",
   },
   access: {
     read: ({ req }) => (isStaff(req) ? true : false),
@@ -76,7 +76,7 @@ export const LessonFeedback: CollectionConfig = {
     {
       name: "user",
       type: "relationship",
-      relationTo: "accounts" as any,
+      relationTo: "accounts",
       required: false,
       admin: {
         position: "sidebar",
@@ -85,7 +85,7 @@ export const LessonFeedback: CollectionConfig = {
     {
       name: "lesson",
       type: "relationship",
-      relationTo: "lessons" as any,
+      relationTo: "lessons",
       required: true,
       admin: {
         description: "Feedback is scoped to this lesson.",
@@ -94,7 +94,7 @@ export const LessonFeedback: CollectionConfig = {
     {
       name: "chapter",
       type: "relationship",
-      relationTo: "chapters" as any,
+      relationTo: "chapters",
       admin: {
         readOnly: true,
         position: "sidebar",
@@ -103,7 +103,7 @@ export const LessonFeedback: CollectionConfig = {
     {
       name: "class",
       type: "relationship",
-      relationTo: "classes" as any,
+      relationTo: "classes",
       admin: {
         readOnly: true,
         position: "sidebar",
@@ -145,7 +145,7 @@ export const LessonFeedback: CollectionConfig = {
     {
       name: "repliedBy",
       type: "relationship",
-      relationTo: "users" as any,
+      relationTo: "users",
       admin: {
         position: "sidebar",
         readOnly: true,

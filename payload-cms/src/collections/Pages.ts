@@ -5,30 +5,28 @@ import { ensureUniqueSlug, slugify } from '../utils/slug'
 
 export const Pages: CollectionConfig = {
   slug: 'pages',
+  defaultSort: 'navOrder',
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['navOrder', 'title', 'slug', 'updatedAt'],
     group: 'Main Pages',
-    defaultSort: 'navOrder',
-    preview: {
-      url: ({ data }) => {
-        const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
-        const secret = process.env.PREVIEW_SECRET ?? ''
-        const slug = data?.slug ?? ''
-        const search = new URLSearchParams({
-          secret,
-          type: 'page',
-          slug,
-          ts: Date.now().toString(),
-        })
-        return `${base}/api/preview?${search.toString()}`
-      },
+    preview: ({ data }) => {
+      const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
+      const secret = process.env.PREVIEW_SECRET ?? ''
+      const slug = (data as { slug?: string })?.slug ?? ''
+      const search = new URLSearchParams({
+        secret,
+        type: 'page',
+        slug,
+        ts: Date.now().toString(),
+      })
+      return `${base}/api/preview?${search.toString()}`
     },
     livePreview: {
       url: ({ data }) => {
         const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
         const secret = process.env.PREVIEW_SECRET ?? ''
-        const slug = data?.slug ?? ''
+        const slug = (data as { slug?: string })?.slug ?? ''
         const search = new URLSearchParams({
           secret,
           type: 'page',
@@ -53,7 +51,7 @@ export const Pages: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [
-      async ({ data, req, originalDoc, id }) => {
+      async ({ data, req, originalDoc }) => {
         if (!data) return data
         if (!data.slug) {
           const title = data.title ?? originalDoc?.title ?? ''
@@ -66,7 +64,7 @@ export const Pages: CollectionConfig = {
             base,
             collection: 'pages',
             req,
-            id,
+            id: originalDoc?.id,
           })
         }
         return data

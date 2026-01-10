@@ -2,26 +2,29 @@ import type { PayloadRequest } from 'payload'
 
 import { generateUniqueJoinCode } from '../utils/joinCode'
 
-type ResponseLike = {
-  status: (code: number) => ResponseLike
-  json: (data: unknown) => void
-}
-
 const isProfessorOrStaff = (req: PayloadRequest) =>
   req.user?.collection === 'users' &&
   ['admin', 'staff', 'professor'].includes(req.user?.role ?? '')
 
-export const joinClassroomHandler = async (req: PayloadRequest, res: ResponseLike) => {
+const jsonResponse = (data: unknown, status = 200) =>
+  new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
+
+export const joinClassroomHandler = async (req: PayloadRequest) => {
   if (req.user?.collection !== 'accounts') {
-    res.status(401).json({ message: 'Student login required.' })
-    return
+    return jsonResponse({ message: 'Student login required.' }, 401)
   }
 
-  const rawCode = typeof req.body?.code === 'string' ? req.body.code : ''
+  const body =
+    req.body && typeof req.body === 'object'
+      ? (req.body as unknown as { code?: unknown })
+      : null
+  const rawCode = typeof body?.code === 'string' ? body.code : ''
   const code = rawCode.trim().toUpperCase()
   if (!code) {
-    res.status(400).json({ message: 'Join code is required.' })
-    return
+    return jsonResponse({ message: 'Join code is required.' }, 400)
   }
 
   const classrooms = await req.payload.find({
@@ -36,14 +39,12 @@ export const joinClassroomHandler = async (req: PayloadRequest, res: ResponseLik
 
   const classroom = classrooms.docs?.[0]
   if (!classroom) {
-    res.status(404).json({ message: 'Classroom not found or inactive.' })
-    return
+    return jsonResponse({ message: 'Classroom not found or inactive.' }, 404)
   }
   if (classroom.joinCodeExpiresAt) {
     const expiresAt = new Date(classroom.joinCodeExpiresAt)
     if (Number.isFinite(expiresAt.getTime()) && expiresAt.getTime() < Date.now()) {
-      res.status(410).json({ message: 'Join code has expired.' })
-      return
+      return jsonResponse({ message: 'Join code has expired.' }, 410)
     }
   }
 
@@ -69,19 +70,24 @@ export const joinClassroomHandler = async (req: PayloadRequest, res: ResponseLik
       },
     }))
 
-  res.status(200).json({ classroom, membership })
+  return jsonResponse({ classroom, membership })
 }
 
-export const regenerateClassroomCodeHandler = async (req: PayloadRequest, res: ResponseLike) => {
+export const regenerateClassroomCodeHandler = async (req: PayloadRequest) => {
   if (!isProfessorOrStaff(req)) {
-    res.status(403).json({ message: 'Not authorized.' })
-    return
+    return jsonResponse({ message: 'Not authorized.' }, 403)
   }
 
-  const classroomId = req.body?.classroomId
+  const body =
+    req.body && typeof req.body === 'object'
+      ? (req.body as unknown as Record<string, unknown>)
+      : null
+  const classroomId =
+    typeof body?.classroomId === 'string' || typeof body?.classroomId === 'number'
+      ? body.classroomId
+      : null
   if (!classroomId) {
-    res.status(400).json({ message: 'classroomId is required.' })
-    return
+    return jsonResponse({ message: 'classroomId is required.' }, 400)
   }
 
   const classroom = await req.payload.findByID({
@@ -91,17 +97,14 @@ export const regenerateClassroomCodeHandler = async (req: PayloadRequest, res: R
   })
 
   if (req.user?.role === 'professor' && classroom?.professor !== req.user.id) {
-    res.status(403).json({ message: 'Not authorized for this classroom.' })
-    return
+    return jsonResponse({ message: 'Not authorized for this classroom.' }, 403)
   }
 
   const length =
-    typeof req.body?.length === 'number' && Number.isFinite(req.body.length)
-      ? req.body.length
-      : 6
+    typeof body?.length === 'number' && Number.isFinite(body.length) ? body.length : 6
   const durationHours =
-    typeof req.body?.durationHours === 'number' && Number.isFinite(req.body.durationHours)
-      ? req.body.durationHours
+    typeof body?.durationHours === 'number' && Number.isFinite(body.durationHours)
+      ? body.durationHours
       : 168
 
   const joinCode = await generateUniqueJoinCode(req.payload, length)
@@ -120,5 +123,5 @@ export const regenerateClassroomCodeHandler = async (req: PayloadRequest, res: R
     },
   })
 
-  res.status(200).json({ joinCode, classroom: updated })
+  return jsonResponse({ joinCode, classroom: updated })
 }

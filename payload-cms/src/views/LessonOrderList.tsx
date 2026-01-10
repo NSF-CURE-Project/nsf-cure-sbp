@@ -88,7 +88,7 @@ export default function LessonOrderList({
           docs?: LessonLink[]
         }
         setLessons(data.docs ?? [])
-      } catch (error) {
+      } catch (_error) {
         if (!controller.signal.aborted) {
           setLessons([])
         }

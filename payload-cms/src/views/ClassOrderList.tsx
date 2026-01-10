@@ -75,7 +75,7 @@ export default function ClassOrderList({
           docs?: ClassLink[]
         }
         setClasses(data.docs ?? [])
-      } catch (error) {
+      } catch (_error) {
         if (!controller.signal.aborted) {
           setClasses([])
         }

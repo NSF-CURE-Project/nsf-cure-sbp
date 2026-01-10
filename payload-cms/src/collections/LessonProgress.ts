@@ -1,15 +1,15 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, PayloadRequest } from 'payload'
 
-const isStaff = (req?: { user?: { collection?: string; role?: string } }) =>
+const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' || ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
 
 export const LessonProgress: CollectionConfig = {
   slug: 'lesson-progress',
+  defaultSort: '-updatedAt',
   admin: {
     useAsTitle: 'lesson',
     group: 'Student Support',
     defaultColumns: ['lesson', 'user', 'completed', 'completedAt'],
-    defaultSort: '-updatedAt',
   },
   access: {
     read: ({ req }) => {
@@ -84,7 +84,7 @@ export const LessonProgress: CollectionConfig = {
     {
       name: 'user',
       type: 'relationship',
-      relationTo: 'accounts' as any,
+      relationTo: 'accounts',
       required: true,
       admin: {
         position: 'sidebar',
@@ -93,13 +93,13 @@ export const LessonProgress: CollectionConfig = {
     {
       name: 'lesson',
       type: 'relationship',
-      relationTo: 'lessons' as any,
+      relationTo: 'lessons',
       required: true,
     },
     {
       name: 'chapter',
       type: 'relationship',
-      relationTo: 'chapters' as any,
+      relationTo: 'chapters',
       admin: {
         readOnly: true,
         position: 'sidebar',
@@ -108,7 +108,7 @@ export const LessonProgress: CollectionConfig = {
     {
       name: 'class',
       type: 'relationship',
-      relationTo: 'classes' as any,
+      relationTo: 'classes',
       admin: {
         readOnly: true,
         position: 'sidebar',

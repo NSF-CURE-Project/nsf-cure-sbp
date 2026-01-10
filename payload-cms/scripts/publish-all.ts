@@ -1,7 +1,7 @@
-import type { Payload } from 'payload'
+import type { CollectionSlug, Payload } from 'payload'
 
 export default async function publishAll(payload: Payload) {
-  const collections = ['classes', 'lessons']
+  const collections: CollectionSlug[] = ['classes', 'lessons']
 
   for (const slug of collections) {
     let page = 1

@@ -42,7 +42,7 @@ export default async function AdminHelpPage() {
         <h1 style={{ fontSize: 28, margin: '10px 0 12px' }}>{title}</h1>
         {body ? (
           <div style={{ color: 'var(--cpp-muted)', lineHeight: 1.6 }}>
-            <RichText content={body} />
+            <RichText data={body} />
           </div>
         ) : (
           <p style={{ color: 'var(--cpp-muted)', lineHeight: 1.6, margin: 0 }}>

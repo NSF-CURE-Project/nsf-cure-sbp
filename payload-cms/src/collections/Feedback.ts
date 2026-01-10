@@ -1,15 +1,16 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, PayloadRequest } from 'payload'
 
-const isStaff = (req?: { user?: { collection?: string; role?: string } }) =>
-  req?.user?.collection === 'users' || ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
+const isStaff = (req?: PayloadRequest | null) =>
+  req?.user?.collection === 'users' ||
+  ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
 
 export const Feedback: CollectionConfig = {
   slug: 'feedback',
+  defaultSort: '-createdAt',
   admin: {
     useAsTitle: 'message',
     group: 'Student Support',
     defaultColumns: ['message', 'email', 'pageUrl', 'createdAt'],
-    defaultSort: '-createdAt',
   },
   access: {
     read: ({ req }) => (isStaff(req) ? true : false),

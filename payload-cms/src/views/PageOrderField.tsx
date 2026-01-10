@@ -31,8 +31,8 @@ export default function PageOrderField() {
     return (
       <div style={{ margin: '6px 0 20px', fontSize: 12, color: 'var(--cpp-muted, #5b6f66)' }}>
         Reorder pages in{' '}
-        <Link href="/admin/settings" style={{ color: 'inherit', textDecoration: 'underline' }}>
-          Settings
+        <Link href="/admin/site-management" style={{ color: 'inherit', textDecoration: 'underline' }}>
+          Site Management
         </Link>
         .
       </div>

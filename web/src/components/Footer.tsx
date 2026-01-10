@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { usePayloadLivePreview } from "@/components/live-preview/usePayloadLivePreview";
+import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
 type FooterProps = {
   contentOffsetClassName?: string;
@@ -88,8 +89,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
     let active = true;
     const loadFooter = async () => {
       try {
-        const payloadUrl =
-          process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+        const payloadUrl = getPayloadBaseUrl();
         const res = await fetch(`${payloadUrl}/api/globals/footer`, {
           credentials: "include",
         });
@@ -118,8 +118,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
     setError(null);
     setSuccess(null);
     try {
-      const payloadUrl =
-        process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+      const payloadUrl = getPayloadBaseUrl();
       const res = await fetch(`${payloadUrl}/api/feedback`, {
         method: "POST",
         headers: {

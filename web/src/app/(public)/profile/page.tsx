@@ -5,9 +5,9 @@ import { Copy, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
-const PAYLOAD_URL =
-  process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const PAYLOAD_URL = getPayloadBaseUrl();
 
 type AccountUser = {
   id: string;
@@ -68,7 +68,7 @@ export default function ProfilePage() {
         const data = (await res.json()) as { user?: AccountUser };
         setUser(data?.user ?? null);
         setStatus("ready");
-      } catch (error) {
+      } catch {
         if (!controller.signal.aborted) {
           setStatus("error");
         }
@@ -99,7 +99,7 @@ export default function ProfilePage() {
         const data = (await res.json()) as { docs?: ClassroomMembership[] };
         setClassrooms(data.docs ?? []);
         setClassroomsStatus("ready");
-      } catch (error) {
+      } catch {
         if (!controller.signal.aborted) {
           setClassrooms([]);
           setClassroomsStatus("error");
@@ -128,7 +128,7 @@ export default function ProfilePage() {
       await navigator.clipboard.writeText(email);
       setCopiedEmail(true);
       window.setTimeout(() => setCopiedEmail(false), 1800);
-    } catch (error) {
+    } catch {
       setCopiedEmail(false);
     }
   };
@@ -229,7 +229,7 @@ export default function ProfilePage() {
       : "No activity yet";
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-6 py-6">
+    <main className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 sm:px-6 lg:px-8 py-6">
       <div className="rounded-md bg-card/80 p-10 shadow-lg">
         <div className="space-y-3">
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
@@ -405,7 +405,7 @@ export default function ProfilePage() {
 
               {classroomsStatus === "ready" && classrooms.length === 0 ? (
                 <div className="rounded-md bg-muted/20 px-4 py-3 text-[15px] text-muted-foreground italic">
-                  You haven't joined a classroom yet. Enter a join code to
+                  You haven&apos;t joined a classroom yet. Enter a join code to
                   enroll.
                 </div>
               ) : null}

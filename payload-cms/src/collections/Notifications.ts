@@ -1,15 +1,15 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, PayloadRequest } from 'payload'
 
-const isStaff = (req?: { user?: { collection?: string; role?: string } }) =>
+const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' || ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
 
 export const Notifications: CollectionConfig = {
   slug: 'notifications',
+  defaultSort: '-createdAt',
   admin: {
     useAsTitle: 'title',
     group: 'Student Support',
     defaultColumns: ['title', 'recipient', 'read', 'createdAt'],
-    defaultSort: '-createdAt',
   },
   access: {
     read: ({ req }) => {
@@ -33,7 +33,7 @@ export const Notifications: CollectionConfig = {
     {
       name: 'recipient',
       type: 'relationship',
-      relationTo: 'accounts' as any,
+      relationTo: 'accounts',
       required: true,
       admin: {
         position: 'sidebar',
@@ -61,7 +61,7 @@ export const Notifications: CollectionConfig = {
     {
       name: 'question',
       type: 'relationship',
-      relationTo: 'questions' as any,
+      relationTo: 'questions',
     },
     {
       name: 'read',

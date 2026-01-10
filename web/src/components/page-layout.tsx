@@ -2,8 +2,9 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
 import type { PageLayoutBlock } from "@/lib/payloadSdk/types";
+import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
-const CMS_URL = process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const CMS_URL = getPayloadBaseUrl();
 
 const resolveMediaUrl = (media?: unknown): string | null => {
   if (!media) return null;
@@ -48,7 +49,9 @@ const renderRichTextOrText = (value?: unknown, className?: string) => {
   if (isRichTextValue(value)) {
     return (
       <PayloadRichText
-        content={value as Parameters<typeof PayloadRichText>[0]["content"]}
+        content={
+          value as unknown as Parameters<typeof PayloadRichText>[0]["content"]
+        }
         className={
           className ??
           "prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
@@ -229,8 +232,7 @@ export function PageLayout({
               <TitleTag className={`${titleClass} font-semibold`}>
                 {block.title}
               </TitleTag>
-              {block.text &&
-                renderRichTextOrText(
+              {renderRichTextOrText(
                   block.text,
                   "prose dark:prose-invert prose-invert leading-7 max-w-none text-muted-foreground"
                 )}
@@ -445,7 +447,7 @@ export function PageLayout({
                                 <div className="w-32 h-32 relative mb-4">
                                   <Image
                                     src={photoUrl}
-                                    alt={person.name}
+                                    alt={person.name ?? "Contact photo"}
                                     fill
                                     className="object-cover rounded-full border border-border/40"
                                   />

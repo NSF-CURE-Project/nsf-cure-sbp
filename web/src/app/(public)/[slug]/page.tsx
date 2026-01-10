@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
-import { getPageBySlug, type PageData } from "@/lib/payloadSdk/pages";
+import { getPageBySlug, type PageDoc } from "@/lib/payloadSdk/pages";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 
@@ -30,11 +30,12 @@ export default async function PageBySlug({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { slug } = await params;
-  const isPreview = await resolvePreview(searchParams);
-  const page: PageData | null = await getPageBySlug(slug, {
+  const sp = (await searchParams) ?? {};
+  const isPreview = await resolvePreview(sp);
+  const page: PageDoc | null = await getPageBySlug(slug, {
     draft: isPreview,
   }).catch(() => null);
 

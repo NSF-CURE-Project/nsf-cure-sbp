@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,8 +15,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-const PAYLOAD_URL =
-  process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const PAYLOAD_URL = getPayloadBaseUrl();
 
 type Props = {
   lessonId: string;
@@ -57,7 +57,7 @@ export function LessonQuestionDrawer({
         }
         const data = (await res.json()) as { user?: AccountUser };
         setUser(data?.user ?? null);
-      } catch (fetchError) {
+      } catch {
         if (!controller.signal.aborted) {
           setUser(null);
         }

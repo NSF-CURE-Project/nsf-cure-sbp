@@ -20,7 +20,7 @@ export default async function backfillVersions(payload: Payload) {
       if (!res.docs.length) break
 
       for (const doc of res.docs) {
-        const raw = doc as Record<string, unknown>
+        const raw = doc as unknown as Record<string, unknown>
         const id = raw.id as number | string
         const createdAt =
           typeof raw.createdAt === 'string' ? raw.createdAt : new Date().toISOString()

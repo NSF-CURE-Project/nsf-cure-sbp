@@ -5,9 +5,9 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
-const PAYLOAD_URL =
-  process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const PAYLOAD_URL = getPayloadBaseUrl();
 
 type Classroom = {
   id: string;
@@ -38,7 +38,7 @@ export default function JoinClassroomPage() {
           signal: controller.signal,
         });
         setIsLoggedIn(res.ok);
-      } catch (error) {
+      } catch {
         if (!controller.signal.aborted) {
           setIsLoggedIn(false);
         }

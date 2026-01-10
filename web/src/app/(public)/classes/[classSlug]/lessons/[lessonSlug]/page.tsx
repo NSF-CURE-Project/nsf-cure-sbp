@@ -100,11 +100,15 @@ export default async function LessonPage({ params, searchParams }: PageProps) {
   };
 
   return (
-    <LivePreviewLesson
-      initialData={lesson}
-      className="mx-auto w-full max-w-[var(--content-max,100ch)] -mt-3 pt-2 pb-10 px-4 sm:-mt-4"
-      lessonNav={lessonNav}
-    />
+    <main className="min-w-0 overflow-x-hidden">
+      <div className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 sm:px-6 lg:px-8 py-6">
+        <LivePreviewLesson
+          initialData={lesson}
+          className="w-full -mt-3 pt-2 pb-10 sm:-mt-4"
+          lessonNav={lessonNav}
+        />
+      </div>
+    </main>
   );
 }
 

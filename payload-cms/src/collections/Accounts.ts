@@ -1,8 +1,22 @@
 import type { CollectionConfig } from 'payload'
 
+const cookieSecure = (() => {
+  const envValue = process.env.PAYLOAD_COOKIE_SECURE
+  if (envValue === 'true') return true
+  if (envValue === 'false') return false
+  return (process.env.PAYLOAD_PUBLIC_SERVER_URL ?? '').startsWith('https://')
+})()
+const cookieDomain = process.env.PAYLOAD_APP_COOKIE_DOMAIN || undefined
+
 export const Accounts: CollectionConfig = {
   slug: 'accounts',
-  auth: true,
+  auth: {
+    cookies: {
+      secure: cookieSecure,
+      sameSite: 'Lax',
+      domain: cookieDomain,
+    },
+  },
   admin: {
     useAsTitle: 'email',
     group: 'Students',

@@ -33,9 +33,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
-const PAYLOAD_URL =
-  process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const PAYLOAD_URL = getPayloadBaseUrl();
 
 export default function Navbar() {
   const { resolvedTheme, theme, systemTheme } = useTheme();
@@ -117,7 +117,7 @@ export default function Navbar() {
           user?: { id: string; email: string; fullName?: string };
         };
         setUser(data?.user ?? null);
-      } catch (error) {
+      } catch {
         if (!controller.signal.aborted) {
           setUser(null);
         }
@@ -165,7 +165,7 @@ export default function Navbar() {
           return (a.title ?? "").localeCompare(b.title ?? "");
         });
         setPages(cleaned);
-      } catch (error) {
+      } catch {
         if (!controller.signal.aborted) {
           setPages([]);
         }
@@ -202,7 +202,7 @@ export default function Navbar() {
           }[];
         };
         setNotifications(data.docs ?? []);
-      } catch (error) {
+      } catch {
         if (!controller.signal.aborted) {
           setNotifications([]);
         }
@@ -290,7 +290,7 @@ export default function Navbar() {
             : notification
         )
       );
-    } catch (error) {
+    } catch {
       // Ignore notification read failures.
     }
   };

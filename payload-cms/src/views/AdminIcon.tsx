@@ -1,12 +1,14 @@
-import React from 'react'
+import Image from 'next/image'
 
 export default function AdminIcon() {
   return (
     <div style={{ display: 'flex', alignItems: 'center' }}>
-      <img
+      <Image
         src="/assets/logos/sbp_admin_transparent.png"
         alt="NSF CURE SBP"
-        style={{ width: 26, height: 26, objectFit: 'contain' }}
+        width={26}
+        height={26}
+        style={{ objectFit: 'contain' }}
       />
     </div>
   )

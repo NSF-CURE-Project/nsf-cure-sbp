@@ -54,66 +54,75 @@ export default async function ClassPage(props: {
   }, 0);
 
   return (
-    <article className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">{c.title}</h1>
-        {c.description ? (
-          <p className="mt-2 text-muted-foreground">{c.description}</p>
-        ) : null}
-        <ClassProgressSummary
-          classId={c.id}
-          classTitle={c.title}
-          totalLessons={totalLessons}
-        />
-      </div>
+    <main className="min-w-0 overflow-x-hidden">
+      <div className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 sm:px-6 lg:px-8 py-6">
+        <article className="space-y-8">
+          <div>
+            <h1 className="text-3xl font-bold">{c.title}</h1>
+            {c.description ? (
+              <p className="mt-2 text-muted-foreground">{c.description}</p>
+            ) : null}
+            <ClassProgressSummary
+              classId={c.id}
+              classTitle={c.title}
+              totalLessons={totalLessons}
+            />
+          </div>
 
-      <div className="space-y-6">
-        {chapters.map((chapter) => {
-          const lessons =
-            (chapter as ChapterDoc & { lessons?: LessonDoc[] }).lessons ?? [];
-          const chapterSlug = chapter.slug ?? "";
-          return (
-            <section key={String(chapter.id)} className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Link
-                  href={`/classes/${classSlug}/chapters/${chapterSlug}`}
-                  className="text-lg font-semibold text-foreground hover:text-primary transition-colors"
-                >
-                  {chapter.title}
-                </Link>
-                {chapterSlug ? (
-                  <Link
-                    href={`/classes/${classSlug}/chapters/${chapterSlug}`}
-                    className="text-sm text-muted-foreground hover:text-foreground"
-                  >
-                    View chapter
-                  </Link>
-                ) : null}
-              </div>
-              {lessons.length ? (
-                <ul className="grid gap-2 sm:grid-cols-2">
-                  {lessons.map((lesson) => (
-                    <li key={String(lesson.id)}>
+          <div className="space-y-6">
+            {chapters.map((chapter) => {
+              const lessons =
+                (chapter as ChapterDoc & { lessons?: LessonDoc[] }).lessons ??
+                [];
+              const chapterSlug = chapter.slug ?? "";
+              return (
+                <section key={String(chapter.id)} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Link
+                      href={`/classes/${classSlug}/chapters/${chapterSlug}`}
+                      className="text-lg font-semibold text-foreground hover:text-primary transition-colors"
+                    >
+                      {chapter.title}
+                    </Link>
+                    {chapterSlug ? (
                       <Link
-                        href={`/classes/${classSlug}/lessons/${lesson.slug}`}
-                        className="block rounded-lg border border-border/60 bg-muted/20 px-4 py-3 text-sm text-foreground transition hover:border-primary/60 hover:bg-muted/30"
+                        href={`/classes/${classSlug}/chapters/${chapterSlug}`}
+                        className="text-sm text-muted-foreground hover:text-foreground"
                       >
-                        {lesson.title}
+                        View chapter
                       </Link>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-muted-foreground">No lessons yet.</p>
-              )}
-            </section>
-          );
-        })}
-        {chapters.length === 0 ? (
-          <p className="text-muted-foreground">No chapters available yet.</p>
-        ) : null}
+                    ) : null}
+                  </div>
+                  {lessons.length ? (
+                    <ul className="grid gap-2 sm:grid-cols-2">
+                      {lessons.map((lesson) => (
+                        <li key={String(lesson.id)}>
+                          <Link
+                            href={`/classes/${classSlug}/lessons/${lesson.slug}`}
+                            className="block rounded-lg border border-border/60 bg-muted/20 px-4 py-3 text-sm text-foreground transition hover:border-primary/60 hover:bg-muted/30"
+                          >
+                            {lesson.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No lessons yet.
+                    </p>
+                  )}
+                </section>
+              );
+            })}
+            {chapters.length === 0 ? (
+              <p className="text-muted-foreground">
+                No chapters available yet.
+              </p>
+            ) : null}
+          </div>
+        </article>
       </div>
-    </article>
+    </main>
   );
 }
 

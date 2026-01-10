@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_PAYLOAD_URL!;
+import { getPayloadBaseUrl } from "./payloadUrl";
 const API_ROUTE = "/api";
 
 function appendDraft(path: string, draft?: boolean) {
@@ -7,7 +7,8 @@ function appendDraft(path: string, draft?: boolean) {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${API_ROUTE}${path}`, {
+  const baseUrl = getPayloadBaseUrl();
+  const res = await fetch(`${baseUrl}${API_ROUTE}${path}`, {
     cache: "no-store", // ← REQUIRED for immediate updates
     ...init,
     headers: {

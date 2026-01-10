@@ -51,23 +51,30 @@ export const requestEmailConfirmationHandler = async (req: PayloadRequest) => {
 }
 
 export const confirmEmailHandler = async (req: PayloadRequest) => {
-  let body = req.body
-  if (!body && typeof (req as any).json === 'function') {
+  const requestMeta = req as unknown as {
+    json?: () => Promise<unknown>
+    query?: Record<string, unknown>
+    url?: string
+  }
+
+  let body: unknown = req.body
+  if (!body && typeof requestMeta.json === 'function') {
     try {
-      body = await (req as any).json()
+      body = await requestMeta.json()
     } catch {
       body = undefined
     }
   }
 
-  const query = (req as any)?.query ?? {}
+  const query = requestMeta.query ?? {}
+  const bodyData = body as { token?: string } | undefined
   let token =
-    (body as any)?.token ??
+    bodyData?.token ??
     (typeof query?.token === 'string' ? query.token : undefined)
 
-  if (!token && typeof (req as any)?.url === 'string') {
+  if (!token && typeof requestMeta?.url === 'string') {
     try {
-      const params = new URL((req as any).url, 'http://localhost').searchParams
+      const params = new URL(requestMeta.url, 'http://localhost').searchParams
       token = params.get('token') ?? undefined
     } catch {
       // ignore
@@ -91,7 +98,7 @@ export const confirmEmailHandler = async (req: PayloadRequest) => {
   })
 
   const account = result.docs?.[0] as
-    | { id: string; emailVerificationExpiresAt?: string | null }
+    | { id: string | number; emailVerificationExpiresAt?: string | null }
     | undefined
 
   if (!account) {

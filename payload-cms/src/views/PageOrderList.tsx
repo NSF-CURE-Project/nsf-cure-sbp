@@ -86,7 +86,7 @@ export default function PageOrderList({
           return (a.title ?? '').localeCompare(b.title ?? '')
         })
         setPages(ordered)
-      } catch (error) {
+      } catch (_error) {
         if (!controller.signal.aborted) {
           setPages([])
         }

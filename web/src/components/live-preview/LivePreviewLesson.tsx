@@ -66,7 +66,10 @@ export function LivePreviewLesson({
       placement="bottom"
       extraContent={
         data?.id ? (
-          <LessonProgressControls lessonId={data.id} lessonTitle={title} />
+          <LessonProgressControls
+            lessonId={String(data.id)}
+            lessonTitle={title}
+          />
         ) : null
       }
     />
@@ -91,15 +94,18 @@ export function LivePreviewLesson({
       {data?.id ? (
         <>
           <LessonQuestionDrawer
-            lessonId={data.id}
+            lessonId={String(data.id)}
             lessonTitle={title}
             onSubmitted={() => setQuestionRefresh((value) => value + 1)}
           />
-          <LessonQuestionList lessonId={data.id} refreshKey={questionRefresh} />
+          <LessonQuestionList
+            lessonId={String(data.id)}
+            refreshKey={questionRefresh}
+          />
         </>
       ) : null}
       {navBottom}
-      {data?.id ? <LessonHelpfulFeedback lessonId={data.id} /> : null}
+      {data?.id ? <LessonHelpfulFeedback lessonId={String(data.id)} /> : null}
     </article>
   );
 }

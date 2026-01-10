@@ -8,9 +8,9 @@ import React, {
   useState,
 } from "react";
 import { Button } from "@/components/ui/button";
+import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
-const PAYLOAD_URL =
-  process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const PAYLOAD_URL = getPayloadBaseUrl();
 
 type Props = {
   lessonId: string;
@@ -52,7 +52,7 @@ export function LessonProgressControls({ lessonId, lessonTitle }: Props) {
         }
         const data = (await res.json()) as { user?: AccountUser };
         setUser(data?.user ?? null);
-      } catch (error) {
+      } catch {
         if (!controller.signal.aborted) {
           setUser(null);
         }
@@ -81,7 +81,7 @@ export function LessonProgressControls({ lessonId, lessonTitle }: Props) {
         }
         const data = (await res.json()) as { docs?: ProgressDoc[] };
         setProgress(data.docs?.[0] ?? null);
-      } catch (error) {
+      } catch {
         if (!controller.signal.aborted) {
           setProgress(null);
         }

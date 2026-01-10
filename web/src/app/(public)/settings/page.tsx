@@ -6,9 +6,9 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
-const PAYLOAD_URL =
-  process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const PAYLOAD_URL = getPayloadBaseUrl();
 
 type AccountUser = {
   email: string;
@@ -42,7 +42,7 @@ export default function SettingsPage() {
         setUser(account);
         setFullName(account?.fullName ?? "");
         setStatus("ready");
-      } catch (error) {
+      } catch {
         if (!controller.signal.aborted) {
           setStatus("error");
         }

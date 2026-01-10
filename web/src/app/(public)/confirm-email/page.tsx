@@ -4,21 +4,36 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
-const PAYLOAD_URL =
-  process.env.NEXT_PUBLIC_PAYLOAD_URL ?? "http://localhost:3000";
+const PAYLOAD_URL = getPayloadBaseUrl();
 
 export default function ConfirmEmailPage({
   searchParams,
 }: {
-  searchParams?: { token?: string | string[] };
+  searchParams?: Promise<{ token?: string | string[] }>;
 }) {
-  const rawToken = searchParams?.token;
-  const token = Array.isArray(rawToken) ? rawToken[0] : rawToken;
+  const [token, setToken] = useState<string | undefined>();
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading"
   );
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+    const resolveToken = async () => {
+      const params = await searchParams;
+      const rawToken = params?.token;
+      const resolved = Array.isArray(rawToken) ? rawToken[0] : rawToken;
+      if (isMounted) {
+        setToken(resolved);
+      }
+    };
+    resolveToken();
+    return () => {
+      isMounted = false;
+    };
+  }, [searchParams]);
 
   useEffect(() => {
     if (!token) {

@@ -1,4 +1,4 @@
-import type { PayloadRequest } from 'payload'
+import type { CollectionSlug, PayloadRequest, Where } from 'payload'
 
 const fallbackSlug = 'untitled'
 
@@ -13,10 +13,10 @@ export const slugify = (value: string) => {
 
 type UniqueSlugArgs = {
   base: string
-  collection: string
+  collection: CollectionSlug
   req?: PayloadRequest | null
   id?: number | string | null
-  where?: Record<string, unknown>
+  where?: Where
 }
 
 export const ensureUniqueSlug = async ({ base, collection, req, id, where }: UniqueSlugArgs) => {
@@ -25,9 +25,9 @@ export const ensureUniqueSlug = async ({ base, collection, req, id, where }: Uni
   let suffix = 2
 
   while (true) {
-    const queryWhere: Record<string, unknown> = {
+    const queryWhere: Where = {
       slug: { equals: candidate },
-      ...where,
+      ...(where ?? {}),
     }
     if (id) {
       queryWhere.id = { not_equals: id }

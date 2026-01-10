@@ -1,44 +1,55 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, PayloadRequest } from 'payload'
 import { pageBlocks } from '../blocks/pageBlocks'
 import { ensureUniqueSlug, slugify } from '../utils/slug'
 
+const resolveLessonClassSlug = (data?: { class?: unknown; chapter?: unknown }) => {
+  const direct = data?.class
+  const directSlug =
+    typeof direct === 'object' && direct !== null && 'slug' in direct
+      ? (direct as { slug?: string }).slug
+      : null
+  if (directSlug) return directSlug
+
+  const chapter = data?.chapter
+  const chapterClass =
+    typeof chapter === 'object' && chapter !== null && 'class' in chapter
+      ? (chapter as { class?: unknown }).class
+      : null
+  const chapterSlug =
+    typeof chapterClass === 'object' && chapterClass !== null && 'slug' in chapterClass
+      ? (chapterClass as { slug?: string }).slug
+      : null
+  return chapterSlug ?? ''
+}
+
+const resolveChapterId = (chapter?: unknown) =>
+  typeof chapter === 'object' && chapter !== null && 'id' in chapter
+    ? (chapter as { id?: string | number }).id
+    : chapter
+
 export const Lessons: CollectionConfig = {
   slug: 'lessons',
+  defaultSort: 'order',
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['order', 'title', 'chapter', 'updatedAt'],
-    defaultSort: 'order',
-    preview: {
-      url: ({ data }) => {
-        const lessonSlug = data?.slug ?? ''
-        const classSlug =
-          (typeof data?.class === 'object' && (data.class as any)?.slug) ||
-          (typeof data?.chapter === 'object' &&
-            (data.chapter as any)?.class &&
-            typeof (data.chapter as any).class === 'object' &&
-            (data.chapter as any).class.slug) ||
-          ''
-        const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
-        const secret = process.env.PREVIEW_SECRET ?? ''
-        const search = new URLSearchParams({
-          secret,
-          type: 'lesson',
-          slug: lessonSlug,
-        })
-        if (classSlug) search.set('classSlug', classSlug)
-        return `${base}/api/preview?${search.toString()}`
-      },
+    preview: ({ data }) => {
+      const lessonSlug = (data as { slug?: string })?.slug ?? ''
+      const classSlug = resolveLessonClassSlug(data as { chapter?: unknown } | undefined)
+      const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
+      const secret = process.env.PREVIEW_SECRET ?? ''
+      const search = new URLSearchParams({
+        secret,
+        type: 'lesson',
+        slug: lessonSlug,
+      })
+      if (classSlug) search.set('classSlug', classSlug)
+      return `${base}/api/preview?${search.toString()}`
     },
     livePreview: {
       url: ({ data }) => {
-        const lessonSlug = data?.slug ?? ''
-        const classSlug =
-          (typeof data?.class === 'object' && (data.class as any)?.slug) ||
-          (typeof data?.chapter === 'object' &&
-            (data.chapter as any)?.class &&
-            typeof (data.chapter as any).class === 'object' &&
-            (data.chapter as any).class.slug) ||
-          ''
+        const lessonSlug = (data as { slug?: string })?.slug ?? ''
+        const classSlug = resolveLessonClassSlug(data as { chapter?: unknown } | undefined)
         const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
         const secret = process.env.PREVIEW_SECRET ?? ''
         const search = new URLSearchParams({
@@ -59,7 +70,7 @@ export const Lessons: CollectionConfig = {
   },
   hooks: {
     afterChange: [
-      async ({ doc, originalDoc, req }) => {
+      async ({ doc, previousDoc, req }) => {
         if (!req?.payload) return
         const getId = (value: unknown) =>
           typeof value === 'object' && value !== null && 'id' in value
@@ -69,7 +80,7 @@ export const Lessons: CollectionConfig = {
               : null
 
         const nextChapterId = getId(doc?.chapter)
-        const prevChapterId = getId(originalDoc?.chapter)
+        const prevChapterId = getId(previousDoc?.chapter)
 
         if (!nextChapterId) return
 
@@ -80,7 +91,7 @@ export const Lessons: CollectionConfig = {
             depth: 0,
           })
           const existing = Array.isArray((current as { lessons?: unknown[] }).lessons)
-            ? (current as { lessons?: unknown[] }).lessons
+            ? ((current as { lessons?: unknown[] }).lessons ?? [])
             : []
           const exists = existing.some((item) => getId(item) === String(doc.id))
           if (exists) return
@@ -88,7 +99,7 @@ export const Lessons: CollectionConfig = {
             collection: 'chapters',
             id: chapterId,
             data: {
-              lessons: [...existing, doc.id],
+              lessons: [...existing, doc.id] as unknown as Array<number | { id?: number }>,
             },
             depth: 0,
           })
@@ -101,7 +112,7 @@ export const Lessons: CollectionConfig = {
             depth: 0,
           })
           const existing = Array.isArray((current as { lessons?: unknown[] }).lessons)
-            ? (current as { lessons?: unknown[] }).lessons
+            ? ((current as { lessons?: unknown[] }).lessons ?? [])
             : []
           const filtered = existing.filter((item) => getId(item) !== String(doc.id))
           if (filtered.length === existing.length) return
@@ -109,7 +120,7 @@ export const Lessons: CollectionConfig = {
             collection: 'chapters',
             id: chapterId,
             data: {
-              lessons: filtered,
+              lessons: filtered as unknown as Array<number | { id?: number }>,
             },
             depth: 0,
           })
@@ -141,7 +152,7 @@ export const Lessons: CollectionConfig = {
           depth: 0,
         })
         const existing = Array.isArray((current as { lessons?: unknown[] }).lessons)
-          ? (current as { lessons?: unknown[] }).lessons
+          ? ((current as { lessons?: unknown[] }).lessons ?? [])
           : []
         const filtered = existing.filter((item) => getId(item) !== String(doc.id))
         if (filtered.length === existing.length) return
@@ -150,26 +161,25 @@ export const Lessons: CollectionConfig = {
           collection: 'chapters',
           id: chapterId,
           data: {
-            lessons: filtered,
+            lessons: filtered as unknown as Array<number | { id?: number }>,
           },
           depth: 0,
         })
       },
     ],
     beforeValidate: [
-      async ({ data, req, originalDoc, id }) => {
+      async ({ data, req, originalDoc }) => {
         if (!data) return data
         if (!data.slug) {
           const title = data.title ?? originalDoc?.title ?? ''
           const base = slugify(String(title))
           const chapter = data.chapter ?? originalDoc?.chapter
-          const chapterId =
-            typeof chapter === 'object' && chapter !== null ? (chapter as any).id : chapter
+          const chapterId = resolveChapterId(chapter)
           data.slug = await ensureUniqueSlug({
             base,
             collection: 'lessons',
             req,
-            id,
+            id: originalDoc?.id,
             where: chapterId ? { chapter: { equals: chapterId } } : undefined,
           })
         }
@@ -207,7 +217,7 @@ export const Lessons: CollectionConfig = {
       name: 'chapter',
       label: 'Chapter',
       type: 'relationship',
-      relationTo: 'chapters' as any,
+      relationTo: 'chapters',
       required: true,
       admin: {
         description: 'Assign this lesson to a chapter.',
@@ -219,11 +229,16 @@ export const Lessons: CollectionConfig = {
       name: 'slug',
       type: 'text',
       required: true,
-      validate: async (value, { data, req, id }) => {
+      validate: async (
+        value: unknown,
+        options?: { data?: { chapter?: unknown }; req?: PayloadRequest; id?: string | number },
+      ) => {
+        const data = options?.data
+        const req = options?.req
+        const id = options?.id
         if (!value || typeof value !== 'string') return 'Slug is required.'
         const chapter = data?.chapter
-        const chapterId =
-          typeof chapter === 'object' && chapter !== null ? (chapter as any).id : chapter
+        const chapterId = resolveChapterId(chapter)
         if (!chapterId) return 'Select a chapter before setting the slug.'
         if (!req?.payload) return true
         const existing = await req.payload.find({

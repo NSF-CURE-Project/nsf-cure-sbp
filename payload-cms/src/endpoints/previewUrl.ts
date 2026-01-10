@@ -1,4 +1,4 @@
-import type { PayloadRequest } from 'payload'
+import type { CollectionSlug, GlobalSlug, PayloadRequest } from 'payload'
 
 const isStaff = (req: PayloadRequest) =>
   req.user?.collection === 'users' &&
@@ -15,17 +15,25 @@ export const previewUrlHandler = async (req: PayloadRequest) => {
     return jsonResponse({ message: 'Not authorized.' }, 403)
   }
 
-  let body = req.body
-  if (!body && typeof (req as any).json === 'function') {
+  const requestMeta = req as unknown as {
+    json?: () => Promise<unknown>
+    text?: () => Promise<string>
+    query?: Record<string, unknown>
+    url?: string
+    headers?: Headers | Record<string, string | undefined>
+  }
+
+  let body: unknown = req.body
+  if (!body && typeof requestMeta.json === 'function') {
     try {
-      body = await (req as any).json()
+      body = await requestMeta.json()
     } catch {
       body = undefined
     }
   }
-  if (!body && typeof (req as any).text === 'function') {
+  if (!body && typeof requestMeta.text === 'function') {
     try {
-      const raw = await (req as any).text()
+      const raw = await requestMeta.text()
       if (raw) {
         body = JSON.parse(raw)
       }
@@ -34,18 +42,19 @@ export const previewUrlHandler = async (req: PayloadRequest) => {
     }
   }
 
-  let type = (body as any)?.type
-  let slug = (body as any)?.slug
-  let id = (body as any)?.id
+  const bodyData = body as { type?: string; slug?: string; id?: string | number } | undefined
+  let type = bodyData?.type
+  let slug = bodyData?.slug
+  let id = bodyData?.id
 
-  const query = (req as any)?.query ?? {}
+  const query = requestMeta.query ?? {}
   if (!type && typeof query?.type === 'string') type = query.type
   if (!slug && typeof query?.slug === 'string') slug = query.slug
   if (!id && typeof query?.id === 'string') id = query.id
 
-  if ((!type || !slug) && typeof (req as any)?.url === 'string') {
+  if ((!type || !slug) && typeof requestMeta?.url === 'string') {
     try {
-      const params = new URL((req as any).url, 'http://localhost').searchParams
+      const params = new URL(requestMeta.url, 'http://localhost').searchParams
       if (!type) type = params.get('type') ?? undefined
       if (!slug) slug = params.get('slug') ?? undefined
       if (!id) id = params.get('id') ?? undefined
@@ -54,21 +63,14 @@ export const previewUrlHandler = async (req: PayloadRequest) => {
     }
   }
 
-  const normalized = {
-    type,
-    slug,
-    id,
-  } as {
-    type?: string
-    slug?: string
-    id?: string | number
-  }
   if (!type || !slug) {
     const referer =
-      (req as any)?.headers?.get?.('referer') ??
-      (req as any)?.headers?.get?.('referrer') ??
-      (req as any)?.headers?.referer ??
-      (req as any)?.headers?.referrer
+      requestMeta.headers &&
+      'get' in requestMeta.headers &&
+      typeof requestMeta.headers.get === 'function'
+        ? requestMeta.headers.get('referer') ?? requestMeta.headers.get('referrer')
+        : (requestMeta.headers as Record<string, string | undefined>)?.referer ??
+          (requestMeta.headers as Record<string, string | undefined>)?.referrer
     if (typeof referer === 'string') {
       try {
         const refURL = new URL(referer)
@@ -98,12 +100,14 @@ export const previewUrlHandler = async (req: PayloadRequest) => {
           hasBody: Boolean(body),
           keys: body && typeof body === 'object' ? Object.keys(body as object) : [],
           queryKeys: Object.keys(query ?? {}),
-          url: (req as any)?.url,
+          url: requestMeta.url,
           referer:
-            (req as any)?.headers?.get?.('referer') ??
-            (req as any)?.headers?.get?.('referrer') ??
-            (req as any)?.headers?.referer ??
-            (req as any)?.headers?.referrer,
+            requestMeta.headers &&
+            'get' in requestMeta.headers &&
+            typeof requestMeta.headers.get === 'function'
+              ? requestMeta.headers.get('referer') ?? requestMeta.headers.get('referrer')
+              : (requestMeta.headers as Record<string, string | undefined>)?.referer ??
+                (requestMeta.headers as Record<string, string | undefined>)?.referrer,
         },
       },
       400,
@@ -126,7 +130,7 @@ export const previewUrlHandler = async (req: PayloadRequest) => {
     }
 
     const doc = await req.payload.findByID({
-      collection: slug,
+      collection: slug as CollectionSlug,
       id,
       depth: 2,
     })
@@ -135,16 +139,20 @@ export const previewUrlHandler = async (req: PayloadRequest) => {
     const secret = process.env.PREVIEW_SECRET ?? ''
 
     if (slug === 'lessons') {
-      const lessonSlug = (doc as any)?.slug ?? ''
+      const lessonSlug = (doc as { slug?: string })?.slug ?? ''
       if (!lessonSlug) {
         return jsonResponse({ message: 'Lesson slug is missing.' }, 400)
       }
+      const lessonDoc = doc as {
+        class?: { slug?: string } | string | null
+        chapter?: { class?: { slug?: string } | null } | string | null
+      }
       const classSlug =
-        (typeof (doc as any)?.class === 'object' && (doc as any)?.class?.slug) ||
-        (typeof (doc as any)?.chapter === 'object' &&
-          (doc as any)?.chapter?.class &&
-          typeof (doc as any)?.chapter?.class === 'object' &&
-          (doc as any)?.chapter?.class?.slug) ||
+        (typeof lessonDoc.class === 'object' && lessonDoc.class?.slug) ||
+        (typeof lessonDoc.chapter === 'object' &&
+          lessonDoc.chapter?.class &&
+          typeof lessonDoc.chapter.class === 'object' &&
+          lessonDoc.chapter.class.slug) ||
         ''
       const search = new URLSearchParams({
         secret,
@@ -157,7 +165,7 @@ export const previewUrlHandler = async (req: PayloadRequest) => {
     }
 
     if (slug === 'pages') {
-      const pageSlug = (doc as any)?.slug ?? ''
+      const pageSlug = (doc as { slug?: string })?.slug ?? ''
       const search = new URLSearchParams({
         secret,
         type: 'page',
@@ -168,7 +176,7 @@ export const previewUrlHandler = async (req: PayloadRequest) => {
     }
 
     if (slug === 'classes') {
-      const classSlug = (doc as any)?.slug ?? ''
+      const classSlug = (doc as { slug?: string })?.slug ?? ''
       const search = new URLSearchParams({
         secret,
         type: 'class',
@@ -179,13 +187,29 @@ export const previewUrlHandler = async (req: PayloadRequest) => {
     }
 
     const previewConfig = collectionConfig.admin?.livePreview ?? collectionConfig.admin?.preview
-    const previewUrl = previewConfig?.url
+    const previewUrl =
+      typeof previewConfig === 'function'
+        ? await Promise.resolve(
+            (previewConfig as unknown as (...args: unknown[]) => string | Promise<string>)({
+              data: doc,
+              req,
+            }),
+          )
+        : typeof previewConfig?.url === 'function'
+          ? await Promise.resolve(
+              (previewConfig.url as unknown as (...args: unknown[]) => string | Promise<string>)({
+                data: doc,
+                req,
+                payload: req.payload,
+                locale: req.locale,
+              }),
+            )
+          : previewConfig?.url
     if (!previewUrl) {
       return jsonResponse({ message: 'Preview not configured.' }, 404)
     }
 
-    const url = typeof previewUrl === 'function' ? previewUrl({ data: doc, req }) : previewUrl
-    return jsonResponse({ url }, 200)
+    return jsonResponse({ url: previewUrl }, 200)
   }
 
   if (type === 'global') {
@@ -195,18 +219,34 @@ export const previewUrlHandler = async (req: PayloadRequest) => {
     }
 
     const doc = await req.payload.findGlobal({
-      slug,
+      slug: slug as GlobalSlug,
       depth: 2,
     })
 
     const previewConfig = globalConfig.admin?.livePreview ?? globalConfig.admin?.preview
-    const previewUrl = previewConfig?.url
+    const previewUrl =
+      typeof previewConfig === 'function'
+        ? await Promise.resolve(
+            (previewConfig as unknown as (...args: unknown[]) => string | Promise<string>)({
+              data: doc,
+              req,
+            }),
+          )
+        : typeof previewConfig?.url === 'function'
+          ? await Promise.resolve(
+              (previewConfig.url as unknown as (...args: unknown[]) => string | Promise<string>)({
+                data: doc,
+                req,
+                payload: req.payload,
+                locale: req.locale,
+              }),
+            )
+          : previewConfig?.url
     if (!previewUrl) {
       return jsonResponse({ message: 'Preview not configured.' }, 404)
     }
 
-    const url = typeof previewUrl === 'function' ? previewUrl({ data: doc, req }) : previewUrl
-    return jsonResponse({ url }, 200)
+    return jsonResponse({ url: previewUrl }, 200)
   }
 
   return jsonResponse({ message: 'Invalid preview target.' }, 400)

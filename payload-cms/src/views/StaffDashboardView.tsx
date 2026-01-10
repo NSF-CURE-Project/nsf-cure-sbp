@@ -1,10 +1,9 @@
 import type { AdminViewServerProps } from 'payload'
 import { Gutter } from '@payloadcms/ui'
 import React from 'react'
+import Link from 'next/link'
 
-const cppGreen = 'var(--cpp-ink)'
 const cppGold = 'var(--cpp-muted)'
-const cppCream = 'var(--cpp-cream)'
 const cppInk = 'var(--cpp-ink)'
 const ratingScoreMap: Record<string, number> = {
   not_helpful: 1,
@@ -20,33 +19,6 @@ const resolveRatingScore = (value: unknown) => {
   }
   return null
 }
-const cardStyle: React.CSSProperties = {
-  border: '1px solid rgba(0, 80, 48, 0.12)',
-  borderRadius: 0,
-  padding: '14px 16px',
-  width: 200,
-  height: 200,
-  boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'space-between',
-  background: '#ffffff',
-  transition: 'transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease',
-}
-
-const quickCardStyle: React.CSSProperties = {
-  border: '1px solid rgba(15, 23, 42, 0.12)',
-  borderRadius: 0,
-  padding: '14px 16px',
-  width: 200,
-  height: 200,
-  background: '#ffffff',
-  boxShadow: '0 6px 16px rgba(15, 23, 42, 0.08)',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'space-between',
-  gap: 6,
-}
 
 const statCardStyle: React.CSSProperties = {
   border: 'none',
@@ -59,50 +31,6 @@ const statCardStyle: React.CSSProperties = {
   textAlign: 'center',
 }
 
-const ManagePagesCard = () => (
-  <a
-    href="/admin/collections/pages"
-    style={{ textDecoration: 'none', color: 'inherit' }}
-    className="dashboard-card-link"
-  >
-    <div style={cardStyle} className="dashboard-card">
-      <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>View / Edit Pages</div>
-      <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>
-        Manage all main pages from one list.
-      </div>
-    </div>
-  </a>
-)
-
-const CreatePageCard = () => (
-  <a
-    href="/admin/collections/pages/create"
-    style={{ textDecoration: 'none', color: 'inherit' }}
-    className="dashboard-card-link"
-  >
-    <div style={cardStyle} className="dashboard-card">
-      <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>Add Page</div>
-      <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>Create a new main page.</div>
-    </div>
-  </a>
-)
-
-const QuickActionCard = ({
-  href,
-  title,
-  description,
-}: {
-  href: string
-  title: string
-  description: string
-}) => (
-  <a href={href} style={{ textDecoration: 'none', color: 'inherit' }} className="quick-action-card">
-    <div style={quickCardStyle}>
-      <div style={{ fontSize: 16, fontWeight: 700, color: cppGreen }}>{title}</div>
-      <div style={{ fontSize: 13, color: '#5b6f66', lineHeight: 1.4 }}>{description}</div>
-    </div>
-  </a>
-)
 
 const StatCard = ({ label, value }: { label: string; value: string }) => (
   <div style={statCardStyle} className="dashboard-stat-card">
@@ -125,138 +53,6 @@ const StatCard = ({ label, value }: { label: string; value: string }) => (
   </div>
 )
 
-const CreateClassCard = () => (
-  <a
-    href="/admin/collections/classes/create"
-    style={{ textDecoration: 'none', color: 'inherit' }}
-    className="dashboard-card-link"
-  >
-    <div style={cardStyle} className="dashboard-card">
-      <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>Add Class</div>
-      <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>Create a new class entry.</div>
-    </div>
-  </a>
-)
-
-const CreateChapterCard = () => (
-  <a
-    href="/admin/collections/chapters/create"
-    style={{ textDecoration: 'none', color: 'inherit' }}
-    className="dashboard-card-link"
-  >
-    <div style={cardStyle} className="dashboard-card">
-      <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>Add Chapter</div>
-      <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>
-        Create a new chapter for a class.
-      </div>
-    </div>
-  </a>
-)
-
-const CreateLessonCard = () => (
-  <a
-    href="/admin/collections/lessons/create"
-    style={{ textDecoration: 'none', color: 'inherit' }}
-    className="dashboard-card-link"
-  >
-    <div style={cardStyle} className="dashboard-card">
-      <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>Add Lesson</div>
-      <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>
-        Create a new lesson for a chapter.
-      </div>
-    </div>
-  </a>
-)
-
-const ManageClassesCard = () => (
-  <a
-    href="/admin/collections/classes"
-    style={{ textDecoration: 'none', color: 'inherit' }}
-    className="dashboard-card-link"
-  >
-    <div style={cardStyle} className="dashboard-card">
-      <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>View / Edit Classes</div>
-      <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>
-        Review, edit, or delete classes.
-      </div>
-    </div>
-  </a>
-)
-
-const ManageChaptersCard = () => (
-  <a
-    href="/admin/collections/chapters"
-    style={{ textDecoration: 'none', color: 'inherit' }}
-    className="dashboard-card-link"
-  >
-    <div style={cardStyle} className="dashboard-card">
-      <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>View / Edit Chapters</div>
-      <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>
-        Review, edit, or delete chapters.
-      </div>
-    </div>
-  </a>
-)
-
-const ManageLessonsCard = () => (
-  <a
-    href="/admin/collections/lessons"
-    style={{ textDecoration: 'none', color: 'inherit' }}
-    className="dashboard-card-link"
-  >
-    <div style={cardStyle} className="dashboard-card">
-      <div style={{ fontSize: 20, fontWeight: 700, color: cppGreen }}>View / Edit Lessons</div>
-      <div style={{ marginTop: 6, fontSize: 14, color: '#6b7280' }}>
-        Review, edit, or delete lessons.
-      </div>
-    </div>
-  </a>
-)
-
-const LogoutCard = () => (
-  <a
-    href="/admin/logout"
-    style={{ textDecoration: 'none', color: 'inherit' }}
-    className="dashboard-card-link"
-  >
-    <div
-      style={{
-        ...cardStyle,
-        background: '#0f172a',
-        color: '#f8fafc',
-        borderColor: 'rgba(15, 23, 42, 0.35)',
-        minWidth: 220,
-      }}
-      className="dashboard-card"
-    >
-      <div style={{ fontSize: 18, fontWeight: 700 }}>Log out</div>
-      <div style={{ marginTop: 4, fontSize: 14, color: '#cbd5e1' }}>
-        Sign out of the admin panel
-      </div>
-    </div>
-  </a>
-)
-
-const AccountCard = () => (
-  <a
-    href="/admin/account"
-    style={{ textDecoration: 'none', color: 'inherit' }}
-    className="dashboard-card-link"
-  >
-    <div style={cardStyle} className="dashboard-card">
-      <div style={{ fontSize: 18, fontWeight: 700, color: cppGreen }}>
-        View / Edit Staff Account
-      </div>
-    </div>
-  </a>
-)
-
-const cardRowStyle: React.CSSProperties = {
-  display: 'flex',
-  gap: 14,
-  flexWrap: 'wrap',
-  justifyContent: 'flex-start',
-}
 const containerStyle: React.CSSProperties = {
   maxWidth: 1200,
   width: '100%',
@@ -285,18 +81,6 @@ const sectionLabelStyle: React.CSSProperties = {
   textAlign: 'left',
   width: '100%',
   maxWidth: 1120,
-}
-
-const helpBoxStyle: React.CSSProperties = {
-  width: '100%',
-  maxWidth: 720,
-  borderRadius: 0,
-  border: '1px solid var(--admin-surface-border)',
-  background: 'var(--admin-surface-muted)',
-  padding: '14px 16px',
-  color: 'var(--cpp-ink)',
-  lineHeight: 1.5,
-  textAlign: 'center',
 }
 
 const contentHealthCardStyle: React.CSSProperties = {
@@ -335,7 +119,6 @@ const analyticsRowStyle: React.CSSProperties = {
   background: 'var(--admin-surface-muted)',
 }
 
-import CourseCardList from './CourseCardList'
 
 const heroGridStyle: React.CSSProperties = {
   display: 'grid',
@@ -343,23 +126,6 @@ const heroGridStyle: React.CSSProperties = {
   gap: 22,
   width: '100%',
   alignItems: 'center',
-}
-
-const heroCardStyle: React.CSSProperties = {
-  borderRadius: 0,
-  padding: '16px 20px',
-  background: 'var(--admin-surface)',
-  boxShadow: 'var(--admin-shadow)',
-  border: '1px solid transparent',
-  width: '100%',
-}
-
-const mockPanelStyle: React.CSSProperties = {
-  background: 'var(--admin-surface)',
-  borderRadius: 0,
-  border: '1px solid var(--admin-surface-border)',
-  boxShadow: 'var(--admin-shadow)',
-  padding: '18px',
 }
 
 const mockHeaderStyle: React.CSSProperties = {
@@ -401,41 +167,10 @@ const heroSecondaryStyle: React.CSSProperties = {
   boxShadow: 'none',
 }
 
-const heroLinkStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 6,
-  fontSize: 12,
-  fontWeight: 600,
-  color: 'var(--cpp-muted)',
-  textDecoration: 'none',
-  padding: '6px 2px',
-  background: 'transparent',
-  border: 'none',
-  boxShadow: 'none',
-  filter: 'none',
-}
-
-type CourseTree = {
-  id: string | number
-  title: string
-  chapters: {
-    id: string | number
-    title: string
-    chapterNumber?: number | null
-    lessons: {
-      id: string | number
-      title: string
-      order?: number | null
-    }[]
-  }[]
-}
-
 const StaffDashboardContent = ({
   user,
   stats,
   contentHealth,
-  courseTree,
 }: {
   user?: AdminViewServerProps['initPageResult']['req']['user']
   stats: {
@@ -452,7 +187,6 @@ const StaffDashboardContent = ({
     highQuestions: { id: string | number; title: string; count: number }[]
     lowHelpfulness: { id: string | number; title: string; rating: number }[]
   }
-  courseTree: CourseTree[]
 }) => (
   <Gutter>
     <style>{`
@@ -671,7 +405,7 @@ const StaffDashboardContent = ({
             >
               <div style={{ fontWeight: 700, color: cppInk, textAlign: 'center' }}>Quick Actions</div>
               <div style={{ display: 'flex', gap: 12, flexWrap: 'nowrap', justifyContent: 'center' }}>
-                <a
+                <Link
                   href="/admin/collections/questions?where[status][equals]=open"
                   style={{ textDecoration: 'none' }}
                 >
@@ -702,8 +436,8 @@ const StaffDashboardContent = ({
                       Unanswered questions
                     </div>
                   </div>
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/admin/collections/feedback?where[read][equals]=false"
                   style={{ textDecoration: 'none' }}
                 >
@@ -734,25 +468,12 @@ const StaffDashboardContent = ({
                       Unread feedback
                     </div>
                   </div>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
         </div>
-        <div style={sectionLabelStyle}>Content Management</div>
-        <div
-          style={{
-            width: '100%',
-            maxWidth: 1120,
-            color: 'var(--cpp-muted)',
-            fontSize: 13,
-            lineHeight: 1.5,
-            marginTop: -4,
-            marginBottom: 8,
-          }}
-        >
-          Manage course structure, chapters, and lessons from a dedicated workspace.
-        </div>
+        <div style={sectionLabelStyle}>Course & Site Management</div>
         <div style={{ ...contentBoxStyle }}>
           <div style={{ display: 'grid', gap: 12 }}>
             <div
@@ -777,11 +498,11 @@ const StaffDashboardContent = ({
                   Open courses to edit chapters, lessons, and ordering.
                 </div>
               </div>
-              <a href="/admin/courses" style={{ textDecoration: 'none' }}>
+              <Link href="/admin/courses" style={{ textDecoration: 'none' }}>
                 <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
                   Manage Courses
                 </div>
-              </a>
+              </Link>
             </div>
             <div
               style={{
@@ -799,13 +520,13 @@ const StaffDashboardContent = ({
             >
               <div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cpp-ink)' }}>
-                  Program Settings
+                  Site Management
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
                   Manage navigation order, global pages, and site settings.
                 </div>
               </div>
-              <a href="/admin/settings" style={{ textDecoration: 'none' }}>
+              <Link href="/admin/site-management" style={{ textDecoration: 'none' }}>
                 <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <svg
@@ -822,10 +543,10 @@ const StaffDashboardContent = ({
                       <circle cx="12" cy="12" r="3" />
                       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 5 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 5 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 5a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 5a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15z" />
                     </svg>
-                    Settings
+                    Site Management
                   </span>
                 </div>
-              </a>
+              </Link>
             </div>
             <div
               style={{
@@ -850,19 +571,19 @@ const StaffDashboardContent = ({
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <a href="/admin/collections/classrooms" style={{ textDecoration: 'none' }}>
+                <Link href="/admin/collections/classrooms" style={{ textDecoration: 'none' }}>
                   <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
                     Manage Classrooms
                   </div>
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/admin/collections/classroom-memberships"
                   style={{ textDecoration: 'none' }}
                 >
                   <div style={heroSecondaryStyle} className="dashboard-chip dashboard-chip--secondary">
                     View Enrollments
                   </div>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -887,7 +608,7 @@ const StaffDashboardContent = ({
                 {contentHealth.lowCompletion.length ? (
                   contentHealth.lowCompletion.map((item) => (
                     <li key={String(item.id)}>
-                      <a
+                      <Link
                         href={`/admin/collections/lessons/${item.id}`}
                         style={{
                           textDecoration: 'none',
@@ -896,7 +617,7 @@ const StaffDashboardContent = ({
                         }}
                       >
                         {item.title}
-                      </a>
+                      </Link>
                       <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
                         {Math.round(item.rate * 100)}% complete
                       </div>
@@ -920,7 +641,7 @@ const StaffDashboardContent = ({
                 {contentHealth.highQuestions.length ? (
                   contentHealth.highQuestions.map((item) => (
                     <li key={String(item.id)}>
-                      <a
+                      <Link
                         href={`/admin/collections/lessons/${item.id}`}
                         style={{
                           textDecoration: 'none',
@@ -929,7 +650,7 @@ const StaffDashboardContent = ({
                         }}
                       >
                         {item.title}
-                      </a>
+                      </Link>
                       <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
                         {item.count} questions
                       </div>
@@ -953,7 +674,7 @@ const StaffDashboardContent = ({
                 {contentHealth.lowHelpfulness.length ? (
                   contentHealth.lowHelpfulness.map((item) => (
                     <li key={String(item.id)}>
-                      <a
+                      <Link
                         href={`/admin/collections/lessons/${item.id}`}
                         style={{
                           textDecoration: 'none',
@@ -962,7 +683,7 @@ const StaffDashboardContent = ({
                         }}
                       >
                         {item.title}
-                      </a>
+                      </Link>
                       <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
                         {item.rating.toFixed(1)} / 4
                       </div>
@@ -985,23 +706,18 @@ const StaffDashboardContent = ({
 
 export default async function StaffDashboardView({
   initPageResult,
-  params,
-  searchParams,
 }: AdminViewServerProps) {
   const { req } = initPageResult
   const user = req.user
   const payload = req.payload
 
   let unansweredCount = 0
-  let lessonsDraftCount = 0
-  let pagesDraftCount = 0
   let unreadFeedbackCount = 0
   let accountsCount = 0
   let activeStudentsCount = 0
   let publishedLessonsCount = 0
   let avgCompletionRate: number | null = null
   let helpfulnessAvg: number | null = null
-  let courseTree: CourseTree[] = []
   const LOW_COMPLETION_THRESHOLD = 0.4
   const HIGH_QUESTION_THRESHOLD = 5
   const LOW_HELPFULNESS_THRESHOLD = 2.5
@@ -1027,21 +743,6 @@ export default async function StaffDashboardView({
     unansweredCount = 0
   }
 
-  try {
-    const lessonDrafts = await payload.find({
-      collection: 'lessons',
-      depth: 0,
-      limit: 0,
-      where: {
-        _status: {
-          equals: 'draft',
-        },
-      },
-    })
-    lessonsDraftCount = lessonDrafts.totalDocs ?? 0
-  } catch {
-    lessonsDraftCount = 0
-  }
 
   try {
     const accounts = await payload.find({
@@ -1054,21 +755,6 @@ export default async function StaffDashboardView({
     accountsCount = 0
   }
 
-  try {
-    const pageDrafts = await payload.find({
-      collection: 'pages',
-      depth: 0,
-      limit: 0,
-      where: {
-        _status: {
-          equals: 'draft',
-        },
-      },
-    })
-    pagesDraftCount = pageDrafts.totalDocs ?? 0
-  } catch {
-    pagesDraftCount = 0
-  }
 
   try {
     const unreadFeedback = await payload.find({
@@ -1115,11 +801,14 @@ export default async function StaffDashboardView({
       },
     })
     const activeUsers = new Set<string>()
-    recentProgress.docs.forEach((doc: any) => {
-      const userValue = doc.user
+    recentProgress.docs.forEach((doc) => {
+      const userValue = (doc as { user?: string | number | { id?: string | number } | null })
+        .user
       const id =
         typeof userValue === 'string'
           ? userValue
+          : typeof userValue === 'number'
+            ? String(userValue)
           : userValue?.id != null
             ? String(userValue.id)
             : null
@@ -1130,58 +819,6 @@ export default async function StaffDashboardView({
     activeStudentsCount = 0
   }
 
-  try {
-    const classes = await payload.find({
-      collection: 'classes',
-      depth: 2,
-      limit: 200,
-      sort: 'order',
-    })
-
-    courseTree = classes.docs.map((course: any) => {
-      const chapterDocs = Array.isArray(course?.chapters) ? course.chapters : []
-      const chapters = chapterDocs
-        .map((chapter: any) => {
-          const lessonDocs = Array.isArray(chapter?.lessons) ? chapter.lessons : []
-          const lessons = lessonDocs
-            .map((lesson: any) => ({
-              id: lesson?.id ?? lesson,
-              title: lesson?.title ?? 'Untitled lesson',
-              order: lesson?.order ?? null,
-            }))
-            .sort((a, b) => {
-              const orderA = typeof a.order === 'number' ? a.order : Number.MAX_SAFE_INTEGER
-              const orderB = typeof b.order === 'number' ? b.order : Number.MAX_SAFE_INTEGER
-              if (orderA !== orderB) return orderA - orderB
-              return String(a.title).localeCompare(String(b.title))
-            })
-
-          return {
-            id: chapter?.id ?? chapter,
-            title: chapter?.title ?? 'Untitled chapter',
-            chapterNumber:
-              typeof chapter?.chapterNumber === 'number' ? chapter.chapterNumber : null,
-            lessons,
-          }
-        })
-        .sort((a, b) => {
-          const numberA =
-            typeof a.chapterNumber === 'number' ? a.chapterNumber : Number.MAX_SAFE_INTEGER
-          const numberB =
-            typeof b.chapterNumber === 'number' ? b.chapterNumber : Number.MAX_SAFE_INTEGER
-          if (numberA !== numberB) return numberA - numberB
-          return String(a.title).localeCompare(String(b.title))
-        })
-
-      return {
-        id: course?.id ?? course,
-        title: course?.title ?? 'Untitled class',
-        chapters,
-      }
-    })
-  } catch {
-    courseTree = []
-  }
 
   try {
     const lessons = await payload.find({
@@ -1295,11 +932,16 @@ export default async function StaffDashboardView({
     }
 
     const feedbackTotals = new Map<string, { sum: number; count: number }>()
-    lessonFeedback.docs.forEach((doc: any) => {
-      const lessonValue = doc.lesson
+    lessonFeedback.docs.forEach((doc) => {
+      const lessonValue = (doc as {
+        lesson?: string | number | { id?: string | number } | null
+        rating?: unknown
+      }).lesson
       const id =
         typeof lessonValue === 'string'
           ? lessonValue
+          : typeof lessonValue === 'number'
+            ? String(lessonValue)
           : lessonValue?.id != null
             ? String(lessonValue.id)
             : null
@@ -1351,7 +993,6 @@ export default async function StaffDashboardView({
       user={user}
       stats={stats}
       contentHealth={contentHealth}
-      courseTree={courseTree}
     />
   )
 }

@@ -12,7 +12,7 @@
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
     "lint": "cross-env NODE_OPTIONS=--no-deprecation next lint",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
-    "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
+    "start": "cross-env NODE_OPTIONS=--no-deprecation next start -H admin.sbp.local -p 3000",
     "test": "pnpm run test:int && pnpm run test:e2e",
     "publish:all": "cross-env NODE_OPTIONS=--no-deprecation payload script scripts/publish-all.ts",
     "test:e2e": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test",
@@ -33,9 +33,10 @@
     "payload": "3.65.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "sharp": "0.34.2"
+    "sharp": "0.34.5"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.0.0",
     "@playwright/test": "1.56.1",
     "@testing-library/react": "16.3.0",
     "@types/node": "^22.5.4",
@@ -57,6 +58,9 @@
     "pnpm": "^9 || ^10"
   },
   "pnpm": {
+    "overrides": {
+      "@img/sharp-libvips-darwin-arm64": "1.2.4"
+    },
     "onlyBuiltDependencies": [
       "sharp",
       "esbuild",

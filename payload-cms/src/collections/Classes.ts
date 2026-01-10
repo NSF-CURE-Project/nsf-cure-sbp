@@ -7,17 +7,16 @@ export const Classes: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'order', 'slug'],
-    preview: {
-      url: ({ data }) => {
-        const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
-        const secret = process.env.PREVIEW_SECRET ?? ''
-        const search = new URLSearchParams({
-          secret,
-          type: 'class',
-          slug: data?.slug ?? '',
-        })
-        return `${base}/api/preview?${search.toString()}`
-      },
+    preview: ({ data }) => {
+      const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
+      const secret = process.env.PREVIEW_SECRET ?? ''
+      const slug = (data as { slug?: string })?.slug ?? ''
+      const search = new URLSearchParams({
+        secret,
+        type: 'class',
+        slug,
+      })
+      return `${base}/api/preview?${search.toString()}`
     },
   },
   access: {
@@ -27,7 +26,7 @@ export const Classes: CollectionConfig = {
   versions: false,
   hooks: {
     beforeValidate: [
-      async ({ data, req, originalDoc, id, operation }) => {
+      async ({ data, req, originalDoc, operation }) => {
         if (!data) return data
         if (
           operation === 'create' &&
@@ -57,7 +56,7 @@ export const Classes: CollectionConfig = {
             base,
             collection: 'classes',
             req,
-            id,
+            id: originalDoc?.id,
           })
         }
         return data
@@ -119,7 +118,7 @@ export const Classes: CollectionConfig = {
       name: 'chapters',
       label: 'Chapters',
       type: 'relationship',
-      relationTo: 'chapters' as any, // must match Chapters.slug
+      relationTo: 'chapters', // must match Chapters.slug
       hasMany: true,
     },
     {

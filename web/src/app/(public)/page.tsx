@@ -17,31 +17,31 @@ export const metadata = buildMetadata({
 export default async function Landing({
   searchParams,
 }: {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const isPreview = await resolvePreview(searchParams);
+  const sp = (await searchParams) ?? {};
+  const isPreview = await resolvePreview(sp);
   const home: PageDoc | null = await getPageBySlug("home", {
     draft: isPreview,
   }).catch(() => null);
 
   return (
-    <div
-      className="mx-auto w-full max-w-[var(--content-max)] px-6"
-      style={{ "--content-max": "100%" } as React.CSSProperties}
-    >
-      <LivePreviewBlocks
-        initialData={home}
-        collectionSlug="pages"
-        className="space-y-12 py-10"
-        emptyMessage="No content yet. Add blocks to the page layout."
-        heroLogo={{
-          src: "/assets/logos/sbp_logo_transparent.png",
-          alt: "SBP logo",
-          width: 64,
-          height: 64,
-          className: "h-16 w-auto",
-        }}
-      />
-    </div>
+    <main className="min-w-0 overflow-x-hidden">
+      <div className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 sm:px-6 lg:px-8 py-6">
+        <LivePreviewBlocks
+          initialData={home}
+          collectionSlug="pages"
+          className="space-y-12 py-10"
+          emptyMessage="No content yet. Add blocks to the page layout."
+          heroLogo={{
+            src: "/assets/logos/sbp_logo_transparent.png",
+            alt: "SBP logo",
+            width: 64,
+            height: 64,
+            className: "h-16 w-auto",
+          }}
+        />
+      </div>
+    </main>
   );
 }

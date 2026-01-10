@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import type { Payload } from 'payload'
 
 const DEFAULT_LENGTH = 6
 const JOIN_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -12,8 +13,10 @@ const generateJoinCode = (length = DEFAULT_LENGTH) => {
   return value
 }
 
+type FindablePayload = Payload
+
 export const generateUniqueJoinCode = async (
-  payload: { find: (args: Record<string, unknown>) => Promise<{ docs?: unknown[] }> },
+  payload: FindablePayload,
   length = DEFAULT_LENGTH,
 ) => {
   for (let attempt = 0; attempt < 16; attempt += 1) {

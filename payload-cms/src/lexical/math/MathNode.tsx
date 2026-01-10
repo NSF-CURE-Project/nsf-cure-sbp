@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { type ReactElement } from 'react'
 import katex from 'katex'
 import {
   DecoratorNode,
@@ -28,7 +28,7 @@ const renderMath = (latex: string, displayMode: boolean) => {
       strict: 'ignore',
       throwOnError: false,
     })
-  } catch (error) {
+  } catch (_error) {
     return latex
   }
 }
@@ -43,7 +43,7 @@ const MathRenderer = ({ latex, displayMode }: { latex: string; displayMode: bool
   )
 }
 
-export class MathNode extends DecoratorNode<JSX.Element> {
+export class MathNode extends DecoratorNode<ReactElement> {
   __displayMode: boolean
   __latex: string
 
@@ -93,7 +93,7 @@ export class MathNode extends DecoratorNode<JSX.Element> {
     return !this.__displayMode
   }
 
-  decorate(): JSX.Element {
+  decorate(): ReactElement {
     return <MathRenderer latex={this.__latex} displayMode={this.__displayMode} />
   }
 

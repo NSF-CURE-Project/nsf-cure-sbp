@@ -19,6 +19,25 @@ type CourseTree = {
   }[]
 }
 
+type CourseDoc = {
+  id?: string | number
+  title?: string
+  chapters?: unknown[]
+}
+
+type ChapterDoc = {
+  id?: string | number
+  title?: string
+  chapterNumber?: number | null
+  lessons?: unknown[]
+}
+
+type LessonDoc = {
+  id?: string | number
+  title?: string
+  order?: number | null
+}
+
 const buildCourseTree = async () => {
   const payload = await getPayload({ config: configPromise })
   const classes = await payload.find({
@@ -29,17 +48,22 @@ const buildCourseTree = async () => {
     overrideAccess: true,
   })
 
-  return classes.docs.map((course: any) => {
-    const chapterDocs = Array.isArray(course?.chapters) ? course.chapters : []
+  return classes.docs.map((course) => {
+    const courseDoc = course as CourseDoc
+    const chapterDocs = Array.isArray(courseDoc.chapters) ? courseDoc.chapters : []
     const chapters = chapterDocs
-      .map((chapter: any) => {
-        const lessonDocs = Array.isArray(chapter?.lessons) ? chapter.lessons : []
+      .map((chapter) => {
+        const chapterDoc = chapter as ChapterDoc
+        const lessonDocs = Array.isArray(chapterDoc.lessons) ? chapterDoc.lessons : []
         const lessons = lessonDocs
-          .map((lesson: any) => ({
-            id: lesson?.id ?? lesson,
-            title: lesson?.title ?? 'Untitled lesson',
-            order: lesson?.order ?? null,
-          }))
+          .map((lesson) => {
+            const lessonDoc = lesson as LessonDoc
+            return {
+              id: lessonDoc.id ?? lesson,
+              title: lessonDoc.title ?? 'Untitled lesson',
+              order: lessonDoc.order ?? null,
+            }
+          })
           .sort((a, b) => {
             const orderA = typeof a.order === 'number' ? a.order : Number.MAX_SAFE_INTEGER
             const orderB = typeof b.order === 'number' ? b.order : Number.MAX_SAFE_INTEGER
@@ -48,9 +72,10 @@ const buildCourseTree = async () => {
           })
 
         return {
-          id: chapter?.id ?? chapter,
-          title: chapter?.title ?? 'Untitled chapter',
-          chapterNumber: typeof chapter?.chapterNumber === 'number' ? chapter.chapterNumber : null,
+          id: chapterDoc.id ?? chapter,
+          title: chapterDoc.title ?? 'Untitled chapter',
+          chapterNumber:
+            typeof chapterDoc.chapterNumber === 'number' ? chapterDoc.chapterNumber : null,
           lessons,
         }
       })
@@ -62,8 +87,8 @@ const buildCourseTree = async () => {
       })
 
     return {
-      id: course?.id ?? course,
-      title: course?.title ?? 'Untitled class',
+      id: courseDoc.id ?? course,
+      title: courseDoc.title ?? 'Untitled class',
       chapters,
     }
   }) as CourseTree[]
