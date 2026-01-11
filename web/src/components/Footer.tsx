@@ -197,7 +197,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-4 sm:justify-items-center">
             {/* Site links */}
             <div>
-              <h3 className="font-semibold text-foreground mb-3">Explore</h3>
+              <h2 className="font-semibold text-foreground mb-3">Explore</h2>
               <ul className="space-y-2">
                 {(content.exploreLinks ?? []).map((link, index) => {
                   const href = link?.href ?? "#";
@@ -231,7 +231,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
 
             {/* Resources */}
             <div>
-              <h3 className="font-semibold text-foreground mb-3">Resources</h3>
+              <h2 className="font-semibold text-foreground mb-3">Resources</h2>
               <ul className="space-y-2">
                 {(content.resourcesLinks ?? []).map((link, index) => {
                   const href = link?.href ?? "#";
@@ -265,7 +265,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
 
             {/* Contact / Branding */}
             <div>
-              <h3 className="font-semibold text-foreground mb-3">Connect</h3>
+              <h2 className="font-semibold text-foreground mb-3">Connect</h2>
               <ul className="space-y-2">
                 {content.connect?.email ? (
                   <li>
@@ -303,9 +303,9 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
             {/* Feedback */}
             {content.feedback?.enabled !== false ? (
               <div className="sm:justify-self-start">
-                <h3 className="font-semibold text-foreground mb-3">
+                <h2 className="font-semibold text-foreground mb-3">
                   {content.feedback?.title ?? "Feedback"}
-                </h3>
+                </h2>
                 <p className="text-xs text-muted-foreground mb-3">
                   {content.feedback?.description ??
                     "Share ideas, report issues, or tell us what to improve."}
