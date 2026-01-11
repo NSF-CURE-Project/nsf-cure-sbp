@@ -320,16 +320,17 @@ export default function Navbar() {
             width={48}
             height={48}
             className="h-10 w-auto sm:h-12"
-            priority
+            sizes="48px"
           />
         </Link>
 
         <Image
           src={nsfLogo}
           alt="NSF Logo"
-          width={110}
-          height={72}
-          className="h-10 w-auto sm:h-12"
+          width={80}
+          height={80}
+          className="h-10 w-10 sm:h-12 sm:w-12"
+          sizes="(min-width: 640px) 48px, 40px"
           priority
         />
 

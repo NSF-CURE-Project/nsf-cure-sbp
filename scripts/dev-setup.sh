@@ -12,3 +12,4 @@ fi
 echo "Adding preview.sbp.local, app.sbp.local, and admin.sbp.local to $HOSTS_FILE (requires sudo)..."
 sudo sh -c "printf '\n$HOST_ENTRY\n' >> $HOSTS_FILE"
 echo "Done."
+echo "If admin/app sessions feel mixed, clear cookies for admin.sbp.local and app.sbp.local in your browser."
