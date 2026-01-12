@@ -26,6 +26,7 @@ import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { default as default_ee78413036d735b301af7294bd0c78a0 } from '@/views/LessonOrderField'
 import { default as default_944838cdb41db1e12687a26697354cee } from '@/views/LessonFeedbackPanel'
+import { default as default_d92ed4247662a281e6e3a53a615b206a } from '@/views/LessonQuizPreviewField'
 import { default as default_4b04de482248e5cf6439b466d2c48d43 } from '@/views/PageOrderField'
 import { default as default_5565cf0809d37ddd6682af69dc08c9da } from '@/views/ClassroomJoinCodeField'
 import { default as default_8ecf3705f4486154c43b65ffcba083a4 } from '@/views/QuizQuestionPickerField'
@@ -64,6 +65,7 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@/views/LessonOrderField#default": default_ee78413036d735b301af7294bd0c78a0,
   "@/views/LessonFeedbackPanel#default": default_944838cdb41db1e12687a26697354cee,
+  "@/views/LessonQuizPreviewField#default": default_d92ed4247662a281e6e3a53a615b206a,
   "@/views/PageOrderField#default": default_4b04de482248e5cf6439b466d2c48d43,
   "@/views/ClassroomJoinCodeField#default": default_5565cf0809d37ddd6682af69dc08c9da,
   "@/views/QuizQuestionPickerField#default": default_8ecf3705f4486154c43b65ffcba083a4,

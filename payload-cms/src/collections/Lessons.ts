@@ -189,101 +189,166 @@ export const Lessons: CollectionConfig = {
   },
   fields: [
     {
-      name: 'lessonOrderGuide',
-      type: 'ui',
-      admin: {
-        components: {
-          Field: '@/views/LessonOrderField#default',
-        },
-      },
-    },
-    {
-      name: 'order',
-      label: 'Lesson Order',
-      type: 'number',
-      min: 0,
-      admin: {
-        position: 'sidebar',
-        description: 'Managed from the Reorder lessons list.',
-        readOnly: true,
-      },
-    },
-    {
-      name: 'title',
-      type: 'text',
-      required: true,
-    },
-    {
-      name: 'chapter',
-      label: 'Chapter',
-      type: 'relationship',
-      relationTo: 'chapters',
-      required: true,
-      admin: {
-        description: 'Assign this lesson to a chapter.',
-      },
-    },
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
+          fields: [
+            {
+              name: 'lessonOrderGuide',
+              type: 'ui',
+              admin: {
+                components: {
+                  Field: '@/views/LessonOrderField#default',
+                },
+              },
+            },
+            {
+              name: 'order',
+              label: 'Lesson Order',
+              type: 'number',
+              min: 0,
+              admin: {
+                position: 'sidebar',
+                description: 'Managed from the Reorder lessons list.',
+                readOnly: true,
+              },
+            },
+            {
+              name: 'title',
+              type: 'text',
+              required: true,
+            },
+            {
+              name: 'chapter',
+              label: 'Chapter',
+              type: 'relationship',
+              relationTo: 'chapters',
+              required: true,
+              admin: {
+                description: 'Assign this lesson to a chapter.',
+              },
+            },
 
-    // 🔹 NEW: slug used in /classes/[classSlug]/lessons/[lessonSlug]
-    {
-      name: 'slug',
-      type: 'text',
-      required: true,
-      validate: async (
-        value: unknown,
-        options?: { data?: { chapter?: unknown }; req?: PayloadRequest; id?: string | number },
-      ) => {
-        const data = options?.data
-        const req = options?.req
-        const id = options?.id
-        if (!value || typeof value !== 'string') return 'Slug is required.'
-        const chapter = data?.chapter
-        const chapterId = resolveChapterId(chapter)
-        if (!chapterId) return 'Select a chapter before setting the slug.'
-        if (!req?.payload) return true
-        const existing = await req.payload.find({
-          collection: 'lessons',
-          depth: 0,
-          limit: 1,
-          where: {
-            slug: { equals: value },
-            chapter: { equals: chapterId },
-            id: { not_equals: id },
-          },
-        })
-        if (existing.totalDocs > 0) {
-          return 'Slug must be unique within this chapter.'
-        }
-        return true
-      },
-      admin: {
-        description: 'Auto-generated from the lesson title. Must be unique within a chapter.',
-        hidden: true,
-      },
-    },
+            // 🔹 NEW: slug used in /classes/[classSlug]/lessons/[lessonSlug]
+            {
+              name: 'slug',
+              type: 'text',
+              required: true,
+              validate: async (
+                value: unknown,
+                options?: { data?: { chapter?: unknown }; req?: PayloadRequest; id?: string | number },
+              ) => {
+                const data = options?.data
+                const req = options?.req
+                const id = options?.id
+                if (!value || typeof value !== 'string') return 'Slug is required.'
+                const chapter = data?.chapter
+                const chapterId = resolveChapterId(chapter)
+                if (!chapterId) return 'Select a chapter before setting the slug.'
+                if (!req?.payload) return true
+                const existing = await req.payload.find({
+                  collection: 'lessons',
+                  depth: 0,
+                  limit: 1,
+                  where: {
+                    slug: { equals: value },
+                    chapter: { equals: chapterId },
+                    id: { not_equals: id },
+                  },
+                })
+                if (existing.totalDocs > 0) {
+                  return 'Slug must be unique within this chapter.'
+                }
+                return true
+              },
+              admin: {
+                description: 'Auto-generated from the lesson title. Must be unique within a chapter.',
+                hidden: true,
+              },
+            },
 
-    // Flexible layout so staff can reorder content blocks
-    {
-      name: 'layout',
-      label: 'Page Layout',
-      type: 'blocks',
-      labels: {
-        singular: 'Section',
-        plural: 'Sections',
-      },
-      blocks: pageBlocks,
-      admin: {
-        description: 'Build the lesson by adding and reordering content blocks.',
-      },
-    },
-    {
-      name: 'lessonFeedbackPanel',
-      type: 'ui',
-      admin: {
-        components: {
-          Field: '@/views/LessonFeedbackPanel#default',
+            // Flexible layout so staff can reorder content blocks
+            {
+              name: 'layout',
+              label: 'Page Layout',
+              type: 'blocks',
+              labels: {
+                singular: 'Section',
+                plural: 'Sections',
+              },
+              blocks: pageBlocks,
+              admin: {
+                description: 'Build the lesson by adding and reordering content blocks.',
+              },
+            },
+            {
+              name: 'lessonFeedbackPanel',
+              type: 'ui',
+              admin: {
+                components: {
+                  Field: '@/views/LessonFeedbackPanel#default',
+                },
+              },
+            },
+          ],
         },
-      },
+        {
+          label: 'Assessment',
+          fields: [
+            {
+              name: 'assessment',
+              type: 'group',
+              fields: [
+                {
+                  name: 'quiz',
+                  label: 'Attach quiz',
+                  type: 'relationship',
+                  relationTo: 'quizzes',
+                  admin: {
+                    allowCreate: true,
+                    allowEdit: true,
+                    description: 'Attach a quiz to this lesson or create a new one.',
+                  },
+                },
+                {
+                  name: 'showAnswers',
+                  label: 'Show answers after submit',
+                  type: 'checkbox',
+                  defaultValue: true,
+                },
+                {
+                  name: 'maxAttempts',
+                  label: 'Max attempts',
+                  type: 'number',
+                  min: 0,
+                  admin: {
+                    description: 'Leave blank for unlimited attempts.',
+                  },
+                },
+                {
+                  name: 'timeLimitSec',
+                  label: 'Time limit (seconds)',
+                  type: 'number',
+                  min: 0,
+                  admin: {
+                    description: 'Overrides the quiz time limit for this lesson if set.',
+                  },
+                },
+                {
+                  name: 'quizPreview',
+                  type: 'ui',
+                  admin: {
+                    components: {
+                      Field: '@/views/LessonQuizPreviewField#default',
+                    },
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
     },
   ],
 }

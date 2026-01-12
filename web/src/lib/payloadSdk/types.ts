@@ -38,6 +38,12 @@ export type LessonDoc = {
   slug: string;
   order?: number | null;
   layout?: PageLayoutBlock[];
+  assessment?: {
+    quiz?: QuizDoc | string | number;
+    showAnswers?: boolean;
+    maxAttempts?: number | null;
+    timeLimitSec?: number | null;
+  };
   class?: ClassDoc | string | number;
   chapter?: ChapterDoc | string | number;
   updatedAt?: string;
@@ -184,6 +190,10 @@ export type QuizDoc = {
   shuffleOptions?: boolean;
   scoring?: "per-question" | "all-or-nothing" | "partial";
   timeLimitSec?: number | null;
+  course?: ClassDoc | string | number;
+  chapter?: ChapterDoc | string | number;
+  tags?: string[];
+  difficulty?: "intro" | "easy" | "medium" | "hard" | string;
 };
 
 export type QuizBlock = {
@@ -192,6 +202,9 @@ export type QuizBlock = {
   title?: string;
   quiz?: QuizDoc | string | number;
   showTitle?: boolean;
+  showAnswers?: boolean;
+  maxAttempts?: number | null;
+  timeLimitSec?: number | null;
 };
 
 export type PageLayoutBlock =

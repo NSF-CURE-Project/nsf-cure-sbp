@@ -404,7 +404,7 @@ const StaffDashboardContent = ({
               }}
             >
               <div style={{ fontWeight: 700, color: cppInk, textAlign: 'center' }}>Quick Actions</div>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'nowrap', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
                 <Link
                   href="/admin/collections/questions?where[status][equals]=open"
                   style={{ textDecoration: 'none' }}
@@ -469,6 +469,93 @@ const StaffDashboardContent = ({
                     </div>
                   </div>
                 </Link>
+                <Link href="/admin/collections/quizzes/create" style={{ textDecoration: 'none' }}>
+                  <div style={workspaceCardStyle} className="dashboard-panel">
+                    <div
+                      style={{
+                        fontSize: 11,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        color: 'var(--cpp-muted)',
+                        lineHeight: 1.1,
+                        marginBottom: 2,
+                      }}
+                    >
+                      New quiz
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: 'var(--cpp-ink)',
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      Create quiz
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--cpp-muted)', marginTop: 2 }}>
+                      Build a new assessment
+                    </div>
+                  </div>
+                </Link>
+                <Link href="/admin/quiz-bank" style={{ textDecoration: 'none' }}>
+                  <div style={workspaceCardStyle} className="dashboard-panel">
+                    <div
+                      style={{
+                        fontSize: 11,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        color: 'var(--cpp-muted)',
+                        lineHeight: 1.1,
+                        marginBottom: 2,
+                      }}
+                    >
+                      Assign quiz
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: 'var(--cpp-ink)',
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      Attach to lessons
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--cpp-muted)', marginTop: 2 }}>
+                      Bulk assign assessments
+                    </div>
+                  </div>
+                </Link>
+                <Link href="/admin/quiz-bank?import=1" style={{ textDecoration: 'none' }}>
+                  <div style={workspaceCardStyle} className="dashboard-panel">
+                    <div
+                      style={{
+                        fontSize: 11,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        color: 'var(--cpp-muted)',
+                        lineHeight: 1.1,
+                        marginBottom: 2,
+                      }}
+                    >
+                      Import
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: 'var(--cpp-ink)',
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      CSV questions
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--cpp-muted)', marginTop: 2 }}>
+                      Add to question bank
+                    </div>
+                  </div>
+                </Link>
               </div>
             </div>
           </div>
@@ -501,6 +588,34 @@ const StaffDashboardContent = ({
               <Link href="/admin/courses" style={{ textDecoration: 'none' }}>
                 <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
                   Manage Courses
+                </div>
+              </Link>
+            </div>
+            <div
+              style={{
+                borderRadius: 0,
+                border: '1px solid transparent',
+                background: 'var(--admin-surface)',
+                padding: '16px 18px',
+                boxShadow: 'var(--admin-shadow)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+                flexWrap: 'wrap',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cpp-ink)' }}>
+                  Quiz Bank
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
+                  Build assessments, reuse questions, and assign quizzes to lessons.
+                </div>
+              </div>
+              <Link href="/admin/quiz-bank" style={{ textDecoration: 'none' }}>
+                <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
+                  Open Quiz Bank
                 </div>
               </Link>
             </div>

@@ -186,6 +186,23 @@ export const previewUrlHandler = async (req: PayloadRequest) => {
       return jsonResponse({ url: `${previewBase}/api/preview?${search.toString()}` }, 200)
     }
 
+    if (slug === 'quizzes') {
+      const quizId =
+        (typeof doc === 'object' && doc && 'id' in doc
+          ? String((doc as { id?: string | number }).id ?? '')
+          : '') || String(id ?? '')
+      if (!quizId) {
+        return jsonResponse({ message: 'Quiz id is missing.' }, 400)
+      }
+      const search = new URLSearchParams({
+        secret,
+        type: 'quiz',
+        slug: quizId,
+        ts: Date.now().toString(),
+      })
+      return jsonResponse({ url: `${previewBase}/api/preview?${search.toString()}` }, 200)
+    }
+
     const previewConfig = collectionConfig.admin?.livePreview ?? collectionConfig.admin?.preview
     const previewUrl =
       typeof previewConfig === 'function'

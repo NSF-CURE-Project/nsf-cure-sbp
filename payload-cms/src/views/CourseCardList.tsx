@@ -14,6 +14,7 @@ type CourseTree = {
       id: string | number
       title: string
       order?: number | null
+      quizTitle?: string | null
     }[]
   }[]
 }
@@ -204,6 +205,32 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
     <div style={{ display: 'grid', gap: 14 }}>
       <div
         style={{
+          borderRadius: 0,
+          border: '1px solid var(--admin-surface-border)',
+          background: 'var(--admin-surface)',
+          padding: '16px',
+          boxShadow: 'var(--admin-shadow)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+          flexWrap: 'wrap',
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: cppInk }}>Quiz Bank</div>
+          <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
+            Manage assessments, reuse questions, and assign quizzes to lessons.
+          </div>
+        </div>
+        <Link href="/admin/quiz-bank" style={{ textDecoration: 'none' }}>
+          <div style={primaryActionStyle} className="dashboard-chip">
+            Open Quiz Bank
+          </div>
+        </Link>
+      </div>
+      <div
+        style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -284,22 +311,22 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <a
+              <Link
                 href={`/admin/collections/chapters/create?class=${course.id}`}
                 style={{ textDecoration: 'none' }}
               >
                 <div style={primaryActionStyle} className="dashboard-chip">
                   Add chapter
                 </div>
-              </a>
-              <a
+              </Link>
+              <Link
                 href={`/admin/collections/classes/${course.id}`}
                 style={{ textDecoration: 'none' }}
               >
                 <div style={actionChipStyle} className="dashboard-chip">
                   Edit course
                 </div>
-              </a>
+              </Link>
             </div>
           </div>
           <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
@@ -333,7 +360,7 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <a
+                      <Link
                         href={`/admin/collections/lessons/create?chapter=${chapter.id}`}
                         style={{ textDecoration: 'none' }}
                         draggable={false}
@@ -341,8 +368,8 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
                         <div style={primaryActionStyle} className="dashboard-chip">
                           Add lesson
                         </div>
-                      </a>
-                      <a
+                      </Link>
+                      <Link
                         href={`/admin/collections/chapters/${chapter.id}`}
                         style={{ textDecoration: 'none' }}
                         draggable={false}
@@ -350,25 +377,52 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
                         <div style={actionChipStyle} className="dashboard-chip">
                           Edit chapter
                         </div>
-                      </a>
+                      </Link>
                     </div>
                   </div>
                   <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>
                     {chapter.lessons.length ? (
-                      chapter.lessons.map((lesson) => (
-                        <a
-                          key={String(lesson.id)}
-                          href={`/admin/collections/lessons/${lesson.id}`}
-                          style={{
-                            textDecoration: 'none',
-                            color: cppInk,
-                            fontSize: 12,
-                            fontWeight: 600,
-                          }}
-                        >
-                          {lesson.title}
-                        </a>
-                      ))
+                      chapter.lessons.map((lesson) => {
+                        const quizLabel = lesson.quizTitle ?? 'None'
+                        const actionLabel = lesson.quizTitle ? 'Change' : 'Add'
+                        return (
+                          <div
+                            key={String(lesson.id)}
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              gap: 12,
+                            }}
+                          >
+                            <Link
+                              href={`/admin/collections/lessons/${lesson.id}`}
+                              style={{
+                                textDecoration: 'none',
+                                color: cppInk,
+                                fontSize: 12,
+                                fontWeight: 600,
+                              }}
+                            >
+                              {lesson.title}
+                            </Link>
+                            <div style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>
+                              Quiz: {quizLabel}{' '}
+                              <Link
+                                href={`/admin/collections/lessons/${lesson.id}`}
+                                style={{
+                                  color: 'var(--cpp-ink)',
+                                  fontWeight: 600,
+                                  textDecoration: 'none',
+                                  marginLeft: 6,
+                                }}
+                              >
+                                {actionLabel}
+                              </Link>
+                            </div>
+                          </div>
+                        )
+                      })
                     ) : (
                       <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
                         No lessons yet.

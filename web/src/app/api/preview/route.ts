@@ -54,6 +54,9 @@ export async function GET(req: NextRequest) {
     case "class":
       redirect = `/classes/${slug}`;
       break;
+    case "quiz":
+      redirect = `/preview/quiz/${slug}`;
+      break;
     case "home":
       redirect = `/`;
       break;

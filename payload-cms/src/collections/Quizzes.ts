@@ -29,6 +29,32 @@ export const Quizzes: CollectionConfig = {
     useAsTitle: 'title',
     group: 'Assessments',
     defaultColumns: ['title', 'updatedAt'],
+    preview: ({ data }) => {
+      const quizId =
+        typeof data === 'object' && data && 'id' in data ? String((data as { id?: string | number }).id ?? '') : ''
+      const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
+      const secret = process.env.PREVIEW_SECRET ?? ''
+      const search = new URLSearchParams({
+        secret,
+        type: 'quiz',
+        slug: quizId,
+      })
+      return `${base}/api/preview?${search.toString()}`
+    },
+    livePreview: {
+      url: ({ data }) => {
+        const quizId =
+          typeof data === 'object' && data && 'id' in data ? String((data as { id?: string | number }).id ?? '') : ''
+        const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
+        const secret = process.env.PREVIEW_SECRET ?? ''
+        const search = new URLSearchParams({
+          secret,
+          type: 'quiz',
+          slug: quizId,
+        })
+        return `${base}/api/preview?${search.toString()}`
+      },
+    },
   },
   versions: {
     drafts: true,
@@ -48,6 +74,39 @@ export const Quizzes: CollectionConfig = {
     {
       name: 'description',
       type: 'textarea',
+    },
+    {
+      name: 'course',
+      label: 'Course',
+      type: 'relationship',
+      relationTo: 'classes',
+      admin: {
+        description: 'Optional. Used for filtering in the Quiz Bank.',
+      },
+    },
+    {
+      name: 'chapter',
+      label: 'Chapter',
+      type: 'relationship',
+      relationTo: 'chapters',
+      admin: {
+        description: 'Optional. Used for filtering in the Quiz Bank.',
+      },
+    },
+    {
+      name: 'tags',
+      type: 'text',
+      hasMany: true,
+    },
+    {
+      name: 'difficulty',
+      type: 'select',
+      options: [
+        { label: 'Intro', value: 'intro' },
+        { label: 'Easy', value: 'easy' },
+        { label: 'Medium', value: 'medium' },
+        { label: 'Hard', value: 'hard' },
+      ],
     },
     {
       name: 'questions',

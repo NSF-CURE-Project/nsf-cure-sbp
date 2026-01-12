@@ -10,6 +10,7 @@ import { LessonQuestionDrawer } from "@/components/questions/LessonQuestionDrawe
 import { LessonQuestionList } from "@/components/questions/LessonQuestionList";
 import { LessonProgressControls } from "@/components/progress/LessonProgressControls";
 import { LessonHelpfulFeedback } from "@/components/lessons/LessonHelpfulFeedback";
+import { QuizBlock as QuizBlockComponent } from "@/components/quiz/QuizBlock";
 
 type Props = {
   initialData: LessonDoc | null;
@@ -35,6 +36,18 @@ export function LivePreviewLesson({
   const blocks = Array.isArray(data?.layout)
     ? (data?.layout as PageLayoutBlock[])
     : [];
+  const assessment = data?.assessment ?? null;
+  const assessmentQuiz = assessment?.quiz ?? null;
+  const assessmentBlock = assessmentQuiz
+    ? {
+        blockType: "quizBlock" as const,
+        quiz: assessmentQuiz,
+        showTitle: true,
+        showAnswers: assessment?.showAnswers,
+        maxAttempts: assessment?.maxAttempts ?? null,
+        timeLimitSec: assessment?.timeLimitSec ?? null,
+      }
+    : null;
   const lessonSlug = data?.slug ?? lessonNav?.currentSlug;
   const normalizedNav = useMemo(() => {
     if (!lessonNav?.lessons?.length) return null;
@@ -95,6 +108,14 @@ export function LivePreviewLesson({
           No content yet. Add blocks to this lesson.
         </p>
       )}
+      {assessmentBlock ? (
+        <div className="mt-12">
+          <QuizBlockComponent
+            block={assessmentBlock}
+            lessonId={data?.id ? String(data.id) : undefined}
+          />
+        </div>
+      ) : null}
       {data?.id ? (
         <>
           <LessonQuestionDrawer

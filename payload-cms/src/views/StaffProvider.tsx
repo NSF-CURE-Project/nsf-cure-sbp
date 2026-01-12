@@ -239,13 +239,18 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         .replace(/[-_]/g, ' ')
         .replace(/\b\w/g, (char) => char.toUpperCase())
 
-    const buildCrumbs = (pathname: string, title?: string) => {
-      const crumbs: { label: string; href?: string }[] = [{ label: 'Home', href: '/admin' }]
+      const buildCrumbs = (pathname: string, title?: string) => {
+        const crumbs: { label: string; href?: string }[] = [{ label: 'Home', href: '/admin' }]
 
-      if (pathname.startsWith('/admin/site-management') || pathname.startsWith('/admin/settings')) {
-        crumbs.push({ label: 'Site Management', href: '/admin/site-management' })
-        return crumbs
-      }
+        if (pathname.startsWith('/admin/quiz-bank')) {
+          crumbs.push({ label: 'Quiz Bank', href: '/admin/quiz-bank' })
+          return crumbs
+        }
+
+        if (pathname.startsWith('/admin/site-management') || pathname.startsWith('/admin/settings')) {
+          crumbs.push({ label: 'Site Management', href: '/admin/site-management' })
+          return crumbs
+        }
 
       const segments = pathname.split('/').filter(Boolean)
 

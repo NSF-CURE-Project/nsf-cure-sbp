@@ -6,7 +6,7 @@ import type { QuizQuestion } from '@/payload-types'
 
 type QuestionDoc = Pick<
   QuizQuestion,
-  'id' | 'title' | 'options' | 'difficulty' | 'topic' | 'tags' | 'prompt'
+  'id' | 'title' | 'options' | 'difficulty' | 'topic' | 'tags' | 'prompt' | 'explanation' | 'attachments'
 >
 
 type OptionDraft = {
@@ -212,6 +212,7 @@ export default function QuizQuestionPickerField() {
   const [bankQuestions, setBankQuestions] = useState<QuestionDoc[]>([])
   const [bankLoading, setBankLoading] = useState(false)
   const [bankError, setBankError] = useState<string | null>(null)
+  const [duplicateId, setDuplicateId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [topic, setTopic] = useState('')
   const [tag, setTag] = useState('')
@@ -327,6 +328,44 @@ export default function QuizQuestionPickerField() {
     next[target] = temp
     setValue(next)
   }
+
+  const duplicateQuestion = useCallback(
+    async (question: QuestionDoc) => {
+      const id = toId(question.id)
+      if (!id) return
+      setDuplicateId(id)
+      setBankError(null)
+      try {
+        const payload = {
+          title: question.title ? `${question.title} (Copy)` : 'Untitled question (Copy)',
+          prompt: question.prompt ?? createLexicalText(''),
+          explanation: question.explanation ?? undefined,
+          options: question.options ?? [],
+          topic: question.topic ?? undefined,
+          tags: question.tags ?? [],
+          difficulty: question.difficulty ?? undefined,
+          attachments: question.attachments ?? undefined,
+        }
+        const res = await fetch('/api/quiz-questions', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        })
+        if (!res.ok) {
+          throw new Error('Unable to duplicate question.')
+        }
+        await loadBank()
+      } catch (error) {
+        setBankError(error instanceof Error ? error.message : 'Unable to duplicate question.')
+      } finally {
+        setDuplicateId(null)
+      }
+    },
+    [loadBank],
+  )
 
   const resetCreateForm = () => {
     setNewQuestion({
@@ -779,15 +818,25 @@ export default function QuizQuestionPickerField() {
                               ) : null}
                             </div>
                             {id ? (
-                              <button
-                                type="button"
-                                className="btn btn--style-secondary btn--size-small"
-                                onClick={() =>
-                                  selectedSet.has(id) ? removeQuestion(id) : addQuestion(id)
-                                }
-                              >
-                                {selectedSet.has(id) ? 'Remove' : 'Add'}
-                              </button>
+                              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                                <button
+                                  type="button"
+                                  className="btn btn--style-secondary btn--size-small"
+                                  onClick={() =>
+                                    selectedSet.has(id) ? removeQuestion(id) : addQuestion(id)
+                                  }
+                                >
+                                  {selectedSet.has(id) ? 'Remove' : 'Add'}
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn--style-secondary btn--size-small"
+                                  onClick={() => duplicateQuestion(question)}
+                                  disabled={duplicateId === id}
+                                >
+                                  {duplicateId === id ? 'Duplicating...' : 'Duplicate'}
+                                </button>
+                              </div>
                             ) : null}
                           </div>
                         )

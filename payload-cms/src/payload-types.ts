@@ -413,6 +413,21 @@ export interface Lesson {
           }
       )[]
     | null;
+  assessment?: {
+    /**
+     * Attach a quiz to this lesson or create a new one.
+     */
+    quiz?: (number | null) | Quiz;
+    showAnswers?: boolean | null;
+    /**
+     * Leave blank for unlimited attempts.
+     */
+    maxAttempts?: number | null;
+    /**
+     * Overrides the quiz time limit for this lesson if set.
+     */
+    timeLimitSec?: number | null;
+  };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -444,6 +459,16 @@ export interface Quiz {
   id: number;
   title: string;
   description?: string | null;
+  /**
+   * Optional. Used for filtering in the Quiz Bank.
+   */
+  course?: (number | null) | Class;
+  /**
+   * Optional. Used for filtering in the Quiz Bank.
+   */
+  chapter?: (number | null) | Chapter;
+  tags?: string[] | null;
+  difficulty?: ('intro' | 'easy' | 'medium' | 'hard') | null;
   /**
    * Add questions from the bank or create new ones.
    */
@@ -1299,6 +1324,14 @@ export interface LessonsSelect<T extends boolean = true> {
               blockName?: T;
             };
       };
+  assessment?:
+    | T
+    | {
+        quiz?: T;
+        showAnswers?: T;
+        maxAttempts?: T;
+        timeLimitSec?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1612,6 +1645,10 @@ export interface QuizQuestionsSelect<T extends boolean = true> {
 export interface QuizzesSelect<T extends boolean = true> {
   title?: T;
   description?: T;
+  course?: T;
+  chapter?: T;
+  tags?: T;
+  difficulty?: T;
   questions?: T;
   shuffleQuestions?: T;
   shuffleOptions?: T;

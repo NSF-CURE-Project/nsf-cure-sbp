@@ -15,6 +15,7 @@ type CourseTree = {
       id: string | number
       title: string
       order?: number | null
+      quizTitle?: string | null
     }[]
   }[]
 }
@@ -36,6 +37,9 @@ type LessonDoc = {
   id?: string | number
   title?: string
   order?: number | null
+  assessment?: {
+    quiz?: { id?: string | number; title?: string } | string | number | null
+  }
 }
 
 const buildCourseTree = async () => {
@@ -55,15 +59,21 @@ const buildCourseTree = async () => {
       .map((chapter) => {
         const chapterDoc = chapter as ChapterDoc
         const lessonDocs = Array.isArray(chapterDoc.lessons) ? chapterDoc.lessons : []
-        const lessons = lessonDocs
-          .map((lesson) => {
-            const lessonDoc = lesson as LessonDoc
-            return {
-              id: lessonDoc.id ?? lesson,
-              title: lessonDoc.title ?? 'Untitled lesson',
-              order: lessonDoc.order ?? null,
-            }
-          })
+          const lessons = lessonDocs
+            .map((lesson) => {
+              const lessonDoc = lesson as LessonDoc
+              const quizValue = lessonDoc.assessment?.quiz
+              const quizTitle =
+                typeof quizValue === 'object' && quizValue !== null
+                  ? quizValue.title ?? null
+                  : null
+              return {
+                id: lessonDoc.id ?? lesson,
+                title: lessonDoc.title ?? 'Untitled lesson',
+                order: lessonDoc.order ?? null,
+                quizTitle,
+              }
+            })
           .sort((a, b) => {
             const orderA = typeof a.order === 'number' ? a.order : Number.MAX_SAFE_INTEGER
             const orderB = typeof b.order === 'number' ? b.order : Number.MAX_SAFE_INTEGER
