@@ -78,6 +78,9 @@ export interface Config {
     users: User;
     media: Media;
     questions: Question;
+    'quiz-questions': QuizQuestion;
+    quizzes: Quiz;
+    'quiz-attempts': QuizAttempt;
     notifications: Notification;
     'lesson-progress': LessonProgress;
     feedback: Feedback;
@@ -99,6 +102,9 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     questions: QuestionsSelect<false> | QuestionsSelect<true>;
+    'quiz-questions': QuizQuestionsSelect<false> | QuizQuestionsSelect<true>;
+    quizzes: QuizzesSelect<false> | QuizzesSelect<true>;
+    'quiz-attempts': QuizAttemptsSelect<false> | QuizAttemptsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'lesson-progress': LessonProgressSelect<false> | LessonProgressSelect<true>;
     feedback: FeedbackSelect<false> | FeedbackSelect<true>;
@@ -397,6 +403,14 @@ export interface Lesson {
             blockName?: string | null;
             blockType: 'contactsList';
           }
+        | {
+            title?: string | null;
+            quiz: number | Quiz;
+            showTitle?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'quizBlock';
+          }
       )[]
     | null;
   updatedAt: string;
@@ -421,6 +435,73 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quizzes".
+ */
+export interface Quiz {
+  id: number;
+  title: string;
+  description?: string | null;
+  questions: (number | QuizQuestion)[];
+  shuffleQuestions?: boolean | null;
+  shuffleOptions?: boolean | null;
+  scoring?: ('per-question' | 'all-or-nothing' | 'partial') | null;
+  timeLimitSec?: number | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quiz-questions".
+ */
+export interface QuizQuestion {
+  id: number;
+  title: string;
+  prompt: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  options: {
+    label: string;
+    isCorrect?: boolean | null;
+    id?: string | null;
+  }[];
+  explanation?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  attachments?: (number | Media)[] | null;
+  topic?: string | null;
+  tags?: string[] | null;
+  difficulty?: ('intro' | 'easy' | 'medium' | 'hard') | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -596,6 +677,14 @@ export interface Page {
             id?: string | null;
             blockName?: string | null;
             blockType: 'contactsList';
+          }
+        | {
+            title?: string | null;
+            quiz: number | Quiz;
+            showTitle?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'quizBlock';
           }
       )[]
     | null;
@@ -774,6 +863,51 @@ export interface Question {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quiz-attempts".
+ */
+export interface QuizAttempt {
+  id: number;
+  quiz: number | Quiz;
+  lesson?: (number | null) | Lesson;
+  user: number | Account;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  durationSec?: number | null;
+  questionOrder?:
+    | {
+        question: number | QuizQuestion;
+        id?: string | null;
+      }[]
+    | null;
+  answers?:
+    | {
+        question: number | QuizQuestion;
+        selectedOptionIds?:
+          | {
+              optionId?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        optionOrder?:
+          | {
+              optionId?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        isCorrect?: boolean | null;
+        score?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  score?: number | null;
+  maxScore?: number | null;
+  correctCount?: number | null;
+  questionCount?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "notifications".
  */
 export interface Notification {
@@ -908,6 +1042,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'questions';
         value: number | Question;
+      } | null)
+    | ({
+        relationTo: 'quiz-questions';
+        value: number | QuizQuestion;
+      } | null)
+    | ({
+        relationTo: 'quizzes';
+        value: number | Quiz;
+      } | null)
+    | ({
+        relationTo: 'quiz-attempts';
+        value: number | QuizAttempt;
       } | null)
     | ({
         relationTo: 'notifications';
@@ -1140,6 +1286,15 @@ export interface LessonsSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        quizBlock?:
+          | T
+          | {
+              title?: T;
+              quiz?: T;
+              showTitle?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   updatedAt?: T;
   createdAt?: T;
@@ -1280,6 +1435,15 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        quizBlock?:
+          | T
+          | {
+              title?: T;
+              quiz?: T;
+              showTitle?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   updatedAt?: T;
   createdAt?: T;
@@ -1412,6 +1576,89 @@ export interface QuestionsSelect<T extends boolean = true> {
         createdAt?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quiz-questions_select".
+ */
+export interface QuizQuestionsSelect<T extends boolean = true> {
+  title?: T;
+  prompt?: T;
+  options?:
+    | T
+    | {
+        label?: T;
+        isCorrect?: T;
+        id?: T;
+      };
+  explanation?: T;
+  attachments?: T;
+  topic?: T;
+  tags?: T;
+  difficulty?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quizzes_select".
+ */
+export interface QuizzesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  questions?: T;
+  shuffleQuestions?: T;
+  shuffleOptions?: T;
+  scoring?: T;
+  timeLimitSec?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quiz-attempts_select".
+ */
+export interface QuizAttemptsSelect<T extends boolean = true> {
+  quiz?: T;
+  lesson?: T;
+  user?: T;
+  startedAt?: T;
+  completedAt?: T;
+  durationSec?: T;
+  questionOrder?:
+    | T
+    | {
+        question?: T;
+        id?: T;
+      };
+  answers?:
+    | T
+    | {
+        question?: T;
+        selectedOptionIds?:
+          | T
+          | {
+              optionId?: T;
+              id?: T;
+            };
+        optionOrder?:
+          | T
+          | {
+              optionId?: T;
+              id?: T;
+            };
+        isCorrect?: T;
+        score?: T;
+        id?: T;
+      };
+  score?: T;
+  maxScore?: T;
+  correctCount?: T;
+  questionCount?: T;
   updatedAt?: T;
   createdAt?: T;
 }

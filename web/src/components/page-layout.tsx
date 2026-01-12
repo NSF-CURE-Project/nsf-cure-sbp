@@ -2,6 +2,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
 import type { PageLayoutBlock } from "@/lib/payloadSdk/types";
+import { QuizBlock as QuizBlockComponent } from "@/components/quiz/QuizBlock";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
 const CMS_URL = getPayloadBaseUrl();
@@ -150,6 +151,7 @@ export function PageLayout({
   blocks,
   className = "space-y-10",
   heroLogo,
+  lessonId,
 }: {
   blocks?: PageLayoutBlock[] | null;
   className?: string;
@@ -160,6 +162,7 @@ export function PageLayout({
     height?: number;
     className?: string;
   };
+  lessonId?: string;
 }) {
   if (!blocks?.length) return null;
   let heroLogoRendered = false;
@@ -498,6 +501,16 @@ export function PageLayout({
                 </div>
               )}
             </section>
+          );
+        }
+
+        if (block.blockType === "quizBlock") {
+          return (
+            <QuizBlockComponent
+              key={block.id ?? idx}
+              block={block}
+              lessonId={lessonId}
+            />
           );
         }
 

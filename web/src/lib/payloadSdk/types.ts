@@ -157,6 +157,43 @@ export type ContactsListBlock = {
   contacts?: ContactPerson[];
 };
 
+export type QuizQuestionOption = {
+  id?: string;
+  label?: string;
+  isCorrect?: boolean;
+};
+
+export type QuizQuestionDoc = {
+  id: string | number;
+  title?: string;
+  prompt?: unknown;
+  options?: QuizQuestionOption[];
+  explanation?: unknown;
+  attachments?: unknown;
+  topic?: string;
+  tags?: string[];
+  difficulty?: string;
+};
+
+export type QuizDoc = {
+  id: string | number;
+  title?: string;
+  description?: string;
+  questions?: (QuizQuestionDoc | string | number)[];
+  shuffleQuestions?: boolean;
+  shuffleOptions?: boolean;
+  scoring?: "per-question" | "all-or-nothing" | "partial";
+  timeLimitSec?: number | null;
+};
+
+export type QuizBlock = {
+  id?: string;
+  blockType: "quizBlock";
+  title?: string;
+  quiz?: QuizDoc | string | number;
+  showTitle?: boolean;
+};
+
 export type PageLayoutBlock =
   | HeroBlock
   | SectionTitleBlock
@@ -168,6 +205,7 @@ export type PageLayoutBlock =
   | StepsListBlock
   | ButtonBlock
   | ResourcesListBlock
-  | ContactsListBlock;
+  | ContactsListBlock
+  | QuizBlock;
 
 export type LessonBlock = PageLayoutBlock;

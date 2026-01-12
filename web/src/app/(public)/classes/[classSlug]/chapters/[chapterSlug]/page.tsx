@@ -24,6 +24,18 @@ type NormalizedChapter = {
   lessons: NormalizedLesson[];
 };
 
+const byOrderThenTitle = (
+  a: { order?: number | null; title?: string | null },
+  b: { order?: number | null; title?: string | null }
+) => {
+  const orderA = typeof a.order === "number" ? a.order : Number(a.order ?? 0);
+  const orderB = typeof b.order === "number" ? b.order : Number(b.order ?? 0);
+  if (orderA !== orderB) return orderA - orderB;
+  const titleA = typeof a.title === "string" ? a.title.toLowerCase() : "";
+  const titleB = typeof b.title === "string" ? b.title.toLowerCase() : "";
+  return titleA.localeCompare(titleB);
+};
+
 function getChapterClassSlug(chapter: ChapterDoc | null): string | null {
   if (!chapter) return null;
   const c = chapter as ChapterDoc & { class?: { slug?: string } | null };
@@ -57,7 +69,13 @@ function normalizeChapter(
   const classSlug = getChapterClassSlug(chapter);
 
   const rawLessons = Array.isArray(c.lessons) ? c.lessons : [];
-  const lessons: NormalizedLesson[] = rawLessons
+  const hasLessonOrder = rawLessons.some(
+    (lesson) => typeof (lesson as LessonDoc).order === "number"
+  );
+  const lessons: NormalizedLesson[] = (hasLessonOrder
+    ? [...rawLessons].sort(byOrderThenTitle)
+    : rawLessons
+  )
     .map((lesson) => {
       const l = lesson as LessonDoc;
       return {

@@ -286,4 +286,26 @@ export const pageBlocks: Block[] = [
       },
     ],
   },
+  {
+    slug: 'quizBlock',
+    labels: { singular: 'Quiz', plural: 'Quizzes' },
+    fields: [
+      {
+        name: 'title',
+        type: 'text',
+      },
+      {
+        name: 'quiz',
+        type: 'relationship',
+        relationTo: 'quizzes',
+        required: true,
+      },
+      {
+        name: 'showTitle',
+        label: 'Show quiz title',
+        type: 'checkbox',
+        defaultValue: true,
+      },
+    ],
+  },
 ]

@@ -68,8 +68,11 @@ const normalizeClassesForSidebar = (classes: ClassDoc[]): SidebarClass[] => {
           ? ch.lessons
           : [];
 
-        const lessons = [...rawLessons]
-          .sort(byOrderThenTitle)
+        const hasLessonOrder = rawLessons.some(
+          (lesson) => typeof (lesson as LessonDoc).order === "number"
+        );
+
+        const lessons = (hasLessonOrder ? [...rawLessons].sort(byOrderThenTitle) : rawLessons)
           .map((lesson) => {
             const l = lesson as LessonDoc;
             return {

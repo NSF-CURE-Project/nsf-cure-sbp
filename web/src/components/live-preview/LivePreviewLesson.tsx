@@ -85,7 +85,11 @@ export function LivePreviewLesson({
         </p>
       )}
       {blocks.length > 0 ? (
-        <PageLayout blocks={blocks} className="space-y-10" />
+        <PageLayout
+          blocks={blocks}
+          className="space-y-10"
+          lessonId={data?.id ? String(data.id) : undefined}
+        />
       ) : (
         <p className="text-sm text-muted-foreground">
           No content yet. Add blocks to this lesson.

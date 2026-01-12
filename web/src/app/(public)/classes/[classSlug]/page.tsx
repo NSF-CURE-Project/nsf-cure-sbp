@@ -9,6 +9,32 @@ import { ClassProgressSummary } from "@/components/progress/ClassProgressSummary
 type Params = Promise<{ classSlug: string }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
+const byOrderThenTitle = (
+  a: { order?: number | null; title?: string | null },
+  b: { order?: number | null; title?: string | null }
+) => {
+  const orderA = typeof a.order === "number" ? a.order : Number(a.order ?? 0);
+  const orderB = typeof b.order === "number" ? b.order : Number(b.order ?? 0);
+  if (orderA !== orderB) return orderA - orderB;
+  const titleA = typeof a.title === "string" ? a.title.toLowerCase() : "";
+  const titleB = typeof b.title === "string" ? b.title.toLowerCase() : "";
+  return titleA.localeCompare(titleB);
+};
+
+const byChapterNumberThenTitle = (
+  a: { chapterNumber?: number | null; title?: string | null },
+  b: { chapterNumber?: number | null; title?: string | null }
+) => {
+  const numA = typeof a.chapterNumber === "number" ? a.chapterNumber : null;
+  const numB = typeof b.chapterNumber === "number" ? b.chapterNumber : null;
+  if (numA != null && numB != null && numA !== numB) return numA - numB;
+  if (numA != null && numB == null) return -1;
+  if (numA == null && numB != null) return 1;
+  const titleA = typeof a.title === "string" ? a.title.toLowerCase() : "";
+  const titleB = typeof b.title === "string" ? b.title.toLowerCase() : "";
+  return titleA.localeCompare(titleB);
+};
+
 // --- Metadata ---
 export async function generateMetadata(props: {
   params: Params;
@@ -48,6 +74,7 @@ export default async function ClassPage(props: {
   const chapters: ChapterDoc[] = Array.isArray(c.chapters)
     ? (c.chapters as ChapterDoc[])
     : [];
+  const sortedChapters = [...chapters].sort(byChapterNumberThenTitle);
   const totalLessons = chapters.reduce((count, chapter) => {
     const lessons = (chapter as ChapterDoc & { lessons?: LessonDoc[] }).lessons;
     return count + (Array.isArray(lessons) ? lessons.length : 0);
@@ -70,10 +97,16 @@ export default async function ClassPage(props: {
           </div>
 
           <div className="space-y-6">
-            {chapters.map((chapter) => {
-              const lessons =
+            {sortedChapters.map((chapter) => {
+              const rawLessons =
                 (chapter as ChapterDoc & { lessons?: LessonDoc[] }).lessons ??
                 [];
+              const hasLessonOrder = rawLessons.some(
+                (lesson) => typeof (lesson as LessonDoc).order === "number"
+              );
+              const lessons = hasLessonOrder
+                ? [...rawLessons].sort(byOrderThenTitle)
+                : rawLessons;
               const chapterSlug = chapter.slug ?? "";
               return (
                 <section key={String(chapter.id)} className="space-y-3">

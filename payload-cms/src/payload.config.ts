@@ -17,6 +17,9 @@ import { Chapters } from './collections/Chapters'
 import { Lessons } from './collections/Lessons'
 import { Pages } from './collections/Pages'
 import { Accounts } from './collections/Accounts'
+import { QuizQuestions } from './collections/QuizQuestions'
+import { Quizzes } from './collections/Quizzes'
+import { QuizAttempts } from './collections/QuizAttempts'
 import { MathFeature } from './lexical/math/MathFeature'
 import { Questions } from './collections/Questions'
 import { Notifications } from './collections/Notifications'
@@ -154,6 +157,9 @@ export default buildConfig({
     Users,
     Media,
     Questions,
+    QuizQuestions,
+    Quizzes,
+    QuizAttempts,
     Notifications,
     LessonProgress,
     Feedback,
