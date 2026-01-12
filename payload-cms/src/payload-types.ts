@@ -444,6 +444,9 @@ export interface Quiz {
   id: number;
   title: string;
   description?: string | null;
+  /**
+   * Add questions from the bank or create new ones.
+   */
   questions: (number | QuizQuestion)[];
   shuffleQuestions?: boolean | null;
   shuffleOptions?: boolean | null;

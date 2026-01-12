@@ -3,6 +3,22 @@ import type { CollectionConfig, PayloadRequest } from 'payload'
 const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' || ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
 
+const validateOptions = (value: unknown) => {
+  if (!Array.isArray(value)) {
+    return 'Add at least 3 answer choices.'
+  }
+  const options = value as { label?: string; isCorrect?: boolean | null }[]
+  const optionCount = options.filter((option) => option?.label?.trim()).length
+  if (optionCount < 3) {
+    return 'Add at least 3 answer choices.'
+  }
+  const correctCount = options.filter((option) => option?.isCorrect).length
+  if (correctCount < 1) {
+    return 'Mark at least 1 correct answer.'
+  }
+  return true
+}
+
 export const QuizQuestions: CollectionConfig = {
   slug: 'quiz-questions',
   admin: {
@@ -34,7 +50,8 @@ export const QuizQuestions: CollectionConfig = {
       name: 'options',
       type: 'array',
       required: true,
-      minRows: 2,
+      minRows: 3,
+      validate: validateOptions,
       fields: [
         {
           name: 'label',

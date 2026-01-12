@@ -28,6 +28,8 @@ import { default as default_ee78413036d735b301af7294bd0c78a0 } from '@/views/Les
 import { default as default_944838cdb41db1e12687a26697354cee } from '@/views/LessonFeedbackPanel'
 import { default as default_4b04de482248e5cf6439b466d2c48d43 } from '@/views/PageOrderField'
 import { default as default_5565cf0809d37ddd6682af69dc08c9da } from '@/views/ClassroomJoinCodeField'
+import { default as default_8ecf3705f4486154c43b65ffcba083a4 } from '@/views/QuizQuestionPickerField'
+import { default as default_b228ebeb356b13e416a25a2727293bbc } from '@/views/QuizPreviewField'
 import { default as default_20b4b595011067220e22f7c98e94e4e7 } from '@/views/AdminIcon'
 import { default as default_1c527c7f8e4abfd6959bbf71cc426e00 } from '@/views/AdminLogo'
 import { default as default_9d5e242f5b9448a15263946a6aafe2ce } from '@/views/StaffProvider'
@@ -64,6 +66,8 @@ export const importMap = {
   "@/views/LessonFeedbackPanel#default": default_944838cdb41db1e12687a26697354cee,
   "@/views/PageOrderField#default": default_4b04de482248e5cf6439b466d2c48d43,
   "@/views/ClassroomJoinCodeField#default": default_5565cf0809d37ddd6682af69dc08c9da,
+  "@/views/QuizQuestionPickerField#default": default_8ecf3705f4486154c43b65ffcba083a4,
+  "@/views/QuizPreviewField#default": default_b228ebeb356b13e416a25a2727293bbc,
   "@/views/AdminIcon#default": default_20b4b595011067220e22f7c98e94e4e7,
   "@/views/AdminLogo#default": default_1c527c7f8e4abfd6959bbf71cc426e00,
   "@/views/StaffProvider#default": default_9d5e242f5b9448a15263946a6aafe2ce,
