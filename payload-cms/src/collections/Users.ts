@@ -6,6 +6,13 @@ const cookieSecure = (() => {
   if (envValue === 'false') return false
   return (process.env.PAYLOAD_PUBLIC_SERVER_URL ?? '').startsWith('https://')
 })()
+
+const cookieSameSite = (() => {
+  const envValue = process.env.PAYLOAD_COOKIE_SAMESITE?.toLowerCase()
+  if (envValue === 'none') return 'None'
+  if (envValue === 'strict') return 'Strict'
+  return 'Lax'
+})()
 const cookieDomain = process.env.PAYLOAD_ADMIN_COOKIE_DOMAIN || undefined
 
 export const Users: CollectionConfig = {
@@ -13,7 +20,7 @@ export const Users: CollectionConfig = {
   auth: {
     cookies: {
       secure: cookieSecure,
-      sameSite: 'Lax',
+      sameSite: cookieSameSite,
       domain: cookieDomain,
     },
   },

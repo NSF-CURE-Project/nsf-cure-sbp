@@ -317,10 +317,10 @@ export default function Navbar() {
           <Image
             src={cppLogo}
             alt="Cal Poly Pomona Logo"
-            width={48}
-            height={48}
+            width={300}
+            height={150}
             className="h-10 w-auto sm:h-12"
-            sizes="48px"
+            sizes="(min-width: 640px) 96px, 80px"
           />
         </Link>
 
