@@ -89,6 +89,9 @@ importers:
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.4.0
+      tw-animate-css:
+        specifier: ^1.4.0
+        version: 1.4.0
       zustand:
         specifier: ^5.0.8
         version: 5.0.8(@types/react@19.2.6)(immer@10.2.0)(react@19.1.0)(use-sync-external-store@1.6.0(react@19.1.0))
@@ -135,9 +138,6 @@ importers:
       tailwindcss:
         specifier: 3.4.13
         version: 3.4.13
-      tw-animate-css:
-        specifier: ^1.4.0
-        version: 1.4.0
       typescript:
         specifier: ^5
         version: 5.9.3
