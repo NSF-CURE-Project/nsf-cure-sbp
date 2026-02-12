@@ -922,7 +922,7 @@ export default function QuizBankView({ initialQuizzes, courses, chapters }: Quiz
             <div style={modalHeaderStyle}>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--cpp-ink)' }}>
-                  Assign "{assignQuiz.title}"
+                  Assign &quot;{assignQuiz.title}&quot;
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
                   Select lessons to attach this quiz. Existing lesson quiz settings will be replaced.

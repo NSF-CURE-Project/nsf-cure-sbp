@@ -11,10 +11,13 @@ const getId = (value: unknown): string | null => {
   return null
 }
 
-const getQuestionIssues = (question: {
-  options?: { label?: string | null; isCorrect?: boolean | null }[] | null
-}) => {
-  const options = Array.isArray(question.options) ? question.options : []
+type QuestionOption = { label?: string | null; isCorrect?: boolean | null }
+
+const isQuestionOption = (value: unknown): value is QuestionOption =>
+  typeof value === 'object' && value !== null && ('label' in value || 'isCorrect' in value)
+
+const getQuestionIssues = (question: { options?: unknown[] | null }) => {
+  const options = Array.isArray(question.options) ? question.options.filter(isQuestionOption) : []
   const optionCount = options.filter((option) => option?.label?.trim()).length
   const correctCount = options.filter((option) => option?.isCorrect).length
   const issues: string[] = []

@@ -95,16 +95,17 @@ html[data-admin-login='true'] {
 
 html[data-admin-login='true'] body {
   background: radial-gradient(circle at top, #ffffff 0%, #eef2f7 40%, #e7ebf2 100%);
+  position: relative;
 }
 
 html[data-admin-login='true'] .template-default {
   min-height: 100vh;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 56px 24px;
+  justify-content: flex-start;
+  padding: 40px 24px 24px;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 html[data-admin-login='true'] .admin-login-logo {
@@ -115,16 +116,16 @@ html[data-admin-login='true'] .admin-login-logo {
 }
 
 html[data-admin-login='true'] .admin-login-logo img {
-  width: min(320px, 70vw);
+  width: min(300px, 65vw);
   height: auto;
 }
 
 html[data-admin-login='true'] form {
   width: min(440px, 100%);
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: 12px;
   border: 1px solid #e2e8f0;
-  padding: 30px 30px 26px;
+  padding: 26px 28px 22px;
   box-shadow: 0 22px 60px rgba(15, 23, 42, 0.16);
   backdrop-filter: blur(8px);
   margin: 0 auto;
@@ -139,8 +140,8 @@ html[data-admin-login='true'] input,
 html[data-admin-login='true'] textarea,
 html[data-admin-login='true'] select {
   width: 100%;
-  border-radius: 14px;
-  border: 1px solid #d6dbe6;
+  border-radius: 6px;
+  border: 1.5px solid #c2c8d4;
   padding: 12px 14px;
   background: #f7f9fc;
   color: #0f172a;
@@ -163,7 +164,7 @@ html[data-admin-login='true'] select:focus {
 
 html[data-admin-login='true'] button[type='submit'] {
   width: 100%;
-  border-radius: 999px;
+  border-radius: 8px;
   background: #0f3d2e;
   color: #ffffff;
   font-weight: 600;
@@ -184,6 +185,44 @@ html[data-admin-login='true'] a {
 
 html[data-admin-login='true'] a:hover {
   text-decoration: underline;
+}
+
+html[data-admin-login='true'] .template-default {
+  padding-bottom: 32px;
+}
+
+html[data-admin-login='true'] .admin-global-footer {
+  width: min(440px, 100%);
+  position: static;
+  margin: 8px auto 0;
+  padding: 0;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-login='true'] .template-default,
+html[data-admin-login='true'] .template__wrap,
+html[data-admin-login='true'] .template-default__wrap {
+  padding-bottom: 0 !important;
+}
+
+html[data-admin-login='true'] .admin-global-footer {
+  display: none !important;
+}
+
+html[data-admin-login='true'] .template-default::after,
+html[data-admin-login='true'] .template-minimal::after,
+html[data-admin-login='true'] section.login::after,
+html[data-admin-login='true'] form::after {
+  content: "© 2025 Cal Poly Pomona Engineering — NSF CURE Summer Bridge Program";
+  display: block;
+  margin-top: 14px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cpp-muted);
+  letter-spacing: 0.02em;
 }
 
 body {
@@ -211,33 +250,47 @@ body {
 }
 
 /* Hide admin sidebar only in the authenticated app shell. */
-html[data-admin-context='app'] .nav,
-html[data-admin-context='app'] .nav--collapsed,
-html[data-admin-context='app'] .nav--closed {
+html .nav,
+html .nav--collapsed,
+html .nav--closed {
   display: none !important;
   width: 0 !important;
 }
 
-html[data-admin-context='app'] .nav-toggler,
-html[data-admin-context='app'] .nav-toggle,
-html[data-admin-context='app'] .nav__toggle,
-html[data-admin-context='app'] [data-element='nav-toggle'] {
+html .nav-toggler,
+html .nav-toggle,
+html .nav__toggle,
+html [data-element='nav-toggle'] {
   display: none !important;
 }
 
-html[data-admin-context='app'] .template,
-html[data-admin-context='app'] .template__body,
-html[data-admin-context='app'] .template__content {
+html .template,
+html .template__body,
+html .template__content {
   margin-left: 0 !important;
   padding-left: 0 !important;
 }
 
-html[data-admin-context='app'] .template-default--nav-hydrated aside.nav,
-html[data-admin-context='app'] #nav-toggler {
+html .template-default--nav-hydrated aside.nav,
+html #nav-toggler {
   display: none !important;
 }
 
-html[data-admin-context='app'] .template-default {
+html .template-default {
   display: inherit !important;
-  grid-template-columns: 0 auto !important;
+  grid-template-columns: 0 minmax(0, 1fr) !important;
+}
+
+html .template-default__wrap,
+html .template__wrap {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  width: 100% !important;
+}
+
+html .template-default__content,
+html .template__content {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  width: 100% !important;
 }

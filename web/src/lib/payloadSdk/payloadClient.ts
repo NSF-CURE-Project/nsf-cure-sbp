@@ -6,10 +6,14 @@ function appendDraft(path: string, draft?: boolean) {
   return `${path}${path.includes("?") ? "&" : "?"}draft=true`;
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(
+  path: string,
+  init?: RequestInit & { next?: { revalidate?: number } }
+): Promise<T> {
   const baseUrl = getPayloadBaseUrl();
   const res = await fetch(`${baseUrl}${API_ROUTE}${path}`, {
-    cache: "no-store", // ← REQUIRED for immediate updates
+    cache: init?.cache,
+    next: init?.next,
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -25,6 +29,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const payload = {
-  get: <T>(path: string, options?: { draft?: boolean }) =>
-    request<T>(appendDraft(path, options?.draft)),
+  get: <T>(path: string, options?: { draft?: boolean; revalidate?: number }) =>
+    request<T>(appendDraft(path, options?.draft), {
+      cache: options?.draft ? "no-store" : "force-cache",
+      next: options?.draft ? undefined : { revalidate: options?.revalidate ?? 60 },
+    }),
 };

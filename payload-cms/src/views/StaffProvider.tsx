@@ -30,7 +30,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     pathname.startsWith('/admin/reset-password')
   const getIsHelpPath = (pathname: string) => pathname.startsWith('/admin/help')
   const [theme, setTheme] = useState<ThemeMode>('light')
-  const [breadcrumbs, setBreadcrumbs] = useState<{ label: string; href?: string }[]>([])
+  const [backHref, setBackHref] = useState<string | null>(null)
   const [isLoginPage, setIsLoginPage] = useState(() => {
     if (typeof window === 'undefined') return false
     return getIsLoginPath(window.location.pathname)
@@ -51,6 +51,10 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
   const publishIntentRef = useRef(false)
   const autoSaveTimerRef = useRef<number | null>(null)
   const autoSaveInFlightRef = useRef(false)
+  const lastPathRef = useRef<string | null>(null)
+  const backHrefRef = useRef<string | null>(null)
+  const backUpdateTimerRef = useRef<number | null>(null)
+  const pathStackRef = useRef<string[]>([])
 
   const expandPageLayout = useCallback(() => {
     if (typeof document === 'undefined') return
@@ -239,72 +243,42 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         .replace(/[-_]/g, ' ')
         .replace(/\b\w/g, (char) => char.toUpperCase())
 
-      const buildCrumbs = (pathname: string, title?: string) => {
-        const crumbs: { label: string; href?: string }[] = [{ label: 'Home', href: '/admin' }]
-
-        if (pathname.startsWith('/admin/quiz-bank')) {
-          crumbs.push({ label: 'Quiz Bank', href: '/admin/quiz-bank' })
-          return crumbs
+    const updatePageMeta = () => {
+      if (!isMountedRef.current) return
+      const pathname = window.location.pathname
+      if (typeof window !== 'undefined') {
+        const stored = window.sessionStorage.getItem('admin-path-stack')
+        const stack = stored ? stored.split('|').filter(Boolean) : []
+        const last = stack[stack.length - 1]
+        if (last !== pathname) {
+          stack.push(pathname)
         }
-
-        if (pathname.startsWith('/admin/site-management') || pathname.startsWith('/admin/settings')) {
-          crumbs.push({ label: 'Site Management', href: '/admin/site-management' })
-          return crumbs
+        if (stack.length > 50) {
+          stack.splice(0, stack.length - 50)
         }
-
-      const segments = pathname.split('/').filter(Boolean)
-
-      if (segments[0] !== 'admin') return crumbs
-      const rest = segments.slice(1)
-
-      if (!rest.length) return crumbs
-      if (rest[0] === 'collections' && rest[1]) {
-        const collection = rest[1]
-        const isEdit = Boolean(rest[2] && rest[2] !== 'create')
-        if (collection === 'pages' && isEdit) {
-          const label = title ? `Edit ${title}` : 'Edit'
-          return [
-            { label: 'Home', href: '/admin' },
-            { label: 'Site Management', href: '/admin/site-management' },
-            { label },
-          ]
+        pathStackRef.current = stack
+        window.sessionStorage.setItem('admin-path-stack', stack.join('|'))
+        const prev = stack.length > 1 ? stack[stack.length - 2] : null
+        if (backHrefRef.current !== prev) {
+          backHrefRef.current = prev
+          setBackHref(prev)
         }
-        crumbs[0] = { label: 'Site Content', href: '/admin' }
-        crumbs.push({ label: formatLabel(collection), href: `/admin/collections/${collection}` })
-        if (rest[2]) {
-          crumbs.push({ label: rest[2] === 'create' ? 'Create' : 'Edit' })
-        }
-        return crumbs
       }
-
-      if (rest[0] === 'globals' && rest[1]) {
-        crumbs[0] = { label: 'Global Content', href: '/admin' }
-        crumbs.push({ label: formatLabel(rest[1]) })
-        return crumbs
-      }
-
-      rest.forEach((segment, index) => {
-        const href = `/admin/${rest.slice(0, index + 1).join('/')}`
-        crumbs.push({ label: formatLabel(segment), href })
-      })
-
-      return crumbs
+      lastPathRef.current = pathname
+      const loginPage = getIsLoginPath(pathname)
+      setIsLoginPage(loginPage)
+      document.documentElement.setAttribute('data-admin-login', loginPage ? 'true' : 'false')
+      const helpPage = getIsHelpPath(pathname)
+      const context = loginPage ? 'login' : helpPage ? 'help' : 'app'
+      document.documentElement.setAttribute('data-admin-context', context)
     }
 
     const scheduleUpdate = () => {
-      window.setTimeout(() => {
-        if (!isMountedRef.current) return
-        const pathname = window.location.pathname
-        const title =
-          document.querySelector('.doc-header__title')?.textContent?.trim() ||
-          document.querySelector('.doc-header__header h1')?.textContent?.trim()
-        setBreadcrumbs(buildCrumbs(pathname, title || undefined))
-        const loginPage = getIsLoginPath(pathname)
-        setIsLoginPage(loginPage)
-        document.documentElement.setAttribute('data-admin-login', loginPage ? 'true' : 'false')
-        const helpPage = getIsHelpPath(pathname)
-        const context = loginPage ? 'login' : helpPage ? 'help' : 'app'
-        document.documentElement.setAttribute('data-admin-context', context)
+      if (backUpdateTimerRef.current) {
+        window.clearTimeout(backUpdateTimerRef.current)
+      }
+      backUpdateTimerRef.current = window.setTimeout(() => {
+        updatePageMeta()
       }, 0)
     }
 
@@ -322,12 +296,22 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
     window.addEventListener('popstate', scheduleUpdate)
     scheduleUpdate()
+    const pathPoll = window.setInterval(() => {
+      if (!isMountedRef.current) return
+      if (window.location.pathname !== lastPathRef.current) {
+        scheduleUpdate()
+      }
+    }, 200)
 
     return () => {
       isMountedRef.current = false
       window.history.pushState = originalPushState
       window.history.replaceState = originalReplaceState
       window.removeEventListener('popstate', scheduleUpdate)
+      window.clearInterval(pathPoll)
+      if (backUpdateTimerRef.current) {
+        window.clearTimeout(backUpdateTimerRef.current)
+      }
       document.documentElement.removeAttribute('data-admin-login')
       document.documentElement.removeAttribute('data-admin-context')
     }
@@ -530,7 +514,6 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     () => (theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'),
     [theme],
   )
-  const showBreadcrumbs = breadcrumbs.length > 1
   const initials = useMemo(() => {
     const userInfo = user ?? {}
     const first = userInfo.firstName?.trim() ?? userInfo.first_name?.trim()
@@ -586,6 +569,18 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     },
     [userId],
   )
+  const handleAdminLogout = useCallback(async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    if (typeof window === 'undefined') return
+    try {
+      await fetch('/api/users/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+    } finally {
+      window.location.assign('/admin/login')
+    }
+  }, [])
 
   const hideAdminThemePreference = () => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return
@@ -1101,38 +1096,24 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           padding-top: 0;
         }
 
-        .admin-breadcrumb-bar {
+        .admin-back-button {
           display: inline-flex;
           align-items: center;
-          justify-content: center;
           gap: 8px;
-          font-size: 13px;
-          color: var(--cpp-muted);
-          padding: 0;
-          background: transparent;
-          border: 0;
-        }
-
-        .admin-breadcrumb-bar--hidden {
-          display: none;
-        }
-
-        .admin-breadcrumb-bar a {
-          color: var(--cpp-muted);
-          text-decoration: none;
-          font-weight: 600;
-        }
-
-        .admin-breadcrumb-bar a:hover {
+          border: 1px solid var(--admin-surface-border);
+          border-radius: 999px;
+          background: var(--admin-surface);
           color: var(--cpp-ink);
+          font-size: 12px;
+          font-weight: 700;
+          padding: 6px 12px;
+          text-decoration: none;
+          box-shadow: var(--admin-shadow);
         }
 
-        .admin-breadcrumb-sep {
-          color: rgba(15, 23, 42, 0.35);
-        }
-
-        :root[data-theme="dark"] .admin-breadcrumb-sep {
-          color: rgba(226, 232, 240, 0.4);
+        .admin-back-button:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);
         }
 
         :root {
@@ -2338,26 +2319,31 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       ) : null}
       {!isLoginPath ? (
         <div className="admin-topbar">
-          {showBreadcrumbs ? (
-            <div className="admin-topbar-center">
-              <div className="admin-breadcrumb-bar" role="navigation" aria-label="Breadcrumb">
-                {breadcrumbs.map((crumb, index) => (
-                  <React.Fragment key={`${crumb.label}-${index}`}>
-                    {crumb.href && index < breadcrumbs.length - 1 ? (
-                      <a href={crumb.href}>{crumb.label}</a>
-                    ) : (
-                      <span style={{ color: 'var(--cpp-ink)', fontWeight: 700 }}>
-                        {crumb.label}
-                      </span>
-                    )}
-                    {index < breadcrumbs.length - 1 ? (
-                      <span className="admin-breadcrumb-sep">/</span>
-                    ) : null}
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-          ) : null}
+          <div className="admin-topbar-center">
+            {backHref ? (
+              <button
+                type="button"
+                className="admin-back-button"
+                onClick={() => {
+                  if (typeof window === 'undefined') return
+                  const stack = pathStackRef.current.length
+                    ? pathStackRef.current
+                    : (window.sessionStorage.getItem('admin-path-stack') ?? '')
+                        .split('|')
+                        .filter(Boolean)
+                  if (stack.length <= 1) return
+                  stack.pop()
+                  const prev = stack[stack.length - 1] ?? '/admin'
+                  pathStackRef.current = stack
+                  window.sessionStorage.setItem('admin-path-stack', stack.join('|'))
+                  window.location.assign(prev)
+                }}
+              >
+                <span aria-hidden="true">←</span>
+                Back
+              </button>
+            ) : null}
+          </div>
           <div className="admin-topbar-actions">
             <button
               type="button"
@@ -2395,7 +2381,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                 </button>
                 <Link href="/admin/help">Help</Link>
                 <div className="admin-user-divider" />
-                <Link href="/admin/logout">
+                <button type="button" onClick={handleAdminLogout}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                     <svg
                       aria-hidden="true"
@@ -2414,7 +2400,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                     </svg>
                     Log out
                   </span>
-                </Link>
+                </button>
               </div>
             </details>
           </div>

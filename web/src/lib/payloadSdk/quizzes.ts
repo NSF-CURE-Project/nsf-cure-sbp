@@ -1,17 +1,20 @@
 import { payload } from "./payloadClient";
+import { withCmsFallback } from "./cmsOptional";
 import type { QuizDoc } from "./types";
 
 export async function getQuizById(
   id: string,
-  options?: { draft?: boolean }
+  options?: { draft?: boolean; revalidate?: number }
 ): Promise<QuizDoc | null> {
-  const data = await payload.get<QuizDoc | { doc?: QuizDoc }>(
-    `/quizzes/${encodeURIComponent(id)}?depth=2`,
-    { draft: options?.draft }
-  );
-  if (!data) return null;
-  if (typeof data === "object" && "doc" in data) {
-    return data.doc ?? null;
-  }
-  return data as QuizDoc;
+  return withCmsFallback(async () => {
+    const data = await payload.get<QuizDoc | { doc?: QuizDoc }>(
+      `/quizzes/${encodeURIComponent(id)}?depth=2`,
+      { draft: options?.draft, revalidate: options?.revalidate ?? 60 }
+    );
+    if (!data) return null;
+    if (typeof data === "object" && "doc" in data) {
+      return data.doc ?? null;
+    }
+    return data as QuizDoc;
+  }, null);
 }

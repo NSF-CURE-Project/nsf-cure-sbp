@@ -61,7 +61,7 @@ export function LoginForm() {
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="mt-2"
+          className="mt-2 h-12 rounded-xl border border-slate-200/70 bg-white/80 text-base shadow-sm transition focus-visible:border-emerald-500/60 focus-visible:ring-2 focus-visible:ring-emerald-500/20"
           placeholder="student@cpp.edu"
         />
       </div>
@@ -76,7 +76,7 @@ export function LoginForm() {
           required
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="mt-2"
+          className="mt-2 h-12 rounded-xl border border-slate-200/70 bg-white/80 text-base shadow-sm transition focus-visible:border-emerald-500/60 focus-visible:ring-2 focus-visible:ring-emerald-500/20"
           placeholder="••••••••"
         />
       </div>
@@ -96,7 +96,7 @@ export function LoginForm() {
       <Button
         type="submit"
         disabled={status === "loading"}
-        className="w-full"
+        className="h-12 w-full rounded-xl text-base"
       >
         {status === "loading" ? "Signing in..." : "Sign In"}
       </Button>

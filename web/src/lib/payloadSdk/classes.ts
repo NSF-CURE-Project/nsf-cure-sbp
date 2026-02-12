@@ -1,4 +1,5 @@
 import { payload } from "./payloadClient";
+import { withCmsFallback } from "./cmsOptional";
 import type { ClassDoc, PayloadFindResult } from "./types";
 
 /**
@@ -7,21 +8,26 @@ import type { ClassDoc, PayloadFindResult } from "./types";
  */
 export async function getClassesTree(options?: {
   draft?: boolean;
+  revalidate?: number;
 }): Promise<ClassDoc[]> {
-  const data = await payload.get<PayloadFindResult<ClassDoc>>(
-    `/classes?limit=100&depth=3&sort=order&sort=title`,
-    { draft: options?.draft }
-  );
-  return [...data.docs].sort((a, b) => {
-    const orderA = typeof a.order === "number" ? a.order : Number(a.order ?? 0);
-    const orderB = typeof b.order === "number" ? b.order : Number(b.order ?? 0);
+  return withCmsFallback(async () => {
+    const data = await payload.get<PayloadFindResult<ClassDoc>>(
+      `/classes?limit=100&depth=3&sort=order&sort=title`,
+      { draft: options?.draft, revalidate: options?.revalidate ?? 60 }
+    );
+    return [...(data.docs ?? [])].sort((a, b) => {
+      const orderA =
+        typeof a.order === "number" ? a.order : Number(a.order ?? 0);
+      const orderB =
+        typeof b.order === "number" ? b.order : Number(b.order ?? 0);
 
-    if (orderA !== orderB) return orderA - orderB;
+      if (orderA !== orderB) return orderA - orderB;
 
-    const titleA = typeof a.title === "string" ? a.title.toLowerCase() : "";
-    const titleB = typeof b.title === "string" ? b.title.toLowerCase() : "";
-    return titleA.localeCompare(titleB);
-  });
+      const titleA = typeof a.title === "string" ? a.title.toLowerCase() : "";
+      const titleB = typeof b.title === "string" ? b.title.toLowerCase() : "";
+      return titleA.localeCompare(titleB);
+    });
+  }, []);
 }
 
 /**
@@ -30,11 +36,13 @@ export async function getClassesTree(options?: {
  */
 export async function getClassBySlug(
   slug: string,
-  options?: { draft?: boolean }
+  options?: { draft?: boolean; revalidate?: number }
 ): Promise<ClassDoc | null> {
-  const data = await payload.get<PayloadFindResult<ClassDoc>>(
-    `/classes?where[slug][equals]=${encodeURIComponent(slug)}&depth=3&limit=1`,
-    { draft: options?.draft }
-  );
-  return data.docs[0] ?? null;
+  return withCmsFallback(async () => {
+    const data = await payload.get<PayloadFindResult<ClassDoc>>(
+      `/classes?where[slug][equals]=${encodeURIComponent(slug)}&depth=3&limit=1`,
+      { draft: options?.draft, revalidate: options?.revalidate ?? 60 }
+    );
+    return data.docs?.[0] ?? null;
+  }, null);
 }
