@@ -1,10 +1,16 @@
 import type { NextConfig } from "next";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const payloadProxyTarget =
   process.env.PAYLOAD_PROXY_TARGET ?? "http://localhost:3000";
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  turbopack: {
+    root: projectRoot,
+  },
   images: {
     remotePatterns: [
       // Allow images from your Strapi dev server
