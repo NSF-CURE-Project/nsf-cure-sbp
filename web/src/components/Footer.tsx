@@ -196,7 +196,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
         >
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-4 sm:justify-items-center">
             {/* Site links */}
-            <div>
+            <div className="text-center sm:text-left">
               <h2 className="font-semibold text-foreground mb-3">Explore</h2>
               <ul className="space-y-2">
                 {(content.exploreLinks ?? []).map((link, index) => {
@@ -230,7 +230,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
             </div>
 
             {/* Resources */}
-            <div>
+            <div className="text-center sm:text-left">
               <h2 className="font-semibold text-foreground mb-3">Resources</h2>
               <ul className="space-y-2">
                 {(content.resourcesLinks ?? []).map((link, index) => {
@@ -264,7 +264,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
             </div>
 
             {/* Contact / Branding */}
-            <div>
+            <div className="text-center sm:text-left">
               <h2 className="font-semibold text-foreground mb-3">Connect</h2>
               <ul className="space-y-2">
                 {content.connect?.email ? (
@@ -302,7 +302,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
 
             {/* Feedback */}
             {content.feedback?.enabled !== false ? (
-              <div className="sm:justify-self-start">
+              <div className="text-center sm:text-left sm:justify-self-start">
                 <h2 className="font-semibold text-foreground mb-3">
                   {content.feedback?.title ?? "Feedback"}
                 </h2>
@@ -315,7 +315,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                     <Button
                       type="button"
                       variant="outline"
-                      className="rounded-lg border-border/60 bg-background/60 text-xs font-semibold"
+                      className="rounded-lg border-border/60 bg-background/60 text-xs font-semibold mx-auto sm:mx-0"
                     >
                       {content.feedback?.buttonLabel ?? "Open feedback"}
                     </Button>
