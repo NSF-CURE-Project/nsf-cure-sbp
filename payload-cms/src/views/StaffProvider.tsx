@@ -685,11 +685,13 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
     const isPublishButton = (button: HTMLButtonElement) => {
       const label = button.textContent?.trim().toLowerCase() ?? ''
+      const action = button.getAttribute('data-action')?.toLowerCase() ?? ''
       const id = button.getAttribute('id')?.toLowerCase() ?? ''
       if (!label) return false
       if (label.includes('unpublish')) return false
       if (label.includes('publish')) return true
-      return id === 'action-save' || id.includes('publish')
+      if (action.includes('publish')) return true
+      return id.includes('publish')
     }
 
     const findDraftButton = () => {
@@ -897,6 +899,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         document.querySelectorAll<HTMLButtonElement>('button#action-save, button[data-action="publish"]'),
       )
       buttons.forEach((button) => {
+        if (!isPublishButton(button)) return
         if (button.dataset.publishGateBound === 'true') return
         button.dataset.publishGateBound = 'true'
         if (!button.dataset.publishGateType) {
