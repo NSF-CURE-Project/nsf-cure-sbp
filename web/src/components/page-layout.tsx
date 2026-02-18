@@ -79,6 +79,77 @@ const getSnappedWidth = (current: number, max: number) => {
   }, options[0]);
 };
 
+const parseYouTubeTime = (value: string | null): number | null => {
+  if (!value) return null;
+  const raw = value.trim().toLowerCase();
+  if (!raw) return null;
+
+  if (/^\d+$/.test(raw)) {
+    const seconds = Number.parseInt(raw, 10);
+    return Number.isFinite(seconds) && seconds > 0 ? seconds : null;
+  }
+
+  const parts = raw.match(/(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/);
+  if (!parts) return null;
+
+  const hours = Number.parseInt(parts[1] ?? "0", 10);
+  const minutes = Number.parseInt(parts[2] ?? "0", 10);
+  const seconds = Number.parseInt(parts[3] ?? "0", 10);
+  const total = hours * 3600 + minutes * 60 + seconds;
+  return Number.isFinite(total) && total > 0 ? total : null;
+};
+
+const getYouTubeEmbedData = (
+  rawUrl: string
+): { videoId: string; startAt?: number } | null => {
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return null;
+
+  const withProtocol = /^https?:\/\//i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(withProtocol);
+  } catch {
+    return null;
+  }
+
+  const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
+  const pathSegments = parsed.pathname.split("/").filter(Boolean);
+
+  let videoId: string | null = null;
+  if (host === "youtu.be") {
+    videoId = pathSegments[0] ?? null;
+  } else if (
+    host === "youtube.com" ||
+    host === "m.youtube.com" ||
+    host === "youtube-nocookie.com"
+  ) {
+    if (parsed.pathname === "/watch") {
+      videoId = parsed.searchParams.get("v");
+    } else if (
+      pathSegments[0] === "embed" ||
+      pathSegments[0] === "shorts" ||
+      pathSegments[0] === "live"
+    ) {
+      videoId = pathSegments[1] ?? null;
+    }
+  }
+
+  if (!videoId) return null;
+  const normalizedId = videoId.trim();
+  if (!/^[A-Za-z0-9_-]{11}$/.test(normalizedId)) return null;
+
+  const startAt =
+    parseYouTubeTime(parsed.searchParams.get("t")) ??
+    parseYouTubeTime(parsed.searchParams.get("start")) ??
+    undefined;
+
+  return { videoId: normalizedId, startAt };
+};
+
 function SnappingVideo({
   url,
   caption,
@@ -112,7 +183,7 @@ function SnappingVideo({
   }, [snappedWidth]);
 
   return (
-    <section className="space-y-3">
+    <section className="mx-auto w-full max-w-4xl space-y-3">
       <div
         ref={frameRef}
         className="w-full min-w-[280px] max-w-full overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-b from-muted/50 to-muted/20 p-1 shadow-lg"
@@ -140,6 +211,70 @@ function SnappingVideo({
               }
             }}
           />
+        </div>
+      </div>
+      {caption && <p className="text-sm text-muted-foreground">{caption}</p>}
+    </section>
+  );
+}
+
+function YouTubeVideoCard({
+  url,
+  caption,
+}: {
+  url: string;
+  caption?: string | null;
+}) {
+  const embedData = getYouTubeEmbedData(url);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  if (!embedData) return null;
+
+  const { videoId, startAt } = embedData;
+  const query = new URLSearchParams({
+    rel: "0",
+    playsinline: "1",
+  });
+  if (startAt) query.set("start", String(startAt));
+
+  const embedUrl = `https://www.youtube.com/embed/${videoId}?${query.toString()}`;
+  const thumbnailUrl = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+
+  return (
+    <section className="mx-auto w-full max-w-4xl space-y-3">
+      <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/70 shadow-lg shadow-black/15">
+        <div className="relative aspect-video w-full">
+          {isPlaying ? (
+            <iframe
+              src={embedUrl}
+              title="Embedded YouTube video"
+              className="absolute inset-0 h-full w-full"
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
+          ) : (
+            <button
+              type="button"
+              className="group absolute inset-0 flex h-full w-full items-center justify-center bg-black/30 transition-colors hover:bg-black/40"
+              onClick={() => setIsPlaying(true)}
+              aria-label="Play YouTube video"
+            >
+              <Image
+                src={thumbnailUrl}
+                alt="Video thumbnail"
+                fill
+                sizes="(max-width: 1024px) 100vw, 960px"
+                className="object-cover"
+              />
+              <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+              <span className="relative z-10 inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/55 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition group-hover:bg-black/65">
+                <span aria-hidden="true">▶</span>
+                Play on YouTube
+              </span>
+            </button>
+          )}
         </div>
       </div>
       {caption && <p className="text-sm text-muted-foreground">{caption}</p>}
@@ -261,6 +396,18 @@ export function PageLayout({
         }
 
         if (block.blockType === "videoBlock") {
+          const externalUrl = typeof block.url === "string" ? block.url : "";
+          const youtubeUrl = getYouTubeEmbedData(externalUrl) ? externalUrl : "";
+          if (youtubeUrl) {
+            return (
+              <YouTubeVideoCard
+                key={block.id ?? idx}
+                url={youtubeUrl}
+                caption={block.caption}
+              />
+            );
+          }
+
           const url = resolveMediaUrl(block.video ?? block.url ?? null);
           if (!url) return null;
           return (
