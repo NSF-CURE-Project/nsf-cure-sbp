@@ -50,8 +50,8 @@ export function LoginForm() {
 
   return (
     <form className="space-y-4" onSubmit={onSubmit}>
-      <div>
-        <label className="block text-sm font-semibold text-foreground">
+      <div className="space-y-2">
+        <label className="block text-sm font-semibold tracking-[0.01em] text-slate-900">
           Email
         </label>
         <Input
@@ -61,12 +61,12 @@ export function LoginForm() {
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="mt-2 h-12 rounded-xl border border-slate-200/70 bg-white/80 text-base shadow-sm transition focus-visible:border-emerald-500/60 focus-visible:ring-2 focus-visible:ring-emerald-500/20"
+          className="login-input h-12 rounded-xl !border !border-slate-300 !bg-white !text-base !text-slate-900 shadow-sm transition-all duration-200 placeholder:text-slate-400 hover:!border-slate-400 focus-visible:!border-emerald-600 focus-visible:!ring-2 focus-visible:!ring-emerald-200 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
           placeholder="student@cpp.edu"
         />
       </div>
-      <div>
-        <label className="block text-sm font-semibold text-foreground">
+      <div className="space-y-2">
+        <label className="block text-sm font-semibold tracking-[0.01em] text-slate-900">
           Password
         </label>
         <Input
@@ -76,13 +76,14 @@ export function LoginForm() {
           required
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="mt-2 h-12 rounded-xl border border-slate-200/70 bg-white/80 text-base shadow-sm transition focus-visible:border-emerald-500/60 focus-visible:ring-2 focus-visible:ring-emerald-500/20"
+          className="login-input h-12 rounded-xl !border !border-slate-300 !bg-white !text-base !text-slate-900 shadow-sm transition-all duration-200 placeholder:text-slate-400 hover:!border-slate-400 focus-visible:!border-emerald-600 focus-visible:!ring-2 focus-visible:!ring-emerald-200 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
           placeholder="••••••••"
         />
       </div>
 
       {message ? (
         <div
+          aria-live="polite"
           className={`rounded-md px-4 py-3 text-sm ${
             status === "error"
               ? "border border-red-200 bg-red-50 text-red-700"
@@ -96,7 +97,7 @@ export function LoginForm() {
       <Button
         type="submit"
         disabled={status === "loading"}
-        className="h-12 w-full rounded-xl text-base"
+        className="h-12 w-full rounded-xl bg-emerald-700 text-base font-semibold text-white shadow-md shadow-emerald-900/30 transition-all duration-200 hover:bg-emerald-800 active:scale-[0.99]"
       >
         {status === "loading" ? "Signing in..." : "Sign In"}
       </Button>
