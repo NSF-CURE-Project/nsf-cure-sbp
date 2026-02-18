@@ -41,6 +41,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     loading: boolean
     error: string | null
   }>({ open: false, url: null, loading: false, error: null })
+  const previewGateOpenRef = useRef(false)
   const isMountedRef = useRef(true)
   const pendingPublishRef = useRef<HTMLButtonElement | null>(null)
   const allowPublishRef = useRef(false)
@@ -157,6 +158,10 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       // ignore invalid URL
     }
   }
+
+  useEffect(() => {
+    previewGateOpenRef.current = previewGate.open
+  }, [previewGate.open])
   const isLoginPath =
     typeof window === 'undefined' ? isLoginPage : getIsLoginPath(window.location.pathname)
 
@@ -637,6 +642,28 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return
+    const enablePublishPreviewGate = process.env.NEXT_PUBLIC_ENABLE_PUBLISH_PREVIEW_GATE === 'true'
+
+    if (!enablePublishPreviewGate) {
+      Array.from(document.querySelectorAll<HTMLButtonElement>('button[data-publish-gate-bound="true"]')).forEach(
+        (button) => {
+          if (button.isConnected) {
+            button.style.display = ''
+            const originalType = button.dataset.publishGateType as
+              | 'submit'
+              | 'button'
+              | 'reset'
+              | undefined
+            if (originalType) button.type = originalType
+          }
+          delete button.dataset.publishGateBound
+        },
+      )
+      Array.from(
+        document.querySelectorAll<HTMLButtonElement>('button[data-publish-gate-proxy="true"]'),
+      ).forEach((proxy) => proxy.remove())
+      return
+    }
 
     const getPreviewTarget = () => {
       const path = window.location.pathname
@@ -709,9 +736,32 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       }
     }
 
+    const submitWithoutPreviewGate = (button: HTMLButtonElement) => {
+      allowPublishRef.current = true
+      publishIntentRef.current = false
+      pendingPublishRef.current = null
+
+      const originalType = (button.dataset.publishGateType as 'submit' | 'button' | 'reset' | undefined) ?? 'submit'
+      button.type = originalType
+      const form = button.closest('form')
+      const isSubmitButton = originalType === 'submit'
+      if (form && 'requestSubmit' in form && isSubmitButton) {
+        ;(form as HTMLFormElement).requestSubmit(button)
+      } else {
+        button.click()
+      }
+
+      window.setTimeout(() => {
+        if (button.isConnected) {
+          button.type = 'button'
+        }
+        allowPublishRef.current = false
+      }, 1200)
+    }
+
     const beginPreviewGate = (button: HTMLButtonElement) => {
       const targetInfo = getPreviewTarget()
-      if (!targetInfo) return
+      if (!targetInfo) return false
 
       publishIntentRef.current = true
       pendingPublishRef.current = button
@@ -760,6 +810,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       }
 
       void runPreview()
+      return true
     }
 
     const isEditableInput = (element: HTMLElement | null) => {
@@ -770,7 +821,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     }
 
     const scheduleAutoSave = () => {
-      if (previewGate.open) return
+      if (previewGateOpenRef.current) return
       if (autoSaveTimerRef.current) {
         window.clearTimeout(autoSaveTimerRef.current)
       }
@@ -796,17 +847,18 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
     const interceptPublish = (event: Event, target: HTMLElement | null) => {
       if (allowPublishRef.current) return
-      if (previewGate.open) return
+      if (previewGateOpenRef.current) return
       if (!target) return
       const button = target.closest('button')
       if (!button) return
+      if (button.dataset.publishGateProxy === 'true') return
       if (!isPublishButton(button)) return
+      if (!beginPreviewGate(button)) return
       event.preventDefault()
       event.stopPropagation()
       if ('stopImmediatePropagation' in event) {
         ;(event as Event).stopImmediatePropagation()
       }
-      beginPreviewGate(button)
     }
 
     const onPointerDownCapture = (event: PointerEvent) => {
@@ -819,19 +871,20 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
     const onSubmitCapture = (event: Event) => {
       if (allowPublishRef.current) return
-      if (previewGate.open) return
+      if (previewGateOpenRef.current) return
       const submitEvent = event as SubmitEvent
       const submitter = submitEvent.submitter as HTMLButtonElement | null
       const candidate = submitter ?? (document.activeElement as HTMLButtonElement | null)
       if (!candidate || candidate.tagName !== 'BUTTON') return
+      if (candidate.dataset.publishGateProxy === 'true') return
       if (!isPublishButton(candidate)) return
+      if (!beginPreviewGate(candidate)) return
 
       event.preventDefault()
       event.stopPropagation()
       if ('stopImmediatePropagation' in event) {
         ;(event as Event).stopImmediatePropagation()
       }
-      beginPreviewGate(candidate)
     }
 
     const onKeyDownCapture = (event: KeyboardEvent) => {
@@ -863,6 +916,11 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           parent.insertBefore(proxy, button.nextSibling)
         }
 
+        // Replace existing proxy node to avoid stale click handlers across re-renders/HMR.
+        const replacement = proxy.cloneNode(true) as HTMLButtonElement
+        proxy.replaceWith(replacement)
+        proxy = replacement
+
         const syncState = () => {
           proxy!.disabled = button.disabled
           if (button.textContent?.trim()) {
@@ -876,11 +934,15 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         proxy.addEventListener(
           'click',
           (event) => {
-            if (allowPublishRef.current || previewGate.open) return
+            if (allowPublishRef.current || previewGateOpenRef.current) return
             event.preventDefault()
             event.stopPropagation()
             event.stopImmediatePropagation()
-            beginPreviewGate(button)
+            const started = beginPreviewGate(button)
+            if (!started) {
+              submitWithoutPreviewGate(button)
+              return
+            }
           },
           true,
         )
@@ -922,7 +984,12 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
               : null
         const urlString = typeof url === 'string' ? url : ''
         const targetPrefixValue = targetPrefix ?? ''
+        if (!previewGateOpenRef.current && pendingPublishRef.current && !allowPublishRef.current) {
+          pendingPublishRef.current = null
+          publishIntentRef.current = false
+        }
         const shouldGate =
+          previewGateOpenRef.current &&
           Boolean(targetPrefixValue) &&
           urlString.includes(targetPrefixValue) &&
           ['POST', 'PATCH', 'PUT', 'DELETE'].includes(method) &&
@@ -933,6 +1000,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
         if (shouldGate) {
           return new Promise<Response>((resolve) => {
+            const startedAt = Date.now()
             const interval = window.setInterval(() => {
               if (allowPublishRef.current && originalFetch) {
                 window.clearInterval(interval)
@@ -946,6 +1014,12 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                     headers: { 'Content-Type': 'application/json' },
                   }),
                 )
+              }
+              if (Date.now() - startedAt > 15000) {
+                window.clearInterval(interval)
+                pendingPublishRef.current = null
+                publishIntentRef.current = false
+                resolve(originalFetch ? originalFetch(input, init) : fetch(input, init))
               }
             }, 80)
           })
@@ -973,8 +1047,30 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         window.clearTimeout(autoSaveTimerRef.current)
         autoSaveTimerRef.current = null
       }
+      // Restore native publish controls so a fresh effect run can rebind cleanly.
+      Array.from(document.querySelectorAll<HTMLButtonElement>('button[data-publish-gate-bound="true"]')).forEach(
+        (button) => {
+          if (button.isConnected) {
+            button.style.display = ''
+            const originalType = button.dataset.publishGateType as
+              | 'submit'
+              | 'button'
+              | 'reset'
+              | undefined
+            if (originalType) button.type = originalType
+          }
+          delete button.dataset.publishGateBound
+        },
+      )
+      Array.from(
+        document.querySelectorAll<HTMLButtonElement>('button[data-publish-gate-proxy="true"]'),
+      ).forEach((proxy) => proxy.remove())
+      publishIntentRef.current = false
+      pendingPublishRef.current = null
+      allowPublishRef.current = false
+      allowDraftSaveRef.current = false
     }
-  }, [previewGate.open, forceStatusChanged, syncStatusFromDoc])
+  }, [forceStatusChanged, syncStatusFromDoc])
 
   return (
     <>
@@ -2443,7 +2539,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                         | undefined) ?? 'submit'
                       pendingButton.type = originalType
                       const form = pendingButton.closest('form')
-                      if (form && 'requestSubmit' in form) {
+                      const isSubmitButton = originalType === 'submit'
+                      if (form && 'requestSubmit' in form && isSubmitButton) {
                         ;(form as HTMLFormElement).requestSubmit(pendingButton)
                       } else {
                         pendingButton.click()

@@ -2,8 +2,8 @@ import { getPayloadBaseUrl } from "./payloadUrl";
 const API_ROUTE = "/api";
 
 function appendDraft(path: string, draft?: boolean) {
-  if (!draft) return path;
-  return `${path}${path.includes("?") ? "&" : "?"}draft=true`;
+  const value = draft ? "true" : "false";
+  return `${path}${path.includes("?") ? "&" : "?"}draft=${value}`;
 }
 
 async function request<T>(

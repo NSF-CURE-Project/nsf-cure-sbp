@@ -11,7 +11,7 @@ export const Chapters: CollectionConfig = {
   },
   hooks: {
     afterChange: [
-      async ({ doc, previousDoc, req }) => {
+      async ({ doc, previousDoc, req, operation }) => {
         if (!req?.payload) return
         const nextClass = doc?.class
         const prevClass = previousDoc?.class
@@ -27,6 +27,8 @@ export const Chapters: CollectionConfig = {
         const prevClassId = getId(prevClass)
 
         if (!nextClassId) return
+        // Avoid unnecessary class sync updates when chapter's class did not change.
+        if (operation !== 'create' && prevClassId === nextClassId) return
 
         const attachChapter = async (classId: string) => {
           const current = await req.payload.findByID({
