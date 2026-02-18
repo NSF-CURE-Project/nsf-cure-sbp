@@ -228,3 +228,13 @@ body[data-toc="closed"] #layout {
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .login-input:-webkit-autofill,
+  .login-input:-webkit-autofill:hover,
+  .login-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #0f172a;
+    -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+    box-shadow: 0 0 0 1000px #ffffff inset;
+  }
+}
