@@ -27,11 +27,11 @@ export default async function Landing({
 
   return (
     <main className="min-w-0 overflow-x-hidden">
-      <div className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 sm:px-6 lg:px-8 py-6">
+      <div className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 sm:px-6 lg:px-8 pt-1 pb-6">
         <LivePreviewBlocks
           initialData={home}
           collectionSlug="pages"
-          className="space-y-12 py-10"
+          className="space-y-12 pt-2 pb-8"
           emptyMessage="No content yet. Add blocks to the page layout."
           heroLogo={{
             src: "/assets/logos/sbp_logo_transparent.png",

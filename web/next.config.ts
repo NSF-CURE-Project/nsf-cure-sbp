@@ -46,6 +46,11 @@ const nextConfig: NextConfig = {
         port: "3001",
         pathname: "/api/media/**",
       },
+      {
+        protocol: "https",
+        hostname: "i.ytimg.com",
+        pathname: "/vi/**",
+      },
       // Optional: add your production Strapi domain later
       // {
       //   protocol: "https",

@@ -20,11 +20,15 @@ export async function resolvePreview(
   const { isEnabled } = await draftMode();
   if (isEnabled) return true;
 
-  const params = await resolveSearchParams(searchParams);
-  const preview = getParam(params?.preview);
-  const secret = getParam(params?.secret);
-  if (preview === "1" && secret && secret === process.env.PREVIEW_SECRET) {
-    return true;
+  // Query-based preview fallback is opt-in only.
+  // Default behavior keeps drafts strictly behind Next draft-mode cookies.
+  if (process.env.ALLOW_QUERY_PREVIEW === "true") {
+    const params = await resolveSearchParams(searchParams);
+    const preview = getParam(params?.preview);
+    const secret = getParam(params?.secret);
+    if (preview === "1" && secret && secret === process.env.PREVIEW_SECRET) {
+      return true;
+    }
   }
 
   return false;
