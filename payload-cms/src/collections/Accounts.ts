@@ -13,7 +13,11 @@ const cookieSameSite = (() => {
   if (envValue === 'strict') return 'Strict'
   return 'Lax'
 })()
-const cookieDomain = process.env.PAYLOAD_APP_COOKIE_DOMAIN || undefined
+
+const cookieDomain = (() => {
+  if (process.env.NODE_ENV !== 'production') return undefined
+  return process.env.PAYLOAD_APP_COOKIE_DOMAIN || undefined
+})()
 
 export const Accounts: CollectionConfig = {
   slug: 'accounts',
