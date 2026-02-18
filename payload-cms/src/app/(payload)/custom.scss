@@ -66,7 +66,10 @@ html[data-theme='dark'] {
   --theme-error-600: #f97066;
 }
 
-html[data-admin-login='true'] {
+html[data-admin-login='true'],
+.template-default.login,
+.template-default.forgot-password,
+.template-default.reset-password {
   --theme-bg: #f5f7fb;
   --theme-text: #111827;
   --theme-input-bg: #ffffff;
@@ -93,12 +96,18 @@ html[data-admin-login='true'] {
   --theme-error-600: #b42318;
 }
 
-html[data-admin-login='true'] body {
+html[data-admin-login='true'] body,
+.template-default.login,
+.template-default.forgot-password,
+.template-default.reset-password {
   background: radial-gradient(circle at top, #ffffff 0%, #eef2f7 40%, #e7ebf2 100%);
   position: relative;
 }
 
-html[data-admin-login='true'] .template-default {
+html[data-admin-login='true'] .template-default,
+.template-default.login,
+.template-default.forgot-password,
+.template-default.reset-password {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -108,19 +117,28 @@ html[data-admin-login='true'] .template-default {
   gap: 16px;
 }
 
-html[data-admin-login='true'] .admin-login-logo {
+html[data-admin-login='true'] .admin-login-logo,
+.template-default.login .admin-login-logo,
+.template-default.forgot-password .admin-login-logo,
+.template-default.reset-password .admin-login-logo {
   display: flex;
   justify-content: center;
   width: min(440px, 100%);
   margin: 0 auto;
 }
 
-html[data-admin-login='true'] .admin-login-logo img {
+html[data-admin-login='true'] .admin-login-logo img,
+.template-default.login .admin-login-logo img,
+.template-default.forgot-password .admin-login-logo img,
+.template-default.reset-password .admin-login-logo img {
   width: min(300px, 65vw);
   height: auto;
 }
 
-html[data-admin-login='true'] form {
+html[data-admin-login='true'] form,
+.template-default.login form,
+.template-default.forgot-password form,
+.template-default.reset-password form {
   width: min(440px, 100%);
   background: #ffffff;
   border-radius: 12px;
@@ -131,14 +149,26 @@ html[data-admin-login='true'] form {
   margin: 0 auto;
 }
 
-html[data-admin-login='true'] label {
+html[data-admin-login='true'] label,
+.template-default.login label,
+.template-default.forgot-password label,
+.template-default.reset-password label {
   font-weight: 600;
   color: #0f172a;
 }
 
 html[data-admin-login='true'] input,
 html[data-admin-login='true'] textarea,
-html[data-admin-login='true'] select {
+html[data-admin-login='true'] select,
+.template-default.login input,
+.template-default.login textarea,
+.template-default.login select,
+.template-default.forgot-password input,
+.template-default.forgot-password textarea,
+.template-default.forgot-password select,
+.template-default.reset-password input,
+.template-default.reset-password textarea,
+.template-default.reset-password select {
   width: 100%;
   border-radius: 6px;
   border: 1.5px solid #c2c8d4;
@@ -149,7 +179,16 @@ html[data-admin-login='true'] select {
 
 html[data-admin-login='true'][data-theme='dark'] input,
 html[data-admin-login='true'][data-theme='dark'] textarea,
-html[data-admin-login='true'][data-theme='dark'] select {
+html[data-admin-login='true'][data-theme='dark'] select,
+html[data-theme='dark'] .template-default.login input,
+html[data-theme='dark'] .template-default.login textarea,
+html[data-theme='dark'] .template-default.login select,
+html[data-theme='dark'] .template-default.forgot-password input,
+html[data-theme='dark'] .template-default.forgot-password textarea,
+html[data-theme='dark'] .template-default.forgot-password select,
+html[data-theme='dark'] .template-default.reset-password input,
+html[data-theme='dark'] .template-default.reset-password textarea,
+html[data-theme='dark'] .template-default.reset-password select {
   background: #f7f9fc !important;
   color: #0f172a !important;
   border-color: #d6dbe6 !important;
@@ -157,12 +196,24 @@ html[data-admin-login='true'][data-theme='dark'] select {
 
 html[data-admin-login='true'] input:focus,
 html[data-admin-login='true'] textarea:focus,
-html[data-admin-login='true'] select:focus {
+html[data-admin-login='true'] select:focus,
+.template-default.login input:focus,
+.template-default.login textarea:focus,
+.template-default.login select:focus,
+.template-default.forgot-password input:focus,
+.template-default.forgot-password textarea:focus,
+.template-default.forgot-password select:focus,
+.template-default.reset-password input:focus,
+.template-default.reset-password textarea:focus,
+.template-default.reset-password select:focus {
   border-color: #0f3d2e;
   box-shadow: 0 0 0 3px rgba(15, 61, 46, 0.15);
 }
 
-html[data-admin-login='true'] button[type='submit'] {
+html[data-admin-login='true'] button[type='submit'],
+.template-default.login button[type='submit'],
+.template-default.forgot-password button[type='submit'],
+.template-default.reset-password button[type='submit'] {
   width: 100%;
   border-radius: 8px;
   background: #0f3d2e;
@@ -173,25 +224,40 @@ html[data-admin-login='true'] button[type='submit'] {
   box-shadow: 0 14px 28px rgba(15, 61, 46, 0.28);
 }
 
-html[data-admin-login='true'] button[type='submit']:hover {
+html[data-admin-login='true'] button[type='submit']:hover,
+.template-default.login button[type='submit']:hover,
+.template-default.forgot-password button[type='submit']:hover,
+.template-default.reset-password button[type='submit']:hover {
   background: #0a2b20;
 }
 
-html[data-admin-login='true'] a {
+html[data-admin-login='true'] a,
+.template-default.login a,
+.template-default.forgot-password a,
+.template-default.reset-password a {
   color: #0f3d2e;
   font-weight: 600;
   text-decoration: none;
 }
 
-html[data-admin-login='true'] a:hover {
+html[data-admin-login='true'] a:hover,
+.template-default.login a:hover,
+.template-default.forgot-password a:hover,
+.template-default.reset-password a:hover {
   text-decoration: underline;
 }
 
-html[data-admin-login='true'] .template-default {
+html[data-admin-login='true'] .template-default,
+.template-default.login,
+.template-default.forgot-password,
+.template-default.reset-password {
   padding-bottom: 32px;
 }
 
-html[data-admin-login='true'] .admin-global-footer {
+html[data-admin-login='true'] .admin-global-footer,
+.template-default.login .admin-global-footer,
+.template-default.forgot-password .admin-global-footer,
+.template-default.reset-password .admin-global-footer {
   width: min(440px, 100%);
   position: fixed;
   left: 50%;
@@ -209,7 +275,16 @@ html[data-admin-login='true'] .admin-global-footer {
 
 html[data-admin-login='true'] .template-default,
 html[data-admin-login='true'] .template__wrap,
-html[data-admin-login='true'] .template-default__wrap {
+html[data-admin-login='true'] .template-default__wrap,
+.template-default.login,
+.template-default.login .template__wrap,
+.template-default.login .template-default__wrap,
+.template-default.forgot-password,
+.template-default.forgot-password .template__wrap,
+.template-default.forgot-password .template-default__wrap,
+.template-default.reset-password,
+.template-default.reset-password .template__wrap,
+.template-default.reset-password .template-default__wrap {
   padding-bottom: 0 !important;
 }
 
