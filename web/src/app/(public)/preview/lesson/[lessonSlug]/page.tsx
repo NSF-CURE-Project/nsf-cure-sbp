@@ -40,7 +40,7 @@ export default async function PreviewLessonPage({
       ? chapterValue.id
       : chapterValue;
   const chapterLessons = chapterId
-    ? await getLessonsForChapter(chapterId, { draft: isPreview })
+    ? await getLessonsForChapter(chapterId, { draft: isPreview }).catch(() => [])
     : [];
   const lessonNav = {
     lessons: chapterLessons
