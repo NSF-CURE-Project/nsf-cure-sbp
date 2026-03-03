@@ -48,13 +48,17 @@ ENV NODE_ENV production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Remove this line if you do not have this folder
-COPY --from=builder /app/public ./public
+# Copy public assets for the common standalone directory layouts.
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/public ./payload-cms/public
+COPY --from=builder --chown=nextjs:nodejs /app/public ./app/public
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./payload-cms/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./app/.next/static
 
 USER nextjs
 
@@ -62,8 +66,6 @@ EXPOSE 3000
 
 ENV PORT 3000
 
-WORKDIR /app/payload-cms
-
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
-CMD HOSTNAME="0.0.0.0" node server.js
+CMD sh -c 'set -e; for d in /app /app/payload-cms /app/app; do if [ -f "$d/server.js" ]; then echo "Starting standalone server from $d"; cd "$d"; exec env HOSTNAME="0.0.0.0" node server.js; fi; done; echo "Unable to locate standalone server.js under /app"; find /app -maxdepth 4 -name server.js -print; exit 1'
