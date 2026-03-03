@@ -41,6 +41,10 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     loading: boolean
     error: string | null
   }>({ open: false, url: null, loading: false, error: null })
+  const [currentPath, setCurrentPath] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    return window.location.pathname
+  })
   const previewGateOpenRef = useRef(false)
   const isMountedRef = useRef(true)
   const pendingPublishRef = useRef<HTMLButtonElement | null>(null)
@@ -56,6 +60,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
   const backHrefRef = useRef<string | null>(null)
   const backUpdateTimerRef = useRef<number | null>(null)
   const pathStackRef = useRef<string[]>([])
+  const userMenuRef = useRef<HTMLDetailsElement | null>(null)
 
   const expandPageLayout = useCallback(() => {
     if (typeof document === 'undefined') return
@@ -243,6 +248,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
   useEffect(() => {
     if (typeof window === 'undefined') return
 
+    isMountedRef.current = true
+
     const formatLabel = (value: string) =>
       value
         .replace(/[-_]/g, ' ')
@@ -251,19 +258,30 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     const updatePageMeta = () => {
       if (!isMountedRef.current) return
       const pathname = window.location.pathname
+      setCurrentPath(pathname)
+      const isAdminHomePath = pathname === '/admin' || pathname === '/admin/'
       if (typeof window !== 'undefined') {
-        const stored = window.sessionStorage.getItem('admin-path-stack')
-        const stack = stored ? stored.split('|').filter(Boolean) : []
-        const last = stack[stack.length - 1]
-        if (last !== pathname) {
-          stack.push(pathname)
-        }
-        if (stack.length > 50) {
-          stack.splice(0, stack.length - 50)
+        let stack: string[]
+        if (isAdminHomePath) {
+          stack = ['/admin']
+        } else {
+          const stored = window.sessionStorage.getItem('admin-path-stack')
+          stack = stored
+            ? stored
+                .split('|')
+                .filter((path) => Boolean(path) && path.startsWith('/admin') && path !== '/admin/login')
+            : []
+          const last = stack[stack.length - 1]
+          if (last !== pathname) {
+            stack.push(pathname)
+          }
+          if (stack.length > 50) {
+            stack.splice(0, stack.length - 50)
+          }
         }
         pathStackRef.current = stack
         window.sessionStorage.setItem('admin-path-stack', stack.join('|'))
-        const prev = stack.length > 1 ? stack[stack.length - 2] : null
+        const prev = isAdminHomePath ? null : stack.length > 1 ? stack[stack.length - 2] : null
         if (backHrefRef.current !== prev) {
           backHrefRef.current = prev
           setBackHref(prev)
@@ -287,18 +305,6 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       }, 0)
     }
 
-    const originalPushState = window.history.pushState.bind(window.history)
-    const originalReplaceState = window.history.replaceState.bind(window.history)
-
-    window.history.pushState = function (...args: Parameters<History['pushState']>) {
-      originalPushState(...args)
-      scheduleUpdate()
-    }
-    window.history.replaceState = function (...args: Parameters<History['replaceState']>) {
-      originalReplaceState(...args)
-      scheduleUpdate()
-    }
-
     window.addEventListener('popstate', scheduleUpdate)
     scheduleUpdate()
     const pathPoll = window.setInterval(() => {
@@ -310,8 +316,6 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
     return () => {
       isMountedRef.current = false
-      window.history.pushState = originalPushState
-      window.history.replaceState = originalReplaceState
       window.removeEventListener('popstate', scheduleUpdate)
       window.clearInterval(pathPoll)
       if (backUpdateTimerRef.current) {
@@ -334,6 +338,24 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       }
     }
   }, [userId])
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+
+    const handleOutsidePointer = (event: PointerEvent) => {
+      const menu = userMenuRef.current
+      if (!menu || !menu.open) return
+      const target = event.target
+      if (!(target instanceof Node)) return
+      if (menu.contains(target)) return
+      menu.open = false
+    }
+
+    document.addEventListener('pointerdown', handleOutsidePointer)
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsidePointer)
+    }
+  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -642,7 +664,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return
-    const enablePublishPreviewGate = process.env.NEXT_PUBLIC_ENABLE_PUBLISH_PREVIEW_GATE === 'true'
+    const enablePublishPreviewGate = false
 
     if (!enablePublishPreviewGate) {
       Array.from(document.querySelectorAll<HTMLButtonElement>('button[data-publish-gate-bound="true"]')).forEach(
@@ -665,22 +687,43 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       return
     }
 
+    const supportedPreviewCollections = new Set(['classes', 'chapters', 'lessons', 'pages', 'quizzes'])
+
     const getPreviewTarget = () => {
       const path = window.location.pathname
       const collectionMatch = path.match(/\/admin\/collections\/([^/]+)\/([^/]+)/)
       if (collectionMatch && collectionMatch[1] && collectionMatch[2]) {
         const collection = collectionMatch[1]
         const id = collectionMatch[2]
-        if (id !== 'create') {
+        if (id !== 'create' && supportedPreviewCollections.has(collection)) {
           return { type: 'collection' as const, slug: collection, id }
         }
       }
-      const globalMatch = path.match(/\/admin\/globals\/([^/]+)/)
-      if (globalMatch && globalMatch[1]) {
-        const slug = globalMatch[1]
-        return { type: 'global' as const, slug }
-      }
       return null
+    }
+
+    const isAdminEditPath = () => {
+      return Boolean(getPreviewTarget())
+    }
+
+    const resetPublishGateButtons = () => {
+      Array.from(document.querySelectorAll<HTMLButtonElement>('button[data-publish-gate-bound="true"]')).forEach(
+        (button) => {
+          if (button.isConnected) {
+            button.style.display = ''
+            const originalType = button.dataset.publishGateType as
+              | 'submit'
+              | 'button'
+              | 'reset'
+              | undefined
+            if (originalType) button.type = originalType
+          }
+          delete button.dataset.publishGateBound
+        },
+      )
+      Array.from(
+        document.querySelectorAll<HTMLButtonElement>('button[data-publish-gate-proxy="true"]'),
+      ).forEach((proxy) => proxy.remove())
     }
 
     const isPublishButton = (button: HTMLButtonElement) => {
@@ -839,6 +882,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     }
 
     const onInputCapture = (event: Event) => {
+      if (!isAdminEditPath()) return
       const target = event.target as HTMLElement | null
       if (!isEditableInput(target)) return
       const form = target?.closest('form.collection-edit__form, form.global-edit__form')
@@ -848,6 +892,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     }
 
     const interceptPublish = (event: Event, target: HTMLElement | null) => {
+      if (!isAdminEditPath()) return
       if (allowPublishRef.current) return
       if (previewGateOpenRef.current) return
       if (!target) return
@@ -872,6 +917,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     }
 
     const onSubmitCapture = (event: Event) => {
+      if (!isAdminEditPath()) return
       if (allowPublishRef.current) return
       if (previewGateOpenRef.current) return
       const submitEvent = event as SubmitEvent
@@ -890,11 +936,16 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     }
 
     const onKeyDownCapture = (event: KeyboardEvent) => {
+      if (!isAdminEditPath()) return
       if (event.key !== 'Enter' && event.key !== ' ') return
       interceptPublish(event, event.target as HTMLElement | null)
     }
 
     const attachPublishGateButtons = () => {
+      if (!isAdminEditPath()) {
+        resetPublishGateButtons()
+        return
+      }
       const buttons = Array.from(
         document.querySelectorAll<HTMLButtonElement>('button#action-save, button[data-action="publish"]'),
       )
@@ -985,6 +1036,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
             : targetInfo?.type === 'global'
               ? `/api/globals/${targetInfo.slug}`
               : null
+        const onEditPath = isAdminEditPath()
         const urlString = typeof url === 'string' ? url : ''
         const targetPrefixValue = targetPrefix ?? ''
         if (!previewGateOpenRef.current && pendingPublishRef.current && !allowPublishRef.current) {
@@ -992,6 +1044,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           publishIntentRef.current = false
         }
         const shouldGate =
+          onEditPath &&
           previewGateOpenRef.current &&
           Boolean(targetPrefixValue) &&
           urlString.includes(targetPrefixValue) &&
@@ -1051,23 +1104,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         autoSaveTimerRef.current = null
       }
       // Restore native publish controls so a fresh effect run can rebind cleanly.
-      Array.from(document.querySelectorAll<HTMLButtonElement>('button[data-publish-gate-bound="true"]')).forEach(
-        (button) => {
-          if (button.isConnected) {
-            button.style.display = ''
-            const originalType = button.dataset.publishGateType as
-              | 'submit'
-              | 'button'
-              | 'reset'
-              | undefined
-            if (originalType) button.type = originalType
-          }
-          delete button.dataset.publishGateBound
-        },
-      )
-      Array.from(
-        document.querySelectorAll<HTMLButtonElement>('button[data-publish-gate-proxy="true"]'),
-      ).forEach((proxy) => proxy.remove())
+      resetPublishGateButtons()
       publishIntentRef.current = false
       pendingPublishRef.current = null
       allowPublishRef.current = false
@@ -2044,11 +2081,10 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
 
         .dashboard-chip {
-          transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+          transition: box-shadow 150ms ease, border-color 150ms ease;
         }
 
         .dashboard-chip:hover {
-          transform: translateY(-1px);
           box-shadow: 0 10px 18px rgba(15, 23, 42, 0.16);
           border-color: rgba(148, 163, 184, 0.35);
         }
@@ -2165,6 +2201,20 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         html[data-admin-context='app'] .template__wrap,
         html[data-admin-context='app'] .template-default__wrap {
           grid-template-columns: 1fr !important;
+        }
+
+        html[data-admin-context='help'] .global-edit__form,
+        html[data-admin-context='help'] .global-edit__main-wrapper,
+        html[data-admin-context='help'] .document-fields,
+        html[data-admin-context='help'] .document-fields__main,
+        html[data-admin-context='help'] .document-fields__edit,
+        html[data-admin-context='help'] input,
+        html[data-admin-context='help'] textarea,
+        html[data-admin-context='help'] select,
+        html[data-admin-context='help'] [contenteditable='true'] {
+          pointer-events: auto !important;
+          user-select: text !important;
+          opacity: 1 !important;
         }
 
         .admin-topbar {
@@ -2419,7 +2469,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       {!isLoginPath ? (
         <div className="admin-topbar">
           <div className="admin-topbar-center">
-            {backHref ? (
+            {backHref && currentPath !== '/admin' && currentPath !== '/admin/' ? (
               <button
                 type="button"
                 className="admin-back-button"
@@ -2453,7 +2503,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
             >
               {theme === 'dark' ? 'Light mode' : 'Dark mode'}
             </button>
-            <details className="admin-user-menu">
+            <details className="admin-user-menu" ref={userMenuRef}>
               <summary className="admin-user-button" aria-label="User menu">
                 <span className="admin-user-avatar" aria-hidden="true">
                   {initials}

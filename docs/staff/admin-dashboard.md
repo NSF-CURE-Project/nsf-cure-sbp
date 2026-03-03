@@ -1,5 +1,7 @@
 ## Admin Dashboard — Quick Guide for Staff
 
+For the complete staff manual, see `docs/staff/payload-admin-handbook.md`.
+
 Access
 - Admin UI runs at `http://admin.sbp.local:3000` in local dev (see `scripts/dev-setup.sh` to add host entries).
 - Sign in using an account in the `users` collection. Admins can create other users.
