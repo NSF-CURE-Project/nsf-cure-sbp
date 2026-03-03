@@ -250,11 +250,6 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
     isMountedRef.current = true
 
-    const formatLabel = (value: string) =>
-      value
-        .replace(/[-_]/g, ' ')
-        .replace(/\b\w/g, (char) => char.toUpperCase())
-
     const updatePageMeta = () => {
       if (!isMountedRef.current) return
       const pathname = window.location.pathname

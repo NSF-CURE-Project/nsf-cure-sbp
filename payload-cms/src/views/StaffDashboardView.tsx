@@ -501,11 +501,11 @@ const StaffDashboardContent = ({
                   Open courses to edit chapters, lessons, and ordering.
                 </div>
               </div>
-              <a href="/admin/courses" className="dashboard-chip-link" draggable={false}>
+              <Link href="/admin/courses" className="dashboard-chip-link" draggable={false}>
                 <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
                   Manage Courses
                 </div>
-              </a>
+              </Link>
             </div>
             <div
               style={{
@@ -529,11 +529,11 @@ const StaffDashboardContent = ({
                   Build assessments, reuse questions, and assign quizzes to lessons.
                 </div>
               </div>
-              <a href="/admin/quiz-bank" className="dashboard-chip-link">
+              <Link href="/admin/quiz-bank" className="dashboard-chip-link">
                 <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
                   Open Quiz Bank
                 </div>
-              </a>
+              </Link>
             </div>
             <div
               style={{
@@ -557,7 +557,7 @@ const StaffDashboardContent = ({
                   Manage navigation order, global pages, and site settings.
                 </div>
               </div>
-              <a href="/admin/site-management" className="dashboard-chip-link">
+              <Link href="/admin/site-management" className="dashboard-chip-link">
                 <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <svg
@@ -577,7 +577,7 @@ const StaffDashboardContent = ({
                     Site Management
                   </span>
                 </div>
-              </a>
+              </Link>
             </div>
             <div
               style={{
@@ -602,19 +602,19 @@ const StaffDashboardContent = ({
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <a href="/admin/collections/classrooms" className="dashboard-chip-link">
+                <Link href="/admin/collections/classrooms" className="dashboard-chip-link">
                   <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
                     Manage Classrooms
                   </div>
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/admin/collections/classroom-memberships"
                   className="dashboard-chip-link"
                 >
                   <div style={heroSecondaryStyle} className="dashboard-chip dashboard-chip--secondary">
                     View Enrollments
                   </div>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
