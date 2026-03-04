@@ -706,27 +706,27 @@ const StaffDashboardContent = ({
             </div>
           </div>
           <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            <a href="/api/analytics/reporting-summary?format=csv" style={{ textDecoration: 'none' }}>
+            <Link href="/api/analytics/reporting-summary?format=csv" style={{ textDecoration: 'none' }}>
               <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
                 Download NSF summary CSV
               </div>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/api/analytics/reporting-summary?format=csv&type=class-completion"
               style={{ textDecoration: 'none' }}
             >
               <div style={heroSecondaryStyle} className="dashboard-chip dashboard-chip--secondary">
                 Class completion CSV
               </div>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/api/analytics/reporting-summary?format=csv&type=quiz-mastery"
               style={{ textDecoration: 'none' }}
             >
               <div style={heroSecondaryStyle} className="dashboard-chip dashboard-chip--secondary">
                 Quiz mastery CSV
               </div>
-            </a>
+            </Link>
           </div>
         </div>
         <div style={sectionLabelStyle}>Content health</div>
