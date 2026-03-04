@@ -83,6 +83,7 @@ export interface Config {
     'quiz-attempts': QuizAttempt;
     notifications: Notification;
     'lesson-progress': LessonProgress;
+    'lesson-bookmarks': LessonBookmark;
     feedback: Feedback;
     'lesson-feedback': LessonFeedback;
     'payload-kv': PayloadKv;
@@ -107,6 +108,7 @@ export interface Config {
     'quiz-attempts': QuizAttemptsSelect<false> | QuizAttemptsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'lesson-progress': LessonProgressSelect<false> | LessonProgressSelect<true>;
+    'lesson-bookmarks': LessonBookmarksSelect<false> | LessonBookmarksSelect<true>;
     feedback: FeedbackSelect<false> | FeedbackSelect<true>;
     'lesson-feedback': LessonFeedbackSelect<false> | LessonFeedbackSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -968,6 +970,19 @@ export interface LessonProgress {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "lesson-bookmarks".
+ */
+export interface LessonBookmark {
+  id: number;
+  user: number | Account;
+  lesson: number | Lesson;
+  chapter?: (number | null) | Chapter;
+  class?: (number | null) | Class;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "feedback".
  */
 export interface Feedback {
@@ -1092,6 +1107,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'lesson-progress';
         value: number | LessonProgress;
+      } | null)
+    | ({
+        relationTo: 'lesson-bookmarks';
+        value: number | LessonBookmark;
       } | null)
     | ({
         relationTo: 'feedback';
@@ -1729,6 +1748,18 @@ export interface LessonProgressSelect<T extends boolean = true> {
   class?: T;
   completed?: T;
   completedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "lesson-bookmarks_select".
+ */
+export interface LessonBookmarksSelect<T extends boolean = true> {
+  user?: T;
+  lesson?: T;
+  chapter?: T;
+  class?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -24,6 +24,7 @@ import { MathFeature } from './lexical/math/MathFeature'
 import { Questions } from './collections/Questions'
 import { Notifications } from './collections/Notifications'
 import { LessonProgress } from './collections/LessonProgress'
+import { LessonBookmarks } from './collections/LessonBookmarks'
 import { Feedback } from './collections/Feedback'
 import { LessonFeedback } from './collections/LessonFeedback'
 import { Classrooms } from './collections/Classrooms'
@@ -165,6 +166,7 @@ export default buildConfig({
     QuizAttempts,
     Notifications,
     LessonProgress,
+    LessonBookmarks,
     Feedback,
     LessonFeedback,
   ],
