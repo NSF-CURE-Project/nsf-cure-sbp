@@ -29,6 +29,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     pathname.startsWith('/admin/forgot-password') ||
     pathname.startsWith('/admin/reset-password')
   const getIsHelpPath = (pathname: string) => pathname.startsWith('/admin/help')
+  const getIsAccountPath = (pathname: string) =>
+    pathname.startsWith('/admin/account') || /\/admin\/collections\/users\/[^/]+/.test(pathname)
   const [theme, setTheme] = useState<ThemeMode>('light')
   const [backHref, setBackHref] = useState<string | null>(null)
   const [isLoginPage, setIsLoginPage] = useState(() => {
@@ -178,6 +180,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     const helpPage = getIsHelpPath(window.location.pathname)
     const context = loginPage ? 'login' : helpPage ? 'help' : 'app'
     document.documentElement.setAttribute('data-admin-context', context)
+    const accountPage = getIsAccountPath(window.location.pathname)
+    document.documentElement.setAttribute('data-admin-account', accountPage ? 'true' : 'false')
 
     const applyTheme = (value: ThemeMode) => {
       setTheme(value)
@@ -289,6 +293,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       const helpPage = getIsHelpPath(pathname)
       const context = loginPage ? 'login' : helpPage ? 'help' : 'app'
       document.documentElement.setAttribute('data-admin-context', context)
+      const accountPage = getIsAccountPath(pathname)
+      document.documentElement.setAttribute('data-admin-account', accountPage ? 'true' : 'false')
     }
 
     const scheduleUpdate = () => {
@@ -318,6 +324,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       }
       document.documentElement.removeAttribute('data-admin-login')
       document.documentElement.removeAttribute('data-admin-context')
+      document.documentElement.removeAttribute('data-admin-account')
     }
   }, [role])
 
@@ -331,6 +338,10 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       if (!getIsHelpPath(pathname)) {
         document.documentElement.setAttribute('data-admin-context', 'app')
       }
+      document.documentElement.setAttribute(
+        'data-admin-account',
+        getIsAccountPath(pathname) ? 'true' : 'false',
+      )
     }
   }, [userId])
 
@@ -1684,6 +1695,36 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           font-weight: 600;
         }
 
+        html[data-admin-context='app'][data-admin-account='true'] .doc-controls__meta,
+        html[data-admin-context='app'][data-admin-account='true'] .document-header__meta,
+        html[data-admin-context='app'][data-admin-account='true'] .collection-edit__meta,
+        html[data-admin-context='app'][data-admin-account='true'] .global-edit__meta,
+        html[data-admin-context='app'][data-admin-account='true'] .edit-view__meta {
+          display: none !important;
+        }
+
+        html[data-admin-context='app'][data-admin-account='true'] .doc-header,
+        html[data-admin-context='app'][data-admin-account='true'] .doc-header__title,
+        html[data-admin-context='app'][data-admin-account='true'] .doc-header h1,
+        html[data-admin-context='app'][data-admin-account='true'] .doc-tabs,
+        html[data-admin-context='app'][data-admin-account='true'] .doc-tabs__tabs {
+          display: none !important;
+        }
+
+        html[data-admin-context='app'][data-admin-account='true'] .collection-edit__header,
+        html[data-admin-context='app'][data-admin-account='true'] .global-edit__header,
+        html[data-admin-context='app'][data-admin-account='true'] .edit-view__header,
+        html[data-admin-context='app'][data-admin-account='true'] .document-header,
+        html[data-admin-context='app'][data-admin-account='true'] .doc-controls {
+          margin-top: 0 !important;
+          padding-top: 0 !important;
+          padding-bottom: 0 !important;
+          min-height: 0 !important;
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+
         html[data-admin-context='app'] .admin-doc-header-inline {
           display: flex;
           align-items: center;
@@ -1692,6 +1733,10 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           font-size: 12px;
           letter-spacing: 0.02em;
           grid-column: 1;
+        }
+
+        html[data-admin-context='app'][data-admin-account='true'] .admin-doc-header-inline {
+          min-width: 0;
         }
 
         html[data-admin-context='app'] .admin-meta-cluster {
@@ -1703,6 +1748,10 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           flex-wrap: wrap;
           grid-column: 2;
           transform: translateX(120px);
+        }
+
+        html[data-admin-context='app'][data-admin-account='true'] .admin-meta-cluster {
+          display: none;
         }
 
         html[data-admin-context='app'] .admin-doc-header-inline .doc-header__title {
@@ -1718,6 +1767,13 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           margin: 0;
           color: #e2e8f0;
           white-space: nowrap;
+        }
+
+        html[data-admin-context='app'][data-admin-account='true'] .admin-doc-header-inline h1 {
+          font-size: clamp(28px, 2.8vw, 44px);
+          line-height: 1.12;
+          white-space: normal;
+          overflow-wrap: anywhere;
         }
 
         html[data-admin-context='app'] .admin-doc-header-inline .doc-tabs__tabs {
@@ -1790,6 +1846,13 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           align-items: center;
           gap: 8px;
           grid-column: 3;
+          justify-self: end;
+        }
+
+        html[data-admin-context='app'][data-admin-account='true'] .admin-edit-actions {
+          margin-left: 0;
+          grid-column: 2;
+          align-self: start;
           justify-self: end;
         }
 

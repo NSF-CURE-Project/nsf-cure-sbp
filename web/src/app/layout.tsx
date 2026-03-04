@@ -3,36 +3,39 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "../theme/theme-provider";
 import React from "react";
 import NavbarGate from "@/components/navigation/NavbarGate";
+import { getSiteBranding } from "@/lib/payloadSdk/siteBranding";
 import { defaultDescription, siteName, siteUrl } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: siteName,
-    template: `%s | ${siteName}`,
-  },
-  description: defaultDescription,
-  openGraph: {
-    title: siteName,
+export async function generateMetadata(): Promise<Metadata> {
+  const siteBranding = await getSiteBranding({ revalidate: 60 });
+  const iconUrl = siteBranding.programLogo.src;
+
+  return {
+    metadataBase: new URL(siteUrl),
+    title: {
+      default: siteName,
+      template: `%s | ${siteName}`,
+    },
     description: defaultDescription,
-    url: siteUrl,
-    siteName,
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: siteName,
-    description: defaultDescription,
-  },
-  icons: {
-    icon: [
-      {
-        url: "/assets/logos/sbp_logo_transparent.png",
-        href: "/assets/logos/sbp_logo_transparent.png",
-      },
-    ],
-  },
-};
+    openGraph: {
+      title: siteName,
+      description: defaultDescription,
+      url: siteUrl,
+      siteName,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: siteName,
+      description: defaultDescription,
+    },
+    icons: {
+      icon: [{ url: iconUrl }],
+      shortcut: [{ url: iconUrl }],
+      apple: [{ url: iconUrl }],
+    },
+  };
+}
 
 export default function RootLayout({
   children,

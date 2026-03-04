@@ -24,12 +24,14 @@ import { MathFeature } from './lexical/math/MathFeature'
 import { Questions } from './collections/Questions'
 import { Notifications } from './collections/Notifications'
 import { LessonProgress } from './collections/LessonProgress'
+import { LessonBookmarks } from './collections/LessonBookmarks'
 import { Feedback } from './collections/Feedback'
 import { LessonFeedback } from './collections/LessonFeedback'
 import { Classrooms } from './collections/Classrooms'
 import { ClassroomMemberships } from './collections/ClassroomMemberships'
 import { AdminHelp } from './globals/AdminHelp'
 import { Footer } from './globals/Footer'
+import { SiteBranding } from './globals/SiteBranding'
 import {
   joinClassroomHandler,
   regenerateClassroomCodeHandler,
@@ -164,10 +166,11 @@ export default buildConfig({
     QuizAttempts,
     Notifications,
     LessonProgress,
+    LessonBookmarks,
     Feedback,
     LessonFeedback,
   ],
-  globals: [AdminHelp, Footer],
+  globals: [AdminHelp, Footer, SiteBranding],
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [
       ...defaultFeatures,

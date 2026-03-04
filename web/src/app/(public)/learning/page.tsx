@@ -4,6 +4,10 @@ import type { ChapterDoc, ClassDoc, LessonDoc } from "@/lib/payloadSdk/types";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 import { ClassProgressSummary } from "@/components/progress/ClassProgressSummary";
+import {
+  LearningPersonalization,
+  type LearningLessonIndexEntry,
+} from "@/components/learning/LearningPersonalization";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
@@ -21,6 +25,39 @@ export default async function LearningPage() {
   const classes: ClassDoc[] = await getClassesTree({ draft: isPreview }).catch(
     () => []
   );
+  const lessonIndex: LearningLessonIndexEntry[] = [];
+  let lessonOrder = 0;
+
+  classes.forEach((cls) => {
+    const classSlug = cls.slug ?? "";
+    const classTitle = cls.title ?? "Untitled class";
+    const chapters: ChapterWithLessons[] = Array.isArray(cls.chapters)
+      ? (cls.chapters as ChapterWithLessons[])
+      : [];
+
+    chapters.forEach((chapter) => {
+      const chapterSlug = chapter.slug ?? "";
+      const chapterTitle = chapter.title ?? "Untitled chapter";
+      const lessons = Array.isArray(chapter.lessons)
+        ? (chapter.lessons as LessonDoc[])
+        : [];
+
+      lessons.forEach((lesson) => {
+        if (!classSlug || !chapterSlug || !lesson?.slug || !lesson?.id) return;
+        lessonIndex.push({
+          id: String(lesson.id),
+          title: lesson.title ?? "Untitled lesson",
+          slug: lesson.slug,
+          classSlug,
+          classTitle,
+          chapterSlug,
+          chapterTitle,
+          order: lessonOrder,
+        });
+        lessonOrder += 1;
+      });
+    });
+  });
 
   return (
     <main className="mx-auto w-full max-w-[var(--content-max,110ch)] px-6 pt-6 pb-12">
@@ -30,6 +67,8 @@ export default async function LearningPage() {
           Jump back into your topics and track completion at a glance.
         </p>
       </header>
+
+      <LearningPersonalization lessonIndex={lessonIndex} />
 
       <section className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {classes.map((cls) => {
