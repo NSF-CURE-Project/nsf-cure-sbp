@@ -95,7 +95,7 @@ const findAllDocs = async (
       sort: 'id',
     })
 
-    docs.push(...(result.docs as Record<string, unknown>[]))
+    docs.push(...(result.docs as unknown as Record<string, unknown>[]))
     hasNextPage = Boolean(result.hasNextPage)
     page += 1
   }
