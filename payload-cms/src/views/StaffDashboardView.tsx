@@ -2,6 +2,7 @@ import type { AdminViewServerProps } from 'payload'
 import { Gutter } from '@payloadcms/ui'
 import React from 'react'
 import Link from 'next/link'
+import { getReportingSummary } from '../utils/analyticsSummary'
 
 const cppGold = 'var(--cpp-muted)'
 const cppInk = 'var(--cpp-ink)'
@@ -171,6 +172,7 @@ const StaffDashboardContent = ({
   user,
   stats,
   contentHealth,
+  reporting,
 }: {
   user?: AdminViewServerProps['initPageResult']['req']['user']
   stats: {
@@ -186,6 +188,18 @@ const StaffDashboardContent = ({
     lowCompletion: { id: string | number; title: string; rate: number }[]
     highQuestions: { id: string | number; title: string; count: number }[]
     lowHelpfulness: { id: string | number; title: string; rating: number }[]
+  }
+  reporting: {
+    classCompletion: { id: string; title: string; total: number; completed: number; completionRate: number }[]
+    chapterCompletion: {
+      id: string
+      title: string
+      total: number
+      completed: number
+      completionRate: number
+    }[]
+    quizMasteryDistribution: { label: string; count: number; percentage: number }[]
+    weeklyEngagement: { weekStart: string; activeStudents: number; weekOverWeekChange: number | null }[]
   }
 }) => (
   <Gutter>
@@ -619,6 +633,103 @@ const StaffDashboardContent = ({
             </div>
           </div>
         </div>
+        <div style={sectionLabelStyle}>NSF reporting summary</div>
+        <div style={{ ...contentBoxStyle }}>
+          <div
+            style={{
+              display: 'grid',
+              gap: 12,
+              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            }}
+          >
+            <div style={contentHealthCardStyle}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cpp-ink)' }}>
+                Completion by class
+              </div>
+              <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                {reporting.classCompletion.slice(0, 5).map((item) => (
+                  <li key={item.id}>
+                    <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>{item.title}</div>
+                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                      {Math.round(item.completionRate * 100)}% ({item.completed}/{item.total})
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div style={contentHealthCardStyle}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cpp-ink)' }}>
+                Completion by chapter
+              </div>
+              <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                {reporting.chapterCompletion.slice(0, 5).map((item) => (
+                  <li key={item.id}>
+                    <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>{item.title}</div>
+                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                      {Math.round(item.completionRate * 100)}% ({item.completed}/{item.total})
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div style={contentHealthCardStyle}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cpp-ink)' }}>
+                Quiz mastery distribution
+              </div>
+              <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                {reporting.quizMasteryDistribution.map((item) => (
+                  <li key={item.label}>
+                    <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>{item.label}</div>
+                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                      {item.count} attempts ({Math.round(item.percentage * 100)}%)
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div style={contentHealthCardStyle}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cpp-ink)' }}>
+                Week-over-week engagement
+              </div>
+              <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                {reporting.weeklyEngagement.slice(-5).map((item) => (
+                  <li key={item.weekStart}>
+                    <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>{item.weekStart}</div>
+                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                      {item.activeStudents} active students{' '}
+                      {item.weekOverWeekChange == null
+                        ? '(baseline)'
+                        : `(${item.weekOverWeekChange >= 0 ? '+' : ''}${Math.round(item.weekOverWeekChange * 100)}% WoW)`}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <Link href="/api/analytics/reporting-summary?format=csv" style={{ textDecoration: 'none' }}>
+              <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
+                Download NSF summary CSV
+              </div>
+            </Link>
+            <Link
+              href="/api/analytics/reporting-summary?format=csv&type=class-completion"
+              style={{ textDecoration: 'none' }}
+            >
+              <div style={heroSecondaryStyle} className="dashboard-chip dashboard-chip--secondary">
+                Class completion CSV
+              </div>
+            </Link>
+            <Link
+              href="/api/analytics/reporting-summary?format=csv&type=quiz-mastery"
+              style={{ textDecoration: 'none' }}
+            >
+              <div style={heroSecondaryStyle} className="dashboard-chip dashboard-chip--secondary">
+                Quiz mastery CSV
+              </div>
+            </Link>
+          </div>
+        </div>
         <div style={sectionLabelStyle}>Content health</div>
         <div style={{ ...contentBoxStyle }}>
           <div
@@ -756,6 +867,24 @@ export default async function StaffDashboardView({
     lowCompletion: [] as { id: string | number; title: string; rate: number }[],
     highQuestions: [] as { id: string | number; title: string; count: number }[],
     lowHelpfulness: [] as { id: string | number; title: string; rating: number }[],
+  }
+  let reporting = {
+    classCompletion: [] as {
+      id: string
+      title: string
+      total: number
+      completed: number
+      completionRate: number
+    }[],
+    chapterCompletion: [] as {
+      id: string
+      title: string
+      total: number
+      completed: number
+      completionRate: number
+    }[],
+    quizMasteryDistribution: [] as { label: string; count: number; percentage: number }[],
+    weeklyEngagement: [] as { weekStart: string; activeStudents: number; weekOverWeekChange: number | null }[],
   }
 
   try {
@@ -1009,6 +1138,17 @@ export default async function StaffDashboardView({
     contentHealth = { lowCompletion: [], highQuestions: [], lowHelpfulness: [] }
   }
 
+  try {
+    reporting = await getReportingSummary(payload)
+  } catch {
+    reporting = {
+      classCompletion: [],
+      chapterCompletion: [],
+      quizMasteryDistribution: [],
+      weeklyEngagement: [],
+    }
+  }
+
   const stats = {
     accounts: accountsCount,
     unanswered: unansweredCount,
@@ -1024,6 +1164,7 @@ export default async function StaffDashboardView({
       user={user}
       stats={stats}
       contentHealth={contentHealth}
+      reporting={reporting}
     />
   )
 }
