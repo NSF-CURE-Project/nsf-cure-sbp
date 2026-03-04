@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { LoginLink } from "@/components/auth/LoginLink";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
@@ -112,12 +113,11 @@ export default function SettingsPage() {
           {status === "ready" && !user ? (
             <div className="rounded-md border border-border/60 bg-muted/30 px-5 py-4 text-sm text-muted-foreground">
               You are not signed in.{" "}
-              <Link
-                href="/login"
+              <LoginLink
                 className="font-semibold text-primary underline underline-offset-4"
               >
                 Sign in
-              </Link>
+              </LoginLink>
             </div>
           ) : null}
 
