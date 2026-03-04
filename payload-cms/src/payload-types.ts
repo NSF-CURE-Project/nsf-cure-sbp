@@ -121,10 +121,12 @@ export interface Config {
   globals: {
     'admin-help': AdminHelp;
     footer: Footer;
+    'site-branding': SiteBranding;
   };
   globalsSelect: {
     'admin-help': AdminHelpSelect<false> | AdminHelpSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    'site-branding': SiteBrandingSelect<false> | SiteBrandingSelect<true>;
   };
   locale: null;
   user:
@@ -1877,6 +1879,26 @@ export interface Footer {
   createdAt?: string | null;
 }
 /**
+ * Controls branding assets used on the student-facing site.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-branding".
+ */
+export interface SiteBranding {
+  id: number;
+  /**
+   * Shown on the student home page and used as the browser tab icon (favicon).
+   */
+  programLogo?: (number | null) | Media;
+  /**
+   * Accessible description for the uploaded program logo.
+   */
+  programLogoAlt?: string | null;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "admin-help_select".
  */
@@ -1929,6 +1951,18 @@ export interface FooterSelect<T extends boolean = true> {
         copyrightLine?: T;
         subLine?: T;
       };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-branding_select".
+ */
+export interface SiteBrandingSelect<T extends boolean = true> {
+  programLogo?: T;
+  programLogoAlt?: T;
   _status?: T;
   updatedAt?: T;
   createdAt?: T;

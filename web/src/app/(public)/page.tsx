@@ -1,6 +1,7 @@
 import React from "react";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
 import { getPageBySlug, type PageDoc } from "@/lib/payloadSdk/pages";
+import { getSiteBranding } from "@/lib/payloadSdk/siteBranding";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 
@@ -24,6 +25,10 @@ export default async function Landing({
   const home: PageDoc | null = await getPageBySlug("home", {
     draft: isPreview,
   }).catch(() => null);
+  const siteBranding = await getSiteBranding({
+    draft: isPreview,
+    revalidate: 60,
+  });
 
   return (
     <main className="min-w-0 overflow-x-hidden">
@@ -34,10 +39,10 @@ export default async function Landing({
           className="space-y-12 pt-2 pb-8"
           emptyMessage="No content yet. Add blocks to the page layout."
           heroLogo={{
-            src: "/assets/logos/sbp_logo_transparent.png",
-            alt: "SBP logo",
-            width: 64,
-            height: 64,
+            src: siteBranding.programLogo.src,
+            alt: siteBranding.programLogo.alt,
+            width: siteBranding.programLogo.width ?? 64,
+            height: siteBranding.programLogo.height ?? 64,
             className: "h-16 w-auto",
           }}
         />
