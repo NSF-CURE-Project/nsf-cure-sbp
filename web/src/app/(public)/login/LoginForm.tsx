@@ -8,6 +8,35 @@ import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
 const PAYLOAD_URL = getPayloadBaseUrl();
 
+const normalizeReturnPath = (value?: string | null) => {
+  if (!value) return null;
+  const candidate = value.trim();
+  if (!candidate.startsWith("/") || candidate.startsWith("//")) return null;
+  if (candidate === "/login" || candidate.startsWith("/login?")) return null;
+  return candidate;
+};
+
+const getReturnPath = () => {
+  if (typeof window === "undefined") return "/";
+
+  const search = new URLSearchParams(window.location.search);
+  const fromQuery = normalizeReturnPath(search.get("next"));
+  if (fromQuery) return fromQuery;
+
+  try {
+    if (!document.referrer) return "/";
+    const referrer = new URL(document.referrer);
+    if (referrer.origin !== window.location.origin) return "/";
+    return (
+      normalizeReturnPath(
+        `${referrer.pathname}${referrer.search}${referrer.hash}`
+      ) ?? "/"
+    );
+  } catch {
+    return "/";
+  }
+};
+
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -41,7 +70,7 @@ export function LoginForm() {
 
       setStatus("success");
       setMessage("Logged in successfully.");
-      window.location.href = "/";
+      window.location.href = getReturnPath();
     } catch (error) {
       setStatus("error");
       setMessage(error instanceof Error ? error.message : "Login failed.");

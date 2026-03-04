@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
-import Link from "next/link";
+import { LoginLink } from "@/components/auth/LoginLink";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -166,9 +166,9 @@ export function LessonQuestionDrawer({
               {!user ? (
                 <div className="rounded-lg border border-border/60 bg-muted/20 p-4 text-sm text-muted-foreground">
                   Please{" "}
-                  <Link href="/login" className="text-foreground underline">
+                  <LoginLink className="text-foreground underline">
                     sign in
-                  </Link>{" "}
+                  </LoginLink>{" "}
                   to submit a lesson question.
                 </div>
               ) : null}

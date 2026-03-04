@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
+import { LoginLink } from "@/components/auth/LoginLink";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
@@ -101,12 +102,11 @@ export default function JoinClassroomPage() {
           <p className="text-foreground">
             Please sign in to your student account before joining a classroom.
           </p>
-          <Link
-            href="/login"
+          <LoginLink
             className="mt-4 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow"
           >
             Go to Login
-          </Link>
+          </LoginLink>
         </div>
       ) : (
         <form

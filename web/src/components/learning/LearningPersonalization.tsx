@@ -11,6 +11,7 @@ import {
   Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LoginLink } from "@/components/auth/LoginLink";
 import { cn } from "@/lib/utils";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
@@ -963,7 +964,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
                   "hover:border-primary/50 hover:bg-background/80 focus-visible:ring-primary/45"
                 )}
               >
-                <Link href="/login">Sign in</Link>
+                <LoginLink>Sign in</LoginLink>
               </Button>
             )}
           </div>
