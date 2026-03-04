@@ -172,6 +172,7 @@ const StaffDashboardContent = ({
   user,
   stats,
   contentHealth,
+  reporting,
 }: {
   user?: AdminViewServerProps['initPageResult']['req']['user']
   stats: {
