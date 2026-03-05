@@ -36,6 +36,30 @@ Scaling & considerations
 Rollbacks
 - Keep migrations reversible when possible. If a destructive migration is applied, follow DB restore steps from backups.
 
+
+Branch strategy (recommended)
+- Keep `main` and `production` aligned for production reliability.
+- If `production` exists, treat it as a release pointer that should fast-forward from `main`.
+- Promote releases with `git merge --ff-only origin/main` while on `production`.
+- Avoid direct commits to `production`; for emergency hotfixes, immediately back-merge to `main`.
+
+
+Release promotion commands
+- Use fast-forward-only promotions to move tested commits through environments:
+```bash
+# dev -> main
+git checkout main
+git pull origin main
+git merge --ff-only origin/dev
+git push origin main
+
+# main -> prod
+git checkout prod
+git pull origin prod
+git merge --ff-only origin/main
+git push origin prod
+```
+
 CI suggestions
 - CI should run: `pnpm run test:int` and `pnpm run test:e2e` (Playwright) before deploying.
 
