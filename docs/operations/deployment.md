@@ -53,11 +53,11 @@ git pull origin main
 git merge --ff-only origin/dev
 git push origin main
 
-# main -> prod
-git checkout prod
-git pull origin prod
+# main -> production
+git checkout production
+git pull origin production
 git merge --ff-only origin/main
-git push origin prod
+git push origin production
 ```
 
 CI suggestions
