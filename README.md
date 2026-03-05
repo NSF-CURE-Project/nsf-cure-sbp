@@ -33,6 +33,7 @@ The NSF CURE Summer Bridge Program (SBP) is a National Science Foundation-funded
 - Architecture overview: `docs/architecture/architecture.md`
 - Data models: `docs/developers/data-models.md`
 - Analytics: `docs/developers/analytics.md`
+- Payload admin handbook (staff): `docs/staff/payload-admin-handbook.md`
 - Admin dashboard guide: `docs/staff/admin-dashboard.md`
 - Deployment notes: `docs/operations/deployment.md`
 - Decisions log: `docs/operations/decisions.md`

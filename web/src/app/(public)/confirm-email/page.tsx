@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { LoginLink } from "@/components/auth/LoginLink";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
 const PAYLOAD_URL = getPayloadBaseUrl();
@@ -99,7 +100,7 @@ export default function ConfirmEmailPage({
             <Link href="/profile">Back to profile</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/login">Sign in</Link>
+            <LoginLink>Sign in</LoginLink>
           </Button>
         </div>
       </div>

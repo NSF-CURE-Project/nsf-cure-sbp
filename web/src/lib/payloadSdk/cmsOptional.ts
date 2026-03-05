@@ -1,4 +1,8 @@
-export const isCmsOptionalMode = () => process.env.CMS_OPTIONAL_MODE === "true";
+export const isCmsOptionalMode = () => {
+  if (process.env.CMS_OPTIONAL_MODE === "true") return true;
+  if (process.env.CMS_OPTIONAL_MODE === "false") return false;
+  return process.env.NODE_ENV !== "production";
+};
 
 export async function withCmsFallback<T>(
   operation: () => Promise<T>,

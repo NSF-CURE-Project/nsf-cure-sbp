@@ -24,12 +24,14 @@ import { MathFeature } from './lexical/math/MathFeature'
 import { Questions } from './collections/Questions'
 import { Notifications } from './collections/Notifications'
 import { LessonProgress } from './collections/LessonProgress'
+import { LessonBookmarks } from './collections/LessonBookmarks'
 import { Feedback } from './collections/Feedback'
 import { LessonFeedback } from './collections/LessonFeedback'
 import { Classrooms } from './collections/Classrooms'
 import { ClassroomMemberships } from './collections/ClassroomMemberships'
 import { AdminHelp } from './globals/AdminHelp'
 import { Footer } from './globals/Footer'
+import { SiteBranding } from './globals/SiteBranding'
 import {
   joinClassroomHandler,
   regenerateClassroomCodeHandler,
@@ -38,6 +40,7 @@ import { previewUrlHandler } from './endpoints/previewUrl'
 import { confirmEmailHandler, requestEmailConfirmationHandler } from './endpoints/emailConfirmation'
 import { logoutAllSessionsHandler } from './endpoints/logoutAll'
 import { accountsMeHandler } from './endpoints/accountsMe'
+import { reportingSummaryHandler } from './endpoints/reportingSummary'
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
   path: '@/views/StaffDashboardView#default',
@@ -51,6 +54,7 @@ const AdminLogo: CustomComponent = {
 const AdminIcon: CustomComponent = {
   path: '@/views/AdminIcon#default',
 }
+const enableStaffProvider = process.env.PAYLOAD_ENABLE_STAFF_PROVIDER === 'true'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -129,11 +133,12 @@ export default buildConfig({
     },
 
     importMap: {
+      autoGenerate: false,
       baseDir: path.resolve(dirname),
     },
 
     components: {
-      providers: [StaffProvider],
+      providers: enableStaffProvider ? [StaffProvider] : [],
       graphics: {
         Logo: AdminLogo,
         Icon: AdminIcon,
@@ -162,10 +167,11 @@ export default buildConfig({
     QuizAttempts,
     Notifications,
     LessonProgress,
+    LessonBookmarks,
     Feedback,
     LessonFeedback,
   ],
-  globals: [AdminHelp, Footer],
+  globals: [AdminHelp, Footer, SiteBranding],
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [
       ...defaultFeatures,
@@ -234,6 +240,11 @@ export default buildConfig({
       path: '/accounts/logout-all',
       method: 'post',
       handler: logoutAllSessionsHandler,
+    },
+    {
+      path: '/analytics/reporting-summary',
+      method: 'get',
+      handler: reportingSummaryHandler,
     },
   ],
 })

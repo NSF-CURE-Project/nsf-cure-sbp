@@ -8,6 +8,7 @@ const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  outputFileTracingRoot: projectRoot,
   turbopack: {
     root: projectRoot,
   },
@@ -45,6 +46,11 @@ const nextConfig: NextConfig = {
         hostname: "app.sbp.local",
         port: "3001",
         pathname: "/api/media/**",
+      },
+      {
+        protocol: "https",
+        hostname: "i.ytimg.com",
+        pathname: "/vi/**",
       },
       // Optional: add your production Strapi domain later
       // {

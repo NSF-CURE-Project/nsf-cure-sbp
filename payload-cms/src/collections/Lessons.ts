@@ -70,8 +70,9 @@ export const Lessons: CollectionConfig = {
   },
   hooks: {
     afterChange: [
-      async ({ doc, previousDoc, req }) => {
+      async ({ doc, previousDoc, req, operation }) => {
         if (!req?.payload) return
+        const runChapterSyncAsync = process.env.PAYLOAD_ASYNC_LESSON_CHAPTER_SYNC !== 'false'
         const getId = (value: unknown) =>
           typeof value === 'object' && value !== null && 'id' in value
             ? String((value as { id?: string | number }).id ?? '')
@@ -83,59 +84,78 @@ export const Lessons: CollectionConfig = {
         const prevChapterId = getId(previousDoc?.chapter)
 
         if (!nextChapterId) return
+        // Avoid unnecessary cross-collection writes on normal lesson updates.
+        if (operation !== 'create' && prevChapterId === nextChapterId) return
 
-        const attachLesson = async (chapterId: string) => {
-          const current = await req.payload.findByID({
-            collection: 'chapters',
-            id: chapterId,
-            depth: 0,
-          })
-          const existing = Array.isArray((current as { lessons?: unknown[] }).lessons)
-            ? ((current as { lessons?: unknown[] }).lessons ?? [])
-            : []
-          const exists = existing.some((item) => getId(item) === String(doc.id))
-          if (exists) return
-          await req.payload.update({
-            collection: 'chapters',
-            id: chapterId,
-            data: {
-              lessons: [...existing, doc.id] as unknown as Array<number | { id?: number }>,
-            },
-            depth: 0,
-          })
+        const syncChapterRelations = async () => {
+          const attachLesson = async (chapterId: string) => {
+            const current = await req.payload.findByID({
+              collection: 'chapters',
+              id: chapterId,
+              depth: 0,
+            })
+            const existing = Array.isArray((current as { lessons?: unknown[] }).lessons)
+              ? ((current as { lessons?: unknown[] }).lessons ?? [])
+              : []
+            const exists = existing.some((item) => getId(item) === String(doc.id))
+            if (exists) return
+            await req.payload.update({
+              collection: 'chapters',
+              id: chapterId,
+              data: {
+                lessons: [...existing, doc.id] as unknown as Array<number | { id?: number }>,
+              },
+              depth: 0,
+            })
+          }
+
+          const detachLesson = async (chapterId: string) => {
+            const current = await req.payload.findByID({
+              collection: 'chapters',
+              id: chapterId,
+              depth: 0,
+            })
+            const existing = Array.isArray((current as { lessons?: unknown[] }).lessons)
+              ? ((current as { lessons?: unknown[] }).lessons ?? [])
+              : []
+            const filtered = existing.filter((item) => getId(item) !== String(doc.id))
+            if (filtered.length === existing.length) return
+            await req.payload.update({
+              collection: 'chapters',
+              id: chapterId,
+              data: {
+                lessons: filtered as unknown as Array<number | { id?: number }>,
+              },
+              depth: 0,
+            })
+          }
+
+          if (prevChapterId && prevChapterId !== nextChapterId) {
+            await detachLesson(prevChapterId)
+          }
+
+          await attachLesson(nextChapterId)
         }
 
-        const detachLesson = async (chapterId: string) => {
-          const current = await req.payload.findByID({
-            collection: 'chapters',
-            id: chapterId,
-            depth: 0,
-          })
-          const existing = Array.isArray((current as { lessons?: unknown[] }).lessons)
-            ? ((current as { lessons?: unknown[] }).lessons ?? [])
-            : []
-          const filtered = existing.filter((item) => getId(item) !== String(doc.id))
-          if (filtered.length === existing.length) return
-          await req.payload.update({
-            collection: 'chapters',
-            id: chapterId,
-            data: {
-              lessons: filtered as unknown as Array<number | { id?: number }>,
-            },
-            depth: 0,
-          })
+        if (runChapterSyncAsync) {
+          setTimeout(() => {
+            void syncChapterRelations().catch((error) => {
+              req.payload.logger.error({
+                err: error,
+                msg: `Failed to sync chapter lessons for lesson ${String(doc.id)}`,
+              })
+            })
+          }, 0)
+          return
         }
 
-        if (prevChapterId && prevChapterId !== nextChapterId) {
-          await detachLesson(prevChapterId)
-        }
-
-        await attachLesson(nextChapterId)
+        await syncChapterRelations()
       },
     ],
     afterDelete: [
       async ({ doc, req }) => {
         if (!req?.payload || !doc) return
+        const runChapterSyncAsync = process.env.PAYLOAD_ASYNC_LESSON_CHAPTER_SYNC !== 'false'
         const getId = (value: unknown) =>
           typeof value === 'object' && value !== null && 'id' in value
             ? String((value as { id?: string | number }).id ?? '')
@@ -157,14 +177,30 @@ export const Lessons: CollectionConfig = {
         const filtered = existing.filter((item) => getId(item) !== String(doc.id))
         if (filtered.length === existing.length) return
 
-        await req.payload.update({
-          collection: 'chapters',
-          id: chapterId,
-          data: {
-            lessons: filtered as unknown as Array<number | { id?: number }>,
-          },
-          depth: 0,
-        })
+        const removeLessonFromChapter = async () => {
+          await req.payload.update({
+            collection: 'chapters',
+            id: chapterId,
+            data: {
+              lessons: filtered as unknown as Array<number | { id?: number }>,
+            },
+            depth: 0,
+          })
+        }
+
+        if (runChapterSyncAsync) {
+          setTimeout(() => {
+            void removeLessonFromChapter().catch((error) => {
+              req.payload.logger.error({
+                err: error,
+                msg: `Failed to remove lesson ${String(doc.id)} from chapter ${chapterId}`,
+              })
+            })
+          }, 0)
+          return
+        }
+
+        await removeLessonFromChapter()
       },
     ],
     beforeValidate: [

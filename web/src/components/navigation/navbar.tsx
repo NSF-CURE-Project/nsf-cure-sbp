@@ -33,6 +33,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { LoginLink } from "@/components/auth/LoginLink";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
 const PAYLOAD_URL = getPayloadBaseUrl();
@@ -317,10 +318,10 @@ export default function Navbar() {
           <Image
             src={cppLogo}
             alt="Cal Poly Pomona Logo"
-            width={48}
-            height={48}
+            width={300}
+            height={150}
             className="h-10 w-auto sm:h-12"
-            sizes="48px"
+            sizes="(min-width: 640px) 96px, 80px"
           />
         </Link>
 
@@ -448,12 +449,11 @@ export default function Navbar() {
               variant="icon"
               className="hidden md:inline-flex hover:bg-muted/60"
             />
-            <Link
-              href="/login"
+            <LoginLink
               className="hidden md:inline-flex h-8 items-center rounded-lg border border-border/70 bg-muted/40 px-3 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/60"
             >
               Sign In
-            </Link>
+            </LoginLink>
           </>
         )}
         {user ? (
@@ -639,12 +639,11 @@ export default function Navbar() {
                     </button>
                   </>
                 ) : (
-                  <Link
-                    href="/login"
+                  <LoginLink
                     className="rounded-md px-3 py-2 transition hover:bg-muted"
                   >
                     Sign In
-                  </Link>
+                  </LoginLink>
                 )}
               </div>
             </div>

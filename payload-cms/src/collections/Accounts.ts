@@ -6,14 +6,25 @@ const cookieSecure = (() => {
   if (envValue === 'false') return false
   return (process.env.PAYLOAD_PUBLIC_SERVER_URL ?? '').startsWith('https://')
 })()
-const cookieDomain = process.env.PAYLOAD_APP_COOKIE_DOMAIN || undefined
+
+const cookieSameSite = (() => {
+  const envValue = process.env.PAYLOAD_COOKIE_SAMESITE?.toLowerCase()
+  if (envValue === 'none') return 'None'
+  if (envValue === 'strict') return 'Strict'
+  return 'Lax'
+})()
+
+const cookieDomain = (() => {
+  if (process.env.NODE_ENV !== 'production') return undefined
+  return process.env.PAYLOAD_APP_COOKIE_DOMAIN || undefined
+})()
 
 export const Accounts: CollectionConfig = {
   slug: 'accounts',
   auth: {
     cookies: {
       secure: cookieSecure,
-      sameSite: 'Lax',
+      sameSite: cookieSameSite,
       domain: cookieDomain,
     },
   },

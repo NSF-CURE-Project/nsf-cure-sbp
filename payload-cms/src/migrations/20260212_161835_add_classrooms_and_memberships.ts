@@ -1,6 +1,6 @@
 import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
-export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
+export async function up({ db, payload: _payload, req: _req }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
    DO $$ BEGIN CREATE TYPE "public"."enum_lessons_blocks_section_block_size" AS ENUM('sm', 'md', 'lg'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
   DO $$ BEGIN CREATE TYPE "public"."enum__lessons_v_blocks_section_block_size" AS ENUM('sm', 'md', 'lg'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
@@ -695,7 +695,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE INDEX IF NOT EXISTS "payload_locked_documents_rels_lesson_feedback_id_idx" ON "payload_locked_documents_rels" USING btree ("lesson_feedback_id");`)
 }
 
-export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
+export async function down({ db, payload: _payload, req: _req }: MigrateDownArgs): Promise<void> {
   await db.execute(sql`
    ALTER TABLE "lessons_blocks_section_block" DISABLE ROW LEVEL SECURITY;
   ALTER TABLE "lessons_blocks_quiz_block" DISABLE ROW LEVEL SECURITY;

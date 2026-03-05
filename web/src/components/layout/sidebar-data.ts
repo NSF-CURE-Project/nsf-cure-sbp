@@ -103,6 +103,9 @@ const normalizeClassesForSidebar = (classes: ClassDoc[]): SidebarClass[] => {
 };
 
 export const getSidebarClasses = cache(async (draft: boolean) => {
-  const payloadClasses = await getClassesTree({ draft });
+  const payloadClasses = await getClassesTree({ draft }).catch((error) => {
+    console.error("[sidebar-data] Failed to load classes tree", error);
+    return [] as ClassDoc[];
+  });
   return normalizeClassesForSidebar(payloadClasses);
 });

@@ -62,11 +62,19 @@ export default function LessonFeedbackPanel() {
   }, [])
 
   const lessonId = useMemo(() => {
-    if (typeof idValue === 'string') return idValue
-    if (typeof idValue === 'number') return String(idValue)
-    if (typeof legacyIdValue === 'string') return legacyIdValue
-    if (typeof legacyIdValue === 'number') return String(legacyIdValue)
-    return pathId
+    const normalize = (value: IdValue): string | null => {
+      if (typeof value === 'number') {
+        if (Number.isInteger(value) && value > 0) return String(value)
+        return null
+      }
+      if (typeof value === 'string') {
+        const trimmed = value.trim()
+        return /^\d+$/.test(trimmed) ? trimmed : null
+      }
+      return null
+    }
+
+    return normalize(idValue) ?? normalize(legacyIdValue) ?? normalize(pathId)
   }, [idValue, legacyIdValue, pathId])
 
   useEffect(() => {

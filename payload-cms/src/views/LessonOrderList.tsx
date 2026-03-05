@@ -19,6 +19,7 @@ type LessonOrderListProps = {
   pendingTitle?: string | null
   pendingOrder?: number | null
   onPendingOrderChange?: (order: number) => void
+  onOrderChange?: (orderedLessonIds: string[]) => void
 }
 
 const baseItemStyle: React.CSSProperties = {
@@ -54,6 +55,7 @@ export default function LessonOrderList({
   pendingTitle,
   pendingOrder,
   onPendingOrderChange,
+  onOrderChange,
 }: LessonOrderListProps) {
   const [lessons, setLessons] = useState<LessonLink[]>([])
   const [loading, setLoading] = useState(true)
@@ -169,6 +171,7 @@ export default function LessonOrderList({
     const [moved] = current.splice(fromIndex, 1)
     current.splice(toIndex, 0, moved)
     setLessons(current)
+    onOrderChange?.(current.map((item) => item.id))
     await persistLessonOrder(current)
   }
 

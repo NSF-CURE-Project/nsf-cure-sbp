@@ -95,6 +95,12 @@ export default function AdminSettingsPage() {
             gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
           }}
         >
+          <Link href="/admin/globals/site-branding" style={linkCardStyle}>
+            <div style={{ fontWeight: 700 }}>Site Branding</div>
+            <div style={linkDescriptionStyle}>
+              Upload the program logo used on the student home page and browser tab icon.
+            </div>
+          </Link>
           <Link href="/admin/globals/footer" style={linkCardStyle}>
             <div style={{ fontWeight: 700 }}>Footer Content</div>
             <div style={linkDescriptionStyle}>

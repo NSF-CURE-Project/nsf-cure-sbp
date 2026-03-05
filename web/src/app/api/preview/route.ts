@@ -65,8 +65,7 @@ export async function GET(req: NextRequest) {
   }
 
   const target = new URL(redirect, req.url);
+  // Keep preview state in draft-mode cookies, not in shareable URLs.
   target.searchParams.set("preview", "1");
-  target.searchParams.set("secret", secret ?? "");
-  target.searchParams.set("ts", Date.now().toString());
   return NextResponse.redirect(target);
 }

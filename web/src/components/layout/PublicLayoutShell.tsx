@@ -28,6 +28,7 @@ export default function PublicLayoutShell({
   const sidebarStore = useStore(useSidebar, (s) => s);
   const sidebarOpen = sidebarStore?.getOpenState() ?? defaultOpen;
   const authOnly = isAuthRoute(pathname);
+  const isLoginRoute = pathname === "/login";
   const hideSidebar = shouldHideSidebar(pathname);
 
   if (authOnly) {
@@ -41,7 +42,7 @@ export default function PublicLayoutShell({
 
     return (
       <div className="min-h-dvh bg-background text-foreground">
-        <div className="px-6 pt-6">
+        <div className="sticky top-4 z-40 px-6 pt-4">
           <button
             type="button"
             onClick={handleBack}
@@ -52,7 +53,11 @@ export default function PublicLayoutShell({
           </button>
         </div>
         <div className="flex min-h-[calc(100dvh-5rem)] items-center justify-center px-6 py-10">
-          <div className="w-full max-w-2xl">{children}</div>
+          <div
+            className={cn("w-full", isLoginRoute ? "max-w-[90rem]" : "max-w-2xl")}
+          >
+            {children}
+          </div>
         </div>
       </div>
     );
