@@ -1,5 +1,6 @@
 import type { PayloadRequest } from 'payload'
 
+import { buildAuthEmail } from '../utils/authEmails'
 import { buildEmailConfirmation, hashEmailToken } from '../utils/emailConfirmation'
 
 const jsonResponse = (data: unknown, status = 200) =>
@@ -36,15 +37,18 @@ export const requestEmailConfirmationHandler = async (req: PayloadRequest) => {
     overrideAccess: true,
   })
 
+  const message = buildAuthEmail({
+    heading: 'Confirm your NSF CURE account email',
+    intro: 'Please confirm your email address to activate your account.',
+    actionLabel: 'Confirm email address',
+    actionUrl: confirmUrl,
+    securityNote: 'If you did not create this account, no further action is needed.',
+  })
+
   await req.payload.sendEmail({
     to: email,
     subject: 'Confirm your NSF CURE account email',
-    text: `Confirm your email address by visiting ${confirmUrl}. This link expires in 24 hours.`,
-    html: `
-      <p>Confirm your email address by clicking the link below:</p>
-      <p><a href="${confirmUrl}">Confirm email address</a></p>
-      <p>This link expires in 24 hours.</p>
-    `,
+    ...message,
   })
 
   return jsonResponse({ message: 'Confirmation link sent.' }, 200)
@@ -105,10 +109,13 @@ export const confirmEmailHandler = async (req: PayloadRequest) => {
     return jsonResponse({ message: 'Token is invalid or expired.' }, 400)
   }
 
-  const expiresAt = account.emailVerificationExpiresAt
+  const expiresAtMs = account.emailVerificationExpiresAt
     ? new Date(account.emailVerificationExpiresAt).getTime()
-    : 0
-  if (expiresAt && Date.now() > expiresAt) {
+    : null
+  const isExpired =
+    expiresAtMs == null || Number.isNaN(expiresAtMs) || Date.now() > expiresAtMs
+
+  if (isExpired) {
     await req.payload.update({
       collection: 'accounts',
       id: account.id,

@@ -5,6 +5,7 @@ import { ensureUniqueSlug, slugify } from '../../src/utils/slug.ts'
 import { generateUniqueJoinCode } from '../../src/utils/joinCode.ts'
 import { getReportingSummary, reportRowsToCsv } from '../../src/utils/analyticsSummary.ts'
 import { buildEmailConfirmation, hashEmailToken } from '../../src/utils/emailConfirmation.ts'
+import { buildAuthEmail, buildResetPasswordUrl } from '../../src/utils/authEmails.ts'
 
 describe('slug utilities', () => {
   it('slugify normalizes text and strips symbols', () => {
@@ -201,6 +202,41 @@ describe('analytics summary utilities', () => {
   })
 })
 
+
+
+describe('auth email template utilities', () => {
+  it('buildResetPasswordUrl URL-encodes token values', () => {
+    process.env.WEB_PUBLIC_URL = 'https://app.example.com'
+    const url = buildResetPasswordUrl('a+b/c?d=e')
+    assert.equal(url, 'https://app.example.com/reset-password?token=a%2Bb%2Fc%3Fd%3De')
+    delete process.env.WEB_PUBLIC_URL
+  })
+
+  it('buildAuthEmail returns matching text and html content', () => {
+    process.env.SUPPORT_EMAIL = 'help@example.com'
+
+    const message = buildAuthEmail({
+      heading: 'Confirm your account',
+      intro: 'Please confirm your account.',
+      actionLabel: 'Confirm account',
+      actionUrl: 'https://app.example.com/confirm?token=123',
+      expiresIn: '48 hours',
+      securityNote: 'If this was not you, ignore this email.',
+    })
+
+    assert.match(message.text, /Confirm account: https:\/\/app\.example\.com\/confirm\?token=123/)
+    assert.match(message.text, /expires in 48 hours\./)
+    assert.match(message.text, /If this was not you, ignore this email\./)
+    assert.match(message.text, /contact support at help@example\.com\./)
+    assert.match(message.html, /<h2[^>]*>Confirm your account<\/h2>/)
+    assert.match(message.html, /href="https:\/\/app\.example\.com\/confirm\?token=123"/)
+    assert.match(message.html, /This link expires in 48 hours\./)
+    assert.match(message.html, /If this was not you, ignore this email\./)
+    assert.match(message.html, /contact support at help@example\.com\./)
+
+    delete process.env.SUPPORT_EMAIL
+  })
+})
 describe('email confirmation utilities', () => {
   const prevPublic = process.env.WEB_PUBLIC_URL
   const prevPreview = process.env.WEB_PREVIEW_URL
