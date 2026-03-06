@@ -17,17 +17,9 @@ const eslintConfig = [
       ".next/**",
       "out/**",
       "build/**",
+      "tests/**",
       "next-env.d.ts",
     ],
-  },
-  {
-    files: ["tests/**/*.test.mjs"],
-    languageOptions: {
-      globals: {
-        process: "readonly",
-        globalThis: "readonly",
-      },
-    },
   },
 ];
 
