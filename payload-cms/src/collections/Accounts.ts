@@ -1,3 +1,4 @@
+import { buildAuthEmail, buildResetPasswordUrl } from '../utils/authEmails'
 import type { CollectionConfig } from 'payload'
 
 const cookieSecure = (() => {
@@ -27,6 +28,29 @@ export const Accounts: CollectionConfig = {
       sameSite: cookieSameSite,
       domain: cookieDomain,
     },
+    forgotPassword: {
+      generateEmailSubject: () => 'Reset your NSF CURE account password',
+      generateEmailHTML: ({ token }: { token: string }) => {
+        const resetUrl = buildResetPasswordUrl(token)
+        return buildAuthEmail({
+          heading: 'Reset your NSF CURE account password',
+          intro: 'A password reset was requested for your account.',
+          actionLabel: 'Reset password',
+          actionUrl: resetUrl,
+          securityNote: 'If you did not request a password reset, you can safely ignore this email.',
+        }).html
+      },
+      generateEmailText: ({ token }: { token: string }) => {
+        const resetUrl = buildResetPasswordUrl(token)
+        return buildAuthEmail({
+          heading: 'Reset your NSF CURE account password',
+          intro: 'A password reset was requested for your account.',
+          actionLabel: 'Reset password',
+          actionUrl: resetUrl,
+          securityNote: 'If you did not request a password reset, you can safely ignore this email.',
+        }).text
+      },
+    },
   },
   admin: {
     useAsTitle: 'email',
@@ -53,15 +77,18 @@ export const Accounts: CollectionConfig = {
           overrideAccess: true,
         })
 
+        const message = buildAuthEmail({
+          heading: 'Confirm your NSF CURE account email',
+          intro: 'Please confirm your email address to activate your account.',
+          actionLabel: 'Confirm email address',
+          actionUrl: confirmUrl,
+          securityNote: 'If you did not create this account, no further action is needed.',
+        })
+
         await req.payload.sendEmail({
           to: doc.email,
           subject: 'Confirm your NSF CURE account email',
-          text: `Confirm your email address by visiting ${confirmUrl}. This link expires in 24 hours.`,
-          html: `
-            <p>Confirm your email address by clicking the link below:</p>
-            <p><a href="${confirmUrl}">Confirm email address</a></p>
-            <p>This link expires in 24 hours.</p>
-          `,
+          ...message,
         })
 
         return doc

@@ -1,5 +1,6 @@
 import type { PayloadRequest } from 'payload'
 
+import { buildAuthEmail } from '../utils/authEmails'
 import { buildEmailConfirmation, hashEmailToken } from '../utils/emailConfirmation'
 
 const jsonResponse = (data: unknown, status = 200) =>
@@ -36,15 +37,18 @@ export const requestEmailConfirmationHandler = async (req: PayloadRequest) => {
     overrideAccess: true,
   })
 
+  const message = buildAuthEmail({
+    heading: 'Confirm your NSF CURE account email',
+    intro: 'Please confirm your email address to activate your account.',
+    actionLabel: 'Confirm email address',
+    actionUrl: confirmUrl,
+    securityNote: 'If you did not create this account, no further action is needed.',
+  })
+
   await req.payload.sendEmail({
     to: email,
     subject: 'Confirm your NSF CURE account email',
-    text: `Confirm your email address by visiting ${confirmUrl}. This link expires in 24 hours.`,
-    html: `
-      <p>Confirm your email address by clicking the link below:</p>
-      <p><a href="${confirmUrl}">Confirm email address</a></p>
-      <p>This link expires in 24 hours.</p>
-    `,
+    ...message,
   })
 
   return jsonResponse({ message: 'Confirmation link sent.' }, 200)

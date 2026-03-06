@@ -41,6 +41,7 @@ import { confirmEmailHandler, requestEmailConfirmationHandler } from './endpoint
 import { logoutAllSessionsHandler } from './endpoints/logoutAll'
 import { accountsMeHandler } from './endpoints/accountsMe'
 import { reportingSummaryHandler } from './endpoints/reportingSummary'
+import { emailPreviewHandler } from './endpoints/emailPreview'
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
   path: '@/views/StaffDashboardView#default',
@@ -240,6 +241,16 @@ export default buildConfig({
       path: '/accounts/logout-all',
       method: 'post',
       handler: logoutAllSessionsHandler,
+    },
+    {
+      path: '/accounts/email-preview',
+      method: 'post',
+      handler: emailPreviewHandler,
+    },
+    {
+      path: '/accounts/email-preview',
+      method: 'get',
+      handler: emailPreviewHandler,
     },
     {
       path: '/analytics/reporting-summary',
