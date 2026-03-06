@@ -7,7 +7,7 @@
     "dev": "NEXT_DISABLE_DEV_INDICATOR=1 PORT=3001 next dev --webpack -H 127.0.0.1",
     "build": "next build --webpack",
     "start": "PORT=3001 next start -H app.sbp.local",
-    "lint": "eslint",
+    "lint": "eslint src --ext .ts,.tsx --max-warnings=0",
     "test": "node --experimental-strip-types --test tests/unit-node/**/*.test.mjs",
     "test:smoke": "node --experimental-strip-types --test tests/smoke/**/*.test.mjs"
   },
