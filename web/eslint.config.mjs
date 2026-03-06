@@ -20,6 +20,15 @@ const eslintConfig = [
       "next-env.d.ts",
     ],
   },
+  {
+    files: ["tests/**/*.test.mjs"],
+    languageOptions: {
+      globals: {
+        process: "readonly",
+        globalThis: "readonly",
+      },
+    },
+  },
 ];
 
 export default eslintConfig;
