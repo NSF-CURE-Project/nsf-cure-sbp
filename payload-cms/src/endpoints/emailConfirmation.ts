@@ -105,10 +105,13 @@ export const confirmEmailHandler = async (req: PayloadRequest) => {
     return jsonResponse({ message: 'Token is invalid or expired.' }, 400)
   }
 
-  const expiresAt = account.emailVerificationExpiresAt
+  const expiresAtMs = account.emailVerificationExpiresAt
     ? new Date(account.emailVerificationExpiresAt).getTime()
-    : 0
-  if (expiresAt && Date.now() > expiresAt) {
+    : null
+  const isExpired =
+    expiresAtMs == null || Number.isNaN(expiresAtMs) || Date.now() > expiresAtMs
+
+  if (isExpired) {
     await req.payload.update({
       collection: 'accounts',
       id: account.id,
