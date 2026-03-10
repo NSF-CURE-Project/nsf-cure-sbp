@@ -29,8 +29,17 @@ export function ForgotPasswordForm() {
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.message ?? "Password reset failed.");
+        const raw = await res.text().catch(() => "");
+        let detail = "";
+        if (raw) {
+          try {
+            const data = JSON.parse(raw) as { message?: string };
+            detail = data?.message?.trim() ?? "";
+          } catch {
+            detail = raw.trim();
+          }
+        }
+        throw new Error(detail || "Password reset failed.");
       }
 
       setStatus("success");

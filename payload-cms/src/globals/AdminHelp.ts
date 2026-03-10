@@ -5,7 +5,8 @@ export const AdminHelp: GlobalConfig = {
   label: 'Admin Help',
   access: {
     read: ({ req }) => Boolean(req.user),
-    update: ({ req }) => req.user?.role === 'admin' || req.user?.role === 'staff',
+    update: ({ req }) =>
+      req.user?.collection === 'users' && (req.user?.role === 'admin' || req.user?.role === 'staff'),
   },
   versions: {
     drafts: true,
