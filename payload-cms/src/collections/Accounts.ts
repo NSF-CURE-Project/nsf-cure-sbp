@@ -20,19 +20,6 @@ const cookieDomain = (() => {
   return process.env.PAYLOAD_APP_COOKIE_DOMAIN || undefined
 })()
 
-const buildResetPasswordUrl = (token: string) => {
-  const base =
-    process.env.WEB_PUBLIC_URL ??
-    process.env.FRONTEND_URL ??
-    process.env.WEB_PREVIEW_URL ??
-    'http://localhost:3001'
-  const url = new URL('/reset-password', base)
-  if (token) {
-    url.searchParams.set('token', token)
-  }
-  return url.toString()
-}
-
 export const Accounts: CollectionConfig = {
   slug: 'accounts',
   auth: {
@@ -43,21 +30,8 @@ export const Accounts: CollectionConfig = {
     },
     forgotPassword: {
       generateEmailSubject: () => 'Reset your NSF CURE account password',
-<<<<<<< HEAD
       generateEmailHTML: (args) => {
         const resetUrl = buildResetPasswordUrl(args?.token ?? '')
-        return `
-          <p>A password reset was requested for your account.</p>
-          <p><a href="${resetUrl}">Reset password</a></p>
-          <p>If you did not request a password reset, you can ignore this email.</p>
-        `
-      },
-      generateEmailText: (args) => {
-        const resetUrl = buildResetPasswordUrl(args?.token ?? '')
-        return `A password reset was requested for your account. Reset password: ${resetUrl}. If you did not request a password reset, you can ignore this email.`
-=======
-      generateEmailHTML: ({ token }: { token: string }) => {
-        const resetUrl = buildResetPasswordUrl(token)
         return buildAuthEmail({
           heading: 'Reset your NSF CURE account password',
           intro: 'A password reset was requested for your account.',
@@ -66,8 +40,8 @@ export const Accounts: CollectionConfig = {
           securityNote: 'If you did not request a password reset, you can safely ignore this email.',
         }).html
       },
-      generateEmailText: ({ token }: { token: string }) => {
-        const resetUrl = buildResetPasswordUrl(token)
+      generateEmailText: (args) => {
+        const resetUrl = buildResetPasswordUrl(args?.token ?? '')
         return buildAuthEmail({
           heading: 'Reset your NSF CURE account password',
           intro: 'A password reset was requested for your account.',
@@ -75,7 +49,6 @@ export const Accounts: CollectionConfig = {
           actionUrl: resetUrl,
           securityNote: 'If you did not request a password reset, you can safely ignore this email.',
         }).text
->>>>>>> 87351a378b815584f76c6e7045205c8f217fc89f
       },
     },
   },
