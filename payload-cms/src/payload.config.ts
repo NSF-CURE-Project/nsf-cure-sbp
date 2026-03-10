@@ -123,6 +123,16 @@ const formatAddressList = (value: unknown): string[] => {
 const resendApiKey = stripEnvQuotes(process.env.RESEND_API_KEY)
 const resendApiBaseUrl = stripEnvQuotes(process.env.RESEND_API_BASE_URL) ?? 'https://api.resend.com'
 const resendFrom = stripEnvQuotes(process.env.RESEND_FROM)
+const resendStarterBaseUrl = stripEnvQuotes(process.env.RESEND_STARTER_URL)
+const resendStarterSendUrl =
+  stripEnvQuotes(process.env.RESEND_STARTER_SEND_URL) ??
+  (resendStarterBaseUrl ? `${resendStarterBaseUrl.replace(/\/+$/, '')}/api/send` : undefined)
+const resendStarterAuthToken = stripEnvQuotes(process.env.RESEND_STARTER_AUTH_TOKEN)
+const resendStarterTimeoutMs = (() => {
+  const value = stripEnvQuotes(process.env.RESEND_STARTER_TIMEOUT_MS)
+  const parsed = value ? Number(value) : NaN
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 15000
+})()
 
 const smtpFrom = stripEnvQuotes(process.env.SMTP_FROM)
 const smtpHost = stripEnvQuotes(process.env.SMTP_HOST)
@@ -211,7 +221,72 @@ const buildResendAdapter = () => ({
   },
 })
 
-const buildEmailAdapter = () => (resendApiKey ? buildResendAdapter() : buildNodemailerAdapter())
+const buildResendStarterAdapter = () => ({
+  name: 'resend-starter',
+  defaultFromAddress,
+  defaultFromName,
+  sendEmail: async (message: { [key: string]: unknown }) => {
+    if (!resendStarterSendUrl) throw new Error('Missing RESEND_STARTER_SEND_URL')
+
+    const from = formatAddress(message.from) ?? `"${defaultFromName}" <${defaultFromAddress}>`
+    const to = formatAddressList(message.to)
+    if (!to.length) throw new Error('Resend starter email requires at least one "to" address')
+
+    const cc = formatAddressList(message.cc)
+    const bcc = formatAddressList(message.bcc)
+    const replyTo = formatAddressList(message.replyTo ?? message.reply_to)
+    const subject =
+      typeof message.subject === 'string' && message.subject.trim()
+        ? message.subject.trim()
+        : '(no subject)'
+    const html = typeof message.html === 'string' ? message.html : undefined
+    const text = typeof message.text === 'string' ? message.text : undefined
+
+    const response = await (async () => {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), resendStarterTimeoutMs)
+      try {
+        return await fetch(resendStarterSendUrl, {
+          method: 'POST',
+          headers: {
+            ...(resendStarterAuthToken
+              ? { Authorization: `Bearer ${resendStarterAuthToken}` }
+              : {}),
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+          body: JSON.stringify({
+            from,
+            to,
+            subject,
+            ...(html ? { html } : {}),
+            ...(text ? { text } : {}),
+            ...(cc.length ? { cc } : {}),
+            ...(bcc.length ? { bcc } : {}),
+            ...(replyTo.length ? { replyTo, reply_to: replyTo } : {}),
+          }),
+        })
+      } finally {
+        clearTimeout(timeout)
+      }
+    })()
+
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '')
+      throw new Error(
+        `Resend starter send failed (${response.status}): ${detail || response.statusText}`,
+      )
+    }
+
+    return response.json().catch(() => undefined)
+  },
+})
+
+const buildEmailAdapter = () => {
+  if (resendStarterSendUrl) return buildResendStarterAdapter()
+  if (resendApiKey) return buildResendAdapter()
+  return buildNodemailerAdapter()
+}
 
 export default buildConfig({
   serverURL,

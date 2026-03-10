@@ -38,7 +38,8 @@ Environment variables (important)
 	- `PAYLOAD_SECRET`: Payload secret
 	- `PAYLOAD_PUBLIC_SERVER_URL`: public URL for the CMS server (used in email links / previews)
 	- `FRONTEND_URL`: `http://app.sbp.local:3001` by default
-	- Resend (preferred): `RESEND_API_KEY`, `RESEND_FROM` (optional `RESEND_API_BASE_URL`)
+	- Resend Starter relay (highest priority): `RESEND_STARTER_SEND_URL` (optional `RESEND_STARTER_AUTH_TOKEN`, `RESEND_STARTER_TIMEOUT_MS`, `RESEND_STARTER_URL`)
+	- Direct Resend fallback: `RESEND_API_KEY`, `RESEND_FROM` (optional `RESEND_API_BASE_URL`)
 	- SMTP fallback: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
 - `web/.env.local`: `NEXT_PUBLIC_PAYLOAD_URL` (the API URL the web app queries)
 
@@ -69,7 +70,7 @@ Quick Docker Postgres for local dev
 
 Common troubleshooting
 - DB connection errors: check `DATABASE_URI` and that Postgres is running (docker or local). Use the Docker snippet for a fast local DB.
-- Email issues: if using Resend, check `RESEND_API_KEY` and sender domain verification. If using SMTP fallback, check `SMTP_*` env vars. For development consider `smtp4dev`.
+- Email issues: if using Resend Starter relay, check `RESEND_STARTER_SEND_URL` and relay auth. If using direct Resend, check `RESEND_API_KEY` and sender domain verification. If using SMTP fallback, check `SMTP_*` env vars. For development consider `smtp4dev`.
 - Host / cookie issues: run `./scripts/dev-setup.sh` and clear cookies for `admin.sbp.local` and `app.sbp.local`.
 - Native module problems (e.g., `sharp`) on macOS: ensure Node matches `engines` in `package.json` and re-run `pnpm install` (pnpm overrides exist to help Apple Silicon).
 
