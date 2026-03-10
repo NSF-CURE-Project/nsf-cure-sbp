@@ -25,6 +25,10 @@ pnpm start
 
 Database migrations
 - Migrations live in `payload-cms/src/migrations/`. Run migrations as part of your deploy pipeline against the target Postgres database before starting the CMS. After migrations, ensure `payload-types.ts` is up to date.
+- Production automation: `.github/workflows/payload-cms-migrate.yml` runs `pnpm payload migrate` on pushes to `production` (and manual dispatch), serialized via a concurrency group.
+- Required GitHub `production` environment secrets for migration job:
+  - `PAYLOAD_DATABASE_URI` (Postgres connection string for production DB)
+  - `PAYLOAD_SECRET` (Payload secret used by the CMS config)
 
 Static hosting & CDN
 - The `web` app is a standard Next.js app — host on Vercel, Netlify, or any platform that supports Next.js. Ensure `NEXT_PUBLIC_PAYLOAD_URL` points to the CMS API.
@@ -65,4 +69,3 @@ CI suggestions
 
 Contact
 - Owner: Alex (aaokonkwo@cpp.edu) — ask before making infra-level changes.
-
