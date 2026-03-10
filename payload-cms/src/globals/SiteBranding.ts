@@ -1,7 +1,7 @@
 import type { GlobalConfig } from 'payload'
 
 const canManageSiteBranding = ({ req }: { req: { user?: { role?: string } | null } }) => {
-  const role = req.user?.role
+  const role = String(req?.user?.role ?? '').toLowerCase()
   return role === 'admin' || role === 'staff'
 }
 
