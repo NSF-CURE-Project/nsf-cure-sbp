@@ -1898,12 +1898,20 @@ export interface Footer {
     description?: string | null;
     buttonLabel?: string | null;
   };
-  bottom?: {
+  bottom: {
     /**
      * Use {year} to insert the current year.
      */
     copyrightLine?: string | null;
     subLine?: string | null;
+    nsfCompliance: {
+      /**
+       * When enabled, NSF compliance text appears in the global site footer.
+       */
+      enabled?: boolean | null;
+      fundingAcknowledgment: string;
+      disclaimer: string;
+    };
   };
   _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
@@ -1981,6 +1989,13 @@ export interface FooterSelect<T extends boolean = true> {
     | {
         copyrightLine?: T;
         subLine?: T;
+        nsfCompliance?:
+          | T
+          | {
+              enabled?: T;
+              fundingAcknowledgment?: T;
+              disclaimer?: T;
+            };
       };
   _status?: T;
   updatedAt?: T;
