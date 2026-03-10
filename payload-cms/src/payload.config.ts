@@ -198,6 +198,8 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URI || '',
     },
+    // Prevent accidental schema drift against shared/production databases.
+    push: false,
   }),
   sharp,
   plugins: [],
