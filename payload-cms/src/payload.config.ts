@@ -72,19 +72,38 @@ const parseFrom = (value?: string) => {
   return { fromName: undefined, fromAddress: value.trim() }
 }
 
-const { fromName, fromAddress } = parseFrom(process.env.SMTP_FROM)
+const stripEnvQuotes = (value?: string) => {
+  if (!value) return undefined
+  const trimmed = value.trim()
+  return trimmed.replace(/^['"]+|['"]+$/g, '')
+}
+
+const smtpFrom = stripEnvQuotes(process.env.SMTP_FROM)
+const smtpHost = stripEnvQuotes(process.env.SMTP_HOST)
+const smtpPort = stripEnvQuotes(process.env.SMTP_PORT)
+const smtpSecure = (stripEnvQuotes(process.env.SMTP_SECURE) ?? '').toLowerCase() === 'true'
+const smtpUser = stripEnvQuotes(process.env.SMTP_USER)
+const smtpPass = stripEnvQuotes(process.env.SMTP_PASS)
+const smtpConnectionTimeout = stripEnvQuotes(process.env.SMTP_CONNECTION_TIMEOUT_MS)
+const smtpGreetingTimeout = stripEnvQuotes(process.env.SMTP_GREETING_TIMEOUT_MS)
+const smtpSocketTimeout = stripEnvQuotes(process.env.SMTP_SOCKET_TIMEOUT_MS)
+
+const { fromName, fromAddress } = parseFrom(smtpFrom)
 const frontendURL = process.env.FRONTEND_URL ?? 'http://localhost:3001'
 const serverURL = process.env.PAYLOAD_PUBLIC_SERVER_URL ?? 'http://localhost:3000'
 const allowedOrigins = [frontendURL, serverURL].filter(Boolean)
-const defaultFromAddress = fromAddress ?? process.env.SMTP_USER ?? 'info@payloadcms.com'
+const defaultFromAddress = fromAddress ?? smtpUser ?? 'info@payloadcms.com'
 const defaultFromName = fromName ?? 'NSF CURE SBP'
 const transport = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefined,
-  secure: process.env.SMTP_SECURE === 'true',
+  host: smtpHost,
+  port: smtpPort ? Number(smtpPort) : undefined,
+  secure: smtpSecure,
+  connectionTimeout: smtpConnectionTimeout ? Number(smtpConnectionTimeout) : 10000,
+  greetingTimeout: smtpGreetingTimeout ? Number(smtpGreetingTimeout) : 10000,
+  socketTimeout: smtpSocketTimeout ? Number(smtpSocketTimeout) : 15000,
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: smtpUser,
+    pass: smtpPass,
   },
 })
 const buildEmailAdapter = () => ({

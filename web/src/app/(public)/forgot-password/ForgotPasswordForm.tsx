@@ -19,12 +19,15 @@ export function ForgotPasswordForm() {
     event.preventDefault();
     setStatus("loading");
     setMessage("");
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 15000);
 
     try {
       const res = await fetch(`${PAYLOAD_URL}/api/accounts/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
+        signal: controller.signal,
         body: JSON.stringify({ email }),
       });
 
@@ -47,9 +50,17 @@ export function ForgotPasswordForm() {
       window.location.href = "/check-email";
     } catch (error) {
       setStatus("error");
+      if (error instanceof DOMException && error.name === "AbortError") {
+        setMessage(
+          "Request timed out. Please try again in a few seconds."
+        );
+        return;
+      }
       setMessage(
         error instanceof Error ? error.message : "Password reset failed."
       );
+    } finally {
+      window.clearTimeout(timeoutId);
     }
   };
 
