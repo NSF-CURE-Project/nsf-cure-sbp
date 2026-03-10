@@ -1,5 +1,5 @@
 import { buildAuthEmail, buildResetPasswordUrl } from '../utils/authEmails'
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, PayloadRequest } from 'payload'
 
 const cookieSecure = (() => {
   const envValue = process.env.PAYLOAD_COOKIE_SECURE
@@ -19,6 +19,10 @@ const cookieDomain = (() => {
   if (process.env.NODE_ENV !== 'production') return undefined
   return process.env.PAYLOAD_APP_COOKIE_DOMAIN || undefined
 })()
+
+const isStaffUser = (req?: PayloadRequest | null) =>
+  req?.user?.collection === 'users' &&
+  ['admin', 'staff', 'professor'].includes(req.user?.role ?? '')
 
 export const Accounts: CollectionConfig = {
   slug: 'accounts',
@@ -47,6 +51,15 @@ export const Accounts: CollectionConfig = {
     group: 'Students',
   },
   hooks: {
+    beforeValidate: [
+      ({ data }) => {
+        if (!data || typeof data !== 'object') return data
+        return {
+          ...(data as Record<string, unknown>),
+          role: 'student',
+        }
+      },
+    ],
     afterChange: [
       async ({ doc, operation, req }) => {
         if (operation !== 'create') return doc
@@ -106,14 +119,12 @@ export const Accounts: CollectionConfig = {
   },
   access: {
     read: ({ req, id }) =>
-      req.user?.role === 'admin' ||
-      req.user?.role === 'staff' ||
-      req.user?.role === 'professor' ||
-      req.user?.id === id,
+      isStaffUser(req) || (req.user?.collection === 'accounts' && req.user?.id === id),
     create: () => true,
     update: ({ req, id }) =>
-      req.user?.role === 'admin' || req.user?.role === 'staff' || req.user?.id === id,
-    delete: ({ req }) => req.user?.role === 'admin',
+      (req.user?.collection === 'users' && ['admin', 'staff'].includes(req.user?.role ?? '')) ||
+      (req.user?.collection === 'accounts' && req.user?.id === id),
+    delete: ({ req }) => req.user?.collection === 'users' && req.user?.role === 'admin',
   },
   fields: [
     {
@@ -156,13 +167,9 @@ export const Accounts: CollectionConfig = {
       type: 'select',
       required: true,
       defaultValue: 'student',
-      options: [
-        { label: 'Student', value: 'student' },
-        { label: 'Staff', value: 'staff' },
-        { label: 'Admin', value: 'admin' },
-      ],
+      options: [{ label: 'Student', value: 'student' }],
       admin: {
-        description: 'Default is student. Staff/admin can be used for special access.',
+        description: 'Student role for learner accounts.',
       },
     },
     {

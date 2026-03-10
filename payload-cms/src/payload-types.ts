@@ -815,9 +815,9 @@ export interface Account {
   emailVerificationTokenHash?: string | null;
   emailVerificationExpiresAt?: string | null;
   /**
-   * Default is student. Staff/admin can be used for special access.
+   * Student role for learner accounts.
    */
-  role: 'student' | 'staff' | 'admin';
+  role: 'student';
   fullName?: string | null;
   /**
    * Reserved for CPP SSO integration (e.g., Okta, Azure AD).

@@ -4,6 +4,18 @@ import { getReportingSummary, reportRowsToCsv } from '../utils/analyticsSummary'
 const toPct = (value: number) => `${Math.round(value * 1000) / 10}%`
 
 export const reportingSummaryHandler: PayloadHandler = async (req) => {
+  const isStaffUser =
+    req.user?.collection === 'users' &&
+    ['admin', 'staff', 'professor'].includes(req.user?.role ?? '')
+  if (!isStaffUser) {
+    return Response.json(
+      {
+        error: 'Not authorized.',
+      },
+      { status: 403 },
+    )
+  }
+
   try {
     const format = req.query?.format === 'csv' ? 'csv' : 'json'
     const report = await getReportingSummary(req.payload)
