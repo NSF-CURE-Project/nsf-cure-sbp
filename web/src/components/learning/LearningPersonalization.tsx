@@ -167,6 +167,7 @@ type MetricCardProps = {
   footnote?: string;
   loading: boolean;
   emptyCopy: string;
+  tone?: "default" | "accent";
 };
 
 function MetricCard({
@@ -177,30 +178,41 @@ function MetricCard({
   footnote,
   loading,
   emptyCopy,
+  tone = "default",
 }: MetricCardProps) {
   const hasValue = !!value;
 
   return (
-    <Card className={cn("min-h-[150px]", INTERACTIVE_CARD_CLASS)}>
-      <div className="mb-3 flex items-center gap-2">
-        <Icon className="h-4 w-4 text-primary" />
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+    <div
+      className={cn(
+        "min-h-[132px] rounded-lg border p-3.5 sm:p-4",
+        "transition-colors duration-200",
+        tone === "accent"
+          ? "border-primary/35 bg-primary/10"
+          : "border-border/55 bg-background/35"
+      )}
+    >
+      <div className="mb-2.5 flex items-center gap-2">
+        <Icon className={cn("h-4 w-4", tone === "accent" ? "text-primary" : "text-primary/85")} />
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground/90">
+          {title}
+        </h3>
       </div>
 
       {loading ? (
         <p className="text-sm text-muted-foreground">Loading...</p>
       ) : hasValue ? (
-        <div className="space-y-1.5">
-          <p className="text-xl font-bold text-foreground">{value}</p>
-          {detail ? <p className="text-sm text-muted-foreground">{detail}</p> : null}
+        <div className="space-y-1">
+          <p className="text-lg font-semibold text-foreground sm:text-xl">{value}</p>
+          {detail ? <p className="text-xs text-muted-foreground">{detail}</p> : null}
           {footnote ? (
-            <p className="text-xs text-muted-foreground/90">{footnote}</p>
+            <p className="text-[11px] text-muted-foreground/90">{footnote}</p>
           ) : null}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">{emptyCopy}</p>
+        <p className="text-xs text-muted-foreground">{emptyCopy}</p>
       )}
-    </Card>
+    </div>
   );
 }
 
@@ -214,6 +226,7 @@ type ClassCardProps = {
   totalLessons: number;
   hasProgress: boolean;
   iconVariant: ClassIconVariant;
+  featured?: boolean;
 };
 
 function ClassIcon({ variant }: { variant: ClassIconVariant }) {
@@ -301,9 +314,23 @@ function ClassCard({
   totalLessons,
   hasProgress,
   iconVariant,
+  featured = false,
 }: ClassCardProps) {
   return (
-    <Card className={cn("flex h-full flex-col", INTERACTIVE_CARD_CLASS)}>
+    <Card
+      className={cn(
+        "flex h-full flex-col",
+        featured
+          ? "border-primary/45 bg-gradient-to-br from-primary/10 via-background/60 to-background shadow-md"
+          : "bg-muted/10",
+        INTERACTIVE_CARD_CLASS
+      )}
+    >
+      {featured ? (
+        <div className="mb-3 inline-flex w-fit items-center rounded-full border border-primary/35 bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
+          Recommended next
+        </div>
+      ) : null}
       <div className="mb-3 flex items-center gap-2">
         <span className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-primary/30 bg-primary/10">
           <ClassIcon variant={iconVariant} />
@@ -315,7 +342,7 @@ function ClassCard({
         <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">{description}</p>
       ) : (
         <p className="mb-4 text-sm text-muted-foreground">
-          Keep moving through this class at your own pace.
+          Continue building confidence in this class with short, steady sessions.
         </p>
       )}
 
@@ -706,7 +733,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
         if (lesson) {
           return {
             lesson,
-            hint: "Resume your in-progress lesson.",
+            hint: "Return to your current lesson and continue where you paused.",
           };
         }
       }
@@ -726,18 +753,18 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
             .slice(recentIndex + 1)
             .find((lesson) => !completedLessonIds.has(lesson.id));
 
-          if (nextIncomplete) {
-            return {
-              lesson: nextIncomplete,
-              hint: "Continue to your next lesson.",
-            };
-          }
+            if (nextIncomplete) {
+              return {
+                lesson: nextIncomplete,
+                hint: "Recommended next lesson based on your latest activity.",
+              };
+            }
 
           const current = orderedLessons[recentIndex];
           if (current) {
             return {
               lesson: current,
-              hint: "Pick up where you left off.",
+              hint: "Pick up from your most recently viewed lesson.",
             };
           }
         }
@@ -868,24 +895,30 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
   const heroProgress = resumeSelection
     ? classProgressBySlug.get(resumeSelection.lesson.classSlug) ?? 0
     : 0;
+  const totalLessonCount = orderedLessons.length;
+  const overallProgramProgress = totalLessonCount
+    ? Math.round((completedCount / totalLessonCount) * 100)
+    : 0;
 
   const loadingState = !resolvedUser || loadingData;
   const earnedBadgeCount = milestoneBadges.filter((badge) => badge.earned).length;
   const firstClassHref = classDashboardCards[0]?.viewHref ?? "/learning";
 
   return (
-    <section className="mt-4 space-y-6">
-      <div className="space-y-1">
-        <p className="text-lg font-semibold text-foreground sm:text-xl">{greeting}</p>
-        <p className="text-sm text-muted-foreground">
-          Jump back into your topics and track completion at a glance.
+    <section className="mt-0 space-y-6">
+      <div className="space-y-1 border-b border-border/60 pb-4">
+        <h2 className="text-lg font-medium text-foreground/90 sm:text-xl">
+          {greeting}
+        </h2>
+        <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          Continue your SBP coursework, review momentum, and pick up your next lesson.
         </p>
       </div>
 
       <section className="grid gap-4">
         <Card
           className={cn(
-            "overflow-hidden border-primary/25 bg-gradient-to-r from-primary/15 via-background/45 to-secondary/20",
+            "overflow-hidden border-primary/35 bg-gradient-to-r from-primary/20 via-background/50 to-secondary/20 shadow-sm",
             INTERACTIVE_CARD_CLASS
           )}
         >
@@ -897,7 +930,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
               </div>
 
               {loadingState ? (
-                <p className="text-sm text-muted-foreground">Loading your latest lesson...</p>
+                <p className="text-sm text-muted-foreground">Loading your next lesson...</p>
               ) : user && resumeSelection ? (
                 <div className="space-y-2">
                   <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
@@ -907,66 +940,88 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
                     {resumeSelection.lesson.classTitle} · {resumeSelection.lesson.chapterTitle}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {heroProgress}% complete in this class
+                    You are {heroProgress}% through {resumeSelection.lesson.classTitle}.
                   </p>
                   <p className="text-sm text-muted-foreground">{resumeSelection.hint}</p>
+                </div>
+              ) : user ? (
+                <div className="space-y-1.5">
+                  <p className="text-sm text-muted-foreground">
+                    You have not started a lesson yet this session.
+                  </p>
+                  <p className="text-xs text-muted-foreground/90">
+                    Open any class below and we will recommend your next step here.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-1.5">
                   <p className="text-sm text-muted-foreground">
-                    Sign in to resume where you left off.
+                    Sign in to continue from your last lesson.
                   </p>
-                  {user ? (
-                    <p className="text-xs text-muted-foreground/90">
-                      Start a lesson to begin tracking your resume history.
-                    </p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground/90">
-                      Your progress, goals, and saved lessons sync to your account.
-                    </p>
-                  )}
+                  <p className="text-xs text-muted-foreground/90">
+                    Progress, bookmarks, and weekly momentum are tied to your account.
+                  </p>
                 </div>
               )}
             </div>
 
-            {user && resumeSelection ? (
-              <Button
-                asChild
-                className={cn(
-                  "rounded-lg px-4 focus-visible:ring-primary/55 focus-visible:ring-offset-2",
-                  "hover:-translate-y-[2px] transition-all duration-200"
-                )}
-              >
-                <Link
-                  href={`/classes/${resumeSelection.lesson.classSlug}/lessons/${resumeSelection.lesson.slug}`}
+            <div className="flex flex-col items-stretch gap-3 sm:items-end">
+              {user && resumeSelection ? (
+                <Button
+                  asChild
+                  className={cn(
+                    "rounded-lg px-4 focus-visible:ring-primary/55 focus-visible:ring-offset-2",
+                    "hover:-translate-y-[2px] transition-all duration-200"
+                  )}
                 >
-                  Resume lesson
-                  <span aria-hidden="true">→</span>
-                </Link>
-              </Button>
-            ) : user ? (
-              <Button
-                asChild
-                variant="outline"
-                className={cn(
-                  "rounded-lg border-border/70 bg-background/50 text-foreground",
-                  "hover:border-primary/50 hover:bg-background/80 focus-visible:ring-primary/45"
-                )}
-              >
-                <Link href={firstClassHref}>Browse classes</Link>
-              </Button>
-            ) : (
-              <Button
-                asChild
-                variant="outline"
-                className={cn(
-                  "rounded-lg border-border/70 bg-background/50 text-foreground",
-                  "hover:border-primary/50 hover:bg-background/80 focus-visible:ring-primary/45"
-                )}
-              >
-                <LoginLink>Sign in</LoginLink>
-              </Button>
-            )}
+                  <Link
+                    href={`/classes/${resumeSelection.lesson.classSlug}/lessons/${resumeSelection.lesson.slug}`}
+                  >
+                    Resume lesson
+                    <span aria-hidden="true">→</span>
+                  </Link>
+                </Button>
+              ) : user ? (
+                <Button
+                  asChild
+                  variant="outline"
+                  className={cn(
+                    "rounded-lg border-border/70 bg-background/50 text-foreground",
+                    "hover:border-primary/50 hover:bg-background/80 focus-visible:ring-primary/45"
+                  )}
+                >
+                  <Link href={firstClassHref}>Browse classes</Link>
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  variant="outline"
+                  className={cn(
+                    "rounded-lg border-border/70 bg-background/50 text-foreground",
+                    "hover:border-primary/50 hover:bg-background/80 focus-visible:ring-primary/45"
+                  )}
+                >
+                  <LoginLink>Sign in</LoginLink>
+                </Button>
+              )}
+
+              {user ? (
+                <div className="grid grid-cols-2 gap-2 text-xs sm:w-[230px]">
+                  <div className="rounded-md border border-border/60 bg-background/40 px-2.5 py-2">
+                    <p className="uppercase tracking-[0.08em] text-muted-foreground">Program</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">
+                      {overallProgramProgress}%
+                    </p>
+                  </div>
+                  <div className="rounded-md border border-border/60 bg-background/40 px-2.5 py-2">
+                    <p className="uppercase tracking-[0.08em] text-muted-foreground">Saved</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">
+                      {savedLessons.length}
+                    </p>
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
 
           {user && resumeSelection ? (
@@ -977,7 +1032,16 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
         </Card>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-foreground/80">
+            Program snapshot
+          </h2>
+          <span className="text-xs text-muted-foreground">
+            Weekly signals and learning health
+          </span>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           icon={Target}
           title="Weekly Goal"
@@ -991,33 +1055,34 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
                 : `${weeklyGoal.remaining} lesson${weeklyGoal.remaining === 1 ? "" : "s"} to go.`
               : undefined
           }
-          emptyCopy="Sign in to track weekly goals."
+          emptyCopy="Sign in to view weekly lesson goals."
+          tone="accent"
         />
 
         <MetricCard
           icon={Flame}
-          title="Progress Streak"
+          title="Learning Streak"
           loading={loadingState}
           value={user ? `${streak.count} day${streak.count === 1 ? "" : "s"}` : undefined}
-          detail={user ? (streak.activeToday ? "Active today" : "Inactive today") : undefined}
+          detail={user ? (streak.activeToday ? "Active today" : "Not active today") : undefined}
           footnote={
             user
               ? streak.activeToday
-                ? "Great consistency."
+                ? "Nice consistency this week."
                 : "Complete one lesson today to extend it."
               : undefined
           }
-          emptyCopy="Sign in to maintain your streak."
+          emptyCopy="Sign in to monitor your learning streak."
         />
 
         <MetricCard
           icon={Award}
-          title="Milestone Badges"
+          title="Milestones"
           loading={loadingState}
           value={user ? `${earnedBadgeCount} / ${milestoneBadges.length}` : undefined}
-          detail={user ? "Milestones earned" : undefined}
+          detail={user ? "Milestones unlocked" : undefined}
           footnote={user ? `${completedCount} lessons completed overall` : undefined}
-          emptyCopy="Sign in to unlock badges."
+          emptyCopy="Sign in to view milestone progress."
         />
 
         <MetricCard
@@ -1025,7 +1090,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
           title="Saved Lessons"
           loading={loadingState}
           value={user ? String(savedLessons.length) : undefined}
-          detail={user ? "Bookmarked topics" : undefined}
+          detail={user ? "Lessons bookmarked" : undefined}
           footnote={
             user
               ? savedLessons[0]
@@ -1035,20 +1100,21 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
           }
           emptyCopy="Sign in to access saved lessons."
         />
+        </div>
       </section>
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-foreground">Your classes</h2>
+          <h2 className="text-xl font-semibold tracking-tight text-foreground">Your classes</h2>
           {user ? (
-            <span className="text-xs text-muted-foreground">Progress updates in real time</span>
+            <span className="text-xs text-muted-foreground">Pick up where you left off in each course</span>
           ) : (
-            <span className="text-xs text-muted-foreground">Sign in to track class progress</span>
+            <span className="text-xs text-muted-foreground">Sign in to personalize course progress</span>
           )}
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {classDashboardCards.map((classCard) => (
+          {classDashboardCards.map((classCard, index) => (
             <ClassCard
               key={classCard.key}
               title={classCard.title}
@@ -1060,6 +1126,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
               totalLessons={classCard.totalLessons}
               hasProgress={user ? classCard.hasProgress : false}
               iconVariant={classCard.iconVariant}
+              featured={index === 0}
             />
           ))}
         </div>
@@ -1069,25 +1136,25 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
         ) : null}
       </section>
 
-      <section>
-        <Card className={INTERACTIVE_CARD_CLASS}>
-          <div className="mb-3 flex items-center gap-2">
-            <PlayCircle className="h-4 w-4 text-primary" />
-            <h2 className="text-base font-semibold text-foreground">Recent activity</h2>
-          </div>
+      <section className="space-y-3 border-t border-border/55 pt-4">
+        <div className="flex items-center gap-2">
+          <PlayCircle className="h-4 w-4 text-primary" />
+          <h2 className="text-base font-semibold text-foreground">Recent lesson activity</h2>
+        </div>
 
-          {loadingState ? (
-            <p className="text-sm text-muted-foreground">Loading activity...</p>
-          ) : recentActivity.length ? (
-            <ul className="space-y-2">
-              {recentActivity.map((item) => (
-                <ActivityItem key={item.key} item={item} />
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted-foreground">No recent activity yet.</p>
-          )}
-        </Card>
+        {loadingState ? (
+          <p className="text-sm text-muted-foreground">Loading activity...</p>
+        ) : recentActivity.length ? (
+          <ul className="space-y-2">
+            {recentActivity.map((item) => (
+              <ActivityItem key={item.key} item={item} />
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            No recent lesson activity yet. Start a class to build your timeline.
+          </p>
+        )}
       </section>
     </section>
   );

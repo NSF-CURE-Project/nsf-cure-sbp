@@ -37,16 +37,86 @@ import { LoginLink } from "@/components/auth/LoginLink";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
 const PAYLOAD_URL = getPayloadBaseUrl();
+const NAVBAR_USER_CACHE_KEY = "sbp-navbar-user";
+const NAVBAR_PAGES_CACHE_KEY = "sbp-navbar-pages";
+
+type NavbarUser = {
+  id: string;
+  email: string;
+  fullName?: string;
+};
+
+type NavbarPage = {
+  id: string;
+  slug: string;
+  title: string;
+  navOrder?: number | null;
+};
+
+function readCachedNavbarUser(): NavbarUser | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(NAVBAR_USER_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<NavbarUser>;
+    if (!parsed || typeof parsed.id !== "string" || typeof parsed.email !== "string") {
+      return null;
+    }
+    return {
+      id: parsed.id,
+      email: parsed.email,
+      fullName: typeof parsed.fullName === "string" ? parsed.fullName : undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedNavbarUser(user: NavbarUser | null): void {
+  if (typeof window === "undefined") return;
+  if (!user) {
+    window.localStorage.removeItem(NAVBAR_USER_CACHE_KEY);
+    return;
+  }
+  window.localStorage.setItem(NAVBAR_USER_CACHE_KEY, JSON.stringify(user));
+}
+
+function readCachedNavbarPages(): NavbarPage[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(NAVBAR_PAGES_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as Partial<NavbarPage>[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(
+        (page) =>
+          page &&
+          typeof page.id === "string" &&
+          typeof page.slug === "string" &&
+          typeof page.title === "string"
+      )
+      .map((page) => ({
+        id: page.id as string,
+        slug: page.slug as string,
+        title: page.title as string,
+        navOrder: typeof page.navOrder === "number" ? page.navOrder : null,
+      }));
+  } catch {
+    return [];
+  }
+}
+
+function writeCachedNavbarPages(pages: NavbarPage[]): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(NAVBAR_PAGES_CACHE_KEY, JSON.stringify(pages));
+}
 
 export default function Navbar() {
   const { resolvedTheme, theme, systemTheme } = useTheme();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [user, setUser] = useState<{
-    id: string;
-    email: string;
-    fullName?: string;
-  } | null>(null);
+  const [user, setUser] = useState<NavbarUser | null>(() => readCachedNavbarUser());
   const [notifications, setNotifications] = useState<
     {
       id: string;
@@ -57,10 +127,10 @@ export default function Navbar() {
     }[]
   >([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [resolvedUser, setResolvedUser] = useState(() => !!readCachedNavbarUser());
   const [notificationsBusy, setNotificationsBusy] = useState(false);
-  const [pages, setPages] = useState<
-    { id: string; slug: string; title: string; navOrder?: number | null }[]
-  >([]);
+  const [pages, setPages] = useState<NavbarPage[]>(() => readCachedNavbarPages());
   const [authBusy, setAuthBusy] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -112,15 +182,18 @@ export default function Navbar() {
         });
         if (!res.ok) {
           setUser(null);
+          writeCachedNavbarUser(null);
           return;
         }
-        const data = (await res.json()) as {
-          user?: { id: string; email: string; fullName?: string };
-        };
-        setUser(data?.user ?? null);
+        const data = (await res.json()) as { user?: NavbarUser };
+        const nextUser = data?.user ?? null;
+        setUser(nextUser);
+        writeCachedNavbarUser(nextUser);
       } catch {
+        // Preserve cached user on transient network failures to avoid auth flicker.
+      } finally {
         if (!controller.signal.aborted) {
-          setUser(null);
+          setResolvedUser(true);
         }
       }
     };
@@ -139,16 +212,13 @@ export default function Navbar() {
           }
         );
         if (!res.ok) {
-          setPages([]);
+          if (!readCachedNavbarPages().length) {
+            setPages([]);
+          }
           return;
         }
         const data = (await res.json()) as {
-          docs?: {
-            id: string;
-            slug: string;
-            title: string;
-            navOrder?: number | null;
-          }[];
+          docs?: NavbarPage[];
         };
         const cleaned = (data.docs ?? []).filter(
           (page) => page.slug && page.slug !== "home"
@@ -166,9 +236,13 @@ export default function Navbar() {
           return (a.title ?? "").localeCompare(b.title ?? "");
         });
         setPages(cleaned);
+        writeCachedNavbarPages(cleaned);
       } catch {
         if (!controller.signal.aborted) {
-          setPages([]);
+          const cached = readCachedNavbarPages();
+          if (!cached.length) {
+            setPages([]);
+          }
         }
       }
     };
@@ -226,6 +300,7 @@ export default function Navbar() {
       });
     } finally {
       setUser(null);
+      writeCachedNavbarUser(null);
       setAuthBusy(false);
       window.location.href = "/";
     }
@@ -268,6 +343,7 @@ export default function Navbar() {
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase())
       .join("") || "SB";
+  const themeSummary = mode === "dark" ? "Dark mode active" : "Light mode active";
 
   const unreadCount = useMemo(
     () => notifications.filter((notification) => !notification.read).length,
@@ -376,69 +452,123 @@ export default function Navbar() {
             ⌘K
           </span>
         </button>
-        {user ? (
-          <DropdownMenu>
+        {!resolvedUser ? (
+          <div
+            className="hidden md:inline-flex h-8 items-center gap-2.5 rounded-full border border-border/60 bg-background/70 px-2 py-1.5 opacity-70"
+            aria-hidden="true"
+          >
+            <span className="h-8 w-8 rounded-full border border-border/60 bg-muted/40" />
+            <span className="h-3.5 w-24 rounded bg-muted/50" />
+            <span className="h-4 w-4 rounded bg-muted/50" />
+          </div>
+        ) : user ? (
+          <DropdownMenu open={profileMenuOpen} onOpenChange={setProfileMenuOpen}>
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="hidden md:inline-flex items-center gap-2 rounded-full px-2.5 py-1.5 text-sm font-medium text-foreground transition hover:bg-muted/40"
+                className="hidden md:inline-flex items-center gap-2.5 rounded-full border border-border/60 bg-background/70 px-2 py-1.5 text-sm font-medium text-foreground shadow-sm transition hover:border-border hover:bg-muted/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
-                <Avatar className="h-8 w-8 border border-border/50">
+                <Avatar className="h-8 w-8 border border-border/60">
                   <AvatarImage src="" alt={displayName} />
                   <AvatarFallback className="bg-muted/60 text-xs font-semibold">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
-                <span className="max-w-[140px] truncate">{displayName}</span>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                <span
+                  className={`max-w-[140px] truncate text-sm transition-opacity duration-150 ${
+                    profileMenuOpen ? "opacity-0" : "opacity-100"
+                  }`}
+                >
+                  {displayName}
+                </span>
+                <ChevronDown
+                  className={`h-4 w-4 text-muted-foreground transition-transform duration-150 ${
+                    profileMenuOpen ? "rotate-180" : "rotate-0"
+                  }`}
+                />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               side="bottom"
               align="center"
-              sideOffset={12}
+              sideOffset={8}
               alignOffset={0}
-              className="z-[9999] w-56 bg-background shadow-xl"
+              className="z-[9999] w-72 rounded-b-xl rounded-t-none border-x border-b border-t-0 border-border/70 bg-background/95 p-2 shadow-2xl data-[side=bottom]:slide-in-from-top-0 backdrop-blur supports-[backdrop-filter]:bg-background/90"
             >
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {displayName}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user.email}
-                  </p>
+              <DropdownMenuLabel className="p-0 font-normal">
+                <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 border border-border/60">
+                      <AvatarImage src="" alt={displayName} />
+                      <AvatarFallback className="bg-background text-xs font-semibold">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                        Signed in
+                      </p>
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {displayName}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="cursor-pointer">
-                <Link href="/profile" className="flex items-center">
-                  <UserIcon className="mr-3 h-4 w-4 text-muted-foreground" />
-                  Profile
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="cursor-pointer">
-                <Link href="/settings" className="flex items-center">
-                  <Settings className="mr-3 h-4 w-4 text-muted-foreground" />
-                  Settings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="my-2" />
               <DropdownMenuItem
-                className="cursor-pointer"
+                asChild
+                className="cursor-pointer rounded-lg px-2 py-2.5 focus:bg-muted/70"
+              >
+                <Link href="/profile" className="flex w-full items-center gap-3">
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-muted/40">
+                    <UserIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                  </span>
+                  <span className="text-sm font-medium">Profile</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                asChild
+                className="cursor-pointer rounded-lg px-2 py-2.5 focus:bg-muted/70"
+              >
+                <Link href="/settings" className="flex w-full items-center gap-3">
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-muted/40">
+                    <Settings className="h-3.5 w-3.5 text-muted-foreground" />
+                  </span>
+                  <span className="text-sm font-medium">Settings</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="my-2" />
+              <DropdownMenuItem
+                className="cursor-pointer rounded-lg px-2 py-2.5 text-red-400 focus:bg-red-500/10 focus:text-red-300"
                 onClick={handleSignOut}
                 disabled={authBusy}
               >
-                <LogOut className="mr-3 h-4 w-4 text-muted-foreground" />
-                {authBusy ? "Signing out..." : "Logout"}
+                <span className="mr-3 inline-flex h-7 w-7 items-center justify-center rounded-md border border-red-500/30 bg-red-500/10">
+                  <LogOut className="h-3.5 w-3.5" />
+                </span>
+                <span className="text-sm font-medium">
+                  {authBusy ? "Signing out..." : "Logout"}
+                </span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <div className="px-2 py-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Theme
-                  </span>
-                  <ThemeToggle variant="icon" className="hover:bg-muted/60" />
+              <DropdownMenuSeparator className="my-2" />
+              <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2.5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                      Theme
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {themeSummary}
+                    </p>
+                  </div>
+                  <ThemeToggle
+                    variant="icon"
+                    className="h-8 w-8 rounded-md hover:bg-muted/70"
+                  />
                 </div>
               </div>
             </DropdownMenuContent>
@@ -456,7 +586,16 @@ export default function Navbar() {
             </LoginLink>
           </>
         )}
-        {user ? (
+        {!resolvedUser ? (
+          <button
+            type="button"
+            className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-muted/40 text-foreground/70 shadow-sm opacity-70"
+            aria-hidden="true"
+            disabled
+          >
+            <Bell className="h-4 w-4" />
+          </button>
+        ) : user ? (
           <DropdownMenu
             open={notificationsOpen}
             onOpenChange={setNotificationsOpen}
@@ -557,7 +696,7 @@ export default function Navbar() {
             </SheetHeader>
 
             <div className="px-5 pb-6 space-y-4">
-              {user ? (
+              {!resolvedUser ? null : user ? (
                 <div className="rounded-lg border border-border/60 bg-muted/40 px-4 py-3 text-sm">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-9 w-9 border border-border/50">
@@ -606,7 +745,7 @@ export default function Navbar() {
                     </Link>
                   );
                 })}
-                {user ? (
+                {!resolvedUser ? null : user ? (
                   <>
                     <Link
                       href="/profile"

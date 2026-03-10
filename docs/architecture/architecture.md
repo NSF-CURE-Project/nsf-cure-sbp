@@ -25,7 +25,7 @@ Why this structure
 
 Integration points & cross-cutting concerns
 - Authentication: collections check `req.user` in access functions (see `src/collections/Users.ts`). The admin user collection is declared in `payload.config.ts` under `admin.user`.
-- Email: Payload uses a provider-switching adapter in `payload.config.ts` that prefers Resend (`RESEND_*`) and falls back to SMTP (`SMTP_*`). Use the same adapter path when sending programmatic messages.
+- Email: Payload uses a provider-switching adapter in `payload.config.ts` with priority: Resend Starter relay (`RESEND_STARTER_*`), then direct Resend (`RESEND_*`), then SMTP (`SMTP_*`). Use the same adapter path when sending programmatic messages.
 - File handling & images: `sharp` is registered in the Payload config for image processing — watch native build issues on macOS.
 - Import map: admin views are referenced via import map entries (generated with `pnpm generate:importmap`) and resolved by `admin.importMap`.
 
