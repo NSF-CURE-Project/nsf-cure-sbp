@@ -17,7 +17,8 @@
     "publish:all": "cross-env NODE_OPTIONS=--no-deprecation payload script scripts/publish-all.ts",
     "test:e2e": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test",
     "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts",
-    "sync:admin-help": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/sync-admin-help-from-handbook.ts"
+    "sync:admin-help": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/sync-admin-help-from-handbook.ts",
+    "test:unit:node": "node --experimental-strip-types --test tests/unit-node/**/*.test.mjs"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.65.0",

@@ -1,0 +1,2 @@
+# Keep decisions log append-friendly across release branches
+docs/operations/decisions.md merge=union

@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
 import { buildMetadata } from "@/lib/seo";
+import { LoginLink } from "@/components/auth/LoginLink";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
@@ -34,12 +34,11 @@ export default function ForgotPasswordPage() {
 
         <p className="mt-6 text-sm text-muted-foreground">
           Remembered your password?{" "}
-          <Link
-            href="/login"
+          <LoginLink
             className="font-semibold text-primary underline underline-offset-4"
           >
             Sign in
-          </Link>
+          </LoginLink>
         </p>
       </div>
     </main>

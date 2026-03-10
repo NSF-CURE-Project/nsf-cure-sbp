@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { LoginLink } from "@/components/auth/LoginLink";
 import { Input } from "@/components/ui/input";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
@@ -121,7 +121,7 @@ export function RegisterForm() {
         </Button>
       ) : (
         <Button asChild className="w-full">
-          <Link href="/login">Go to sign in</Link>
+          <LoginLink>Go to sign in</LoginLink>
         </Button>
       )}
     </form>

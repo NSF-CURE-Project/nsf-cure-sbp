@@ -19,7 +19,8 @@ The NSF CURE Summer Bridge Program (SBP) is a National Science Foundation-funded
    - `cd ../web && pnpm install`
 2. Configure environment variables:
    - `payload-cms/.env`: set `DATABASE_URI` and optionally `PAYLOAD_PUBLIC_SERVER_URL`, `WEB_PREVIEW_URL`, `PREVIEW_SECRET`
-   - `web/.env.local`: set `NEXT_PUBLIC_PAYLOAD_URL` and optionally `NEXT_PUBLIC_SITE_URL`
+   - `web/.env.local`: set `NEXT_PUBLIC_PAYLOAD_URL` and optionally `NEXT_PUBLIC_SITE_URL`, `PAYLOAD_PROXY_TARGET`
+     - `PAYLOAD_PROXY_TARGET` should point to the CMS base URL (for `/api` proxying and `/admin` redirect), e.g. `http://localhost:3000` in local dev.
 3. Run dev setup (adds `preview.sbp.local`, `app.sbp.local`, and `admin.sbp.local` to `/etc/hosts`):
    - `./scripts/dev-setup.sh`
 4. Run the CMS/admin app:

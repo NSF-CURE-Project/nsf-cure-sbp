@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { ResetPasswordForm } from "./ResetPasswordForm";
 import { buildMetadata } from "@/lib/seo";
+import { LoginLink } from "@/components/auth/LoginLink";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
@@ -50,12 +50,11 @@ export default async function ResetPasswordPage({
 
         <p className="mt-6 text-sm text-muted-foreground">
           Back to{" "}
-          <Link
-            href="/login"
+          <LoginLink
             className="font-semibold text-primary underline underline-offset-4"
           >
             Sign in
-          </Link>
+          </LoginLink>
         </p>
       </div>
     </main>

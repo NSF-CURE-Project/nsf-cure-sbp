@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 
 const payloadProxyTarget =
   process.env.PAYLOAD_PROXY_TARGET ?? "http://localhost:3000";
+const normalizedPayloadTarget = payloadProxyTarget.replace(/\/+$/, "");
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
@@ -68,6 +69,18 @@ const nextConfig: NextConfig = {
       },
     ],
   }),
+  redirects: async () => [
+    {
+      source: "/admin",
+      destination: `${normalizedPayloadTarget}/admin`,
+      permanent: false,
+    },
+    {
+      source: "/admin/:path*",
+      destination: `${normalizedPayloadTarget}/admin/:path*`,
+      permanent: false,
+    },
+  ],
 };
 
 export default nextConfig;

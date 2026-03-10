@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Check, ChevronRight } from "lucide-react";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
+import { cn } from "@/lib/utils";
 
 type LessonItem = {
   slug?: string;
@@ -266,6 +267,10 @@ export default function SidebarClient({ classes }: Props) {
           if (!cSlug) return null;
           const classOpen = !!openClasses[cSlug];
           const classTitle = getClassTitle(cls);
+          const classHasActiveLesson = !!(
+            currentLessonSlug && lessonOwner[currentLessonSlug]?.classSlug === cSlug
+          );
+          const classIsActive = currentClassSlug === cSlug || classHasActiveLesson;
 
           return (
             <li key={cSlug}>
@@ -273,20 +278,32 @@ export default function SidebarClient({ classes }: Props) {
               {showOnlyTopLevel ? (
                 <Link
                   href={`/classes/${cSlug}`}
-                  className="block px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground/80 transition-colors hover:text-foreground"
+                  className={cn(
+                    "relative block rounded-md border-l-2 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em]",
+                    "transition-[background-color,border-color,color,transform] duration-200",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                    "hover:-translate-y-[2px] hover:border-primary/60 hover:bg-muted/25 hover:text-foreground",
+                    classIsActive
+                      ? "border-primary bg-primary/15 text-foreground"
+                      : "border-transparent text-muted-foreground/90"
+                  )}
                 >
                   {classTitle}
                 </Link>
               ) : (
                 <div
-                  className={[
-                    "group flex w-full items-center justify-between gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition-colors",
-                    "text-muted-foreground/80 hover:text-foreground",
-                  ].join(" ")}
+                  className={cn(
+                    "group flex w-full items-center justify-between gap-2 rounded-md border-l-2 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em]",
+                    "transition-[background-color,border-color,color,transform] duration-200",
+                    "hover:-translate-y-[2px] hover:border-primary/60 hover:bg-muted/25 hover:text-foreground",
+                    classIsActive
+                      ? "border-primary bg-primary/15 text-foreground"
+                      : "border-transparent text-muted-foreground/90"
+                  )}
                 >
                   <Link
                     href={`/classes/${cSlug}`}
-                    className="flex-1 text-left text-inherit"
+                    className="flex-1 text-left text-inherit focus-visible:outline-none"
                   >
                     {classTitle}
                   </Link>
@@ -295,7 +312,13 @@ export default function SidebarClient({ classes }: Props) {
                     aria-expanded={classOpen}
                     aria-controls={`panel-class-${cSlug}`}
                     onClick={() => toggleClass(cSlug)}
-                    className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground/60 transition hover:bg-muted/20 hover:text-foreground"
+                    className={cn(
+                      "flex h-6 w-6 items-center justify-center rounded-md transition-colors",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
+                      classIsActive
+                        ? "text-foreground/80 hover:bg-primary/20"
+                        : "text-muted-foreground/70 hover:bg-muted/25 hover:text-foreground"
+                    )}
                     aria-label={
                       classOpen ? "Collapse chapters" : "Expand chapters"
                     }
@@ -346,17 +369,18 @@ export default function SidebarClient({ classes }: Props) {
                         <li key={chSlug}>
                           <div className="relative pl-3">
                             <div
-                              className={[
-                                "group flex w-full items-center justify-between gap-2 px-2 py-1 pr-2 rounded-md transition-colors text-left border-l-2",
+                              className={cn(
+                                "group flex w-full items-center justify-between gap-2 rounded-md border-l-2 px-2 py-1 pr-2 text-left",
+                                "transition-[background-color,border-color,color,transform] duration-200",
+                                "hover:-translate-y-[2px]",
                                 chapterBarActive
-                                  ? "bg-muted/10 text-foreground/85 border-foreground/20 pl-1"
-                                  : "text-muted-foreground/60 border-transparent",
-                                "hover:text-foreground/85 hover:bg-muted/10",
-                              ].join(" ")}
+                                  ? "border-primary bg-primary/15 text-foreground pl-1"
+                                  : "border-transparent text-muted-foreground/80 hover:border-primary/40 hover:bg-muted/20 hover:text-foreground"
+                              )}
                             >
                               <Link
                                 href={`/classes/${cSlug}/chapters/${chSlug}`}
-                                className="flex-1 text-left text-inherit"
+                                className="flex-1 text-left text-inherit focus-visible:outline-none"
                               >
                                 {getChapterLabel(ch)}
                               </Link>
@@ -365,7 +389,13 @@ export default function SidebarClient({ classes }: Props) {
                                 aria-expanded={chOpen}
                                 aria-controls={`panel-ch-${chKey}`}
                                 onClick={() => toggleChapter(cSlug, chSlug)}
-                                className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground/60 transition hover:bg-muted/20 hover:text-foreground"
+                                className={cn(
+                                  "flex h-6 w-6 items-center justify-center rounded-md transition-colors",
+                                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
+                                  chapterBarActive
+                                    ? "text-foreground/80 hover:bg-primary/20"
+                                    : "text-muted-foreground/70 hover:bg-muted/25 hover:text-foreground"
+                                )}
                                 aria-label={
                                   chOpen ? "Collapse lessons" : "Expand lessons"
                                 }
@@ -400,20 +430,17 @@ export default function SidebarClient({ classes }: Props) {
                                     <li key={lsSlug}>
                                       <Link
                                         href={`/classes/${cSlug}/lessons/${lsSlug}`}
-                                        className={[
-                                          "block rounded-md px-2 py-1 transition-colors",
+                                        className={cn(
+                                          "block rounded-md border-l-2 px-2 py-1 transition-[background-color,border-color,color,transform] duration-200",
+                                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                                          "hover:-translate-y-[2px]",
                                           active
-                                            ? "bg-muted/10 text-foreground/85"
-                                            : "text-muted-foreground/60 hover:text-foreground/85 hover:bg-muted/10",
-                                        ].join(" ")}
+                                            ? "border-primary bg-primary/15 text-foreground"
+                                            : "border-transparent text-muted-foreground/70 hover:border-primary/40 hover:bg-muted/20 hover:text-foreground"
+                                        )}
                                       >
                                         <span
-                                          className={[
-                                            "relative flex items-center gap-2 pl-2",
-                                            active
-                                              ? "border-l-2 border-foreground/20"
-                                              : "",
-                                          ].join(" ")}
+                                          className="relative flex items-center gap-2 pl-2"
                                         >
                                           {getLessonTitle(ls)}
                                           {completedLessons.has(lsId) ? (
