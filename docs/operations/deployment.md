@@ -6,6 +6,7 @@ Overview
 Environments
 - Stages: `dev` (local), `preview` (staging), `prod` (production).
 - Environment variables are primarily stored in per-service env files or the hosting provider's secret store. Key variables: `DATABASE_URI`, `PAYLOAD_SECRET`, `PAYLOAD_PUBLIC_SERVER_URL`, `FRONTEND_URL`, and `SMTP_*`.
+- Email provider env vars: prefer Resend (`RESEND_API_KEY`, `RESEND_FROM`) with SMTP as fallback (`SMTP_*`).
 
 Build & run (example)
 - CMS (Payload + Next.js):

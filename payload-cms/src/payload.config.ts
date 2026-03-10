@@ -78,6 +78,52 @@ const stripEnvQuotes = (value?: string) => {
   return trimmed.replace(/^['"]+|['"]+$/g, '')
 }
 
+const formatAddress = (value: unknown): null | string => {
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    return trimmed.length ? trimmed : null
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    const entry = value as { address?: unknown; email?: unknown; name?: unknown }
+    const email = typeof entry.email === 'string' ? entry.email.trim() : ''
+    const address = typeof entry.address === 'string' ? entry.address.trim() : ''
+    const resolved = email || address
+    if (!resolved) return null
+
+    if (typeof entry.name === 'string' && entry.name.trim()) {
+      const escapedName = entry.name.trim().replace(/"/g, '\\"')
+      return `"${escapedName}" <${resolved}>`
+    }
+
+    return resolved
+  }
+
+  return null
+}
+
+const formatAddressList = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => formatAddress(item))
+      .filter((item): item is string => Boolean(item))
+  }
+
+  if (typeof value === 'string' && value.includes(',')) {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+
+  const single = formatAddress(value)
+  return single ? [single] : []
+}
+
+const resendApiKey = stripEnvQuotes(process.env.RESEND_API_KEY)
+const resendApiBaseUrl = stripEnvQuotes(process.env.RESEND_API_BASE_URL) ?? 'https://api.resend.com'
+const resendFrom = stripEnvQuotes(process.env.RESEND_FROM)
+
 const smtpFrom = stripEnvQuotes(process.env.SMTP_FROM)
 const smtpHost = stripEnvQuotes(process.env.SMTP_HOST)
 const smtpPort = stripEnvQuotes(process.env.SMTP_PORT)
@@ -88,13 +134,13 @@ const smtpConnectionTimeout = stripEnvQuotes(process.env.SMTP_CONNECTION_TIMEOUT
 const smtpGreetingTimeout = stripEnvQuotes(process.env.SMTP_GREETING_TIMEOUT_MS)
 const smtpSocketTimeout = stripEnvQuotes(process.env.SMTP_SOCKET_TIMEOUT_MS)
 
-const { fromName, fromAddress } = parseFrom(smtpFrom)
+const { fromName, fromAddress } = parseFrom(resendFrom ?? smtpFrom)
 const frontendURL = process.env.FRONTEND_URL ?? 'http://localhost:3001'
 const serverURL = process.env.PAYLOAD_PUBLIC_SERVER_URL ?? 'http://localhost:3000'
 const allowedOrigins = [frontendURL, serverURL].filter(Boolean)
 const defaultFromAddress = fromAddress ?? smtpUser ?? 'info@payloadcms.com'
 const defaultFromName = fromName ?? 'NSF CURE SBP'
-const transport = nodemailer.createTransport({
+const smtpTransport = nodemailer.createTransport({
   host: smtpHost,
   port: smtpPort ? Number(smtpPort) : undefined,
   secure: smtpSecure,
@@ -106,16 +152,66 @@ const transport = nodemailer.createTransport({
     pass: smtpPass,
   },
 })
-const buildEmailAdapter = () => ({
+const buildNodemailerAdapter = () => ({
   name: 'nodemailer',
   defaultFromAddress,
   defaultFromName,
   sendEmail: async (message: { [key: string]: unknown }) =>
-    transport.sendMail({
+    smtpTransport.sendMail({
       from: `"${defaultFromName}" <${defaultFromAddress}>`,
       ...message,
     }),
 })
+
+const buildResendAdapter = () => ({
+  name: 'resend',
+  defaultFromAddress,
+  defaultFromName,
+  sendEmail: async (message: { [key: string]: unknown }) => {
+    if (!resendApiKey) throw new Error('Missing RESEND_API_KEY')
+
+    const from = formatAddress(message.from) ?? `"${defaultFromName}" <${defaultFromAddress}>`
+    const to = formatAddressList(message.to)
+    if (!to.length) throw new Error('Resend email requires at least one "to" address')
+
+    const cc = formatAddressList(message.cc)
+    const bcc = formatAddressList(message.bcc)
+    const replyTo = formatAddressList(message.replyTo ?? message.reply_to)
+    const subject =
+      typeof message.subject === 'string' && message.subject.trim()
+        ? message.subject.trim()
+        : '(no subject)'
+    const html = typeof message.html === 'string' ? message.html : undefined
+    const text = typeof message.text === 'string' ? message.text : undefined
+
+    const response = await fetch(`${resendApiBaseUrl.replace(/\/+$/, '')}/emails`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from,
+        to,
+        subject,
+        ...(html ? { html } : {}),
+        ...(text ? { text } : {}),
+        ...(cc.length ? { cc } : {}),
+        ...(bcc.length ? { bcc } : {}),
+        ...(replyTo.length ? { reply_to: replyTo } : {}),
+      }),
+    })
+
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '')
+      throw new Error(`Resend send failed (${response.status}): ${detail || response.statusText}`)
+    }
+
+    return response.json().catch(() => undefined)
+  },
+})
+
+const buildEmailAdapter = () => (resendApiKey ? buildResendAdapter() : buildNodemailerAdapter())
 
 export default buildConfig({
   serverURL,
