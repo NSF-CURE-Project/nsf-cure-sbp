@@ -4,6 +4,12 @@ Purpose
 - Capture high-level architectural and operational decisions to provide context for future contributors.
 
 Recent decisions
+
+- Title: Keep `main` and `production` in sync for releases
+	- Date: 2026-03-05
+	- Owner: Alex
+	- Rationale: Reduces branch drift, keeps rollback points predictable, and ensures deployed code remains traceable to the primary development branch.
+	- PR: TBD
 - Payload + Next.js split: Use Payload CMS for admin and a separate Next.js `web` app for public site to optimize delivery and admin UX. (Decision date: 2025-12-01)
 - Postgres as canonical DB: Chosen for reliability and compatibility with `@payloadcms/db-postgres`. (Decision date: 2025-12-05)
 
