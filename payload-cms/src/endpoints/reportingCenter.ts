@@ -34,6 +34,15 @@ const parsePeriodId = (value: unknown): number | null => {
   return Number.isInteger(parsed) ? parsed : null
 }
 
+const parseNumericId = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isInteger(value)) return value
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value)
+    return Number.isInteger(parsed) ? parsed : null
+  }
+  return null
+}
+
 export const reportingCenterHandler: PayloadHandler = async (req) => {
   if (!isReportingStaff(req)) {
     return Response.json({ error: 'Not authorized.' }, { status: 403 })
@@ -127,10 +136,15 @@ export const reportingCenterHandler: PayloadHandler = async (req) => {
         typeof req.query?.label === 'string' && req.query.label.trim()
           ? req.query.label.trim()
           : `Saved view ${new Date().toISOString().slice(0, 10)}`
+      const ownerId = parseNumericId(req.user?.id)
+      if (ownerId == null) {
+        return Response.json({ error: 'Unable to resolve reporting view owner.' }, { status: 400 })
+      }
       const saved = await req.payload.create({
         collection: 'reporting-saved-views',
         data: {
           label,
+          owner: ownerId,
           reportType: period.reportType,
           reportingPeriod: reportingPeriodId ?? undefined,
           startDate: period.startDate,
