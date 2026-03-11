@@ -5,8 +5,13 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
     ALTER TABLE IF EXISTS "reporting_snapshots"
       ADD COLUMN IF NOT EXISTS "reproducibility_key" varchar;
 
-    CREATE INDEX IF NOT EXISTS "reporting_snapshots_reproducibility_key_idx"
-      ON "reporting_snapshots" USING btree ("reproducibility_key");
+    DO $$
+    BEGIN
+      IF to_regclass('public.reporting_snapshots') IS NOT NULL THEN
+        CREATE INDEX IF NOT EXISTS "reporting_snapshots_reproducibility_key_idx"
+          ON "reporting_snapshots" USING btree ("reproducibility_key");
+      END IF;
+    END $$;
   `)
 }
 
