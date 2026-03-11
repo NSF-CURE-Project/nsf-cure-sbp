@@ -60,6 +60,15 @@ const run = async () => {
 
   for (const period of periods) {
     if (!period.startDate || !period.endDate) continue
+    const reportingPeriodId =
+      typeof period.id === 'number'
+        ? period.id
+        : typeof period.id === 'string' && period.id.trim()
+          ? (() => {
+              const parsed = Number(period.id)
+              return Number.isInteger(parsed) ? parsed : undefined
+            })()
+          : undefined
 
     const result = await createReportingSnapshot(
       payload,
@@ -75,7 +84,7 @@ const run = async () => {
           reportType: period.reportType ?? 'custom',
           label: period.label,
         },
-        reportingPeriodId: period.id,
+        reportingPeriodId,
         label: process.env.REPORTING_SNAPSHOT_LABEL ?? null,
       },
     )

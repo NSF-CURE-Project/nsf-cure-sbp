@@ -24,12 +24,22 @@ export const createReportingAuditEvent = async (
   },
 ) => {
   try {
+    const reportingPeriod =
+      typeof input.reportingPeriod === 'number'
+        ? input.reportingPeriod
+        : typeof input.reportingPeriod === 'string' && input.reportingPeriod.trim()
+          ? (() => {
+              const parsed = Number(input.reportingPeriod)
+              return Number.isInteger(parsed) ? parsed : undefined
+            })()
+          : undefined
+
     await req.payload.create({
       collection: 'reporting-audit-events',
       data: {
         eventType: input.eventType,
         reportType: input.reportType,
-        reportingPeriod: input.reportingPeriod ?? undefined,
+        reportingPeriod,
         periodStart: input.periodStart ?? undefined,
         periodEnd: input.periodEnd ?? undefined,
         filters: input.filters ?? undefined,
