@@ -178,6 +178,91 @@ export const Accounts: CollectionConfig = {
       type: 'text',
     },
     {
+      name: 'participantType',
+      label: 'Participant type',
+      type: 'select',
+      options: [
+        { label: 'Undergraduate student', value: 'undergraduate_student' },
+        { label: 'Graduate student', value: 'graduate_student' },
+        { label: 'K-12 student', value: 'k12_student' },
+        { label: 'Teacher', value: 'teacher' },
+        { label: 'Staff', value: 'staff' },
+        { label: 'Faculty', value: 'faculty' },
+        { label: 'Other', value: 'other' },
+      ],
+      admin: {
+        description: 'Used for NSF participant reporting exports.',
+      },
+    },
+    {
+      name: 'projectRole',
+      label: 'Project role',
+      type: 'text',
+      admin: {
+        description: 'RPPR participant role in this project.',
+      },
+    },
+    {
+      name: 'organization',
+      label: 'Organization',
+      type: 'relationship',
+      relationTo: 'organizations',
+    },
+    {
+      name: 'organizationName',
+      label: 'Organization name (snapshot)',
+      type: 'text',
+      admin: {
+        description:
+          'Optional reporting snapshot for exports when the organization relationship is empty.',
+      },
+    },
+    {
+      name: 'contributionSummary',
+      label: 'Contribution summary',
+      type: 'textarea',
+      admin: {
+        description: 'Summary of participant contributions used in RPPR narratives.',
+      },
+    },
+    {
+      name: 'participationStartDate',
+      label: 'Participation start date',
+      type: 'date',
+    },
+    {
+      name: 'participationEndDate',
+      label: 'Participation end date',
+      type: 'date',
+    },
+    {
+      name: 'firstGenCollegeStudent',
+      label: 'First-generation college student',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Supports cohort filtering in reporting center.',
+      },
+    },
+    {
+      name: 'transferStudent',
+      label: 'Transfer student',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Supports cohort filtering in reporting center.',
+      },
+    },
+    {
+      name: 'includeInRppr',
+      label: 'Include in RPPR exports',
+      type: 'checkbox',
+      defaultValue: true,
+      admin: {
+        position: 'sidebar',
+      },
+    },
+    {
       name: 'ssoProvider',
       label: 'SSO Provider',
       type: 'text',

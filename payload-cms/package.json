@@ -18,6 +18,7 @@
     "test:e2e": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test",
     "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts",
     "sync:admin-help": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/sync-admin-help-from-handbook.ts",
+    "snapshot:reporting": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/create-reporting-snapshot.ts",
     "test:unit:node": "node --experimental-strip-types --test tests/unit-node/**/*.test.mjs"
   },
   "dependencies": {
