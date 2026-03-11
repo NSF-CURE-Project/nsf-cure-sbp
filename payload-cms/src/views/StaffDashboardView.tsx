@@ -1048,9 +1048,15 @@ export default async function StaffDashboardView({
 
     const lessonById = new Map<string, { id: string | number; title: string }>()
     lessons.forEach((lesson) => {
-      lessonById.set(String(lesson.id), {
-        id: lesson.id,
-        title: lesson.title ?? 'Untitled lesson',
+      const lessonId = String(lesson.id ?? '')
+      if (!lessonId) return
+      const lessonTitle =
+        typeof lesson.title === 'string' && lesson.title.trim()
+          ? lesson.title
+          : 'Untitled lesson'
+      lessonById.set(lessonId, {
+        id: lessonId,
+        title: lessonTitle,
       })
     })
 
