@@ -43,12 +43,20 @@ const parseNumericId = (value: unknown): number | null => {
   return null
 }
 
+type PayloadCreateFn = (args: {
+  collection: string
+  data: Record<string, unknown>
+  overrideAccess?: boolean
+  depth?: number
+}) => Promise<Record<string, unknown>>
+
 export const reportingCenterHandler: PayloadHandler = async (req) => {
   if (!isReportingStaff(req)) {
     return Response.json({ error: 'Not authorized.' }, { status: 403 })
   }
 
   try {
+    const create = req.payload.create as unknown as PayloadCreateFn
     const period = await resolvePeriodFromQuery(
       req.payload,
       req.query as Record<string, unknown> | undefined,
@@ -140,7 +148,7 @@ export const reportingCenterHandler: PayloadHandler = async (req) => {
       if (ownerId == null) {
         return Response.json({ error: 'Unable to resolve reporting view owner.' }, { status: 400 })
       }
-      const saved = await req.payload.create({
+      const saved = await create({
         collection: 'reporting-saved-views',
         data: {
           label,
@@ -161,7 +169,7 @@ export const reportingCenterHandler: PayloadHandler = async (req) => {
         periodStart: period.startDate,
         periodEnd: period.endDate,
         filters,
-        notes: `Saved reporting view ${saved.id}`,
+        notes: `Saved reporting view ${String(saved.id ?? '')}`,
       })
       return Response.json({ message: 'Saved view created.', view: saved })
     }

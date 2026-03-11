@@ -1,6 +1,13 @@
 import type { PayloadRequest } from 'payload'
 import type { ReportType } from './period'
 
+type PayloadCreateFn = (args: {
+  collection: string
+  data: Record<string, unknown>
+  overrideAccess?: boolean
+  depth?: number
+}) => Promise<Record<string, unknown>>
+
 export const createReportingAuditEvent = async (
   req: PayloadRequest,
   input: {
@@ -24,6 +31,7 @@ export const createReportingAuditEvent = async (
   },
 ) => {
   try {
+    const create = req.payload.create as unknown as PayloadCreateFn
     const reportingPeriod =
       typeof input.reportingPeriod === 'number'
         ? input.reportingPeriod
@@ -43,7 +51,7 @@ export const createReportingAuditEvent = async (
             })()
           : undefined
 
-    await req.payload.create({
+    await create({
       collection: 'reporting-audit-events',
       data: {
         eventType: input.eventType,

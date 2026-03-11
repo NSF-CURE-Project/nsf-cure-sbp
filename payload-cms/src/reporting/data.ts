@@ -1,6 +1,20 @@
 import type { Payload } from 'payload'
 import { buildPeriodWhere, mergeWhere, resolveReportingPeriod, type ReportingPeriod } from './period'
 
+type PayloadFindResult = {
+  docs: unknown[]
+  hasNextPage?: boolean
+}
+
+type PayloadFindFn = (args: {
+  collection: string
+  depth?: number
+  limit?: number
+  page?: number
+  sort?: string
+  where?: Record<string, unknown>
+}) => Promise<PayloadFindResult>
+
 export const findAllDocs = async (
   payload: Payload,
   collection: string,
@@ -11,14 +25,14 @@ export const findAllDocs = async (
     limit?: number
   },
 ): Promise<Record<string, unknown>[]> => {
-  const payloadAny = payload as any
+  const find = payload.find as unknown as PayloadFindFn
   const docs: Record<string, unknown>[] = []
   let page = 1
   let hasNextPage = true
   const limit = options?.limit ?? 500
 
   while (hasNextPage) {
-    const result = await payloadAny.find({
+    const result = await find({
       collection,
       depth: options?.depth ?? 0,
       limit,

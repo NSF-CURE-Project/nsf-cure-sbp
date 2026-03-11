@@ -9,6 +9,22 @@ import type { ReportMode, ReportingCohortFilters } from './types'
 import { createReportingAuditEvent } from './audit'
 import { computeSnapshotHash } from './snapshotHash'
 
+type PayloadCreateFn = (args: {
+  collection: string
+  data: Record<string, unknown>
+  overrideAccess?: boolean
+  depth?: number
+}) => Promise<Record<string, unknown>>
+
+const toNumericId = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isInteger(value)) return value
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value)
+    return Number.isInteger(parsed) ? parsed : null
+  }
+  return null
+}
+
 export const createReportingSnapshot = async (
   payload: Payload,
   req: PayloadRequest,
@@ -21,6 +37,7 @@ export const createReportingSnapshot = async (
     reuseIfUnchanged?: boolean
   },
 ) => {
+  const create = payload.create as unknown as PayloadCreateFn
   const summary = await getReportingSummary(payload, {
     mode: input.mode,
     period: input.period,
@@ -88,7 +105,7 @@ export const createReportingSnapshot = async (
         periodStart: summary.reportMeta.period?.startDate ?? null,
         periodEnd: summary.reportMeta.period?.endDate ?? null,
         filters: summary.reportMeta.filters,
-        snapshot: snapshot.id,
+        snapshot: toNumericId(snapshot.id),
         notes: 'Reused existing immutable snapshot with matching reproducibility hash.',
       })
 
@@ -104,9 +121,9 @@ export const createReportingSnapshot = async (
     }
   }
 
-  const snapshot = await payload.create({
+  const snapshot = await create({
     collection: 'reporting-snapshots',
-    data: snapshotInput,
+    data: snapshotInput as Record<string, unknown>,
     overrideAccess: true,
     depth: 0,
   })
@@ -118,7 +135,7 @@ export const createReportingSnapshot = async (
     periodStart: summary.reportMeta.period?.startDate ?? null,
     periodEnd: summary.reportMeta.period?.endDate ?? null,
     filters: summary.reportMeta.filters,
-    snapshot: snapshot.id,
+    snapshot: toNumericId(snapshot.id),
   })
 
   return {
