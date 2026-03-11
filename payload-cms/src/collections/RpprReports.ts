@@ -24,11 +24,20 @@ export const RpprReports: CollectionConfig = {
           typeof data.reportingPeriod === 'object' && data.reportingPeriod !== null
             ? (data.reportingPeriod as { id?: string | number }).id
             : data.reportingPeriod
+        const reportingPeriodNumericId =
+          typeof reportingPeriodId === 'number'
+            ? reportingPeriodId
+            : typeof reportingPeriodId === 'string' && reportingPeriodId.trim()
+              ? (() => {
+                  const parsed = Number(reportingPeriodId)
+                  return Number.isInteger(parsed) ? parsed : null
+                })()
+              : null
 
-        if (reportingPeriodId && req?.payload) {
+        if (reportingPeriodNumericId && req?.payload) {
           const period = await req.payload.findByID({
             collection: 'reporting-periods',
-            id: reportingPeriodId,
+            id: reportingPeriodNumericId,
             depth: 0,
           })
           data.startDate = data.startDate ?? (period as { startDate?: string }).startDate

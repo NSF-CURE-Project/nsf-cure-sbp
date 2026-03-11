@@ -97,7 +97,7 @@ export const reportingCenterHandler: PayloadHandler = async (req) => {
       await createReportingAuditEvent(req, {
         eventType: 'drilldown_viewed',
         reportType: period.reportType,
-        reportingPeriod: typeof req.query?.periodId === 'string' ? req.query.periodId : null,
+        reportingPeriod: reportingPeriodId,
         periodStart: period.startDate,
         periodEnd: period.endDate,
         filters,
@@ -331,7 +331,7 @@ export const reportingCenterHandler: PayloadHandler = async (req) => {
     await createReportingAuditEvent(req, {
       eventType: 'report_generated',
       reportType: period.reportType,
-      reportingPeriod: typeof req.query?.periodId === 'string' ? req.query.periodId : null,
+      reportingPeriod: reportingPeriodId,
       periodStart: period.startDate,
       periodEnd: period.endDate,
       filters,

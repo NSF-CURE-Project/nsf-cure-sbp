@@ -11,13 +11,14 @@ export const findAllDocs = async (
     limit?: number
   },
 ): Promise<Record<string, unknown>[]> => {
+  const payloadAny = payload as any
   const docs: Record<string, unknown>[] = []
   let page = 1
   let hasNextPage = true
   const limit = options?.limit ?? 500
 
   while (hasNextPage) {
-    const result = await payload.find({
+    const result = await payloadAny.find({
       collection,
       depth: options?.depth ?? 0,
       limit,
@@ -56,7 +57,13 @@ export const resolvePeriodFromQuery = async (
   payload: Payload,
   query: Record<string, unknown> | undefined,
 ): Promise<ReportingPeriod | null> => {
-  const periodId = typeof query?.periodId === 'string' ? query.periodId : null
+  const periodId =
+    typeof query?.periodId === 'string' && query.periodId.trim()
+      ? (() => {
+          const parsed = Number(query.periodId)
+          return Number.isInteger(parsed) ? parsed : null
+        })()
+      : null
   if (periodId) {
     const periodDoc = await payload.findByID({
       collection: 'reporting-periods',
