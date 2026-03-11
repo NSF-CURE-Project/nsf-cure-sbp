@@ -5,6 +5,25 @@ import { createReportingSnapshot } from '@/reporting/snapshots'
 
 dotenv.config({ path: './.env' })
 
+type PayloadFindResult = {
+  docs: unknown[]
+}
+
+type PayloadFindFn = (args: {
+  collection: string
+  depth?: number
+  limit?: number
+  where?: Record<string, unknown>
+  overrideAccess?: boolean
+}) => Promise<PayloadFindResult & Record<string, unknown>>
+
+type PayloadFindByIDFn = (args: {
+  collection: string
+  id: number
+  depth?: number
+  overrideAccess?: boolean
+}) => Promise<Record<string, unknown>>
+
 type PeriodDoc = {
   id: string | number
   label?: string
@@ -15,7 +34,8 @@ type PeriodDoc = {
 
 const run = async () => {
   const payload = await getPayload({ config: configPromise })
-  const payloadAny = payload as any
+  const find = payload.find as unknown as PayloadFindFn
+  const findByID = payload.findByID as unknown as PayloadFindByIDFn
 
   const periodId = process.env.REPORTING_PERIOD_ID
   const startDate = process.env.REPORTING_START_DATE
@@ -23,9 +43,14 @@ const run = async () => {
 
   const periods: PeriodDoc[] = []
   if (periodId) {
-    const period = await payloadAny.findByID({
+    const parsedPeriodId = Number(periodId)
+    if (!Number.isInteger(parsedPeriodId)) {
+      payload.logger.warn(`REPORTING_PERIOD_ID must be numeric. Received: ${periodId}`)
+      return
+    }
+    const period = await findByID({
       collection: 'reporting-periods',
-      id: periodId,
+      id: parsedPeriodId,
       depth: 0,
       overrideAccess: true,
     })
@@ -39,7 +64,7 @@ const run = async () => {
       endDate,
     })
   } else {
-    const active = await payloadAny.find({
+    const active = await find({
       collection: 'reporting-periods',
       depth: 0,
       limit: 50,
