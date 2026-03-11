@@ -9,6 +9,13 @@ Key collections
 - `Pages`, `Media` — CMS pages and uploaded assets.
 - `Quizzes`, `QuizQuestions`, `QuizAttempts` — assessment models.
 - `LessonProgress`, `Feedback`, `LessonFeedback` — tracking student progress and feedback.
+- `Organizations` — normalized partner organization records for RPPR exports.
+- `ReportingPeriods` — period/budget-window definitions for official reporting.
+- `RpprReports` — staff-entered narrative sections tied to reporting periods.
+- `ReportingSnapshots` — immutable serialized reporting outputs for reproducibility (`snapshotHash`, `reproducibilityKey`, `versionLabel`).
+- `ReportingAuditEvents` — provenance trail for report generation, drilldowns, exports, snapshots.
+- `ReportingSavedViews` — reusable period/filter presets for reporting center workflows.
+- `ReportingEvidenceLinks` — links outcomes/report sections to interventions and content artifacts.
 
 Relationships & access
 - Many collections reference others by `relationship` fields (e.g., lessons → chapters → classes). Inspect collection `fields` for `relation` types.
@@ -25,4 +32,3 @@ Where to inspect sample fields
 - Example content fields: `payload-cms/src/collections/Lessons.ts` and `Pages.ts`.
 
 If you want, I can generate a visual ER diagram from the collection files — tell me if you'd like that and I'll add a script to output relationships.
-

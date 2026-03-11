@@ -3,6 +3,7 @@ import { Gutter } from '@payloadcms/ui'
 import React from 'react'
 import Link from 'next/link'
 import { getReportingSummary } from '../utils/analyticsSummary'
+import { findAllDocs } from '../reporting/data'
 
 const cppGold = 'var(--cpp-muted)'
 const cppInk = 'var(--cpp-ink)'
@@ -190,15 +191,28 @@ const StaffDashboardContent = ({
     lowHelpfulness: { id: string | number; title: string; rating: number }[]
   }
   reporting: {
-    classCompletion: { id: string; title: string; total: number; completed: number; completionRate: number }[]
+    classCompletion: {
+      id: string
+      title: string
+      uniqueLearnersStarted: number
+      uniqueLearnersCompleted: number
+      completionRate: number
+    }[]
     chapterCompletion: {
       id: string
       title: string
-      total: number
-      completed: number
+      uniqueLearnersStarted: number
+      uniqueLearnersCompleted: number
       completionRate: number
     }[]
-    quizMasteryDistribution: { label: string; count: number; percentage: number }[]
+    quizPerformance: {
+      quizId: string
+      title: string
+      uniqueLearnersAttempted: number
+      uniqueLearnersMastered: number
+      masteryRate: number
+      attempts: number
+    }[]
     weeklyEngagement: { weekStart: string; activeStudents: number; weekOverWeekChange: number | null }[]
   }
 }) => (
@@ -631,6 +645,34 @@ const StaffDashboardContent = ({
                 </Link>
               </div>
             </div>
+            <div
+              style={{
+                borderRadius: 0,
+                border: '1px solid transparent',
+                background: 'var(--admin-surface)',
+                padding: '16px 18px',
+                boxShadow: 'var(--admin-shadow)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+                flexWrap: 'wrap',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cpp-ink)' }}>
+                  NSF Reporting
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
+                  Open period-based RPPR reporting, exports, and completeness checks.
+                </div>
+              </div>
+              <Link href="/admin/reporting" className="dashboard-chip-link">
+                <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
+                  Open Reporting
+                </div>
+              </Link>
+            </div>
           </div>
         </div>
         <div style={sectionLabelStyle}>NSF reporting summary</div>
@@ -651,7 +693,8 @@ const StaffDashboardContent = ({
                   <li key={item.id}>
                     <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>{item.title}</div>
                     <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                      {Math.round(item.completionRate * 100)}% ({item.completed}/{item.total})
+                      {Math.round(item.completionRate * 100)}% ({item.uniqueLearnersCompleted}/
+                      {item.uniqueLearnersStarted})
                     </div>
                   </li>
                 ))}
@@ -666,7 +709,8 @@ const StaffDashboardContent = ({
                   <li key={item.id}>
                     <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>{item.title}</div>
                     <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                      {Math.round(item.completionRate * 100)}% ({item.completed}/{item.total})
+                      {Math.round(item.completionRate * 100)}% ({item.uniqueLearnersCompleted}/
+                      {item.uniqueLearnersStarted})
                     </div>
                   </li>
                 ))}
@@ -677,11 +721,12 @@ const StaffDashboardContent = ({
                 Quiz mastery distribution
               </div>
               <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
-                {reporting.quizMasteryDistribution.map((item) => (
-                  <li key={item.label}>
-                    <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>{item.label}</div>
+                {reporting.quizPerformance.slice(0, 5).map((item) => (
+                  <li key={item.quizId}>
+                    <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>{item.title}</div>
                     <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                      {item.count} attempts ({Math.round(item.percentage * 100)}%)
+                      {item.uniqueLearnersMastered}/{item.uniqueLearnersAttempted} mastered (
+                      {Math.round(item.masteryRate * 100)}%)
                     </div>
                   </li>
                 ))}
@@ -721,11 +766,11 @@ const StaffDashboardContent = ({
               </div>
             </Link>
             <Link
-              href="/api/analytics/reporting-summary?format=csv&type=quiz-mastery"
+              href="/api/analytics/reporting-summary?format=csv&type=quiz-performance"
               style={{ textDecoration: 'none' }}
             >
               <div style={heroSecondaryStyle} className="dashboard-chip dashboard-chip--secondary">
-                Quiz mastery CSV
+                Quiz performance CSV
               </div>
             </Link>
           </div>
@@ -872,18 +917,25 @@ export default async function StaffDashboardView({
     classCompletion: [] as {
       id: string
       title: string
-      total: number
-      completed: number
+      uniqueLearnersStarted: number
+      uniqueLearnersCompleted: number
       completionRate: number
     }[],
     chapterCompletion: [] as {
       id: string
       title: string
-      total: number
-      completed: number
+      uniqueLearnersStarted: number
+      uniqueLearnersCompleted: number
       completionRate: number
     }[],
-    quizMasteryDistribution: [] as { label: string; count: number; percentage: number }[],
+    quizPerformance: [] as {
+      quizId: string
+      title: string
+      uniqueLearnersAttempted: number
+      uniqueLearnersMastered: number
+      masteryRate: number
+      attempts: number
+    }[],
     weeklyEngagement: [] as { weekStart: string; activeStudents: number; weekOverWeekChange: number | null }[],
   }
 
@@ -950,10 +1002,7 @@ export default async function StaffDashboardView({
 
   try {
     const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    const recentProgress = await payload.find({
-      collection: 'lesson-progress',
-      depth: 0,
-      limit: 5000,
+    const recentProgress = await findAllDocs(payload, 'lesson-progress', {
       where: {
         updatedAt: {
           greater_than: since,
@@ -961,7 +1010,7 @@ export default async function StaffDashboardView({
       },
     })
     const activeUsers = new Set<string>()
-    recentProgress.docs.forEach((doc) => {
+    recentProgress.forEach((doc) => {
       const userValue = (doc as { user?: string | number | { id?: string | number } | null })
         .user
       const id =
@@ -981,28 +1030,13 @@ export default async function StaffDashboardView({
 
 
   try {
-    const lessons = await payload.find({
-      collection: 'lessons',
-      depth: 0,
-      limit: 2000,
-    })
+    const lessons = await findAllDocs(payload, 'lessons')
 
-    const lessonFeedback = await payload.find({
-      collection: 'lesson-feedback',
-      depth: 0,
-      limit: 5000,
-    })
+    const lessonFeedback = await findAllDocs(payload, 'lesson-feedback')
 
-    const progress = await payload.find({
-      collection: 'lesson-progress',
-      depth: 0,
-      limit: 5000,
-    })
+    const progress = await findAllDocs(payload, 'lesson-progress')
 
-    const completed = await payload.find({
-      collection: 'lesson-progress',
-      depth: 0,
-      limit: 5000,
+    const completed = await findAllDocs(payload, 'lesson-progress', {
       where: {
         completed: {
           equals: true,
@@ -1010,14 +1044,10 @@ export default async function StaffDashboardView({
       },
     })
 
-    const questions = await payload.find({
-      collection: 'questions',
-      depth: 0,
-      limit: 5000,
-    })
+    const questions = await findAllDocs(payload, 'questions')
 
     const lessonById = new Map<string, { id: string | number; title: string }>()
-    lessons.docs.forEach((lesson) => {
+    lessons.forEach((lesson) => {
       lessonById.set(String(lesson.id), {
         id: lesson.id,
         title: lesson.title ?? 'Untitled lesson',
@@ -1025,7 +1055,7 @@ export default async function StaffDashboardView({
     })
 
     const progressTotals = new Map<string, number>()
-    progress.docs.forEach((doc) => {
+    progress.forEach((doc) => {
       const lessonValue = (doc as { lesson?: string | { id?: string | number } }).lesson
       const id =
         typeof lessonValue === 'string'
@@ -1038,7 +1068,7 @@ export default async function StaffDashboardView({
     })
 
     const progressCompleted = new Map<string, number>()
-    completed.docs.forEach((doc) => {
+    completed.forEach((doc) => {
       const lessonValue = (doc as { lesson?: string | { id?: string | number } }).lesson
       const id =
         typeof lessonValue === 'string'
@@ -1051,7 +1081,7 @@ export default async function StaffDashboardView({
     })
 
     const questionTotals = new Map<string, number>()
-    questions.docs.forEach((doc) => {
+    questions.forEach((doc) => {
       const lessonValue = (doc as { lesson?: string | { id?: string | number } }).lesson
       const id =
         typeof lessonValue === 'string'
@@ -1092,7 +1122,7 @@ export default async function StaffDashboardView({
     }
 
     const feedbackTotals = new Map<string, { sum: number; count: number }>()
-    lessonFeedback.docs.forEach((doc) => {
+    lessonFeedback.forEach((doc) => {
       const lessonValue = (doc as {
         lesson?: string | number | { id?: string | number } | null
         rating?: unknown
@@ -1144,7 +1174,7 @@ export default async function StaffDashboardView({
     reporting = {
       classCompletion: [],
       chapterCompletion: [],
-      quizMasteryDistribution: [],
+      quizPerformance: [],
       weeklyEngagement: [],
     }
   }

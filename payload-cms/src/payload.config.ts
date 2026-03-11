@@ -29,6 +29,13 @@ import { Feedback } from './collections/Feedback'
 import { LessonFeedback } from './collections/LessonFeedback'
 import { Classrooms } from './collections/Classrooms'
 import { ClassroomMemberships } from './collections/ClassroomMemberships'
+import { Organizations } from './collections/Organizations'
+import { ReportingPeriods } from './collections/ReportingPeriods'
+import { RpprReports } from './collections/RpprReports'
+import { ReportingSnapshots } from './collections/ReportingSnapshots'
+import { ReportingAuditEvents } from './collections/ReportingAuditEvents'
+import { ReportingSavedViews } from './collections/ReportingSavedViews'
+import { ReportingEvidenceLinks } from './collections/ReportingEvidenceLinks'
 import { AdminHelp } from './globals/AdminHelp'
 import { Footer } from './globals/Footer'
 import { SiteBranding } from './globals/SiteBranding'
@@ -41,6 +48,9 @@ import { confirmEmailHandler, requestEmailConfirmationHandler } from './endpoint
 import { logoutAllSessionsHandler } from './endpoints/logoutAll'
 import { accountsMeHandler } from './endpoints/accountsMe'
 import { reportingSummaryHandler } from './endpoints/reportingSummary'
+import { nsfRpprSummaryHandler } from './endpoints/nsfRpprSummary'
+import { reportingCenterHandler } from './endpoints/reportingCenter'
+import { metricDefinitionsHandler } from './endpoints/metricDefinitions'
 import { emailPreviewHandler } from './endpoints/emailPreview'
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
@@ -349,6 +359,13 @@ export default buildConfig({
     Pages,
     Classrooms,
     ClassroomMemberships,
+    Organizations,
+    ReportingPeriods,
+    RpprReports,
+    ReportingSnapshots,
+    ReportingAuditEvents,
+    ReportingSavedViews,
+    ReportingEvidenceLinks,
     Accounts,
     Users,
     Media,
@@ -448,6 +465,21 @@ export default buildConfig({
       path: '/analytics/reporting-summary',
       method: 'get',
       handler: reportingSummaryHandler,
+    },
+    {
+      path: '/analytics/nsf-rppr',
+      method: 'get',
+      handler: nsfRpprSummaryHandler,
+    },
+    {
+      path: '/analytics/reporting-center',
+      method: 'get',
+      handler: reportingCenterHandler,
+    },
+    {
+      path: '/analytics/metric-definitions',
+      method: 'get',
+      handler: metricDefinitionsHandler,
     },
   ],
 })
