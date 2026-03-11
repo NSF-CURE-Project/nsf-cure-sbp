@@ -15,6 +15,7 @@ type PeriodDoc = {
 
 const run = async () => {
   const payload = await getPayload({ config: configPromise })
+  const payloadAny = payload as any
 
   const periodId = process.env.REPORTING_PERIOD_ID
   const startDate = process.env.REPORTING_START_DATE
@@ -22,7 +23,7 @@ const run = async () => {
 
   const periods: PeriodDoc[] = []
   if (periodId) {
-    const period = await payload.findByID({
+    const period = await payloadAny.findByID({
       collection: 'reporting-periods',
       id: periodId,
       depth: 0,
@@ -38,7 +39,7 @@ const run = async () => {
       endDate,
     })
   } else {
-    const active = await payload.find({
+    const active = await payloadAny.find({
       collection: 'reporting-periods',
       depth: 0,
       limit: 50,
