@@ -28,6 +28,12 @@ const parseFilters = (query: Record<string, unknown> | undefined) => ({
   transfer: toBool(query?.transfer),
 })
 
+const parsePeriodId = (value: unknown): number | null => {
+  if (typeof value !== 'string' || !value.trim()) return null
+  const parsed = Number(value)
+  return Number.isInteger(parsed) ? parsed : null
+}
+
 export const reportingCenterHandler: PayloadHandler = async (req) => {
   if (!isReportingStaff(req)) {
     return Response.json({ error: 'Not authorized.' }, { status: 403 })
@@ -49,13 +55,14 @@ export const reportingCenterHandler: PayloadHandler = async (req) => {
 
     const mode = req.query?.mode === 'internal' ? 'internal' : 'rppr'
     const filters = parseFilters(req.query as Record<string, unknown> | undefined)
+    const reportingPeriodId = parsePeriodId(req.query?.periodId)
     const action = typeof req.query?.action === 'string' ? req.query.action : 'summary'
 
     if (action === 'create-snapshot') {
       const result = await createReportingSnapshot(req.payload, req, {
         mode,
         period,
-        reportingPeriodId: typeof req.query?.periodId === 'string' ? req.query.periodId : null,
+        reportingPeriodId,
         filters,
         label: typeof req.query?.label === 'string' ? req.query.label : null,
         reuseIfUnchanged: req.query?.reuseIfUnchanged !== 'false',
@@ -125,7 +132,7 @@ export const reportingCenterHandler: PayloadHandler = async (req) => {
         data: {
           label,
           reportType: period.reportType,
-          reportingPeriod: typeof req.query?.periodId === 'string' ? req.query.periodId : undefined,
+          reportingPeriod: reportingPeriodId ?? undefined,
           startDate: period.startDate,
           endDate: period.endDate,
           filters,

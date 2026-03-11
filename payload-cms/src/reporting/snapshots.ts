@@ -40,7 +40,15 @@ export const createReportingSnapshot = async (
   const snapshotInput = {
     label: input.label ?? undefined,
     reportType: summary.reportMeta.reportType,
-    reportingPeriod: input.reportingPeriodId ?? undefined,
+    reportingPeriod:
+      typeof input.reportingPeriodId === 'number'
+        ? input.reportingPeriodId
+        : typeof input.reportingPeriodId === 'string' && input.reportingPeriodId.trim()
+          ? (() => {
+              const parsed = Number(input.reportingPeriodId)
+              return Number.isInteger(parsed) ? parsed : undefined
+            })()
+          : undefined,
     periodStart: summary.reportMeta.period?.startDate ?? input.period.startDate,
     periodEnd: summary.reportMeta.period?.endDate ?? input.period.endDate,
     filterScope: summary.reportMeta.filters,
@@ -76,7 +84,7 @@ export const createReportingSnapshot = async (
       await createReportingAuditEvent(req, {
         eventType: 'snapshot_reused',
         reportType: summary.reportMeta.reportType,
-        reportingPeriod: input.reportingPeriodId ?? null,
+        reportingPeriod: snapshotInput.reportingPeriod ?? null,
         periodStart: summary.reportMeta.period?.startDate ?? null,
         periodEnd: summary.reportMeta.period?.endDate ?? null,
         filters: summary.reportMeta.filters,
@@ -106,7 +114,7 @@ export const createReportingSnapshot = async (
   await createReportingAuditEvent(req, {
     eventType: 'snapshot_created',
     reportType: summary.reportMeta.reportType,
-    reportingPeriod: input.reportingPeriodId ?? null,
+    reportingPeriod: snapshotInput.reportingPeriod ?? null,
     periodStart: summary.reportMeta.period?.startDate ?? null,
     periodEnd: summary.reportMeta.period?.endDate ?? null,
     filters: summary.reportMeta.filters,
