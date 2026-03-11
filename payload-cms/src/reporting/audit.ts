@@ -33,6 +33,15 @@ export const createReportingAuditEvent = async (
               return Number.isInteger(parsed) ? parsed : undefined
             })()
           : undefined
+    const snapshotId =
+      typeof input.snapshot === 'number'
+        ? input.snapshot
+        : typeof input.snapshot === 'string' && input.snapshot.trim()
+          ? (() => {
+              const parsed = Number(input.snapshot)
+              return Number.isInteger(parsed) ? parsed : undefined
+            })()
+          : undefined
 
     await req.payload.create({
       collection: 'reporting-audit-events',
@@ -46,7 +55,7 @@ export const createReportingAuditEvent = async (
         exportType: input.exportType,
         exportFormat: input.exportFormat,
         metricKey: input.metricKey,
-        snapshot: input.snapshot ?? undefined,
+        snapshot: snapshotId,
         notes: input.notes,
       },
       overrideAccess: true,
