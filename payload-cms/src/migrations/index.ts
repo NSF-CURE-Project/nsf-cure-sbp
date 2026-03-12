@@ -10,6 +10,7 @@ import * as migration_20260304_000000_add_lesson_bookmarks_rel_columns from './2
 import * as migration_20260310_060000_add_site_branding_and_footer_nsf from './20260310_060000_add_site_branding_and_footer_nsf';
 import * as migration_20260311_000000_add_reporting_snapshot_reproducibility_key from './20260311_000000_add_reporting_snapshot_reproducibility_key';
 import * as migration_20260311_010000_add_reporting_rel_columns from './20260311_010000_add_reporting_rel_columns';
+import * as migration_20260312_000000_create_reporting_tables from './20260312_000000_create_reporting_tables';
 
 export const migrations = [
   {
@@ -71,5 +72,10 @@ export const migrations = [
     up: migration_20260311_010000_add_reporting_rel_columns.up,
     down: migration_20260311_010000_add_reporting_rel_columns.down,
     name: '20260311_010000_add_reporting_rel_columns',
+  },
+  {
+    up: migration_20260312_000000_create_reporting_tables.up,
+    down: migration_20260312_000000_create_reporting_tables.down,
+    name: '20260312_000000_create_reporting_tables',
   },
 ];

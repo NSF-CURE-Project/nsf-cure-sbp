@@ -67,6 +67,24 @@ const formatTrendValue = (metricKey: string, value: number | null) => {
   return String(Math.round(value))
 }
 
+const isMissingRelationError = (error: unknown): boolean => {
+  if (!error || typeof error !== 'object') return false
+
+  const maybeError = error as { message?: unknown; cause?: unknown }
+  const message =
+    typeof maybeError.message === 'string'
+      ? maybeError.message
+      : maybeError instanceof Error
+        ? maybeError.message
+        : ''
+  const causeCode =
+    maybeError.cause && typeof maybeError.cause === 'object' && 'code' in maybeError.cause
+      ? (maybeError.cause as { code?: unknown }).code
+      : undefined
+
+  return message.includes('does not exist') || causeCode === '42P01'
+}
+
 export default async function AdminReportingPage({ searchParams }: Props) {
   const params = searchParams ? await searchParams : {}
   const selectedPeriodId = typeof params.periodId === 'string' ? params.periodId : ''
@@ -76,21 +94,7 @@ export default async function AdminReportingPage({ searchParams }: Props) {
 
   const payload = await getPayload({ config: configPromise })
 
-  const [periods, savedViews, classes, classrooms, professors] = await Promise.all([
-    payload.find({
-      collection: 'reporting-periods',
-      depth: 0,
-      limit: 100,
-      sort: '-startDate',
-      overrideAccess: true,
-    }),
-    payload.find({
-      collection: 'reporting-saved-views',
-      depth: 0,
-      limit: 100,
-      sort: '-updatedAt',
-      overrideAccess: true,
-    }),
+  const [classes, classrooms, professors] = await Promise.all([
     payload.find({
       collection: 'classes',
       depth: 0,
@@ -118,6 +122,35 @@ export default async function AdminReportingPage({ searchParams }: Props) {
       overrideAccess: true,
     }),
   ])
+
+  let setupError: string | null = null
+  let periods: { docs: ReportingPeriodDoc[] } = { docs: [] }
+  let savedViews: { docs: SavedViewDoc[] } = { docs: [] }
+
+  try {
+    const [periodResult, savedViewResult] = await Promise.all([
+      payload.find({
+        collection: 'reporting-periods',
+        depth: 0,
+        limit: 100,
+        sort: '-startDate',
+        overrideAccess: true,
+      }),
+      payload.find({
+        collection: 'reporting-saved-views',
+        depth: 0,
+        limit: 100,
+        sort: '-updatedAt',
+        overrideAccess: true,
+      }),
+    ])
+    periods = { docs: periodResult.docs as ReportingPeriodDoc[] }
+    savedViews = { docs: savedViewResult.docs as SavedViewDoc[] }
+  } catch (error) {
+    if (!isMissingRelationError(error)) throw error
+    setupError =
+      'Reporting tables are not initialized in this database yet. Run Payload reporting migrations, then refresh.'
+  }
 
   const savedView = selectedViewId
     ? (savedViews.docs as SavedViewDoc[]).find((view) => String(view.id) === selectedViewId) ?? null
@@ -248,6 +281,21 @@ export default async function AdminReportingPage({ searchParams }: Props) {
           Period-specific reporting workspace for official exports, drilldowns, data quality checks,
           narrative drafts, and provenance history. Operational dashboard metrics remain separate.
         </p>
+        {setupError ? (
+          <div
+            style={{
+              marginTop: 12,
+              borderRadius: 8,
+              border: '1px solid #fbbf24',
+              background: '#fffbeb',
+              color: '#92400e',
+              padding: '10px 12px',
+              fontSize: 14,
+            }}
+          >
+            {setupError}
+          </div>
+        ) : null}
 
         <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <Link href="/admin/collections/reporting-periods" style={{ textDecoration: 'none' }}>
