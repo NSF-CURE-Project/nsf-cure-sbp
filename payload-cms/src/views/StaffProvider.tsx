@@ -2765,7 +2765,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           font-weight: 600;
           color: var(--cpp-muted);
           letter-spacing: 0.02em;
-          margin: 32px 0 24px;
+          margin: 32px 0 0;
+          padding-bottom: max(84px, env(safe-area-inset-bottom));
         }
       `}</style>
       {role === 'staff' ? (
