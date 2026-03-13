@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 
 type CourseTree = {
@@ -25,41 +25,78 @@ type CourseCardListProps = {
 
 const cppInk = 'var(--cpp-ink)'
 
-const courseCardStyle: React.CSSProperties = {
-  borderRadius: 0,
+const panelStyle: React.CSSProperties = {
+  borderRadius: 12,
   border: '1px solid var(--admin-surface-border)',
   background: 'var(--admin-surface)',
-  padding: '16px',
   boxShadow: 'var(--admin-shadow)',
+}
+
+const courseCardStyle: React.CSSProperties = {
+  ...panelStyle,
+  padding: '16px 16px 14px',
   cursor: 'grab',
 }
 
 const chapterCardStyle: React.CSSProperties = {
-  borderRadius: 0,
+  borderRadius: 10,
   border: '1px solid var(--admin-surface-border)',
-  background: 'var(--admin-surface-muted)',
-  padding: '10px 14px',
+  background: '#fbfcff',
+  padding: '10px 12px',
 }
 
 const actionChipStyle: React.CSSProperties = {
-  borderRadius: 0,
-  padding: '6px 10px',
+  borderRadius: 9,
+  padding: '7px 11px',
   fontSize: 12,
   fontWeight: 600,
-  background: 'var(--admin-surface-muted)',
+  background: '#f8fafc',
   color: cppInk,
   border: '1px solid var(--admin-surface-border)',
 }
 
 const primaryActionStyle: React.CSSProperties = {
   ...actionChipStyle,
-  background: 'var(--admin-chip-primary-bg)',
-  color: 'var(--admin-chip-primary-text)',
-  borderColor: 'var(--admin-surface-border)',
+  background: '#111827',
+  color: '#f8fafc',
+  borderColor: '#111827',
+}
+
+const subtleBadgeStyle: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 700,
+  color: 'var(--cpp-muted)',
+  borderRadius: 999,
+  border: '1px solid var(--admin-surface-border)',
+  background: '#f8fafc',
+  padding: '4px 8px',
+}
+
+const lessonRowStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0,1fr) auto',
+  alignItems: 'center',
+  gap: 10,
+  border: '1px solid var(--admin-surface-border)',
+  borderRadius: 8,
+  background: '#ffffff',
+  padding: '8px 10px',
+}
+
+const lessonActionStyle: React.CSSProperties = {
+  borderRadius: 7,
+  border: '1px solid var(--admin-surface-border)',
+  background: '#f8fafc',
+  color: cppInk,
+  padding: '5px 8px',
+  fontSize: 11,
+  fontWeight: 700,
+  textDecoration: 'none',
 }
 
 export default function CourseCardList({ initialCourses }: CourseCardListProps) {
   const [courses, setCourses] = useState<CourseTree[]>(initialCourses)
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('all')
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [draggingChapterId, setDraggingChapterId] = useState<string | null>(null)
   const [isSavingOrder, setIsSavingOrder] = useState(false)
@@ -71,6 +108,20 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
     chapters: CourseTree['chapters']
   } | null>(null)
   const previousCoursesRef = useRef<CourseTree[]>(initialCourses)
+
+  const courseLessonCount = useMemo(() => {
+    return new Map(
+      courses.map((course) => [
+        String(course.id),
+        course.chapters.reduce((sum, chapter) => sum + chapter.lessons.length, 0),
+      ]),
+    )
+  }, [courses])
+
+  const visibleCourses = useMemo(() => {
+    if (selectedCourseId === 'all') return courses
+    return courses.filter((course) => String(course.id) === selectedCourseId)
+  }, [courses, selectedCourseId])
 
   const persistClassOrder = async (nextCourses: CourseTree[]) => {
     if (!nextCourses.length) return
@@ -178,10 +229,10 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
     return (
       <div
         style={{
-          borderRadius: 0,
+          borderRadius: 12,
           border: '1px dashed rgba(15, 23, 42, 0.2)',
           background: '#f8fafc',
-          padding: '14px 16px',
+          padding: '18px 16px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -189,12 +240,12 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
           flexWrap: 'wrap',
         }}
       >
-        <div style={{ fontSize: 12, color: '#64748b' }}>
-          No classes yet. Create your first class to get started.
+        <div style={{ fontSize: 13, color: '#64748b' }}>
+          No courses yet. Create your first course to begin building curriculum.
         </div>
         <Link href="/admin/collections/classes/create" style={{ textDecoration: 'none' }}>
           <div style={primaryActionStyle} className="dashboard-chip">
-            Create first class
+            Create first course
           </div>
         </Link>
       </div>
@@ -203,74 +254,97 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
+      {selectedCourseId !== 'all' ? (
+        <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+          Showing 1 of {courses.length} courses.
+        </div>
+      ) : null}
+
       <div
         style={{
-          borderRadius: 0,
-          border: '1px solid var(--admin-surface-border)',
-          background: 'var(--admin-surface)',
-          padding: '16px',
-          boxShadow: 'var(--admin-shadow)',
+          ...panelStyle,
+          padding: '12px 14px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: 12,
+          gap: 10,
           flexWrap: 'wrap',
+          background: '#fbfcff',
         }}
       >
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: cppInk }}>Quiz Bank</div>
-          <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
-            Manage assessments, reuse questions, and assign quizzes to lessons.
+        <div style={{ display: 'grid', gap: 10, minWidth: 260 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <label
+              htmlFor="course-filter"
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: 'var(--cpp-muted)',
+              }}
+            >
+              Show
+            </label>
+            <select
+              id="course-filter"
+              value={selectedCourseId}
+              onChange={(event) => setSelectedCourseId(event.target.value)}
+              style={{
+                borderRadius: 9,
+                border: '1px solid var(--admin-surface-border)',
+                background: '#ffffff',
+                color: cppInk,
+                fontSize: 12,
+                fontWeight: 600,
+                padding: '7px 10px',
+                minWidth: 210,
+              }}
+            >
+              <option value="all">All courses</option>
+              {courses.map((course) => (
+                <option key={String(course.id)} value={String(course.id)}>
+                  {course.title}
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
-        <Link href="/admin/quiz-bank" style={{ textDecoration: 'none' }}>
-          <div style={primaryActionStyle} className="dashboard-chip">
-            Open Quiz Bank
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              fontSize: 12,
+              color: 'var(--cpp-muted)',
+            }}
+          >
+            <span style={{ fontSize: 13 }}>↕</span>
+            <span>Drag a course card to reorder courses site-wide.</span>
           </div>
-        </Link>
-      </div>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12,
-          flexWrap: 'wrap',
-        }}
-      >
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            fontSize: 12,
-            color: 'var(--cpp-muted)',
-            border: '1px dashed var(--admin-surface-border)',
-            background: 'var(--admin-surface-muted)',
-            padding: '8px 10px',
-            borderRadius: 0,
-            width: 'fit-content',
-          }}
-        >
-          <span style={{ fontWeight: 700 }}>Tip</span>
-          <span>Drag a course card to reorder classes across the site.</span>
-        </div>
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            fontSize: 12,
-            color: 'var(--cpp-muted)',
-            border: '1px dashed var(--admin-surface-border)',
-            background: 'var(--admin-surface-muted)',
-            padding: '8px 10px',
-            borderRadius: 0,
-            width: 'fit-content',
-          }}
-        >
-          <span style={{ fontWeight: 700 }}>Tip</span>
-          <span>Drag chapter cards to reorder chapters inside a course.</span>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              fontSize: 12,
+              color: 'var(--cpp-muted)',
+            }}
+          >
+            <span style={{ fontSize: 13 }}>↕</span>
+            <span>Drag a course card to reorder courses site-wide.</span>
+          </div>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              fontSize: 12,
+              color: 'var(--cpp-muted)',
+            }}
+          >
+            <span style={{ fontSize: 13 }}>≡</span>
+            <span>Drag chapter cards to reorder chapters within each course.</span>
+          </div>
         </div>
         <Link href="/admin/collections/classes/create" style={{ textDecoration: 'none' }}>
           <div style={primaryActionStyle} className="dashboard-chip">
@@ -278,14 +352,16 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
           </div>
         </Link>
       </div>
+
       {isSavingOrder ? (
         <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Saving course order…</div>
       ) : null}
       {isSavingChapterOrder ? (
         <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Saving chapter order…</div>
       ) : null}
-      {courses.map((course) => (
-        <div
+
+      {visibleCourses.map((course) => (
+        <section
           key={String(course.id)}
           style={courseCardStyle}
           className="dashboard-panel"
@@ -301,13 +377,22 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
               justifyContent: 'space-between',
               gap: 12,
               flexWrap: 'wrap',
+              alignItems: 'center',
             }}
           >
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: cppInk }}>{course.title}</div>
-              <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
-                {course.chapters.length} chapter
-                {course.chapters.length === 1 ? '' : 's'}
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cpp-muted)', fontWeight: 700 }}>
+                Course
+              </div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: cppInk, marginTop: 4 }}>{course.title}</div>
+              <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <span style={subtleBadgeStyle}>
+                  {course.chapters.length} chapter{course.chapters.length === 1 ? '' : 's'}
+                </span>
+                <span style={subtleBadgeStyle}>
+                  {courseLessonCount.get(String(course.id)) ?? 0} lesson
+                  {(courseLessonCount.get(String(course.id)) ?? 0) === 1 ? '' : 's'}
+                </span>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -329,10 +414,11 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
               </Link>
             </div>
           </div>
-          <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
+
+          <div style={{ marginTop: 12, display: 'grid', gap: 10, paddingLeft: 6 }}>
             {course.chapters.length ? (
               course.chapters.map((chapter) => (
-                <div
+                <article
                   key={String(chapter.id)}
                   style={chapterCardStyle}
                   draggable
@@ -347,16 +433,16 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
                       justifyContent: 'space-between',
                       gap: 12,
                       flexWrap: 'wrap',
+                      alignItems: 'center',
                     }}
                   >
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: cppInk }}>
-                        {chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}: ` : ''}
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: cppInk }}>
+                        {chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}: ` : 'Chapter: '}
                         {chapter.title}
                       </div>
-                      <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
-                        {chapter.lessons.length} lesson
-                        {chapter.lessons.length === 1 ? '' : 's'}
+                      <div style={{ marginTop: 5, fontSize: 12, color: 'var(--cpp-muted)' }}>
+                        {chapter.lessons.length} lesson{chapter.lessons.length === 1 ? '' : 's'}
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -380,43 +466,40 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
                       </Link>
                     </div>
                   </div>
+
                   <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>
                     {chapter.lessons.length ? (
                       chapter.lessons.map((lesson) => {
-                        const quizLabel = lesson.quizTitle ?? 'None'
-                        const actionLabel = lesson.quizTitle ? 'Change' : 'Add'
+                        const hasQuiz = Boolean(lesson.quizTitle)
+                        const quizLabel = hasQuiz ? lesson.quizTitle : 'Not assigned'
+                        const actionLabel = hasQuiz ? 'Change quiz' : 'Assign quiz'
                         return (
-                          <div
-                            key={String(lesson.id)}
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              gap: 12,
-                            }}
-                          >
-                            <Link
-                              href={`/admin/collections/lessons/${lesson.id}`}
-                              style={{
-                                textDecoration: 'none',
-                                color: cppInk,
-                                fontSize: 12,
-                                fontWeight: 600,
-                              }}
-                            >
-                              {lesson.title}
-                            </Link>
-                            <div style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>
-                              Quiz: {quizLabel}{' '}
+                          <div key={String(lesson.id)} style={lessonRowStyle}>
+                            <div style={{ minWidth: 0 }}>
                               <Link
                                 href={`/admin/collections/lessons/${lesson.id}`}
                                 style={{
-                                  color: 'var(--cpp-ink)',
-                                  fontWeight: 600,
                                   textDecoration: 'none',
-                                  marginLeft: 6,
+                                  color: cppInk,
+                                  fontSize: 13,
+                                  fontWeight: 700,
+                                  display: 'block',
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
                                 }}
                               >
+                                {lesson.title}
+                              </Link>
+                              <div style={{ marginTop: 3, fontSize: 11, color: 'var(--cpp-muted)' }}>
+                                Quiz: {quizLabel}
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <Link href={`/admin/collections/lessons/${lesson.id}`} style={lessonActionStyle}>
+                                Edit lesson
+                              </Link>
+                              <Link href={`/admin/collections/lessons/${lesson.id}`} style={lessonActionStyle}>
                                 {actionLabel}
                               </Link>
                             </div>
@@ -424,19 +507,40 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
                         )
                       })
                     ) : (
-                      <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                        No lessons yet.
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: 'var(--cpp-muted)',
+                          border: '1px dashed var(--admin-surface-border)',
+                          borderRadius: 8,
+                          padding: '8px 10px',
+                          background: '#ffffff',
+                        }}
+                      >
+                        No lessons yet. Add your first lesson to start this chapter.
                       </div>
                     )}
                   </div>
-                </div>
+                </article>
               ))
             ) : (
-              <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>No chapters yet.</div>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: 'var(--cpp-muted)',
+                  border: '1px dashed var(--admin-surface-border)',
+                  borderRadius: 8,
+                  padding: '10px 12px',
+                  background: '#fbfcff',
+                }}
+              >
+                No chapters yet. Add a chapter to structure this course.
+              </div>
             )}
           </div>
-        </div>
+        </section>
       ))}
+
       {confirmOpen ? (
         <div
           style={{
@@ -454,17 +558,15 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
             style={{
               width: 'min(92vw, 420px)',
               background: '#ffffff',
-              borderRadius: 0,
+              borderRadius: 12,
               border: '1px solid rgba(15, 23, 42, 0.16)',
               boxShadow: '0 20px 40px rgba(15, 23, 42, 0.2)',
               padding: 18,
             }}
           >
-            <div style={{ fontSize: 16, fontWeight: 700, color: cppInk }}>
-              Save new course order?
-            </div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: cppInk }}>Save new order?</div>
             <p style={{ marginTop: 6, fontSize: 13, color: '#64748b' }}>
-              This will update the class order shown across the site.
+              This updates the display order used across the curriculum builder.
             </p>
             <div
               style={{
@@ -479,7 +581,7 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
                 onClick={handleCancel}
                 style={{
                   padding: '8px 12px',
-                  borderRadius: 0,
+                  borderRadius: 8,
                   border: '1px solid rgba(15, 23, 42, 0.16)',
                   background: '#f8fafc',
                   fontWeight: 600,
@@ -493,8 +595,8 @@ export default function CourseCardList({ initialCourses }: CourseCardListProps) 
                 onClick={handleConfirm}
                 style={{
                   padding: '8px 12px',
-                  borderRadius: 0,
-                  border: '1px solid rgba(15, 23, 42, 0.16)',
+                  borderRadius: 8,
+                  border: '1px solid #0f172a',
                   background: '#0f172a',
                   color: '#f8fafc',
                   fontWeight: 700,
