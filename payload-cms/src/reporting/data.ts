@@ -1,5 +1,6 @@
 import type { Payload } from 'payload'
 import { buildPeriodWhere, mergeWhere, resolveReportingPeriod, type ReportingPeriod } from './period'
+import { isMissingColumnError, isSchemaMismatchError } from './schema'
 
 type PayloadFindResult = {
   docs: unknown[]
@@ -23,6 +24,8 @@ export const findAllDocs = async (
     sort?: string
     depth?: number
     limit?: number
+    failSoftOnSchemaMismatch?: boolean
+    retryWithoutWhereOnMissingColumn?: boolean
   },
 ): Promise<Record<string, unknown>[]> => {
   const find = payload.find as unknown as PayloadFindFn
@@ -30,16 +33,58 @@ export const findAllDocs = async (
   let page = 1
   let hasNextPage = true
   const limit = options?.limit ?? 500
+  const failSoftOnSchemaMismatch = options?.failSoftOnSchemaMismatch ?? true
 
   while (hasNextPage) {
-    const result = await find({
-      collection,
-      depth: options?.depth ?? 0,
-      limit,
-      page,
-      sort: options?.sort ?? 'id',
-      where: options?.where,
-    })
+    let result: PayloadFindResult
+    try {
+      result = await find({
+        collection,
+        depth: options?.depth ?? 0,
+        limit,
+        page,
+        sort: options?.sort ?? 'id',
+        where: options?.where,
+      })
+    } catch (error) {
+      const shouldRetryUnfiltered =
+        Boolean(options?.retryWithoutWhereOnMissingColumn && options?.where) &&
+        isMissingColumnError(error)
+      if (shouldRetryUnfiltered) {
+        try {
+          result = await find({
+            collection,
+            depth: options?.depth ?? 0,
+            limit,
+            page,
+            sort: options?.sort ?? 'id',
+          })
+        } catch (retryError) {
+          if (!failSoftOnSchemaMismatch || !isSchemaMismatchError(retryError)) throw retryError
+          payload.logger.warn(
+            {
+              collection,
+              page,
+              err: retryError,
+            },
+            'Reporting query fallback returned empty result because schema is incomplete.',
+          )
+          return docs
+        }
+      } else if (failSoftOnSchemaMismatch && isSchemaMismatchError(error)) {
+        payload.logger.warn(
+          {
+            collection,
+            page,
+            err: error,
+          },
+          'Reporting query returned empty result because schema is incomplete.',
+        )
+        return docs
+      } else {
+        throw error
+      }
+    }
 
     docs.push(...(result.docs as unknown as Record<string, unknown>[]))
     hasNextPage = Boolean(result.hasNextPage)
@@ -79,11 +124,24 @@ export const resolvePeriodFromQuery = async (
         })()
       : null
   if (periodId) {
-    const periodDoc = await payload.findByID({
-      collection: 'reporting-periods',
-      id: periodId,
-      depth: 0,
-    })
+    let periodDoc: unknown
+    try {
+      periodDoc = await payload.findByID({
+        collection: 'reporting-periods',
+        id: periodId,
+        depth: 0,
+      })
+    } catch (error) {
+      if (!isSchemaMismatchError(error)) throw error
+      payload.logger.warn(
+        {
+          periodId,
+          err: error,
+        },
+        'Unable to resolve reporting period because schema is incomplete.',
+      )
+      throw error
+    }
 
     return resolveReportingPeriod({
       startDate: String((periodDoc as { startDate?: string }).startDate ?? ''),
