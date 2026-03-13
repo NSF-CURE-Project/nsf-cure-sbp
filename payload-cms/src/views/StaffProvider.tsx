@@ -15,6 +15,143 @@ type AdminUser = {
   last_name?: string
 }
 
+type BreadcrumbItem = {
+  label: string
+  href: string | null
+}
+
+const routeLabelOverrides: Record<string, string> = {
+  admin: 'Dashboard',
+  account: 'Account',
+  collections: 'Collections',
+  globals: 'Globals',
+  reporting: 'NSF Reporting',
+  help: 'Help',
+  settings: 'Settings',
+  versions: 'Versions',
+  upload: 'Upload',
+  create: 'Create',
+  edit: 'Edit',
+  preview: 'Preview',
+  'quiz-bank': 'Quiz Bank',
+  'site-management': 'Site Management',
+  courses: 'Manage Courses',
+}
+
+const collectionLabelOverrides: Record<string, string> = {
+  users: 'Users',
+  accounts: 'Accounts',
+  media: 'Media',
+  pages: 'Pages',
+  classes: 'Classes',
+  chapters: 'Chapters',
+  lessons: 'Lessons',
+  quizzes: 'Quizzes',
+  'quiz-questions': 'Quiz Questions',
+  'quiz-attempts': 'Quiz Attempts',
+  notifications: 'Notifications',
+  feedback: 'Feedback',
+  'lesson-feedback': 'Lesson Feedback',
+  'lesson-progress': 'Lesson Progress',
+  'lesson-bookmarks': 'Lesson Bookmarks',
+  classrooms: 'Classrooms',
+  'classroom-memberships': 'Classroom Memberships',
+  organizations: 'Organizations',
+  'reporting-periods': 'Reporting Periods',
+  'rppr-reports': 'RPPR Reports',
+  'reporting-snapshots': 'Reporting Snapshots',
+  'reporting-audit-events': 'Reporting Audit Events',
+  'reporting-saved-views': 'Reporting Saved Views',
+  'reporting-evidence-links': 'Reporting Evidence Links',
+  'reporting-product-records': 'Reporting Product Records',
+}
+
+const globalLabelOverrides: Record<string, string> = {
+  footer: 'Footer',
+  'site-branding': 'Site Branding',
+  'admin-help': 'Help Portal',
+}
+
+const formatSegmentLabel = (segment: string): string => {
+  if (routeLabelOverrides[segment]) return routeLabelOverrides[segment]
+  return segment
+    .split(/[-_]/g)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+const isLikelyRecordId = (segment: string): boolean => {
+  if (/^\d+$/.test(segment)) return true
+  if (/^[a-f0-9]{24}$/i.test(segment)) return true
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(segment))
+    return true
+  return false
+}
+
+const getAdminBreadcrumbs = (pathname: string): BreadcrumbItem[] => {
+  if (!pathname.startsWith('/admin')) return []
+  const parts = pathname.split('/').filter(Boolean)
+  const breadcrumbs: BreadcrumbItem[] = [{ label: 'Dashboard', href: '/admin' }]
+
+  if (parts.length <= 1) return breadcrumbs
+
+  if (parts[1] === 'collections') {
+    breadcrumbs.push({ label: 'Collections', href: '/admin/collections' })
+    const collectionSlug = parts[2]
+    if (collectionSlug) {
+      breadcrumbs.push({
+        label: collectionLabelOverrides[collectionSlug] ?? formatSegmentLabel(collectionSlug),
+        href: `/admin/collections/${collectionSlug}`,
+      })
+    }
+    if (parts[3]) {
+      breadcrumbs.push({
+        label: parts[3] === 'create' ? 'Create' : 'Edit',
+        href: parts[3] === 'create' ? null : `/admin/collections/${collectionSlug}/${parts[3]}`,
+      })
+    }
+    if (parts[4]) {
+      breadcrumbs.push({
+        label: isLikelyRecordId(parts[4]) ? 'Record' : formatSegmentLabel(parts[4]),
+        href: null,
+      })
+      return breadcrumbs
+    }
+    if (breadcrumbs.length > 0) {
+      breadcrumbs[breadcrumbs.length - 1] = { ...breadcrumbs[breadcrumbs.length - 1], href: null }
+    }
+    return breadcrumbs
+  }
+
+  if (parts[1] === 'globals') {
+    breadcrumbs.push({ label: 'Globals', href: '/admin/globals' })
+    const globalSlug = parts[2]
+    if (globalSlug) {
+      breadcrumbs.push({
+        label: globalLabelOverrides[globalSlug] ?? formatSegmentLabel(globalSlug),
+        href: null,
+      })
+    } else {
+      breadcrumbs[breadcrumbs.length - 1] = { ...breadcrumbs[breadcrumbs.length - 1], href: null }
+    }
+    return breadcrumbs
+  }
+
+  let href = '/admin'
+  for (let i = 1; i < parts.length; i += 1) {
+    href += `/${parts[i]}`
+    const isLast = i === parts.length - 1
+    const label = isLikelyRecordId(parts[i]) ? 'Details' : formatSegmentLabel(parts[i])
+    breadcrumbs.push({
+      label,
+      href: isLast ? null : href,
+    })
+  }
+
+  return breadcrumbs
+}
+
 const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNode }) => {
   const auth = useAuth()
   const serverUser =
@@ -33,20 +170,14 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     pathname.startsWith('/admin/account') || /\/admin\/collections\/users\/[^/]+/.test(pathname)
   const [theme, setTheme] = useState<ThemeMode>('light')
   const [backHref, setBackHref] = useState<string | null>(null)
-  const [isLoginPage, setIsLoginPage] = useState(() => {
-    if (typeof window === 'undefined') return false
-    return getIsLoginPath(window.location.pathname)
-  })
+  const [isLoginPage, setIsLoginPage] = useState(false)
   const [previewGate, setPreviewGate] = useState<{
     open: boolean
     url: string | null
     loading: boolean
     error: string | null
   }>({ open: false, url: null, loading: false, error: null })
-  const [currentPath, setCurrentPath] = useState(() => {
-    if (typeof window === 'undefined') return ''
-    return window.location.pathname
-  })
+  const [currentPath, setCurrentPath] = useState('/admin')
   const previewGateOpenRef = useRef(false)
   const isMountedRef = useRef(true)
   const pendingPublishRef = useRef<HTMLButtonElement | null>(null)
@@ -62,7 +193,11 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
   const backHrefRef = useRef<string | null>(null)
   const backUpdateTimerRef = useRef<number | null>(null)
   const pathStackRef = useRef<string[]>([])
-  const userMenuRef = useRef<HTMLDetailsElement | null>(null)
+  const userMenuRef = useRef<HTMLDivElement | null>(null)
+  const userMenuButtonRef = useRef<HTMLButtonElement | null>(null)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const breadcrumbPath = currentPath || '/admin'
+  const breadcrumbs = useMemo(() => getAdminBreadcrumbs(breadcrumbPath), [breadcrumbPath])
 
   const expandPageLayout = useCallback(() => {
     if (typeof document === 'undefined') return
@@ -169,8 +304,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
   useEffect(() => {
     previewGateOpenRef.current = previewGate.open
   }, [previewGate.open])
-  const isLoginPath =
-    typeof window === 'undefined' ? isLoginPage : getIsLoginPath(window.location.pathname)
+  const isLoginPath = isLoginPage
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return
@@ -193,6 +327,11 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       document.cookie = `payload-theme=${value}; path=/; max-age=31536000`
     }
 
+    if (userTheme === 'auto' || userTheme === 'automatic') {
+      const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches
+      applyTheme(prefersDark ? 'dark' : 'light')
+      return
+    }
     if (userTheme === 'light' || userTheme === 'dark') {
       applyTheme(userTheme)
       return
@@ -201,6 +340,11 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     const stored =
       window.localStorage.getItem('payload-admin-theme') ??
       window.localStorage.getItem('payload-theme')
+    if (stored === 'auto' || stored === 'automatic') {
+      const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches
+      applyTheme(prefersDark ? 'dark' : 'light')
+      return
+    }
     if (stored === 'light' || stored === 'dark') {
       applyTheme(stored)
       return
@@ -350,18 +494,27 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
     const handleOutsidePointer = (event: PointerEvent) => {
       const menu = userMenuRef.current
-      if (!menu || !menu.open) return
+      if (!menu || !isUserMenuOpen) return
       const target = event.target
       if (!(target instanceof Node)) return
       if (menu.contains(target)) return
-      menu.open = false
+      setIsUserMenuOpen(false)
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      if (!isUserMenuOpen) return
+      setIsUserMenuOpen(false)
+      userMenuButtonRef.current?.focus()
     }
 
     document.addEventListener('pointerdown', handleOutsidePointer)
+    document.addEventListener('keydown', handleEscape)
     return () => {
       document.removeEventListener('pointerdown', handleOutsidePointer)
+      document.removeEventListener('keydown', handleEscape)
     }
-  }, [])
+  }, [isUserMenuOpen])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -521,32 +674,6 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     }
   }, [getStatusStorageKey, role])
 
-  const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark'
-    setTheme(next)
-    if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', next)
-    }
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('payload-admin-theme', next)
-      window.localStorage.setItem('payload-theme', next)
-    }
-    if (userId) {
-      fetch(`/api/users/${userId}`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ adminTheme: next }),
-      }).catch(() => undefined)
-    }
-  }
-
-  const themeLabel = useMemo(
-    () => (theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'),
-    [theme],
-  )
   const initials = useMemo(() => {
     const userInfo = user ?? {}
     const first = userInfo.firstName?.trim() ?? userInfo.first_name?.trim()
@@ -575,36 +702,31 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     const name = [first, last].filter(Boolean).join(' ')
     return name || userInfo.email || 'User'
   }, [user])
-  const handleAccountClick = useCallback(
-    async (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.preventDefault()
-      if (typeof window === 'undefined') return
-      let targetId = userId
-      if (!targetId) {
-        try {
-          const res = await fetch('/api/users/me', {
-            credentials: 'include',
-            cache: 'no-store',
-          })
-          if (res.ok) {
-            const data = (await res.json()) as { user?: { id?: string | number } }
-            targetId = data?.user?.id
-          }
-        } catch {
-          targetId = undefined
-        }
-      }
-      if (targetId) {
-        window.location.assign(`/admin/collections/users/${targetId}`)
-        return
-      }
-      window.location.assign('/admin/login?redirect=%2Fadmin%2Faccount')
-    },
-    [userId],
-  )
+  const displayEmail = useMemo(() => {
+    const email = user?.email?.trim()
+    return email && email.length ? email : null
+  }, [user])
+  const userRoleLabel = useMemo(() => {
+    const rawRole = String(user?.role ?? '').trim().toLowerCase()
+    if (rawRole === 'admin') return 'SBP Admin'
+    if (rawRole === 'professor') return 'Professor'
+    if (rawRole === 'staff') return 'Staff'
+    if (!rawRole) return 'Team Member'
+    return rawRole.charAt(0).toUpperCase() + rawRole.slice(1)
+  }, [user])
+  const closeUserMenu = useCallback(() => {
+    setIsUserMenuOpen(false)
+  }, [])
+  const handleAccountClick = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    if (typeof window === 'undefined') return
+    closeUserMenu()
+    window.location.assign('/admin/account')
+  }, [closeUserMenu])
   const handleAdminLogout = useCallback(async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     if (typeof window === 'undefined') return
+    closeUserMenu()
     try {
       await fetch('/api/users/logout', {
         method: 'POST',
@@ -613,60 +735,11 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     } finally {
       window.location.assign('/admin/login')
     }
-  }, [])
-
-  const hideAdminThemePreference = () => {
-    if (typeof window === 'undefined' || typeof document === 'undefined') return
-    const path = window.location.pathname
-    if (!path.startsWith('/admin/account') && !/\/admin\/collections\/users\/[^/]+/.test(path)) {
-      return
-    }
-
-    const labels = Array.from(document.querySelectorAll('label, legend, span, h3, h4, p, div'))
-    let hidden = false
-    labels.forEach((el) => {
-      const text = el.textContent?.trim()
-      if (!text || text !== 'Admin Theme') return
-      const container = el.closest(
-        '[data-field="adminTheme"], [data-field-name="adminTheme"], .field, .field-type, .form-field, .preferences__field, .account__field, .card, .group-field, .array-field',
-      )
-      if (container instanceof HTMLElement) {
-        container.style.display = 'none'
-        hidden = true
-      } else if (el instanceof HTMLElement) {
-        el.style.display = 'none'
-        hidden = true
-      }
-    })
-
-    if (hidden) return
-
-    const themeRadios = Array.from(
-      document.querySelectorAll<HTMLInputElement>('input[type="radio"]'),
-    ).filter((input) => ['automatic', 'light', 'dark'].includes(input.value))
-    const container = themeRadios[0]?.closest(
-      '.field, .field-type, .form-field, .preferences__field, .account__field, .card, .group-field, .array-field',
-    )
-    if (container instanceof HTMLElement) {
-      container.style.display = 'none'
-    }
-  }
+  }, [closeUserMenu])
 
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof document === 'undefined') return
-    hideAdminThemePreference()
-    const observer = new MutationObserver(() => hideAdminThemePreference())
-    observer.observe(document.body, { childList: true, subtree: true })
-    return () => observer.disconnect()
-  }, [])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    if (!userId) return
-    if (window.location.pathname === '/admin/account') {
-      window.location.replace(`/admin/collections/users/${userId}`)
-    }
-  }, [userId])
+    setIsUserMenuOpen(false)
+  }, [currentPath])
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return
@@ -2182,40 +2255,6 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           box-shadow: 0 16px 36px rgba(7, 10, 16, 0.45);
         }
 
-        .admin-theme-toggle {
-          position: fixed;
-          right: 22px;
-          bottom: 22px;
-          z-index: 9999;
-          border-radius: 0;
-          border: 1px solid var(--admin-surface-border);
-          background: var(--admin-surface);
-          color: var(--cpp-ink);
-          padding: 10px 14px;
-          font-size: 12px;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          cursor: pointer;
-          box-shadow: var(--admin-shadow);
-          transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
-        }
-
-        .admin-theme-toggle:hover {
-          filter: brightness(0.97);
-          transform: translateY(-1px);
-        }
-
-        .admin-theme-toggle:active {
-          transform: translateY(0);
-        }
-
-        :root[data-theme="dark"] .admin-theme-toggle {
-          background: var(--admin-surface);
-          color: var(--cpp-ink);
-          border-color: var(--admin-surface-border);
-        }
-
         .collection-edit--lessons .collection-edit__main-wrapper {
           display: flex;
           flex-direction: column;
@@ -2285,6 +2324,15 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           padding: 10px 18px;
           background: var(--admin-surface);
           border-bottom: 1px solid var(--admin-surface-border);
+          justify-content: space-between;
+        }
+
+        .admin-topbar-left {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          min-width: 120px;
+          z-index: 1;
         }
 
         .admin-topbar-center {
@@ -2293,22 +2341,67 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           transform: translateX(-50%);
           display: flex;
           align-items: center;
+          justify-content: center;
+          min-width: 0;
+          max-width: calc(100% - 420px);
+          pointer-events: none;
+        }
+
+        .admin-breadcrumbs {
+          display: flex;
+          align-items: center;
+          flex-wrap: nowrap;
+          justify-content: center;
+          gap: 8px;
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          pointer-events: auto;
+        }
+
+        .admin-breadcrumb-link,
+        .admin-breadcrumb-current {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--cpp-muted);
+          text-decoration: none;
+        }
+
+        .admin-breadcrumb-link:hover {
+          color: var(--cpp-ink);
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+
+        .admin-breadcrumb-current {
+          color: var(--cpp-ink);
+          max-width: 320px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .admin-breadcrumb-separator {
+          color: var(--cpp-muted);
+          opacity: 0.65;
+          font-size: 12px;
+          user-select: none;
         }
 
         .admin-topbar-actions {
           display: inline-flex;
           align-items: center;
           gap: 10px;
-          margin-left: auto;
+          margin-left: 0;
+          z-index: 1;
         }
 
-        .admin-user-menu summary {
-          list-style: none;
-          cursor: pointer;
-        }
-
-        .admin-user-menu summary::-webkit-details-marker {
-          display: none;
+        @media (max-width: 920px) {
+          .admin-breadcrumbs {
+            display: none;
+          }
+          .admin-topbar-center {
+            max-width: 0;
+          }
         }
 
         .admin-user-menu {
@@ -2326,6 +2419,24 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           color: var(--cpp-ink);
           font-weight: 600;
           box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+          transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+        }
+
+        .admin-user-button:hover {
+          border-color: rgba(148, 163, 184, 0.45);
+          box-shadow: 0 10px 20px rgba(15, 23, 42, 0.16);
+          background: #fbfdff;
+        }
+
+        .admin-user-button:focus-visible {
+          outline: none;
+          border-color: rgba(59, 130, 246, 0.5);
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .admin-user-menu.is-open .admin-user-button {
+          border-color: rgba(148, 163, 184, 0.5);
+          background: #f8fafc;
         }
 
         .admin-user-avatar {
@@ -2339,6 +2450,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           display: inline-flex;
           align-items: center;
           justify-content: center;
+          flex-shrink: 0;
         }
 
         .admin-user-name {
@@ -2352,29 +2464,113 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         .admin-user-caret {
           width: 14px;
           height: 14px;
-          opacity: 0.7;
+          opacity: 0.72;
+          transition: transform 140ms ease, opacity 140ms ease;
+        }
+
+        .admin-user-menu.is-open .admin-user-caret {
+          transform: rotate(180deg);
+          opacity: 1;
         }
 
         .admin-user-dropdown {
           position: absolute;
-          left: 50%;
-          transform: translateX(-50%);
-          margin-top: 10px;
+          right: 0;
+          top: calc(100% + 10px);
           background: var(--admin-surface);
           border: 1px solid var(--admin-surface-border);
-          border-radius: 8px;
-          padding: 8px;
-          min-width: 180px;
-          box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
+          border-radius: 12px;
+          padding: 10px;
+          width: min(300px, calc(100vw - 22px));
+          box-shadow: 0 18px 36px rgba(15, 23, 42, 0.2);
+          transform-origin: top right;
         }
 
-        .admin-user-dropdown a,
-        .admin-user-dropdown button {
+        .admin-user-menu.is-open .admin-user-dropdown {
+          animation: admin-user-dropdown-enter 140ms ease;
+        }
+
+        @keyframes admin-user-dropdown-enter {
+          from {
+            opacity: 0;
+            transform: translateY(-4px) scale(0.985);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        .admin-user-profile {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 8px;
+          border-radius: 8px;
+          background: #f8fafc;
+        }
+
+        .admin-user-profile-avatar {
+          width: 36px;
+          height: 36px;
+          border-radius: 999px;
+          border: 1px solid var(--admin-surface-border);
+          background: var(--admin-chip-primary-bg);
+          color: var(--admin-chip-primary-text);
+          font-weight: 700;
+          font-size: 13px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .admin-user-profile-meta {
+          min-width: 0;
+          display: grid;
+          gap: 2px;
+        }
+
+        .admin-user-profile-name {
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--cpp-ink);
+          line-height: 1.3;
+        }
+
+        .admin-user-profile-email {
+          font-size: 12px;
+          color: var(--cpp-muted);
+          line-height: 1.35;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .admin-user-role-badge {
+          justify-self: start;
+          margin-top: 2px;
+          font-size: 11px;
+          line-height: 1.2;
+          font-weight: 700;
+          letter-spacing: 0.02em;
+          padding: 3px 8px;
+          border-radius: 999px;
+          color: #1e3a8a;
+          background: rgba(30, 58, 138, 0.12);
+        }
+
+        .admin-user-section {
+          display: grid;
+          gap: 2px;
+        }
+
+        .admin-user-action {
           display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 8px 10px;
-          border-radius: 6px;
+          gap: 10px;
+          padding: 9px 10px;
+          border-radius: 8px;
           color: var(--cpp-ink);
           text-decoration: none;
           font-weight: 600;
@@ -2384,17 +2580,76 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           width: 100%;
           text-align: left;
           cursor: pointer;
+          transition: background 140ms ease, color 140ms ease;
         }
 
-        .admin-user-dropdown a:hover,
-        .admin-user-dropdown button:hover {
+        .admin-user-action:hover {
           background: var(--admin-surface-muted);
+        }
+
+        .admin-user-action:focus-visible {
+          outline: none;
+          background: var(--admin-surface-muted);
+          box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.32);
+        }
+
+        .admin-user-action-icon {
+          width: 16px;
+          height: 16px;
+          flex-shrink: 0;
+          color: var(--cpp-muted);
+        }
+
+        .admin-user-action--danger {
+          color: #a61b1b;
+        }
+
+        .admin-user-action--danger .admin-user-action-icon {
+          color: #a61b1b;
+        }
+
+        .admin-user-action--danger:hover,
+        .admin-user-action--danger:focus-visible {
+          background: rgba(166, 27, 27, 0.1);
         }
 
         .admin-user-divider {
           height: 1px;
           background: var(--admin-surface-border);
-          margin: 6px 4px;
+          margin: 8px 4px;
+        }
+
+        :root[data-theme="dark"] .admin-user-button:hover,
+        :root[data-theme="dark"] .admin-user-menu.is-open .admin-user-button {
+          background: #1a2436;
+        }
+
+        :root[data-theme="dark"] .admin-user-profile {
+          background: rgba(148, 163, 184, 0.14);
+        }
+
+        :root[data-theme="dark"] .admin-user-role-badge {
+          color: #c7d2fe;
+          background: rgba(99, 102, 241, 0.28);
+        }
+
+        :root[data-theme="dark"] .admin-user-action--danger,
+        :root[data-theme="dark"] .admin-user-action--danger .admin-user-action-icon {
+          color: #fda4af;
+        }
+
+        :root[data-theme="dark"] .admin-user-action--danger:hover,
+        :root[data-theme="dark"] .admin-user-action--danger:focus-visible {
+          background: rgba(251, 113, 133, 0.16);
+        }
+
+        @media (max-width: 700px) {
+          .admin-user-name {
+            display: none;
+          }
+          .admin-user-button {
+            padding-right: 8px;
+          }
         }
 
         .doc-controls__controls [aria-label='Preview'],
@@ -2526,7 +2781,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       ) : null}
       {!isLoginPath ? (
         <div className="admin-topbar">
-          <div className="admin-topbar-center">
+          <div className="admin-topbar-left">
             {backHref && currentPath !== '/admin' && currentPath !== '/admin/' ? (
               <button
                 type="button"
@@ -2551,18 +2806,41 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
               </button>
             ) : null}
           </div>
+          <div className="admin-topbar-center">
+            {breadcrumbs.length ? (
+              <div className="admin-breadcrumbs" role="navigation" aria-label="Breadcrumb">
+                {breadcrumbs.map((crumb, index) => (
+                  <React.Fragment key={`${crumb.label}-${index}`}>
+                    {index > 0 ? <span className="admin-breadcrumb-separator">/</span> : null}
+                    {crumb.href ? (
+                      <Link href={crumb.href} className="admin-breadcrumb-link">
+                        {crumb.label}
+                      </Link>
+                    ) : (
+                      <span className="admin-breadcrumb-current" aria-current="page">
+                        {crumb.label}
+                      </span>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            ) : null}
+          </div>
           <div className="admin-topbar-actions">
-            <button
-              type="button"
-              className="admin-theme-toggle"
-              onClick={toggleTheme}
-              aria-pressed={theme === 'dark'}
-              aria-label={themeLabel}
+            <div
+              className={`admin-user-menu${isUserMenuOpen ? ' is-open' : ''}`}
+              ref={userMenuRef}
             >
-              {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-            </button>
-            <details className="admin-user-menu" ref={userMenuRef}>
-              <summary className="admin-user-button" aria-label="User menu">
+              <button
+                type="button"
+                className="admin-user-button"
+                aria-label="User menu"
+                aria-haspopup="menu"
+                aria-expanded={isUserMenuOpen}
+                aria-controls="admin-user-menu-dropdown"
+                onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                ref={userMenuButtonRef}
+              >
                 <span className="admin-user-avatar" aria-hidden="true">
                   {initials}
                 </span>
@@ -2581,35 +2859,100 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                     strokeLinejoin="round"
                   />
                 </svg>
-              </summary>
-              <div className="admin-user-dropdown">
-                <button type="button" onClick={handleAccountClick}>
-                  Your Account
-                </button>
-                <Link href="/admin/help">Help</Link>
-                <div className="admin-user-divider" />
-                <button type="button" onClick={handleAdminLogout}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                    <svg
-                      aria-hidden="true"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+              </button>
+              {isUserMenuOpen ? (
+                <div
+                  id="admin-user-menu-dropdown"
+                  className="admin-user-dropdown"
+                  role="menu"
+                  aria-label="Account menu"
+                >
+                  <div className="admin-user-profile">
+                    <span className="admin-user-profile-avatar" aria-hidden="true">
+                      {initials}
+                    </span>
+                    <div className="admin-user-profile-meta">
+                      <span className="admin-user-profile-name">{displayName}</span>
+                      {displayEmail ? (
+                        <span className="admin-user-profile-email">{displayEmail}</span>
+                      ) : null}
+                      <span className="admin-user-role-badge">{userRoleLabel}</span>
+                    </div>
+                  </div>
+                  <div className="admin-user-divider" />
+                  <div className="admin-user-section">
+                    <button
+                      type="button"
+                      className="admin-user-action"
+                      onClick={handleAccountClick}
+                      role="menuitem"
                     >
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                      <polyline points="16 17 21 12 16 7" />
-                      <line x1="21" y1="12" x2="9" y2="12" />
-                    </svg>
-                    Log out
-                  </span>
-                </button>
-              </div>
-            </details>
+                      <svg
+                        className="admin-user-action-icon"
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                      <span>Your Account</span>
+                    </button>
+                    <Link
+                      href="/admin/help"
+                      className="admin-user-action"
+                      role="menuitem"
+                      onClick={closeUserMenu}
+                    >
+                      <svg
+                        className="admin-user-action-icon"
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2-3 4" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                      </svg>
+                      <span>Help</span>
+                    </Link>
+                  </div>
+                  <div className="admin-user-divider" />
+                  <div className="admin-user-section">
+                    <button
+                      type="button"
+                      className="admin-user-action admin-user-action--danger"
+                      onClick={handleAdminLogout}
+                      role="menuitem"
+                    >
+                      <svg
+                        className="admin-user-action-icon"
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                      <span>Log out</span>
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
       ) : null}

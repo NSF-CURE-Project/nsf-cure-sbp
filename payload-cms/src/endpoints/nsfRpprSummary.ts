@@ -11,6 +11,7 @@ import {
 import { periodToken } from '../reporting/period'
 import { createReportingAuditEvent } from '../reporting/audit'
 import { canAccessLearnerLevelReporting, isReportingStaff } from '../reporting/permissions'
+import { isSchemaMismatchError, schemaRepairHint } from '../reporting/schema'
 
 export const nsfRpprSummaryHandler: PayloadHandler = async (req) => {
   if (!isReportingStaff(req)) {
@@ -172,7 +173,10 @@ export const nsfRpprSummaryHandler: PayloadHandler = async (req) => {
         'Content-Disposition': `attachment; filename="nsf-rppr-overview-${token}.csv"`,
       },
     })
-  } catch {
+  } catch (error) {
+    if (isSchemaMismatchError(error)) {
+      return Response.json({ error: schemaRepairHint }, { status: 503 })
+    }
     return Response.json(
       {
         error: 'Unable to generate NSF RPPR summary.',

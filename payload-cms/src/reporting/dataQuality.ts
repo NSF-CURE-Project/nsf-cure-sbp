@@ -43,6 +43,7 @@ export const getDataQualityPanel = async (
           equals: true,
         },
       },
+      retryWithoutWhereOnMissingColumn: true,
     }),
     findAllDocs(payload, 'classroom-memberships'),
     findAllDocs(payload, 'organizations'),

@@ -55,13 +55,14 @@ export const getNsfrpprSummary = async (
     filters: scope.filters,
   })
 
-  const [participantPool, organizations, narratives, evidenceLinks] = await Promise.all([
+  const [participantPool, organizations, narratives, evidenceLinks, productRecords] = await Promise.all([
     findAllDocs(payload, 'accounts', {
       where: {
         includeInRppr: {
           equals: true,
         },
       },
+      retryWithoutWhereOnMissingColumn: true,
     }),
     findAllDocs(payload, 'organizations'),
     findAllDocs(payload, 'rppr-reports', {
@@ -88,6 +89,15 @@ export const getNsfrpprSummary = async (
           less_than_equal: period.endDate,
         },
       },
+    }),
+    findAllDocs(payload, 'reporting-product-records', {
+      where: {
+        reportedAt: {
+          greater_than_equal: period.startDate,
+          less_than_equal: period.endDate,
+        },
+      },
+      sort: '-reportedAt',
     }),
   ])
 
@@ -205,6 +215,24 @@ export const getNsfrpprSummary = async (
       typeof entry.contributionSummary === 'string' ? entry.contributionSummary : null,
   }))
 
+  const productSupplementalRecords = productRecords.map((entry) => ({
+    id: toId(entry.id) ?? '',
+    title:
+      typeof entry.title === 'string' && entry.title.trim()
+        ? entry.title.trim()
+        : 'Untitled product record',
+    productType: typeof entry.productType === 'string' ? entry.productType : 'other',
+    citation: typeof entry.citation === 'string' ? entry.citation : null,
+    identifier: typeof entry.identifier === 'string' ? entry.identifier : null,
+    url: typeof entry.url === 'string' ? entry.url : null,
+    reportedAt: typeof entry.reportedAt === 'string' ? entry.reportedAt : null,
+    linkedArtifactsCount: Array.isArray(entry.linkedArtifacts) ? entry.linkedArtifacts.length : 0,
+  }))
+  const rpprAttachmentCount =
+    latestNarrative && Array.isArray(latestNarrative.attachments)
+      ? latestNarrative.attachments.length
+      : 0
+
   const completionRateOverall = analytics.classCompletion.length
     ? analytics.classCompletion.reduce((sum, item) => sum + item.completionRate, 0) /
       analytics.classCompletion.length
@@ -224,6 +252,7 @@ export const getNsfrpprSummary = async (
   const productsMissing = [
     analytics.productsInPeriod.total ? null : 'productsInPeriod',
     latestNarrative?.productsNarrative ? null : 'productsNarrative',
+    productSupplementalRecords.length ? null : 'publicationsPatentsDatasetRecords',
     evidenceSummary.bySection.find((entry) => entry.section === 'products')?.count
       ? null
       : 'productsEvidenceLinks',
@@ -250,6 +279,7 @@ export const getNsfrpprSummary = async (
 
   const specialRequirementsMissing = [
     latestNarrative?.specialRequirementsNarrative ? null : 'specialRequirementsNarrative',
+    rpprAttachmentCount ? null : 'programSpecificAttachments',
     evidenceSummary.bySection.find((entry) => entry.section === 'specialRequirements')?.count
       ? null
       : 'specialRequirementsEvidenceLinks',
@@ -328,15 +358,17 @@ export const getNsfrpprSummary = async (
         },
         {
           key: 'publicationsPatentsDatasetRecords',
-          source: 'unsupported',
-          status: 'not_supported',
-          note: 'Dedicated publications/patents dataset records are not modeled yet.',
+          source: 'auto',
+          status: productSupplementalRecords.length ? 'present' : 'missing',
+          note:
+            'Managed via Reporting > Product records for publication/patent/dataset traceability.',
         },
       ],
       missingFields: productsMissing,
       data: {
         artifacts: analytics.productsInPeriod.artifacts,
         productCount: analytics.productsInPeriod.total,
+        supplementalRecords: productSupplementalRecords,
         narrativeDraft:
           typeof latestNarrative?.productsNarrative === 'string'
             ? latestNarrative.productsNarrative
@@ -415,9 +447,10 @@ export const getNsfrpprSummary = async (
         },
         {
           key: 'programSpecificAttachments',
-          source: 'unsupported',
-          status: 'not_supported',
-          note: 'Program-specific attachment workflows are not yet automated.',
+          source: 'manual',
+          status: rpprAttachmentCount ? 'present' : 'missing',
+          note:
+            'Attach supporting files on the RPPR report record when the program solicitation requires them.',
         },
       ],
       missingFields: specialRequirementsMissing,
@@ -427,6 +460,7 @@ export const getNsfrpprSummary = async (
             ? latestNarrative.specialRequirementsNarrative
             : null,
         notes: typeof latestNarrative?.reportNotes === 'string' ? latestNarrative.reportNotes : null,
+        attachmentCount: rpprAttachmentCount,
       },
     },
     evidence: evidenceSummary,
@@ -451,6 +485,15 @@ export const getNsfrpprSummary = async (
             {
               code: 'NO_PARTNER_ORGS',
               message: 'No partner organizations were configured for reporting.',
+            },
+          ]),
+      ...(productSupplementalRecords.length
+        ? []
+        : [
+            {
+              code: 'NO_PRODUCT_RECORDS',
+              message:
+                'No dedicated product records (publication/patent/dataset/software) were found for this period.',
             },
           ]),
       ...(evidenceLinks.length
@@ -514,13 +557,29 @@ export const rpprOrganizationsToCsv = (summary: NsfrpprSummary): string =>
 
 export const rpprProductsToCsv = (summary: NsfrpprSummary): string =>
   reportRowsToCsv(
-    summary.products.data.artifacts.map((artifact) => ({
-      id: artifact.id,
-      collection: artifact.collection,
-      title: artifact.title,
-      createdAt: artifact.createdAt,
-    })),
-    ['id', 'collection', 'title', 'createdAt'],
+    [
+      ...summary.products.data.artifacts.map((artifact) => ({
+        source: 'artifact',
+        id: artifact.id,
+        productType: artifact.collection,
+        title: artifact.title,
+        citation: '',
+        identifier: '',
+        url: '',
+        timestamp: artifact.createdAt,
+      })),
+      ...summary.products.data.supplementalRecords.map((record) => ({
+        source: 'rppr_product_record',
+        id: record.id,
+        productType: record.productType,
+        title: record.title,
+        citation: record.citation ?? '',
+        identifier: record.identifier ?? '',
+        url: record.url ?? '',
+        timestamp: record.reportedAt ?? '',
+      })),
+    ],
+    ['source', 'id', 'productType', 'title', 'citation', 'identifier', 'url', 'timestamp'],
   )
 
 export const rpprEvidenceToCsv = (summary: NsfrpprSummary): string =>
@@ -569,6 +628,8 @@ export const rpprOverviewToCsv = (summary: NsfrpprSummary): string => {
     `Average class completion rate,${toPct(summary.impact.data.derivedImpactMetrics.completionRateOverall)}`,
     `Average quiz mastery rate,${toPct(summary.impact.data.derivedImpactMetrics.masteryRateOverall)}`,
     `Products in period,${summary.products.data.productCount}`,
+    `Dedicated product records,${summary.products.data.supplementalRecords.length}`,
+    `Special requirement attachments,${summary.specialRequirements.data.attachmentCount}`,
     `Evidence links in period,${summary.evidence.totalEvidenceLinks}`,
   ]
 

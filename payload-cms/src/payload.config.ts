@@ -36,6 +36,7 @@ import { ReportingSnapshots } from './collections/ReportingSnapshots'
 import { ReportingAuditEvents } from './collections/ReportingAuditEvents'
 import { ReportingSavedViews } from './collections/ReportingSavedViews'
 import { ReportingEvidenceLinks } from './collections/ReportingEvidenceLinks'
+import { ReportingProductRecords } from './collections/ReportingProductRecords'
 import { AdminHelp } from './globals/AdminHelp'
 import { Footer } from './globals/Footer'
 import { SiteBranding } from './globals/SiteBranding'
@@ -366,6 +367,7 @@ export default buildConfig({
     ReportingAuditEvents,
     ReportingSavedViews,
     ReportingEvidenceLinks,
+    ReportingProductRecords,
     Accounts,
     Users,
     Media,

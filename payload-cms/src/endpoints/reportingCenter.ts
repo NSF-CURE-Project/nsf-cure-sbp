@@ -6,6 +6,7 @@ import { getReportingCenterPayload } from '../reporting/reportingCenter'
 import { createReportingSnapshot } from '../reporting/snapshots'
 import { getMetricDrilldown } from '../reporting/drilldowns'
 import { periodToken } from '../reporting/period'
+import { isSchemaMismatchError, schemaRepairHint } from '../reporting/schema'
 import {
   rpprEvidenceToCsv,
   rpprOrganizationsToCsv,
@@ -304,6 +305,33 @@ export const reportingCenterHandler: PayloadHandler = async (req) => {
           },
         })
       }
+      if (exportType === 'compliance') {
+        const csv = reportRowsToCsv(
+          (centerPayload.complianceChecklist?.checks ?? []).map((check) => ({
+            key: check.key,
+            label: check.label,
+            status: check.status,
+            detail: check.detail,
+            action: check.action,
+          })),
+          ['key', 'label', 'status', 'detail', 'action'],
+        )
+        await createReportingAuditEvent(req, {
+          eventType: 'export_generated',
+          reportType: period.reportType,
+          periodStart: period.startDate,
+          periodEnd: period.endDate,
+          filters,
+          exportType,
+          exportFormat: 'csv',
+        })
+        return new Response(csv, {
+          headers: {
+            'Content-Type': 'text/csv; charset=utf-8',
+            'Content-Disposition': `attachment; filename="reporting-center-compliance-${token}.csv"`,
+          },
+        })
+      }
 
       const summaryRows = [
         { metric: 'uniqueLearnersActive', value: centerPayload.summary.participation.uniqueLearnersActive },
@@ -369,7 +397,10 @@ export const reportingCenterHandler: PayloadHandler = async (req) => {
     }
 
     return Response.json(centerPayload)
-  } catch {
+  } catch (error) {
+    if (isSchemaMismatchError(error)) {
+      return Response.json({ error: schemaRepairHint }, { status: 503 })
+    }
     return Response.json({ error: 'Unable to generate reporting center payload.' }, { status: 500 })
   }
 }

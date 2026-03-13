@@ -10,6 +10,7 @@ import type { ReportingPeriodInput } from './period'
 import { findAllDocs } from './data'
 import { runReportingCrossChecks } from './validations'
 import { buildKpiTrendComparisons } from './trends'
+import { buildRpprComplianceChecklist } from './compliance'
 
 export const getReportingCenterPayload = async (
   payload: Payload,
@@ -50,10 +51,12 @@ export const getReportingCenterPayload = async (
         filters: summary.reportMeta.filters,
       })
     : null
+  const complianceChecklist = rppr ? buildRpprComplianceChecklist(rppr, dataQuality) : null
 
   return {
     summary,
     rppr,
+    complianceChecklist,
     metricDefinitions,
     dataQuality,
     anomalies,

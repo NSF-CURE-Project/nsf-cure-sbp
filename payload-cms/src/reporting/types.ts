@@ -108,6 +108,16 @@ export type NsfrpprSummary = {
   products: RpprSection<{
     artifacts: ProductArtifact[]
     productCount: number
+    supplementalRecords: Array<{
+      id: string
+      title: string
+      productType: string
+      citation: string | null
+      identifier: string | null
+      url: string | null
+      reportedAt: string | null
+      linkedArtifactsCount: number
+    }>
     narrativeDraft: string | null
   }>
   participantsOrganizations: RpprSection<{
@@ -145,6 +155,7 @@ export type NsfrpprSummary = {
   specialRequirements: RpprSection<{
     narrative: string | null
     notes: string | null
+    attachmentCount: number
   }>
   evidence: {
     totalEvidenceLinks: number

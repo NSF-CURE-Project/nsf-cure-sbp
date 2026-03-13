@@ -6,6 +6,7 @@ import { getPayload } from 'payload'
 import { resolveReportingPeriod } from '@/reporting/period'
 import { getReportingCenterPayload } from '@/reporting/reportingCenter'
 import type { ReportingCohortFilters } from '@/reporting/types'
+import { isSchemaMismatchError, schemaRepairHint } from '@/reporting/schema'
 
 type ReportingPeriodDoc = {
   id: string | number
@@ -65,24 +66,6 @@ const formatTrendValue = (metricKey: string, value: number | null) => {
   if (value == null || Number.isNaN(value)) return 'N/A'
   if (metricKey.includes('rate')) return `${Math.round(value * 1000) / 10}%`
   return String(Math.round(value))
-}
-
-const isMissingRelationError = (error: unknown): boolean => {
-  if (!error || typeof error !== 'object') return false
-
-  const maybeError = error as { message?: unknown; cause?: unknown }
-  const message =
-    typeof maybeError.message === 'string'
-      ? maybeError.message
-      : maybeError instanceof Error
-        ? maybeError.message
-        : ''
-  const causeCode =
-    maybeError.cause && typeof maybeError.cause === 'object' && 'code' in maybeError.cause
-      ? (maybeError.cause as { code?: unknown }).code
-      : undefined
-
-  return message.includes('does not exist') || causeCode === '42P01'
 }
 
 export default async function AdminReportingPage({ searchParams }: Props) {
@@ -147,9 +130,8 @@ export default async function AdminReportingPage({ searchParams }: Props) {
     periods = { docs: periodResult.docs as ReportingPeriodDoc[] }
     savedViews = { docs: savedViewResult.docs as SavedViewDoc[] }
   } catch (error) {
-    if (!isMissingRelationError(error)) throw error
-    setupError =
-      'Reporting tables are not initialized in this database yet. Run Payload reporting migrations, then refresh.'
+    if (!isSchemaMismatchError(error)) throw error
+    setupError = schemaRepairHint
   }
 
   const savedView = selectedViewId
@@ -253,8 +235,14 @@ export default async function AdminReportingPage({ searchParams }: Props) {
         period,
         filters: cohortFilters,
       })
-    } catch {
-      periodError = 'Unable to generate reporting center summary for the selected period.'
+    } catch (error) {
+      payload.logger.error(
+        { err: error },
+        'Reporting center summary generation failed for admin/reporting page',
+      )
+      periodError = isSchemaMismatchError(error)
+        ? schemaRepairHint
+        : 'Unable to generate reporting center summary for the selected period.'
     }
   }
 
@@ -321,6 +309,11 @@ export default async function AdminReportingPage({ searchParams }: Props) {
           <Link href="/admin/collections/reporting-evidence-links" style={{ textDecoration: 'none' }}>
             <div style={{ borderRadius: 8, border: '1px solid var(--admin-surface-border)', padding: '8px 12px', color: 'var(--cpp-ink)' }}>
               Evidence links
+            </div>
+          </Link>
+          <Link href="/admin/collections/reporting-product-records" style={{ textDecoration: 'none' }}>
+            <div style={{ borderRadius: 8, border: '1px solid var(--admin-surface-border)', padding: '8px 12px', color: 'var(--cpp-ink)' }}>
+              Product records
             </div>
           </Link>
         </div>
@@ -582,6 +575,9 @@ export default async function AdminReportingPage({ searchParams }: Props) {
                 <Link href={`/api/analytics/reporting-center?${scopedQuery}&format=csv&type=data-quality`} style={{ textDecoration: 'none' }}>
                   <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 12px', color: 'var(--cpp-ink)' }}>Data quality CSV</div>
                 </Link>
+                <Link href={`/api/analytics/reporting-center?${scopedQuery}&format=csv&type=compliance`} style={{ textDecoration: 'none' }}>
+                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 12px', color: 'var(--cpp-ink)' }}>Compliance CSV</div>
+                </Link>
                 <Link href={`/api/analytics/reporting-center?${scopedQuery}&action=save-view&label=Reporting%20Center%20View&shared=false`} style={{ textDecoration: 'none' }}>
                   <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 12px', color: 'var(--cpp-ink)' }}>Save private view</div>
                 </Link>
@@ -656,6 +652,28 @@ export default async function AdminReportingPage({ searchParams }: Props) {
                 ))}
               </div>
             </div>
+
+            {centerPayload.complianceChecklist ? (
+              <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 10, padding: 14, background: 'var(--admin-surface)' }}>
+                <div style={{ fontWeight: 700 }}>NSF RPPR compliance checklist</div>
+                <div style={{ marginTop: 6, fontSize: 13, color: 'var(--cpp-muted)' }}>
+                  Overall status: {centerPayload.complianceChecklist.overallStatus} | Met {centerPayload.complianceChecklist.metCount} of {centerPayload.complianceChecklist.checks.length}
+                </div>
+                <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>
+                  {centerPayload.complianceChecklist.checks.map((check) => (
+                    <div key={check.key} style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px' }}>
+                      <div style={{ fontWeight: 700, color: check.status === 'missing' ? '#b91c1c' : 'var(--cpp-ink)' }}>
+                        [{check.status.toUpperCase()}] {check.label}
+                      </div>
+                      <div style={{ marginTop: 3, fontSize: 12, color: 'var(--cpp-muted)' }}>{check.detail}</div>
+                      <div style={{ marginTop: 4, fontSize: 12, color: 'var(--cpp-muted)' }}>
+                        Action: {check.action}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 10, padding: 14, background: 'var(--admin-surface)' }}>
               <div style={{ fontWeight: 700 }}>Data quality panel</div>

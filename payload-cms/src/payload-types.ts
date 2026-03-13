@@ -81,6 +81,7 @@ export interface Config {
     'reporting-audit-events': ReportingAuditEvent;
     'reporting-saved-views': ReportingSavedView;
     'reporting-evidence-links': ReportingEvidenceLink;
+    'reporting-product-records': ReportingProductRecord;
     accounts: Account;
     users: User;
     media: Media;
@@ -113,6 +114,7 @@ export interface Config {
     'reporting-audit-events': ReportingAuditEventsSelect<false> | ReportingAuditEventsSelect<true>;
     'reporting-saved-views': ReportingSavedViewsSelect<false> | ReportingSavedViewsSelect<true>;
     'reporting-evidence-links': ReportingEvidenceLinksSelect<false> | ReportingEvidenceLinksSelect<true>;
+    'reporting-product-records': ReportingProductRecordsSelect<false> | ReportingProductRecordsSelect<true>;
     accounts: AccountsSelect<false> | AccountsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -1136,6 +1138,57 @@ export interface ReportingEvidenceLink {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-product-records".
+ */
+export interface ReportingProductRecord {
+  id: number;
+  title: string;
+  productType: 'publication' | 'patent' | 'dataset' | 'software' | 'educational_material' | 'other';
+  /**
+   * Formal citation or product description used for RPPR products section.
+   */
+  citation?: string | null;
+  /**
+   * DOI, patent number, accession ID, or other stable identifier.
+   */
+  identifier?: string | null;
+  /**
+   * Public URL where the product can be reviewed.
+   */
+  url?: string | null;
+  reportingPeriod?: (number | null) | ReportingPeriod;
+  linkedRpprReport?: (number | null) | RpprReport;
+  linkedArtifacts?:
+    | (
+        | {
+            relationTo: 'classes';
+            value: number | Class;
+          }
+        | {
+            relationTo: 'lessons';
+            value: number | Lesson;
+          }
+        | {
+            relationTo: 'quizzes';
+            value: number | Quiz;
+          }
+        | {
+            relationTo: 'pages';
+            value: number | Page;
+          }
+        | {
+            relationTo: 'quiz-questions';
+            value: number | QuizQuestion;
+          }
+      )[]
+    | null;
+  reportedAt?: string | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "questions".
  */
 export interface Question {
@@ -1388,6 +1441,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'reporting-evidence-links';
         value: number | ReportingEvidenceLink;
+      } | null)
+    | ({
+        relationTo: 'reporting-product-records';
+        value: number | ReportingProductRecord;
       } | null)
     | ({
         relationTo: 'accounts';
@@ -1990,6 +2047,24 @@ export interface ReportingEvidenceLinksSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-product-records_select".
+ */
+export interface ReportingProductRecordsSelect<T extends boolean = true> {
+  title?: T;
+  productType?: T;
+  citation?: T;
+  identifier?: T;
+  url?: T;
+  reportingPeriod?: T;
+  linkedRpprReport?: T;
+  linkedArtifacts?: T;
+  reportedAt?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "accounts_select".
  */
 export interface AccountsSelect<T extends boolean = true> {
@@ -2304,6 +2379,61 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface AdminHelp {
   id: number;
   title: string;
+  subtitle?: string | null;
+  /**
+   * JSON array: [{ "label": string, "desc": string, "href": string }].
+   */
+  quickActions?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * JSON array of strings for topic tags.
+   */
+  topicChips?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * JSON array: [{ "question": string, "answer": string }].
+   */
+  faqs?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  supportEmail?: string | null;
+  supportResponseTarget?: string | null;
+  /**
+   * Relative admin path or full URL.
+   */
+  supportRequestHref?: string | null;
+  /**
+   * JSON array: [{ "label": string, "desc": string, "href": string }].
+   */
+  resources?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   body?: {
     root: {
       type: string;
@@ -2403,6 +2533,14 @@ export interface SiteBranding {
  */
 export interface AdminHelpSelect<T extends boolean = true> {
   title?: T;
+  subtitle?: T;
+  quickActions?: T;
+  topicChips?: T;
+  faqs?: T;
+  supportEmail?: T;
+  supportResponseTarget?: T;
+  supportRequestHref?: T;
+  resources?: T;
   body?: T;
   _status?: T;
   updatedAt?: T;

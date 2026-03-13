@@ -119,9 +119,9 @@ export default function AdminSettingsPage() {
           }}
         >
           <Link href="/admin/globals/admin-help" style={linkCardStyle}>
-            <div style={{ fontWeight: 700 }}>Admin Help Page</div>
+            <div style={{ fontWeight: 700 }}>Help Portal</div>
             <div style={linkDescriptionStyle}>
-              Update guidance and onboarding content for staff.
+              Edit the Support Hub content, FAQ entries, quick actions, and support settings.
             </div>
           </Link>
         </div>
