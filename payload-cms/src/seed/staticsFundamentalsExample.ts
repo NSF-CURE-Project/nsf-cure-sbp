@@ -1,11 +1,11 @@
 import type { Payload } from "payload";
+import type { Problem } from "../payload-types";
 
 const EXAMPLE_FIGURE_TITLE = "Statics Fundamentals — Simply Supported Beam FBD";
 const EXAMPLE_PROBLEM_TITLE = "Statics Fundamentals — Reactions of a Simply Supported Beam";
 const EXAMPLE_SET_TITLE = "Statics Fundamentals — Beam Equilibrium Starter";
 
-const richText = (text: string) =>
-  ({
+const richText = (text: string): Problem["prompt"] => ({
   root: {
     type: "root",
     format: "",
@@ -28,14 +28,14 @@ const richText = (text: string) =>
             version: 1,
           },
         ],
-        direction: "ltr" as const,
+        direction: "ltr",
         textFormat: 0,
         textStyle: "",
       },
     ],
-    direction: "ltr" as const,
+    direction: "ltr",
   },
-} as const);
+});
 
 async function upsertEngineeringFigure(payload: Payload) {
   const existing = await payload.find({
