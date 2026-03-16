@@ -22,7 +22,9 @@ describe('email confirmation utilities', () => {
     vi.setSystemTime(new Date('2026-01-01T00:00:00.000Z'))
 
     const tokenBytes = Buffer.from('f'.repeat(64), 'hex')
-    vi.spyOn(crypto, 'randomBytes').mockReturnValue(tokenBytes)
+    vi.spyOn(crypto, 'randomBytes').mockImplementation(
+      ((size: number) => tokenBytes.subarray(0, size)) as unknown as typeof crypto.randomBytes,
+    )
 
     process.env.WEB_PUBLIC_URL = 'https://app.example.com'
 
@@ -36,7 +38,9 @@ describe('email confirmation utilities', () => {
 
   it('buildEmailConfirmation falls back to preview URL then localhost', () => {
     const tokenBytes = Buffer.from('a'.repeat(64), 'hex')
-    vi.spyOn(crypto, 'randomBytes').mockReturnValue(tokenBytes)
+    vi.spyOn(crypto, 'randomBytes').mockImplementation(
+      ((size: number) => tokenBytes.subarray(0, size)) as unknown as typeof crypto.randomBytes,
+    )
 
     process.env.WEB_PREVIEW_URL = 'https://preview.example.com'
     const previewResult = buildEmailConfirmation()

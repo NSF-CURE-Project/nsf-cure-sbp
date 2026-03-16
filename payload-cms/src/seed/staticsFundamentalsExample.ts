@@ -1,4 +1,5 @@
-import type { Payload } from "payload";
+import { getPayload, type Payload } from "payload";
+import configPromise from "@payload-config";
 import type { EngineeringFigure, Problem, ProblemSet } from "../payload-types";
 
 const EXAMPLE_FIGURE_TITLE = "Statics Fundamentals — Simply Supported Beam FBD";
@@ -63,6 +64,7 @@ async function upsertEngineeringFigure(payload: Payload) {
     where: { title: { equals: EXAMPLE_FIGURE_TITLE } },
     limit: 1,
     depth: 0,
+    overrideAccess: true,
   });
 
   const data: Partial<EngineeringFigure> = {
@@ -96,6 +98,7 @@ async function upsertEngineeringFigure(payload: Payload) {
       collection: "engineering-figures",
       data,
       depth: 0,
+      overrideAccess: true,
     } as never);
   }
 
@@ -104,6 +107,7 @@ async function upsertEngineeringFigure(payload: Payload) {
     id: existing.docs[0].id,
     data,
     depth: 0,
+    overrideAccess: true,
   } as never);
 }
 
@@ -113,6 +117,7 @@ async function upsertProblem(payload: Payload, figureId: number) {
     where: { title: { equals: EXAMPLE_PROBLEM_TITLE } },
     limit: 1,
     depth: 0,
+    overrideAccess: true,
   });
 
   const data: Partial<Problem> = {
@@ -213,6 +218,7 @@ async function upsertProblem(payload: Payload, figureId: number) {
       collection: "problems",
       data,
       depth: 0,
+      overrideAccess: true,
     } as never);
   }
 
@@ -221,6 +227,7 @@ async function upsertProblem(payload: Payload, figureId: number) {
     id: existing.docs[0].id,
     data,
     depth: 0,
+    overrideAccess: true,
   } as never);
 }
 
@@ -230,6 +237,7 @@ async function upsertProblemSet(payload: Payload, problemId: number) {
     where: { title: { equals: EXAMPLE_SET_TITLE } },
     limit: 1,
     depth: 0,
+    overrideAccess: true,
   });
 
   const data: Partial<ProblemSet> = {
@@ -247,6 +255,7 @@ async function upsertProblemSet(payload: Payload, problemId: number) {
       collection: "problem-sets",
       data,
       depth: 0,
+      overrideAccess: true,
     } as never);
   }
 
@@ -255,6 +264,7 @@ async function upsertProblemSet(payload: Payload, problemId: number) {
     id: existing.docs[0].id,
     data,
     depth: 0,
+    overrideAccess: true,
   } as never);
 }
 
@@ -271,4 +281,11 @@ export default async function seedStaticsFundamentalsExample(payload: Payload) {
   payload.logger.info(
     `Seed complete: figure=${figureId}, problem=${problemId}, problemSet=${problemSetId}`
   );
+}
+
+const shouldRunAsScript = process.argv[1]?.includes("staticsFundamentalsExample.ts");
+
+if (shouldRunAsScript) {
+  const payload = await getPayload({ config: configPromise });
+  await seedStaticsFundamentalsExample(payload);
 }

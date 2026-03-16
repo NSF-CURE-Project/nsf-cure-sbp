@@ -4,6 +4,7 @@ import Link from "next/link";
 
 export type DashboardEnrollment = {
   id: string;
+  classroomId?: string;
   joinedAt?: string;
   totalLessons: number;
   completedLessons: number;
@@ -48,12 +49,22 @@ export function ClassEnrollmentRow({ enrollment }: ClassEnrollmentRowProps) {
         {lastActivity}
       </p>
       {enrollment.classSlug ? (
-        <Link
-          href={`/classes/${enrollment.classSlug}`}
-          className="mt-2 inline-block text-xs font-semibold text-primary underline underline-offset-4"
-        >
-          Open class
-        </Link>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <Link
+            href={`/classes/${enrollment.classSlug}`}
+            className="inline-block text-xs font-semibold text-primary underline underline-offset-4"
+          >
+            Open class
+          </Link>
+          {enrollment.completionRate >= 1 && enrollment.classroomId ? (
+            <Link
+              href={`/classrooms/${enrollment.classroomId}/certificate`}
+              className="inline-block text-xs font-semibold text-primary underline underline-offset-4"
+            >
+              Certificate
+            </Link>
+          ) : null}
+        </div>
       ) : null}
     </article>
   );

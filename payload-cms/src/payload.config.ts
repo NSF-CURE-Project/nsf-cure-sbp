@@ -46,6 +46,7 @@ import { Footer } from './globals/Footer'
 import { SiteBranding } from './globals/SiteBranding'
 import {
   joinClassroomHandler,
+  leaveClassroomHandler,
   regenerateClassroomCodeHandler,
 } from './endpoints/classroomEndpoints'
 import { previewUrlHandler } from './endpoints/previewUrl'
@@ -59,6 +60,9 @@ import { metricDefinitionsHandler } from './endpoints/metricDefinitions'
 import { emailPreviewHandler } from './endpoints/emailPreview'
 import { certificateHandler } from './endpoints/certificate'
 import { quizAttemptReviewHandler } from './endpoints/quizAttemptReview'
+import { problemAttemptReviewHandler } from './endpoints/problemAttemptReview'
+import { lessonQuestionsHandler, questionDetailHandler } from './endpoints/questionsEndpoints'
+import { studentAnalyticsHandler } from './endpoints/studentAnalytics'
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
   path: '@/views/StaffDashboardView#default',
@@ -434,6 +438,11 @@ export default buildConfig({
       handler: regenerateClassroomCodeHandler,
     },
     {
+      path: '/classrooms/:classroomId/leave',
+      method: 'post',
+      handler: leaveClassroomHandler,
+    },
+    {
       path: '/preview-url',
       method: 'post',
       handler: previewUrlHandler,
@@ -494,6 +503,11 @@ export default buildConfig({
       handler: metricDefinitionsHandler,
     },
     {
+      path: '/analytics/student',
+      method: 'get',
+      handler: studentAnalyticsHandler,
+    },
+    {
       path: '/classrooms/:classroomId/certificate',
       method: 'get',
       handler: certificateHandler,
@@ -502,6 +516,21 @@ export default buildConfig({
       path: '/quiz-attempts/:attemptId/review',
       method: 'get',
       handler: quizAttemptReviewHandler,
+    },
+    {
+      path: '/problem-attempts/:attemptId/review',
+      method: 'get',
+      handler: problemAttemptReviewHandler,
+    },
+    {
+      path: '/questions/by-lesson/:lessonId',
+      method: 'get',
+      handler: lessonQuestionsHandler,
+    },
+    {
+      path: '/questions/:questionId/detail',
+      method: 'get',
+      handler: questionDetailHandler,
     },
   ],
 })

@@ -125,3 +125,44 @@ export const regenerateClassroomCodeHandler = async (req: PayloadRequest) => {
 
   return jsonResponse({ joinCode, classroom: updated })
 }
+
+export const leaveClassroomHandler = async (req: PayloadRequest) => {
+  if (req.user?.collection !== 'accounts') {
+    return jsonResponse({ message: 'Student login required.' }, 401)
+  }
+
+  const routeParams = (req as { routeParams?: Record<string, unknown> }).routeParams
+  const classroomId = routeParams?.classroomId
+  const resolvedClassroomId =
+    typeof classroomId === 'string' || typeof classroomId === 'number'
+      ? String(classroomId)
+      : ''
+
+  if (!resolvedClassroomId) {
+    return jsonResponse({ message: 'classroomId is required.' }, 400)
+  }
+
+  const membershipResult = await req.payload.find({
+    collection: 'classroom-memberships',
+    where: {
+      classroom: { equals: resolvedClassroomId },
+      student: { equals: req.user.id },
+    },
+    depth: 0,
+    limit: 1,
+    overrideAccess: true,
+  })
+
+  const membership = membershipResult.docs?.[0]
+  if (!membership) {
+    return jsonResponse({ message: 'Membership not found.' }, 404)
+  }
+
+  await req.payload.delete({
+    collection: 'classroom-memberships',
+    id: membership.id,
+    overrideAccess: true,
+  })
+
+  return jsonResponse({ success: true })
+}

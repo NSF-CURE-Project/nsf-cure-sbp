@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
+import { PayloadRichText } from "@/components/ui/payloadRichText";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -23,6 +25,7 @@ type Question = {
   title: string;
   status: "open" | "answered" | "resolved";
   createdAt?: string;
+  answers?: { body?: unknown; createdAt?: string }[];
 };
 
 export function LessonQuestionList({ lessonId, refreshKey = 0 }: Props) {
@@ -31,6 +34,9 @@ export function LessonQuestionList({ lessonId, refreshKey = 0 }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
+  const [expandedDetails, setExpandedDetails] = useState<Record<string, Question>>({});
+  const [detailLoading, setDetailLoading] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -125,6 +131,40 @@ export function LessonQuestionList({ lessonId, refreshKey = 0 }: Props) {
     }
   };
 
+  const toggleExpanded = async (questionId: string) => {
+    const nextExpanded = expandedQuestionId === questionId ? null : questionId;
+    setExpandedQuestionId(nextExpanded);
+    if (nextExpanded !== questionId || expandedDetails[questionId]) {
+      return;
+    }
+
+    setDetailLoading(questionId);
+    setError(null);
+    try {
+      const res = await fetch(
+        `${PAYLOAD_URL}/api/questions/${questionId}/detail`,
+        {
+          credentials: "include",
+        }
+      );
+      if (!res.ok) {
+        throw new Error("Could not load question details.");
+      }
+      const data = (await res.json()) as { doc?: Question };
+      if (data.doc) {
+        setExpandedDetails((prev) => ({ ...prev, [questionId]: data.doc as Question }));
+      }
+    } catch (detailError) {
+      setError(
+        detailError instanceof Error
+          ? detailError.message
+          : "Could not load question details."
+      );
+    } finally {
+      setDetailLoading(null);
+    }
+  };
+
   const hasQuestions = questions.length > 0;
 
   const statusBadge = useMemo(
@@ -201,6 +241,59 @@ export function LessonQuestionList({ lessonId, refreshKey = 0 }: Props) {
                       ? "Updating..."
                       : "This answered my question"}
                   </Button>
+                </div>
+              ) : null}
+
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+                <button
+                  type="button"
+                  onClick={() => void toggleExpanded(question.id)}
+                  className="font-semibold text-primary underline underline-offset-4"
+                >
+                  {expandedQuestionId === question.id ? "Hide thread" : "View thread"}
+                </button>
+                <Link
+                  href={`/questions/${question.id}`}
+                  className="font-semibold text-primary underline underline-offset-4"
+                >
+                  View full thread →
+                </Link>
+              </div>
+
+              {expandedQuestionId === question.id ? (
+                <div className="mt-3 rounded-lg border border-border/60 bg-muted/35 p-3">
+                  {detailLoading === question.id ? (
+                    <p className="text-sm text-muted-foreground">Loading thread...</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {(expandedDetails[question.id]?.answers ?? []).length === 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          No staff answers yet.
+                        </p>
+                      ) : (
+                        (expandedDetails[question.id]?.answers ?? []).map((answer, index) => (
+                          <div
+                            key={`${question.id}-answer-${index}`}
+                            className="rounded-md border border-border/60 bg-background/60 p-3"
+                          >
+                            <p className="mb-2 text-xs text-muted-foreground">
+                              {answer.createdAt
+                                ? formatShortDate(answer.createdAt)
+                                : "Unknown date"}
+                            </p>
+                            <PayloadRichText
+                              content={
+                                answer.body as unknown as Parameters<
+                                  typeof PayloadRichText
+                                >[0]["content"]
+                              }
+                              className="prose prose-invert max-w-none text-sm text-foreground"
+                            />
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : null}
             </div>

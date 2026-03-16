@@ -1,10 +1,12 @@
 import {
+  BarChart3,
   Tag,
   Users,
   Settings,
   Bookmark,
   SquarePen,
   LayoutGrid,
+  GraduationCap,
   LucideIcon,
 } from "lucide-react";
 
@@ -36,6 +38,18 @@ export function getMenuList(): Group[] {
           href: "/dashboard",
           label: "Dashboard",
           icon: LayoutGrid,
+          submenus: [],
+        },
+        {
+          href: "/classrooms",
+          label: "Classrooms",
+          icon: GraduationCap,
+          submenus: [],
+        },
+        {
+          href: "/analytics",
+          label: "Analytics",
+          icon: BarChart3,
           submenus: [],
         },
       ],

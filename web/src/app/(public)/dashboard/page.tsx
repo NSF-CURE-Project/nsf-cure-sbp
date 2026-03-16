@@ -205,6 +205,10 @@ export default async function DashboardPage() {
 
   const enrollments: DashboardEnrollment[] = memberships.map((membership) => ({
     id: membership.id,
+    classroomId:
+      membership.classroom && typeof membership.classroom === "object" && "id" in membership.classroom
+        ? String((membership.classroom as { id?: string | number }).id ?? "")
+        : undefined,
     joinedAt: membership.joinedAt,
     totalLessons: membership.totalLessons ?? 0,
     completedLessons: membership.completedLessons ?? 0,
