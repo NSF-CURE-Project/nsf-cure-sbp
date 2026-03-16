@@ -43,10 +43,10 @@ Rollbacks
 
 
 Branch strategy (recommended)
-- Keep `main` and `production` aligned for production reliability.
-- If `production` exists, treat it as a release pointer that should fast-forward from `main`.
-- Promote releases with `git merge --ff-only origin/main` while on `production`.
-- Avoid direct commits to `production`; for emergency hotfixes, immediately back-merge to `main`.
+- Keep `main` and `prod` aligned for production reliability.
+- Treat `prod` as a release pointer that should fast-forward from `main`.
+- Promote releases with `git merge --ff-only origin/main` while on `prod`.
+- Avoid direct commits to `prod`; for emergency hotfixes, immediately back-merge to `main`.
 
 
 Release promotion commands
