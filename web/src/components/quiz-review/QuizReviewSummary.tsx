@@ -54,10 +54,13 @@ export function QuizReviewSummary({
       </div>
 
       {remediationLink ? (
-        <div className="mt-4">
+        <div className="mt-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
+          <p className="text-sm text-foreground">
+            Review the related lesson to close any remaining gaps before your next attempt.
+          </p>
           <Link
             href={remediationLink}
-            className="text-sm font-semibold text-primary underline underline-offset-4"
+            className="mt-2 inline-flex text-sm font-semibold text-primary underline underline-offset-4"
           >
             Review {lessonTitle ?? "lesson"}
           </Link>

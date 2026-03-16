@@ -20,6 +20,8 @@ import * as migration_20260315_235000_add_account_streak_columns from './2026031
 import * as migration_20260316_080657_add_problem_set_collections_v1 from './20260316_080657_add_problem_set_collections_v1';
 import * as migration_20260316_081500_add_engineering_figure_templates_flag from './20260316_081500_add_engineering_figure_templates_flag';
 import * as migration_20260316_084525_add_problem_set_v2_extensions from './20260316_084525_add_problem_set_v2_extensions';
+import * as migration_20260316_120000_add_account_notification_preferences from './20260316_120000_add_account_notification_preferences';
+import * as migration_20260316_130000_create_api_keys from './20260316_130000_create_api_keys';
 
 export const migrations = [
   {
@@ -131,5 +133,15 @@ export const migrations = [
     up: migration_20260316_084525_add_problem_set_v2_extensions.up,
     down: migration_20260316_084525_add_problem_set_v2_extensions.down,
     name: '20260316_084525_add_problem_set_v2_extensions',
+  },
+  {
+    up: migration_20260316_120000_add_account_notification_preferences.up,
+    down: migration_20260316_120000_add_account_notification_preferences.down,
+    name: '20260316_120000_add_account_notification_preferences',
+  },
+  {
+    up: migration_20260316_130000_create_api_keys.up,
+    down: migration_20260316_130000_create_api_keys.down,
+    name: '20260316_130000_create_api_keys',
   },
 ];

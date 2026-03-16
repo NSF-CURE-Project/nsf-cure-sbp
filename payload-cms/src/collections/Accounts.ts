@@ -292,6 +292,32 @@ export const Accounts: CollectionConfig = {
       },
     },
     {
+      name: 'notificationPreferences',
+      type: 'group',
+      fields: [
+        {
+          name: 'questionAnswered',
+          type: 'checkbox',
+          defaultValue: true,
+        },
+        {
+          name: 'newContent',
+          type: 'checkbox',
+          defaultValue: true,
+        },
+        {
+          name: 'announcement',
+          type: 'checkbox',
+          defaultValue: true,
+        },
+        {
+          name: 'quizDeadline',
+          type: 'checkbox',
+          defaultValue: true,
+        },
+      ],
+    },
+    {
       name: 'ssoProvider',
       label: 'SSO Provider',
       type: 'text',

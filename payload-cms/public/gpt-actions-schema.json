@@ -1,0 +1,154 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "NSF CURE SBP Reporting API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://{your-railway-domain}/api"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "ApiKeyInfoResponse": {
+        "type": "object",
+        "properties": {
+          "valid": {
+            "type": "boolean"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "owner": {
+            "type": "object",
+            "properties": {
+              "name": { "type": ["string", "null"] },
+              "email": { "type": ["string", "null"] }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/auth/api-key-info": {
+      "get": {
+        "operationId": "getApiKeyInfo",
+        "summary": "Validate API key and return owner/scopes",
+        "responses": {
+          "200": {
+            "description": "API key is valid",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiKeyInfoResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing API key"
+          }
+        }
+      }
+    },
+    "/analytics/gpt-rppr-context": {
+      "get": {
+        "operationId": "getGptRpprContext",
+        "summary": "Get compact GPT-optimized RPPR context",
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "format": "date" }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "format": "date" }
+          },
+          {
+            "name": "periodId",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RPPR context payload"
+          },
+          "400": {
+            "description": "Missing or invalid period params"
+          },
+          "403": {
+            "description": "Not authorized"
+          }
+        }
+      }
+    },
+    "/analytics/generate-rppr-pdf": {
+      "post": {
+        "operationId": "generateRpprPdf",
+        "summary": "Generate RPPR PDF from finalized narratives and metrics",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "meta": {
+                    "type": "object",
+                    "properties": {
+                      "reportType": { "type": "string" },
+                      "periodStart": { "type": "string", "format": "date" },
+                      "periodEnd": { "type": "string", "format": "date" },
+                      "awardNumber": { "type": "string" }
+                    }
+                  },
+                  "sections": {
+                    "type": "object"
+                  },
+                  "metrics": {
+                    "type": "object"
+                  },
+                  "includeDataAppendix": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["meta", "sections", "metrics"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated PDF",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "403": {
+            "description": "Not authorized"
+          }
+        }
+      }
+    }
+  }
+}

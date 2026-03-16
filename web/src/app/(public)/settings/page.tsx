@@ -122,60 +122,105 @@ export default function SettingsPage() {
           ) : null}
 
           {status === "ready" && user ? (
-            <form onSubmit={handleSave} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-foreground">
-                  Email
-                </label>
-                <Input
-                  type="email"
-                  value={user.email}
-                  disabled
-                  className="mt-2 bg-muted/40 text-muted-foreground"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-foreground">
-                  Display name
-                </label>
-                <Input
-                  type="text"
-                  value={fullName}
-                  onChange={(event) => setFullName(event.target.value)}
-                  className="mt-2"
-                  placeholder="Your name"
-                />
-              </div>
-
-              {message ? (
-                <div
-                  className={`rounded-md px-4 py-3 text-sm ${
-                    message === "Profile updated."
-                      ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-                      : "border border-red-200 bg-red-50 text-red-700"
-                  }`}
-                >
-                  {message}
+            <div className="space-y-6">
+              <form onSubmit={handleSave} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-foreground">
+                    Email
+                  </label>
+                  <Input
+                    type="email"
+                    value={user.email}
+                    disabled
+                    className="mt-2 bg-muted/40 text-muted-foreground"
+                  />
                 </div>
-              ) : null}
+                <div>
+                  <label className="block text-sm font-semibold text-foreground">
+                    Display name
+                  </label>
+                  <Input
+                    type="text"
+                    value={fullName}
+                    onChange={(event) => setFullName(event.target.value)}
+                    className="mt-2"
+                    placeholder="Your name"
+                  />
+                </div>
 
-              <div className="flex items-center gap-3">
-                <Button
-                  type="submit"
-                  disabled={saving}
-                  variant="outline"
-                >
-                  {saving ? "Saving..." : "Save changes"}
-                </Button>
+                {message ? (
+                  <div
+                    className={`rounded-md px-4 py-3 text-sm ${
+                      message === "Profile updated."
+                        ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : "border border-red-200 bg-red-50 text-red-700"
+                    }`}
+                  >
+                    {message}
+                  </div>
+                ) : null}
+
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="submit"
+                    disabled={saving}
+                    variant="outline"
+                  >
+                    {saving ? "Saving..." : "Save changes"}
+                  </Button>
+                  <Link
+                    href="/profile"
+                    className="inline-flex items-center gap-2 rounded-md border border-border/50 bg-transparent px-4 py-2 text-sm font-semibold text-foreground/80 transition hover:border-border hover:bg-muted/30 hover:text-foreground"
+                  >
+                    <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+                    Back to profile
+                  </Link>
+                </div>
+              </form>
+
+              <section className="grid gap-3 md:grid-cols-2">
                 <Link
-                  href="/profile"
-                  className="inline-flex items-center gap-2 rounded-md border border-border/50 bg-transparent px-4 py-2 text-sm font-semibold text-foreground/80 transition hover:border-border hover:bg-muted/30 hover:text-foreground"
+                  href="/settings/participant-info"
+                  className="rounded-lg border border-border/60 bg-muted/20 p-4 transition hover:border-border hover:bg-muted/30"
                 >
-                  <ArrowLeft className="h-4 w-4 text-muted-foreground" />
-                  Back to profile
+                  <p className="text-sm font-semibold text-foreground">Participant Info</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Update NSF reporting and participant profile details.
+                  </p>
                 </Link>
-              </div>
-            </form>
+                <Link
+                  href="/settings/notifications"
+                  className="rounded-lg border border-border/60 bg-muted/20 p-4 transition hover:border-border hover:bg-muted/30"
+                >
+                  <p className="text-sm font-semibold text-foreground">
+                    Notification Preferences
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Choose which alerts and reminders you receive.
+                  </p>
+                </Link>
+                <Link
+                  href="/saved-lessons"
+                  className="rounded-lg border border-border/60 bg-muted/20 p-4 transition hover:border-border hover:bg-muted/30"
+                >
+                  <p className="text-sm font-semibold text-foreground">Saved Lessons</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Manage your bookmarked lessons in one place.
+                  </p>
+                </Link>
+                <Link
+                  href="/data-transparency"
+                  className="rounded-lg border border-border/60 bg-muted/20 p-4 transition hover:border-border hover:bg-muted/30"
+                >
+                  <p className="text-sm font-semibold text-foreground">
+                    Data Transparency
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    See what participation and NSF reporting data is stored.
+                  </p>
+                </Link>
+              </section>
+            </div>
           ) : null}
         </div>
       </div>

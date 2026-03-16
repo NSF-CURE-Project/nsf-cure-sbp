@@ -1,5 +1,6 @@
 import type { Block, CollectionConfig, PayloadRequest } from 'payload'
 import { pageBlocks } from '../blocks/pageBlocks'
+import { canReceiveNotification } from '../utils/notificationPreferences'
 import { ensureUniqueSlug, slugify } from '../utils/slug'
 
 const resolveLessonClassSlug = (data?: { class?: unknown; chapter?: unknown }) => {
@@ -205,8 +206,15 @@ export const Lessons: CollectionConfig = {
           const lessonTitle = typeof doc.title === 'string' ? doc.title : 'A new lesson was published.'
           const createJobs = recipientIds
             .filter((recipientId) => !existingRecipients.has(recipientId))
-            .map((recipientId) =>
-              req.payload.create({
+            .map(async (recipientId) => {
+              const shouldNotify = await canReceiveNotification(
+                req.payload,
+                recipientId,
+                'new_content',
+              )
+              if (!shouldNotify) return null
+
+              return req.payload.create({
                 collection: 'notifications',
                 overrideAccess: true,
                 data: {
@@ -217,8 +225,8 @@ export const Lessons: CollectionConfig = {
                   link: lessonLink,
                   read: false,
                 } as never,
-              }),
-            )
+              })
+            })
 
           const results = await Promise.allSettled(createJobs)
           const failures = results.filter((result) => result.status === 'rejected')

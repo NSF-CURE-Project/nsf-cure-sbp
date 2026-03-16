@@ -1,4 +1,9 @@
+"use client";
+
+import { useState } from "react";
+
 import { PayloadRichText } from "@/components/ui/payloadRichText";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type ProblemAttemptAnswerCardProps = {
@@ -25,6 +30,8 @@ export function ProblemAttemptAnswerCard({
   index,
   problem,
 }: ProblemAttemptAnswerCardProps) {
+  const [openExplanations, setOpenExplanations] = useState<Record<number, boolean>>({});
+
   return (
     <article className="rounded-xl border border-border/60 bg-card/50 p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -92,15 +99,34 @@ export function ProblemAttemptAnswerCard({
 
             {!part.isCorrect && part.explanation ? (
               <div className="mt-3 rounded-lg border border-border/60 bg-muted/35 p-3">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Explanation
-                </p>
-                <PayloadRichText
-                  content={
-                    part.explanation as unknown as Parameters<typeof PayloadRichText>[0]["content"]
-                  }
-                  className="prose prose-invert max-w-none text-sm text-foreground"
-                />
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Explanation
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() =>
+                      setOpenExplanations((current) => ({
+                        ...current,
+                        [part.partIndex]: !current[part.partIndex],
+                      }))
+                    }
+                  >
+                    {openExplanations[part.partIndex]
+                      ? "Hide explanation"
+                      : "Show explanation"}
+                  </Button>
+                </div>
+                {openExplanations[part.partIndex] ? (
+                  <PayloadRichText
+                    content={
+                      part.explanation as unknown as Parameters<typeof PayloadRichText>[0]["content"]
+                    }
+                    className="prose prose-invert mt-3 max-w-none text-sm text-foreground"
+                  />
+                ) : null}
               </div>
             ) : null}
           </div>

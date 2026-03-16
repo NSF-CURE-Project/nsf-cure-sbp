@@ -41,6 +41,7 @@ import { ReportingAuditEvents } from './collections/ReportingAuditEvents'
 import { ReportingSavedViews } from './collections/ReportingSavedViews'
 import { ReportingEvidenceLinks } from './collections/ReportingEvidenceLinks'
 import { ReportingProductRecords } from './collections/ReportingProductRecords'
+import { ApiKeys } from './collections/ApiKeys'
 import { AdminHelp } from './globals/AdminHelp'
 import { Footer } from './globals/Footer'
 import { SiteBranding } from './globals/SiteBranding'
@@ -53,6 +54,11 @@ import { previewUrlHandler } from './endpoints/previewUrl'
 import { confirmEmailHandler, requestEmailConfirmationHandler } from './endpoints/emailConfirmation'
 import { logoutAllSessionsHandler } from './endpoints/logoutAll'
 import { accountsMeHandler } from './endpoints/accountsMe'
+import {
+  accountDataSummaryHandler,
+  updateMyDemographicsHandler,
+  updateNotificationPreferencesHandler,
+} from './endpoints/accountEndpoints'
 import { reportingSummaryHandler } from './endpoints/reportingSummary'
 import { nsfRpprSummaryHandler } from './endpoints/nsfRpprSummary'
 import { reportingCenterHandler } from './endpoints/reportingCenter'
@@ -63,6 +69,10 @@ import { quizAttemptReviewHandler } from './endpoints/quizAttemptReview'
 import { problemAttemptReviewHandler } from './endpoints/problemAttemptReview'
 import { lessonQuestionsHandler, questionDetailHandler } from './endpoints/questionsEndpoints'
 import { studentAnalyticsHandler } from './endpoints/studentAnalytics'
+import { classroomListHandler, classroomRosterHandler } from './endpoints/instructorEndpoints'
+import { apiKeyValidateHandler } from './endpoints/apiKeyValidate'
+import { gptRpprContextHandler } from './endpoints/gptRpprContext'
+import { generateRpprPdfHandler } from './endpoints/generateRpprPdf'
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
   path: '@/views/StaffDashboardView#default',
@@ -378,6 +388,7 @@ export default buildConfig({
     ReportingSavedViews,
     ReportingEvidenceLinks,
     ReportingProductRecords,
+    ApiKeys,
     Accounts,
     Users,
     Media,
@@ -458,6 +469,26 @@ export default buildConfig({
       handler: accountsMeHandler,
     },
     {
+      path: '/auth/api-key-info',
+      method: 'get',
+      handler: apiKeyValidateHandler,
+    },
+    {
+      path: '/accounts/me/demographics',
+      method: 'patch',
+      handler: updateMyDemographicsHandler,
+    },
+    {
+      path: '/accounts/me/notification-preferences',
+      method: 'patch',
+      handler: updateNotificationPreferencesHandler,
+    },
+    {
+      path: '/accounts/me/data-summary',
+      method: 'get',
+      handler: accountDataSummaryHandler,
+    },
+    {
       path: '/accounts/request-email-confirmation',
       method: 'post',
       handler: requestEmailConfirmationHandler,
@@ -508,6 +539,16 @@ export default buildConfig({
       handler: studentAnalyticsHandler,
     },
     {
+      path: '/analytics/gpt-rppr-context',
+      method: 'get',
+      handler: gptRpprContextHandler,
+    },
+    {
+      path: '/analytics/generate-rppr-pdf',
+      method: 'post',
+      handler: generateRpprPdfHandler,
+    },
+    {
       path: '/classrooms/:classroomId/certificate',
       method: 'get',
       handler: certificateHandler,
@@ -531,6 +572,16 @@ export default buildConfig({
       path: '/questions/:questionId/detail',
       method: 'get',
       handler: questionDetailHandler,
+    },
+    {
+      path: '/instructor/classrooms',
+      method: 'get',
+      handler: classroomListHandler,
+    },
+    {
+      path: '/instructor/classrooms/:classroomId/roster',
+      method: 'get',
+      handler: classroomRosterHandler,
     },
   ],
 })

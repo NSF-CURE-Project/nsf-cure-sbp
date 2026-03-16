@@ -1,4 +1,5 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
+import { canReceiveNotification } from '../utils/notificationPreferences'
 
 const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' &&
@@ -115,17 +116,20 @@ export const Questions: CollectionConfig = {
           ? `"${doc.title}" has been answered by staff.`
           : 'A staff member responded to your question.'
 
-        await req.payload.create({
-          collection: 'notifications',
-          data: {
-            recipient,
-            title,
-            body,
-            question: doc.id,
-            type: 'question_answered',
-          },
-          overrideAccess: true,
-        })
+        const shouldNotify = await canReceiveNotification(req.payload, recipient, 'question_answered')
+        if (shouldNotify) {
+          await req.payload.create({
+            collection: 'notifications',
+            data: {
+              recipient,
+              title,
+              body,
+              question: doc.id,
+              type: 'question_answered',
+            },
+            overrideAccess: true,
+          })
+        }
 
         return doc
       },

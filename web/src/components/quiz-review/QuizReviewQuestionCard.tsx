@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 
 import { PayloadRichText } from "@/components/ui/payloadRichText";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type QuizReviewQuestionCardProps = {
@@ -21,6 +25,8 @@ export function QuizReviewQuestionCard({
   index,
   question,
 }: QuizReviewQuestionCardProps) {
+  const [showExplanation, setShowExplanation] = useState(false);
+
   return (
     <article className="rounded-xl border border-border/60 bg-card/50 p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -71,15 +77,27 @@ export function QuizReviewQuestionCard({
 
       {!question.isCorrect && question.explanation ? (
         <div className="mt-4 rounded-lg border border-border/60 bg-muted/35 p-4">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Explanation
-          </p>
-          <PayloadRichText
-            content={
-              question.explanation as unknown as Parameters<typeof PayloadRichText>[0]["content"]
-            }
-            className="prose prose-invert max-w-none text-sm text-foreground"
-          />
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Explanation
+            </p>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setShowExplanation((value) => !value)}
+            >
+              {showExplanation ? "Hide explanation" : "Show explanation"}
+            </Button>
+          </div>
+          {showExplanation ? (
+            <PayloadRichText
+              content={
+                question.explanation as unknown as Parameters<typeof PayloadRichText>[0]["content"]
+              }
+              className="prose prose-invert mt-3 max-w-none text-sm text-foreground"
+            />
+          ) : null}
         </div>
       ) : null}
 

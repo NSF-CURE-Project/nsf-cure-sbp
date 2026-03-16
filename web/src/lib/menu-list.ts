@@ -52,6 +52,12 @@ export function getMenuList(): Group[] {
           icon: BarChart3,
           submenus: [],
         },
+        {
+          href: "/saved-lessons",
+          label: "Saved Lessons",
+          icon: Bookmark,
+          submenus: [],
+        },
       ],
     },
     {
