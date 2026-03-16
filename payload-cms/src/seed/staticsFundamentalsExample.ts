@@ -27,12 +27,12 @@ const richText = (text: string) => ({
             version: 1,
           },
         ],
-        direction: "ltr",
+        direction: "ltr" as const,
         textFormat: 0,
         textStyle: "",
       },
     ],
-    direction: "ltr",
+    direction: "ltr" as const,
   },
 });
 
