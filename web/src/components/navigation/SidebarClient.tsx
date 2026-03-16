@@ -370,11 +370,11 @@ export default function SidebarClient({ classes }: Props) {
                           <div className="relative pl-3">
                             <div
                               className={cn(
-                                "group flex w-full items-center justify-between gap-2 rounded-md border-l-2 px-2 py-1 pr-2 text-left",
+                                "group -ml-3 flex w-[calc(100%+0.75rem)] items-center justify-between gap-2 rounded-md border-l-2 py-1 pl-4 pr-2 text-left",
                                 "transition-[background-color,border-color,color,transform] duration-200",
                                 "hover:-translate-y-[2px]",
                                 chapterBarActive
-                                  ? "border-primary bg-primary/15 text-foreground pl-1"
+                                  ? "border-primary bg-primary/15 text-foreground"
                                   : "border-transparent text-muted-foreground/80 hover:border-primary/40 hover:bg-muted/20 hover:text-foreground"
                               )}
                             >
