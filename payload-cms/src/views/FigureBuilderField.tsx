@@ -47,7 +47,15 @@ type BeamData = {
   dimensions?: boolean
 }
 
-type FigureData = FBDData | TrussData | BeamData | Record<string, unknown>
+type MomentDiagramData = {
+  type: 'moment-diagram'
+  length: number
+  scale: number
+  yScale: number
+  points: { x: number; M: number }[]
+}
+
+type FigureData = FBDData | TrussData | BeamData | MomentDiagramData
 type TemplateDoc = {
   id: string | number
   title?: string
