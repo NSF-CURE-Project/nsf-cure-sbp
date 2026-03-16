@@ -89,6 +89,10 @@ export interface Config {
     'quiz-questions': QuizQuestion;
     quizzes: Quiz;
     'quiz-attempts': QuizAttempt;
+    'engineering-figures': EngineeringFigure;
+    problems: Problem;
+    'problem-sets': ProblemSet;
+    'problem-attempts': ProblemAttempt;
     notifications: Notification;
     'lesson-progress': LessonProgress;
     'lesson-bookmarks': LessonBookmark;
@@ -122,6 +126,10 @@ export interface Config {
     'quiz-questions': QuizQuestionsSelect<false> | QuizQuestionsSelect<true>;
     quizzes: QuizzesSelect<false> | QuizzesSelect<true>;
     'quiz-attempts': QuizAttemptsSelect<false> | QuizAttemptsSelect<true>;
+    'engineering-figures': EngineeringFiguresSelect<false> | EngineeringFiguresSelect<true>;
+    problems: ProblemsSelect<false> | ProblemsSelect<true>;
+    'problem-sets': ProblemSetsSelect<false> | ProblemSetsSelect<true>;
+    'problem-attempts': ProblemAttemptsSelect<false> | ProblemAttemptsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'lesson-progress': LessonProgressSelect<false> | LessonProgressSelect<true>;
     'lesson-bookmarks': LessonBookmarksSelect<false> | LessonBookmarksSelect<true>;
@@ -431,6 +439,16 @@ export interface Lesson {
             blockName?: string | null;
             blockType: 'quizBlock';
           }
+        | {
+            problemSet: number | ProblemSet;
+            title?: string | null;
+            showTitle?: boolean | null;
+            maxAttempts?: number | null;
+            showAnswers?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'problemSetBlock';
+          }
       )[]
     | null;
   assessment?: {
@@ -550,6 +568,180 @@ export interface QuizQuestion {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "problem-sets".
+ */
+export interface ProblemSet {
+  id: number;
+  title: string;
+  description?: string | null;
+  problems: (number | Problem)[];
+  showAnswers?: boolean | null;
+  maxAttempts?: number | null;
+  shuffleProblems?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "problems".
+ */
+export interface Problem {
+  id: number;
+  title: string;
+  prompt: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  figure?: (number | null) | EngineeringFigure;
+  difficulty?: ('intro' | 'easy' | 'medium' | 'hard') | null;
+  topic?: string | null;
+  tags?: string[] | null;
+  parts: {
+    label: string;
+    prompt?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    unit?: string | null;
+    partType?: ('numeric' | 'symbolic' | 'fbd-draw') | null;
+    correctAnswer?: number | null;
+    tolerance?: number | null;
+    toleranceType?: ('absolute' | 'relative') | null;
+    significantFigures?: number | null;
+    scoringMode?: ('threshold' | 'linear-decay' | 'stepped') | null;
+    scoringSteps?:
+      | {
+          errorBound: number;
+          score: number;
+          id?: string | null;
+        }[]
+      | null;
+    symbolicAnswer?: string | null;
+    /**
+     * Auto-populated by Formula Helper. Keep variable names aligned with the symbolic expression.
+     */
+    symbolicVariables?:
+      | {
+          variable: string;
+          testMin?: number | null;
+          testMax?: number | null;
+          id?: string | null;
+        }[]
+      | null;
+    symbolicTolerance?: number | null;
+    fbdRubric?: {
+      requiredForces?:
+        | {
+            id: string;
+            label?: string | null;
+            correctAngle: number;
+            angleTolerance?: number | null;
+            magnitudeRequired?: boolean | null;
+            correctMagnitude?: number | null;
+            magnitudeTolerance?: number | null;
+          }[]
+        | null;
+      forbiddenForces?: number | null;
+    };
+    explanation?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    id?: string | null;
+  }[];
+  resultPlots?:
+    | {
+        plotType: 'shear' | 'moment' | 'deflection' | 'custom';
+        title?: string | null;
+        xLabel?: string | null;
+        yLabel?: string | null;
+        xMin?: number | null;
+        xMax?: string | null;
+        segments?:
+          | {
+              xStart: string;
+              xEnd: string;
+              formula: string;
+              id?: string | null;
+            }[]
+          | null;
+        criticalPoints?:
+          | {
+              x: string;
+              label?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "engineering-figures".
+ */
+export interface EngineeringFigure {
+  id: number;
+  title: string;
+  type: 'fbd' | 'truss' | 'beam' | 'moment-diagram';
+  description?: string | null;
+  figureData:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  width?: number | null;
+  height?: number | null;
+  /**
+   * Mark as a reusable template. Templates appear in the template picker.
+   */
+  isTemplate?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1285,6 +1477,49 @@ export interface QuizAttempt {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "problem-attempts".
+ */
+export interface ProblemAttempt {
+  id: number;
+  problemSet: number | ProblemSet;
+  lesson?: (number | null) | Lesson;
+  user: number | Account;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  durationSec?: number | null;
+  answers?:
+    | {
+        problem: number | Problem;
+        parts?:
+          | {
+              partIndex: number;
+              studentAnswer?: number | null;
+              studentExpression?: string | null;
+              placedForces?:
+                | {
+                    [k: string]: unknown;
+                  }
+                | unknown[]
+                | string
+                | number
+                | boolean
+                | null;
+              isCorrect?: boolean | null;
+              score?: number | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  score?: number | null;
+  maxScore?: number | null;
+  correctCount?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "notifications".
  */
 export interface Notification {
@@ -1480,6 +1715,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'quiz-attempts';
         value: number | QuizAttempt;
+      } | null)
+    | ({
+        relationTo: 'engineering-figures';
+        value: number | EngineeringFigure;
+      } | null)
+    | ({
+        relationTo: 'problems';
+        value: number | Problem;
+      } | null)
+    | ({
+        relationTo: 'problem-sets';
+        value: number | ProblemSet;
+      } | null)
+    | ({
+        relationTo: 'problem-attempts';
+        value: number | ProblemAttempt;
       } | null)
     | ({
         relationTo: 'notifications';
@@ -1722,6 +1973,17 @@ export interface LessonsSelect<T extends boolean = true> {
               title?: T;
               quiz?: T;
               showTitle?: T;
+              id?: T;
+              blockName?: T;
+            };
+        problemSetBlock?:
+          | T
+          | {
+              problemSet?: T;
+              title?: T;
+              showTitle?: T;
+              maxAttempts?: T;
+              showAnswers?: T;
               id?: T;
               blockName?: T;
             };
@@ -2265,6 +2527,159 @@ export interface QuizAttemptsSelect<T extends boolean = true> {
   maxScore?: T;
   correctCount?: T;
   questionCount?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "engineering-figures_select".
+ */
+export interface EngineeringFiguresSelect<T extends boolean = true> {
+  title?: T;
+  type?: T;
+  description?: T;
+  figureData?: T;
+  width?: T;
+  height?: T;
+  isTemplate?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "problems_select".
+ */
+export interface ProblemsSelect<T extends boolean = true> {
+  title?: T;
+  prompt?: T;
+  figure?: T;
+  difficulty?: T;
+  topic?: T;
+  tags?: T;
+  parts?:
+    | T
+    | {
+        label?: T;
+        prompt?: T;
+        unit?: T;
+        partType?: T;
+        correctAnswer?: T;
+        tolerance?: T;
+        toleranceType?: T;
+        significantFigures?: T;
+        scoringMode?: T;
+        scoringSteps?:
+          | T
+          | {
+              errorBound?: T;
+              score?: T;
+              id?: T;
+            };
+        symbolicAnswer?: T;
+        symbolicVariables?:
+          | T
+          | {
+              variable?: T;
+              testMin?: T;
+              testMax?: T;
+              id?: T;
+            };
+        symbolicTolerance?: T;
+        fbdRubric?:
+          | T
+          | {
+              requiredForces?:
+                | T
+                | {
+                    id?: T;
+                    label?: T;
+                    correctAngle?: T;
+                    angleTolerance?: T;
+                    magnitudeRequired?: T;
+                    correctMagnitude?: T;
+                    magnitudeTolerance?: T;
+                  };
+              forbiddenForces?: T;
+            };
+        explanation?: T;
+        id?: T;
+      };
+  resultPlots?:
+    | T
+    | {
+        plotType?: T;
+        title?: T;
+        xLabel?: T;
+        yLabel?: T;
+        xMin?: T;
+        xMax?: T;
+        segments?:
+          | T
+          | {
+              xStart?: T;
+              xEnd?: T;
+              formula?: T;
+              id?: T;
+            };
+        criticalPoints?:
+          | T
+          | {
+              x?: T;
+              label?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "problem-sets_select".
+ */
+export interface ProblemSetsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  problems?: T;
+  showAnswers?: T;
+  maxAttempts?: T;
+  shuffleProblems?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "problem-attempts_select".
+ */
+export interface ProblemAttemptsSelect<T extends boolean = true> {
+  problemSet?: T;
+  lesson?: T;
+  user?: T;
+  startedAt?: T;
+  completedAt?: T;
+  durationSec?: T;
+  answers?:
+    | T
+    | {
+        problem?: T;
+        parts?:
+          | T
+          | {
+              partIndex?: T;
+              studentAnswer?: T;
+              studentExpression?: T;
+              placedForces?: T;
+              isCorrect?: T;
+              score?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  score?: T;
+  maxScore?: T;
+  correctCount?: T;
   updatedAt?: T;
   createdAt?: T;
 }

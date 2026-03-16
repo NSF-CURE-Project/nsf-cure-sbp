@@ -1,4 +1,4 @@
-import type { CollectionConfig, PayloadRequest } from 'payload'
+import type { Block, CollectionConfig, PayloadRequest } from 'payload'
 import { pageBlocks } from '../blocks/pageBlocks'
 import { ensureUniqueSlug, slugify } from '../utils/slug'
 
@@ -41,6 +41,36 @@ const extractSlug = (value: unknown): string => {
     return (value as { slug?: string }).slug ?? ''
   }
   return ''
+}
+
+const problemSetBlock: Block = {
+  slug: 'problemSetBlock',
+  fields: [
+    {
+      name: 'problemSet',
+      type: 'relationship',
+      relationTo: 'problem-sets',
+      required: true,
+    },
+    {
+      name: 'title',
+      type: 'text',
+    },
+    {
+      name: 'showTitle',
+      type: 'checkbox',
+      defaultValue: true,
+    },
+    {
+      name: 'maxAttempts',
+      type: 'number',
+    },
+    {
+      name: 'showAnswers',
+      type: 'checkbox',
+      defaultValue: true,
+    },
+  ],
 }
 
 export const Lessons: CollectionConfig = {
@@ -447,7 +477,7 @@ export const Lessons: CollectionConfig = {
                 singular: 'Section',
                 plural: 'Sections',
               },
-              blocks: pageBlocks,
+              blocks: [...pageBlocks, problemSetBlock],
               admin: {
                 description: 'Build the lesson by adding and reordering content blocks.',
               },

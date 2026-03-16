@@ -18,6 +18,8 @@ import * as migration_20260312_040000_add_reporting_product_records from './2026
 import * as migration_20260312_050000_expand_admin_help_portal from './20260312_050000_expand_admin_help_portal';
 import * as migration_20260315_235000_add_account_streak_columns from './20260315_235000_add_account_streak_columns';
 import * as migration_20260316_080657_add_problem_set_collections_v1 from './20260316_080657_add_problem_set_collections_v1';
+import * as migration_20260316_081500_add_engineering_figure_templates_flag from './20260316_081500_add_engineering_figure_templates_flag';
+import * as migration_20260316_084525_add_problem_set_v2_extensions from './20260316_084525_add_problem_set_v2_extensions';
 
 export const migrations = [
   {
@@ -119,5 +121,15 @@ export const migrations = [
     up: migration_20260316_080657_add_problem_set_collections_v1.up,
     down: migration_20260316_080657_add_problem_set_collections_v1.down,
     name: '20260316_080657_add_problem_set_collections_v1',
+  },
+  {
+    up: migration_20260316_081500_add_engineering_figure_templates_flag.up,
+    down: migration_20260316_081500_add_engineering_figure_templates_flag.down,
+    name: '20260316_081500_add_engineering_figure_templates_flag',
+  },
+  {
+    up: migration_20260316_084525_add_problem_set_v2_extensions.up,
+    down: migration_20260316_084525_add_problem_set_v2_extensions.down,
+    name: '20260316_084525_add_problem_set_v2_extensions',
   },
 ];

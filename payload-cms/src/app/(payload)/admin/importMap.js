@@ -31,6 +31,11 @@ import { default as default_4b04de482248e5cf6439b466d2c48d43 } from '@/views/Pag
 import { default as default_5565cf0809d37ddd6682af69dc08c9da } from '@/views/ClassroomJoinCodeField'
 import { default as default_8ecf3705f4486154c43b65ffcba083a4 } from '@/views/QuizQuestionPickerField'
 import { default as default_b228ebeb356b13e416a25a2727293bbc } from '@/views/QuizPreviewField'
+import { default as default_0937aecc147b64e1fe0af8b25be8b04e } from '@/views/FigureBuilderField'
+import { default as default_5c42f65881579824c215aea0ce8e7864 } from '@/views/ToleranceExplainerField'
+import { default as default_edf03fc31873d58cdebfd253d2bc5043 } from '@/views/FormulaHelperField'
+import { default as default_468efbae130dde8cd1b02c5dba12007e } from '@/views/PlotWizardField'
+import { default as default_83665b2e457b847ee9222917fde5a7ab } from '@/views/ProblemPreviewTab'
 import { default as default_20b4b595011067220e22f7c98e94e4e7 } from '@/views/AdminIcon'
 import { default as default_1c527c7f8e4abfd6959bbf71cc426e00 } from '@/views/AdminLogo'
 import { default as default_9d5e242f5b9448a15263946a6aafe2ce } from '@/views/StaffProvider'
@@ -70,6 +75,11 @@ export const importMap = {
   "@/views/ClassroomJoinCodeField#default": default_5565cf0809d37ddd6682af69dc08c9da,
   "@/views/QuizQuestionPickerField#default": default_8ecf3705f4486154c43b65ffcba083a4,
   "@/views/QuizPreviewField#default": default_b228ebeb356b13e416a25a2727293bbc,
+  "@/views/FigureBuilderField#default": default_0937aecc147b64e1fe0af8b25be8b04e,
+  "@/views/ToleranceExplainerField#default": default_5c42f65881579824c215aea0ce8e7864,
+  "@/views/FormulaHelperField#default": default_edf03fc31873d58cdebfd253d2bc5043,
+  "@/views/PlotWizardField#default": default_468efbae130dde8cd1b02c5dba12007e,
+  "@/views/ProblemPreviewTab#default": default_83665b2e457b847ee9222917fde5a7ab,
   "@/views/AdminIcon#default": default_20b4b595011067220e22f7c98e94e4e7,
   "@/views/AdminLogo#default": default_1c527c7f8e4abfd6959bbf71cc426e00,
   "@/views/StaffProvider#default": default_9d5e242f5b9448a15263946a6aafe2ce,
