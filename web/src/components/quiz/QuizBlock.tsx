@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
@@ -120,6 +121,7 @@ const normalizeQuestion = (question: QuizQuestionDoc): NormalizedQuestion => {
 };
 
 export function QuizBlock({ block, lessonId }: Props) {
+  const router = useRouter();
   const [quiz, setQuiz] = useState<QuizDoc | null>(null);
   const [loading, setLoading] = useState(false);
   const [questionOrder, setQuestionOrder] = useState<string[]>([]);
@@ -374,8 +376,9 @@ export function QuizBlock({ block, lessonId }: Props) {
       })),
     }));
 
+    let redirectedToReview = false;
     try {
-      await fetch(`${PAYLOAD_URL}/api/quiz-attempts`, {
+      const response = await fetch(`${PAYLOAD_URL}/api/quiz-attempts`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -391,12 +394,24 @@ export function QuizBlock({ block, lessonId }: Props) {
           durationSec,
         }),
       });
+
+      if (response.ok) {
+        const attempt = (await response.json().catch(() => null)) as
+          | { id?: string | number }
+          | null;
+        if (attempt?.id != null) {
+          redirectedToReview = true;
+          router.push(`/quiz-attempts/${attempt.id}`);
+        }
+      }
     } finally {
       setSubmitting(false);
-      setSubmitted(true);
-      setAttemptCount((prev) =>
-        typeof prev === "number" ? prev + 1 : prev
-      );
+      if (!redirectedToReview) {
+        setSubmitted(true);
+        setAttemptCount((prev) =>
+          typeof prev === "number" ? prev + 1 : prev
+        );
+      }
     }
   };
 

@@ -19,7 +19,7 @@ cd ../web && pnpm install
 ./scripts/dev-setup.sh  # requires sudo
 ```
 3. Run a local Postgres or use Docker Compose (see `docs/developers/stack.md` for a snippet).
-4. Create `payload-cms/.env` (see `.github/AGENT.md` for a template) and set `DATABASE_URI`.
+4. Create `payload-cms/.env`, set `DATABASE_URI`, and add the other required local values for Payload and the web app.
 5. Start admin and web apps in separate terminals:
 ```bash
 cd payload-cms && pnpm dev
@@ -48,4 +48,3 @@ Contacts
 Further reading
 - `docs/architecture/architecture.md` — system architecture and data flow.
 - `docs/developers/stack.md` — tech stack and local dev commands.
-- `.github/copilot-instructions.md` and `.github/AGENT.md` — AI agent guidance and troubleshooting.

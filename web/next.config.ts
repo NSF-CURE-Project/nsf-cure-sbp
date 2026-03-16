@@ -4,6 +4,23 @@ import { fileURLToPath } from "url";
 
 const payloadProxyTarget =
   process.env.PAYLOAD_PROXY_TARGET ?? "http://localhost:3000";
+const normalizePayloadTarget = (value: string) => {
+  const trimmed = value.trim().replace(/\/+$/, "");
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.pathname === "/admin") {
+      parsed.pathname = "";
+    } else if (parsed.pathname.endsWith("/admin")) {
+      parsed.pathname = parsed.pathname.slice(0, -"/admin".length);
+    }
+    return parsed.toString().replace(/\/+$/, "");
+  } catch {
+    if (trimmed === "/admin") return "";
+    if (trimmed.endsWith("/admin")) return trimmed.slice(0, -"/admin".length);
+    return trimmed;
+  }
+};
+const normalizedPayloadTarget = normalizePayloadTarget(payloadProxyTarget);
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
@@ -64,10 +81,22 @@ const nextConfig: NextConfig = {
     afterFiles: [
       {
         source: "/api/:path*",
-        destination: `${payloadProxyTarget}/api/:path*`,
+        destination: `${normalizedPayloadTarget}/api/:path*`,
       },
     ],
   }),
+  redirects: async () => [
+    {
+      source: "/admin",
+      destination: `${normalizedPayloadTarget}/admin`,
+      permanent: false,
+    },
+    {
+      source: "/admin/:path*",
+      destination: `${normalizedPayloadTarget}/admin/:path*`,
+      permanent: false,
+    },
+  ],
 };
 
 export default nextConfig;

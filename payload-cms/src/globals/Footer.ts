@@ -96,6 +96,36 @@ export const Footer: GlobalConfig = {
           },
         },
         { name: 'subLine', type: 'text' },
+        {
+          name: 'nsfCompliance',
+          label: 'NSF compliance',
+          type: 'group',
+          fields: [
+            {
+              name: 'enabled',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: {
+                description:
+                  'When enabled, NSF compliance text appears in the global site footer.',
+              },
+            },
+            {
+              name: 'fundingAcknowledgment',
+              type: 'text',
+              defaultValue:
+                'Supported by the National Science Foundation under Award No. 2318158.',
+              required: true,
+            },
+            {
+              name: 'disclaimer',
+              type: 'textarea',
+              required: true,
+              defaultValue:
+                'Any opinions, findings, and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of the National Science Foundation.',
+            },
+          ],
+        },
       ],
     },
   ],

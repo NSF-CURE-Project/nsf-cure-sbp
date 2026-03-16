@@ -74,6 +74,14 @@ export interface Config {
     pages: Page;
     classrooms: Classroom;
     'classroom-memberships': ClassroomMembership;
+    organizations: Organization;
+    'reporting-periods': ReportingPeriod;
+    'rppr-reports': RpprReport;
+    'reporting-snapshots': ReportingSnapshot;
+    'reporting-audit-events': ReportingAuditEvent;
+    'reporting-saved-views': ReportingSavedView;
+    'reporting-evidence-links': ReportingEvidenceLink;
+    'reporting-product-records': ReportingProductRecord;
     accounts: Account;
     users: User;
     media: Media;
@@ -81,6 +89,10 @@ export interface Config {
     'quiz-questions': QuizQuestion;
     quizzes: Quiz;
     'quiz-attempts': QuizAttempt;
+    'engineering-figures': EngineeringFigure;
+    problems: Problem;
+    'problem-sets': ProblemSet;
+    'problem-attempts': ProblemAttempt;
     notifications: Notification;
     'lesson-progress': LessonProgress;
     'lesson-bookmarks': LessonBookmark;
@@ -99,6 +111,14 @@ export interface Config {
     pages: PagesSelect<false> | PagesSelect<true>;
     classrooms: ClassroomsSelect<false> | ClassroomsSelect<true>;
     'classroom-memberships': ClassroomMembershipsSelect<false> | ClassroomMembershipsSelect<true>;
+    organizations: OrganizationsSelect<false> | OrganizationsSelect<true>;
+    'reporting-periods': ReportingPeriodsSelect<false> | ReportingPeriodsSelect<true>;
+    'rppr-reports': RpprReportsSelect<false> | RpprReportsSelect<true>;
+    'reporting-snapshots': ReportingSnapshotsSelect<false> | ReportingSnapshotsSelect<true>;
+    'reporting-audit-events': ReportingAuditEventsSelect<false> | ReportingAuditEventsSelect<true>;
+    'reporting-saved-views': ReportingSavedViewsSelect<false> | ReportingSavedViewsSelect<true>;
+    'reporting-evidence-links': ReportingEvidenceLinksSelect<false> | ReportingEvidenceLinksSelect<true>;
+    'reporting-product-records': ReportingProductRecordsSelect<false> | ReportingProductRecordsSelect<true>;
     accounts: AccountsSelect<false> | AccountsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -106,6 +126,10 @@ export interface Config {
     'quiz-questions': QuizQuestionsSelect<false> | QuizQuestionsSelect<true>;
     quizzes: QuizzesSelect<false> | QuizzesSelect<true>;
     'quiz-attempts': QuizAttemptsSelect<false> | QuizAttemptsSelect<true>;
+    'engineering-figures': EngineeringFiguresSelect<false> | EngineeringFiguresSelect<true>;
+    problems: ProblemsSelect<false> | ProblemsSelect<true>;
+    'problem-sets': ProblemSetsSelect<false> | ProblemSetsSelect<true>;
+    'problem-attempts': ProblemAttemptsSelect<false> | ProblemAttemptsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'lesson-progress': LessonProgressSelect<false> | LessonProgressSelect<true>;
     'lesson-bookmarks': LessonBookmarksSelect<false> | LessonBookmarksSelect<true>;
@@ -415,6 +439,16 @@ export interface Lesson {
             blockName?: string | null;
             blockType: 'quizBlock';
           }
+        | {
+            problemSet: number | ProblemSet;
+            title?: string | null;
+            showTitle?: boolean | null;
+            maxAttempts?: number | null;
+            showAnswers?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'problemSetBlock';
+          }
       )[]
     | null;
   assessment?: {
@@ -534,6 +568,180 @@ export interface QuizQuestion {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "problem-sets".
+ */
+export interface ProblemSet {
+  id: number;
+  title: string;
+  description?: string | null;
+  problems: (number | Problem)[];
+  showAnswers?: boolean | null;
+  maxAttempts?: number | null;
+  shuffleProblems?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "problems".
+ */
+export interface Problem {
+  id: number;
+  title: string;
+  prompt: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  figure?: (number | null) | EngineeringFigure;
+  difficulty?: ('intro' | 'easy' | 'medium' | 'hard') | null;
+  topic?: string | null;
+  tags?: string[] | null;
+  parts: {
+    label: string;
+    prompt?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    unit?: string | null;
+    partType?: ('numeric' | 'symbolic' | 'fbd-draw') | null;
+    correctAnswer?: number | null;
+    tolerance?: number | null;
+    toleranceType?: ('absolute' | 'relative') | null;
+    significantFigures?: number | null;
+    scoringMode?: ('threshold' | 'linear-decay' | 'stepped') | null;
+    scoringSteps?:
+      | {
+          errorBound: number;
+          score: number;
+          id?: string | null;
+        }[]
+      | null;
+    symbolicAnswer?: string | null;
+    /**
+     * Auto-populated by Formula Helper. Keep variable names aligned with the symbolic expression.
+     */
+    symbolicVariables?:
+      | {
+          variable: string;
+          testMin?: number | null;
+          testMax?: number | null;
+          id?: string | null;
+        }[]
+      | null;
+    symbolicTolerance?: number | null;
+    fbdRubric?: {
+      requiredForces?:
+        | {
+            id: string;
+            label?: string | null;
+            correctAngle: number;
+            angleTolerance?: number | null;
+            magnitudeRequired?: boolean | null;
+            correctMagnitude?: number | null;
+            magnitudeTolerance?: number | null;
+          }[]
+        | null;
+      forbiddenForces?: number | null;
+    };
+    explanation?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    id?: string | null;
+  }[];
+  resultPlots?:
+    | {
+        plotType: 'shear' | 'moment' | 'deflection' | 'custom';
+        title?: string | null;
+        xLabel?: string | null;
+        yLabel?: string | null;
+        xMin?: number | null;
+        xMax?: string | null;
+        segments?:
+          | {
+              xStart: string;
+              xEnd: string;
+              formula: string;
+              id?: string | null;
+            }[]
+          | null;
+        criticalPoints?:
+          | {
+              x: string;
+              label?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "engineering-figures".
+ */
+export interface EngineeringFigure {
+  id: number;
+  title: string;
+  type: 'fbd' | 'truss' | 'beam' | 'moment-diagram';
+  description?: string | null;
+  figureData:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  width?: number | null;
+  height?: number | null;
+  /**
+   * Mark as a reusable template. Templates appear in the template picker.
+   */
+  isTemplate?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -815,10 +1023,43 @@ export interface Account {
   emailVerificationTokenHash?: string | null;
   emailVerificationExpiresAt?: string | null;
   /**
-   * Default is student. Staff/admin can be used for special access.
+   * Student role for learner accounts.
    */
-  role: 'student' | 'staff' | 'admin';
+  role: 'student';
   fullName?: string | null;
+  currentStreak?: number | null;
+  longestStreak?: number | null;
+  lastStreakDate?: string | null;
+  /**
+   * Used for NSF participant reporting exports.
+   */
+  participantType?:
+    | ('undergraduate_student' | 'graduate_student' | 'k12_student' | 'teacher' | 'staff' | 'faculty' | 'other')
+    | null;
+  /**
+   * RPPR participant role in this project.
+   */
+  projectRole?: string | null;
+  organization?: (number | null) | Organization;
+  /**
+   * Optional reporting snapshot for exports when the organization relationship is empty.
+   */
+  organizationName?: string | null;
+  /**
+   * Summary of participant contributions used in RPPR narratives.
+   */
+  contributionSummary?: string | null;
+  participationStartDate?: string | null;
+  participationEndDate?: string | null;
+  /**
+   * Supports cohort filtering in reporting center.
+   */
+  firstGenCollegeStudent?: boolean | null;
+  /**
+   * Supports cohort filtering in reporting center.
+   */
+  transferStudent?: boolean | null;
+  includeInRppr?: boolean | null;
   /**
    * Reserved for CPP SSO integration (e.g., Okta, Azure AD).
    */
@@ -844,6 +1085,302 @@ export interface Account {
       }[]
     | null;
   password?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "organizations".
+ */
+export interface Organization {
+  id: number;
+  organizationName: string;
+  organizationType?: ('academic' | 'industry' | 'nonprofit' | 'government' | 'school_district' | 'other') | null;
+  /**
+   * Role this organization plays in the project (e.g., curriculum partner).
+   */
+  partnerRole?: string | null;
+  contributionSummary?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  website?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-periods".
+ */
+export interface ReportingPeriod {
+  id: number;
+  label: string;
+  /**
+   * Optional award budget period label.
+   */
+  budgetPeriodName?: string | null;
+  reportType: 'annual' | 'final' | 'internal' | 'custom';
+  startDate: string;
+  endDate: string;
+  status?: ('draft' | 'active' | 'archived') | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rppr-reports".
+ */
+export interface RpprReport {
+  id: number;
+  title: string;
+  reportingPeriod?: (number | null) | ReportingPeriod;
+  reportType: 'annual' | 'final' | 'internal' | 'custom';
+  startDate: string;
+  endDate: string;
+  accomplishmentsNarrative?: string | null;
+  productsNarrative?: string | null;
+  impactNarrative?: string | null;
+  changesProblemsNarrative?: string | null;
+  specialRequirementsNarrative?: string | null;
+  reportNotes?: string | null;
+  attachments?: (number | Media)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-snapshots".
+ */
+export interface ReportingSnapshot {
+  id: number;
+  label: string;
+  reportType: 'annual' | 'final' | 'internal' | 'custom';
+  reportingPeriod?: (number | null) | ReportingPeriod;
+  periodStart: string;
+  periodEnd: string;
+  filterScope:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  metricPayload:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  rpprPayload?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  dataQualityPayload?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  anomaliesPayload?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  narrativeDrafts?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  snapshotHash: string;
+  reproducibilityKey: string;
+  versionLabel: string;
+  createdBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-audit-events".
+ */
+export interface ReportingAuditEvent {
+  id: number;
+  eventType:
+    | 'report_generated'
+    | 'snapshot_created'
+    | 'snapshot_reused'
+    | 'export_generated'
+    | 'drilldown_viewed'
+    | 'saved_view_created';
+  reportType?: ('annual' | 'final' | 'internal' | 'custom') | null;
+  reportingPeriod?: (number | null) | ReportingPeriod;
+  periodStart?: string | null;
+  periodEnd?: string | null;
+  filters?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  exportType?: string | null;
+  exportFormat?: string | null;
+  metricKey?: string | null;
+  snapshot?: (number | null) | ReportingSnapshot;
+  notes?: string | null;
+  createdBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-saved-views".
+ */
+export interface ReportingSavedView {
+  id: number;
+  label: string;
+  owner: number | User;
+  isShared?: boolean | null;
+  reportType?: ('annual' | 'final' | 'internal' | 'custom') | null;
+  reportingPeriod?: (number | null) | ReportingPeriod;
+  startDate?: string | null;
+  endDate?: string | null;
+  filters:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  metricKeys?:
+    | {
+        metricKey: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-evidence-links".
+ */
+export interface ReportingEvidenceLink {
+  id: number;
+  title: string;
+  evidenceType: 'curriculum_change' | 'intervention' | 'product_resource' | 'publication' | 'other';
+  rpprSection:
+    | 'accomplishments'
+    | 'products'
+    | 'participantsOrganizations'
+    | 'impact'
+    | 'changesProblems'
+    | 'specialRequirements';
+  summary?: string | null;
+  impactNote?: string | null;
+  reportingPeriod?: (number | null) | ReportingPeriod;
+  linkedArtifacts?:
+    | (
+        | {
+            relationTo: 'classes';
+            value: number | Class;
+          }
+        | {
+            relationTo: 'lessons';
+            value: number | Lesson;
+          }
+        | {
+            relationTo: 'quizzes';
+            value: number | Quiz;
+          }
+        | {
+            relationTo: 'pages';
+            value: number | Page;
+          }
+        | {
+            relationTo: 'quiz-questions';
+            value: number | QuizQuestion;
+          }
+      )[]
+    | null;
+  linkedSnapshot?: (number | null) | ReportingSnapshot;
+  linkedRpprReport?: (number | null) | RpprReport;
+  occurredAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-product-records".
+ */
+export interface ReportingProductRecord {
+  id: number;
+  title: string;
+  productType: 'publication' | 'patent' | 'dataset' | 'software' | 'educational_material' | 'other';
+  /**
+   * Formal citation or product description used for RPPR products section.
+   */
+  citation?: string | null;
+  /**
+   * DOI, patent number, accession ID, or other stable identifier.
+   */
+  identifier?: string | null;
+  /**
+   * Public URL where the product can be reviewed.
+   */
+  url?: string | null;
+  reportingPeriod?: (number | null) | ReportingPeriod;
+  linkedRpprReport?: (number | null) | RpprReport;
+  linkedArtifacts?:
+    | (
+        | {
+            relationTo: 'classes';
+            value: number | Class;
+          }
+        | {
+            relationTo: 'lessons';
+            value: number | Lesson;
+          }
+        | {
+            relationTo: 'quizzes';
+            value: number | Quiz;
+          }
+        | {
+            relationTo: 'pages';
+            value: number | Page;
+          }
+        | {
+            relationTo: 'quiz-questions';
+            value: number | QuizQuestion;
+          }
+      )[]
+    | null;
+  reportedAt?: string | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -940,14 +1477,61 @@ export interface QuizAttempt {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "problem-attempts".
+ */
+export interface ProblemAttempt {
+  id: number;
+  problemSet: number | ProblemSet;
+  lesson?: (number | null) | Lesson;
+  user: number | Account;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  durationSec?: number | null;
+  answers?:
+    | {
+        problem: number | Problem;
+        parts?:
+          | {
+              partIndex: number;
+              studentAnswer?: number | null;
+              studentExpression?: string | null;
+              placedForces?:
+                | {
+                    [k: string]: unknown;
+                  }
+                | unknown[]
+                | string
+                | number
+                | boolean
+                | null;
+              isCorrect?: boolean | null;
+              score?: number | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  score?: number | null;
+  maxScore?: number | null;
+  correctCount?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "notifications".
  */
 export interface Notification {
   id: number;
   recipient: number | Account;
-  type: 'question_answered';
+  type: 'question_answered' | 'new_content' | 'announcement' | 'quiz_deadline';
   title: string;
   body?: string | null;
+  /**
+   * Optional URL the student is taken to when clicking this notification.
+   */
+  link?: string | null;
   question?: (number | null) | Question;
   read?: boolean | null;
   updatedAt: string;
@@ -1073,6 +1657,38 @@ export interface PayloadLockedDocument {
         value: number | ClassroomMembership;
       } | null)
     | ({
+        relationTo: 'organizations';
+        value: number | Organization;
+      } | null)
+    | ({
+        relationTo: 'reporting-periods';
+        value: number | ReportingPeriod;
+      } | null)
+    | ({
+        relationTo: 'rppr-reports';
+        value: number | RpprReport;
+      } | null)
+    | ({
+        relationTo: 'reporting-snapshots';
+        value: number | ReportingSnapshot;
+      } | null)
+    | ({
+        relationTo: 'reporting-audit-events';
+        value: number | ReportingAuditEvent;
+      } | null)
+    | ({
+        relationTo: 'reporting-saved-views';
+        value: number | ReportingSavedView;
+      } | null)
+    | ({
+        relationTo: 'reporting-evidence-links';
+        value: number | ReportingEvidenceLink;
+      } | null)
+    | ({
+        relationTo: 'reporting-product-records';
+        value: number | ReportingProductRecord;
+      } | null)
+    | ({
         relationTo: 'accounts';
         value: number | Account;
       } | null)
@@ -1099,6 +1715,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'quiz-attempts';
         value: number | QuizAttempt;
+      } | null)
+    | ({
+        relationTo: 'engineering-figures';
+        value: number | EngineeringFigure;
+      } | null)
+    | ({
+        relationTo: 'problems';
+        value: number | Problem;
+      } | null)
+    | ({
+        relationTo: 'problem-sets';
+        value: number | ProblemSet;
+      } | null)
+    | ({
+        relationTo: 'problem-attempts';
+        value: number | ProblemAttempt;
       } | null)
     | ({
         relationTo: 'notifications';
@@ -1344,6 +1976,17 @@ export interface LessonsSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        problemSetBlock?:
+          | T
+          | {
+              problemSet?: T;
+              title?: T;
+              showTitle?: T;
+              maxAttempts?: T;
+              showAnswers?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   assessment?:
     | T
@@ -1540,6 +2183,157 @@ export interface ClassroomMembershipsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "organizations_select".
+ */
+export interface OrganizationsSelect<T extends boolean = true> {
+  organizationName?: T;
+  organizationType?: T;
+  partnerRole?: T;
+  contributionSummary?: T;
+  contactName?: T;
+  contactEmail?: T;
+  website?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-periods_select".
+ */
+export interface ReportingPeriodsSelect<T extends boolean = true> {
+  label?: T;
+  budgetPeriodName?: T;
+  reportType?: T;
+  startDate?: T;
+  endDate?: T;
+  status?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rppr-reports_select".
+ */
+export interface RpprReportsSelect<T extends boolean = true> {
+  title?: T;
+  reportingPeriod?: T;
+  reportType?: T;
+  startDate?: T;
+  endDate?: T;
+  accomplishmentsNarrative?: T;
+  productsNarrative?: T;
+  impactNarrative?: T;
+  changesProblemsNarrative?: T;
+  specialRequirementsNarrative?: T;
+  reportNotes?: T;
+  attachments?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-snapshots_select".
+ */
+export interface ReportingSnapshotsSelect<T extends boolean = true> {
+  label?: T;
+  reportType?: T;
+  reportingPeriod?: T;
+  periodStart?: T;
+  periodEnd?: T;
+  filterScope?: T;
+  metricPayload?: T;
+  rpprPayload?: T;
+  dataQualityPayload?: T;
+  anomaliesPayload?: T;
+  narrativeDrafts?: T;
+  snapshotHash?: T;
+  reproducibilityKey?: T;
+  versionLabel?: T;
+  createdBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-audit-events_select".
+ */
+export interface ReportingAuditEventsSelect<T extends boolean = true> {
+  eventType?: T;
+  reportType?: T;
+  reportingPeriod?: T;
+  periodStart?: T;
+  periodEnd?: T;
+  filters?: T;
+  exportType?: T;
+  exportFormat?: T;
+  metricKey?: T;
+  snapshot?: T;
+  notes?: T;
+  createdBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-saved-views_select".
+ */
+export interface ReportingSavedViewsSelect<T extends boolean = true> {
+  label?: T;
+  owner?: T;
+  isShared?: T;
+  reportType?: T;
+  reportingPeriod?: T;
+  startDate?: T;
+  endDate?: T;
+  filters?: T;
+  metricKeys?:
+    | T
+    | {
+        metricKey?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-evidence-links_select".
+ */
+export interface ReportingEvidenceLinksSelect<T extends boolean = true> {
+  title?: T;
+  evidenceType?: T;
+  rpprSection?: T;
+  summary?: T;
+  impactNote?: T;
+  reportingPeriod?: T;
+  linkedArtifacts?: T;
+  linkedSnapshot?: T;
+  linkedRpprReport?: T;
+  occurredAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-product-records_select".
+ */
+export interface ReportingProductRecordsSelect<T extends boolean = true> {
+  title?: T;
+  productType?: T;
+  citation?: T;
+  identifier?: T;
+  url?: T;
+  reportingPeriod?: T;
+  linkedRpprReport?: T;
+  linkedArtifacts?: T;
+  reportedAt?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "accounts_select".
  */
 export interface AccountsSelect<T extends boolean = true> {
@@ -1549,6 +2343,19 @@ export interface AccountsSelect<T extends boolean = true> {
   emailVerificationExpiresAt?: T;
   role?: T;
   fullName?: T;
+  currentStreak?: T;
+  longestStreak?: T;
+  lastStreakDate?: T;
+  participantType?: T;
+  projectRole?: T;
+  organization?: T;
+  organizationName?: T;
+  contributionSummary?: T;
+  participationStartDate?: T;
+  participationEndDate?: T;
+  firstGenCollegeStudent?: T;
+  transferStudent?: T;
+  includeInRppr?: T;
   ssoProvider?: T;
   ssoSubject?: T;
   updatedAt?: T;
@@ -1725,6 +2532,159 @@ export interface QuizAttemptsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "engineering-figures_select".
+ */
+export interface EngineeringFiguresSelect<T extends boolean = true> {
+  title?: T;
+  type?: T;
+  description?: T;
+  figureData?: T;
+  width?: T;
+  height?: T;
+  isTemplate?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "problems_select".
+ */
+export interface ProblemsSelect<T extends boolean = true> {
+  title?: T;
+  prompt?: T;
+  figure?: T;
+  difficulty?: T;
+  topic?: T;
+  tags?: T;
+  parts?:
+    | T
+    | {
+        label?: T;
+        prompt?: T;
+        unit?: T;
+        partType?: T;
+        correctAnswer?: T;
+        tolerance?: T;
+        toleranceType?: T;
+        significantFigures?: T;
+        scoringMode?: T;
+        scoringSteps?:
+          | T
+          | {
+              errorBound?: T;
+              score?: T;
+              id?: T;
+            };
+        symbolicAnswer?: T;
+        symbolicVariables?:
+          | T
+          | {
+              variable?: T;
+              testMin?: T;
+              testMax?: T;
+              id?: T;
+            };
+        symbolicTolerance?: T;
+        fbdRubric?:
+          | T
+          | {
+              requiredForces?:
+                | T
+                | {
+                    id?: T;
+                    label?: T;
+                    correctAngle?: T;
+                    angleTolerance?: T;
+                    magnitudeRequired?: T;
+                    correctMagnitude?: T;
+                    magnitudeTolerance?: T;
+                  };
+              forbiddenForces?: T;
+            };
+        explanation?: T;
+        id?: T;
+      };
+  resultPlots?:
+    | T
+    | {
+        plotType?: T;
+        title?: T;
+        xLabel?: T;
+        yLabel?: T;
+        xMin?: T;
+        xMax?: T;
+        segments?:
+          | T
+          | {
+              xStart?: T;
+              xEnd?: T;
+              formula?: T;
+              id?: T;
+            };
+        criticalPoints?:
+          | T
+          | {
+              x?: T;
+              label?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "problem-sets_select".
+ */
+export interface ProblemSetsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  problems?: T;
+  showAnswers?: T;
+  maxAttempts?: T;
+  shuffleProblems?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "problem-attempts_select".
+ */
+export interface ProblemAttemptsSelect<T extends boolean = true> {
+  problemSet?: T;
+  lesson?: T;
+  user?: T;
+  startedAt?: T;
+  completedAt?: T;
+  durationSec?: T;
+  answers?:
+    | T
+    | {
+        problem?: T;
+        parts?:
+          | T
+          | {
+              partIndex?: T;
+              studentAnswer?: T;
+              studentExpression?: T;
+              placedForces?: T;
+              isCorrect?: T;
+              score?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  score?: T;
+  maxScore?: T;
+  correctCount?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "notifications_select".
  */
 export interface NotificationsSelect<T extends boolean = true> {
@@ -1732,6 +2692,7 @@ export interface NotificationsSelect<T extends boolean = true> {
   type?: T;
   title?: T;
   body?: T;
+  link?: T;
   question?: T;
   read?: T;
   updatedAt?: T;
@@ -1844,6 +2805,61 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface AdminHelp {
   id: number;
   title: string;
+  subtitle?: string | null;
+  /**
+   * JSON array: [{ "label": string, "desc": string, "href": string }].
+   */
+  quickActions?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * JSON array of strings for topic tags.
+   */
+  topicChips?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * JSON array: [{ "question": string, "answer": string }].
+   */
+  faqs?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  supportEmail?: string | null;
+  supportResponseTarget?: string | null;
+  /**
+   * Relative admin path or full URL.
+   */
+  supportRequestHref?: string | null;
+  /**
+   * JSON array: [{ "label": string, "desc": string, "href": string }].
+   */
+  resources?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   body?: {
     root: {
       type: string;
@@ -1898,12 +2914,20 @@ export interface Footer {
     description?: string | null;
     buttonLabel?: string | null;
   };
-  bottom?: {
+  bottom: {
     /**
      * Use {year} to insert the current year.
      */
     copyrightLine?: string | null;
     subLine?: string | null;
+    nsfCompliance: {
+      /**
+       * When enabled, NSF compliance text appears in the global site footer.
+       */
+      enabled?: boolean | null;
+      fundingAcknowledgment: string;
+      disclaimer: string;
+    };
   };
   _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
@@ -1935,6 +2959,14 @@ export interface SiteBranding {
  */
 export interface AdminHelpSelect<T extends boolean = true> {
   title?: T;
+  subtitle?: T;
+  quickActions?: T;
+  topicChips?: T;
+  faqs?: T;
+  supportEmail?: T;
+  supportResponseTarget?: T;
+  supportRequestHref?: T;
+  resources?: T;
   body?: T;
   _status?: T;
   updatedAt?: T;
@@ -1981,6 +3013,13 @@ export interface FooterSelect<T extends boolean = true> {
     | {
         copyrightLine?: T;
         subLine?: T;
+        nsfCompliance?:
+          | T
+          | {
+              enabled?: T;
+              fundingAcknowledgment?: T;
+              disclaimer?: T;
+            };
       };
   _status?: T;
   updatedAt?: T;

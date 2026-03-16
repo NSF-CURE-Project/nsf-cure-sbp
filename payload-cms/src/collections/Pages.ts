@@ -3,6 +3,10 @@ import type { CollectionConfig } from 'payload'
 import { pageBlocks } from '../blocks/pageBlocks'
 import { ensureUniqueSlug, slugify } from '../utils/slug'
 
+const isStaff = (req?: { user?: { collection?: string | null; role?: string | null } | null }) =>
+  req?.user?.collection === 'users' &&
+  ['admin', 'staff', 'professor'].includes(req.user?.role ?? '')
+
 export const Pages: CollectionConfig = {
   slug: 'pages',
   defaultSort: 'navOrder',
@@ -39,12 +43,9 @@ export const Pages: CollectionConfig = {
   },
   access: {
     read: () => true,
-    create: ({ req }) =>
-      req.user?.collection === 'users' || ['admin', 'staff', 'professor'].includes(req.user?.role ?? ''),
-    update: ({ req }) =>
-      req.user?.collection === 'users' || ['admin', 'staff', 'professor'].includes(req.user?.role ?? ''),
-    delete: ({ req }) =>
-      req.user?.collection === 'users' || ['admin', 'staff', 'professor'].includes(req.user?.role ?? ''),
+    create: ({ req }) => isStaff(req),
+    update: ({ req }) => isStaff(req),
+    delete: ({ req }) => isStaff(req),
   },
   versions: {
     drafts: true,

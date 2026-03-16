@@ -1,34 +1,8 @@
 import type { Payload } from 'payload'
-
-type CompletionSummary = {
-  id: string
-  title: string
-  total: number
-  completed: number
-  completionRate: number
-}
-
-type MasteryBand = {
-  label: string
-  min: number
-  max: number
-  count: number
-  percentage: number
-}
-
-type WeeklyEngagement = {
-  weekStart: string
-  activeStudents: number
-  weekOverWeekChange: number | null
-}
-
-type ReportingSummary = {
-  classCompletion: CompletionSummary[]
-  chapterCompletion: CompletionSummary[]
-  quizMasteryDistribution: MasteryBand[]
-  weeklyEngagement: WeeklyEngagement[]
-  generatedAt: string
-}
+import { findAllDocs, findAllDocsInPeriod } from '../reporting/data.ts'
+import { resolveReportingPeriod, type ReportingPeriodInput } from '../reporting/period.ts'
+import { resolveReportingScope } from '../reporting/cohorts.ts'
+import type { ReportingSummary, ReportMode, ReportingCohortFilters } from '../reporting/types.ts'
 
 const MASTERY_BANDS = [
   { label: '0-59%', min: 0, max: 0.6 },
@@ -37,6 +11,8 @@ const MASTERY_BANDS = [
   { label: '80-89%', min: 0.8, max: 0.9 },
   { label: '90-100%', min: 0.9, max: 1.000_001 },
 ]
+
+const MASTERY_THRESHOLD = 0.8
 
 const toId = (value: unknown): string | null => {
   if (typeof value === 'string' || typeof value === 'number') return String(value)
@@ -78,38 +54,81 @@ const getUtcWeekStart = (value: unknown): string | null => {
   return parsed.toISOString().slice(0, 10)
 }
 
-const findAllDocs = async (
-  payload: Payload,
-  collection: 'classes' | 'chapters' | 'lesson-progress' | 'quiz-attempts',
-) => {
-  const docs: Record<string, unknown>[] = []
-  let page = 1
-  let hasNextPage = true
-
-  while (hasNextPage) {
-    const result = await payload.find({
-      collection,
-      depth: 0,
-      limit: 500,
-      page,
-      sort: 'id',
-    })
-
-    docs.push(...(result.docs as unknown as Record<string, unknown>[]))
-    hasNextPage = Boolean(result.hasNextPage)
-    page += 1
-  }
-
-  return docs
+const isDateInPeriod = (value: unknown, startIso: string, endIso: string): boolean => {
+  if (typeof value !== 'string') return false
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return false
+  const ts = parsed.getTime()
+  return ts >= new Date(startIso).getTime() && ts <= new Date(endIso).getTime()
 }
 
-export const getReportingSummary = async (payload: Payload): Promise<ReportingSummary> => {
-  const [classes, chapters, lessonProgress, quizAttempts] = await Promise.all([
+export const getReportingSummary = async (
+  payload: Payload,
+  options?: {
+    mode?: ReportMode
+    period?: ReportingPeriodInput | null
+    filters?: Partial<ReportingCohortFilters> | null
+  },
+): Promise<ReportingSummary> => {
+  const mode = options?.mode ?? 'internal'
+  const period = options?.period ? resolveReportingPeriod(options.period) : null
+  const scope = await resolveReportingScope(payload, options?.filters)
+
+  if (mode === 'rppr' && !period) {
+    throw new Error('RPPR reporting requires a reporting period.')
+  }
+
+  const [classes, chapters, quizzes] = await Promise.all([
     findAllDocs(payload, 'classes'),
     findAllDocs(payload, 'chapters'),
-    findAllDocs(payload, 'lesson-progress'),
-    findAllDocs(payload, 'quiz-attempts'),
+    findAllDocs(payload, 'quizzes'),
   ])
+
+  const [lessonProgress, quizAttempts, lessonsInPeriod, quizzesInPeriod, pagesInPeriod, questionBankInPeriod] =
+    await Promise.all([
+      period
+        ? findAllDocsInPeriod(payload, 'lesson-progress', 'updatedAt', period)
+        : findAllDocs(payload, 'lesson-progress'),
+      // Pulling by createdAt avoids hidden omissions from records missing completedAt.
+      findAllDocs(payload, 'quiz-attempts'),
+      period
+        ? findAllDocsInPeriod(payload, 'lessons', 'createdAt', period)
+        : Promise.resolve([] as Record<string, unknown>[]),
+      period
+        ? findAllDocsInPeriod(payload, 'quizzes', 'createdAt', period)
+        : Promise.resolve([] as Record<string, unknown>[]),
+      period
+        ? findAllDocsInPeriod(payload, 'pages', 'createdAt', period)
+        : Promise.resolve([] as Record<string, unknown>[]),
+      period
+        ? findAllDocsInPeriod(payload, 'quiz-questions', 'createdAt', period)
+        : Promise.resolve([] as Record<string, unknown>[]),
+    ])
+
+  const filteredQuizAttempts = period
+    ? quizAttempts.filter((attempt) => {
+        const completedAt = (attempt as { completedAt?: unknown }).completedAt
+        const createdAt = (attempt as { createdAt?: unknown }).createdAt
+        return (
+          isDateInPeriod(completedAt, period.startDate, period.endDate) ||
+          isDateInPeriod(createdAt, period.startDate, period.endDate)
+        )
+      })
+    : quizAttempts
+
+  const scopedLessonProgress = lessonProgress.filter((item) => {
+    const userId = toId(item.user)
+    const classId = toId(item.class)
+    if (scope.userIds && (!userId || !scope.userIds.has(userId))) return false
+    if (scope.classIds && (!classId || !scope.classIds.has(classId))) return false
+    return true
+  })
+
+  const scopedQuizAttempts = filteredQuizAttempts.filter((item) => {
+    const userId = toId(item.user)
+    if (scope.userIds && (!userId || !scope.userIds.has(userId))) return false
+    return true
+  })
 
   const classTitleById = new Map<string, string>()
   classes.forEach((item) => {
@@ -127,74 +146,139 @@ export const getReportingSummary = async (payload: Payload): Promise<ReportingSu
     chapterTitleById.set(id, title)
   })
 
-  const classTotals = new Map<string, { total: number; completed: number }>()
-  const chapterTotals = new Map<string, { total: number; completed: number }>()
-  const weeklyUsers = new Map<string, Set<string>>()
+  const quizTitleById = new Map<string, string>()
+  quizzes.forEach((item) => {
+    const id = toId(item.id)
+    if (!id) return
+    const title = typeof item.title === 'string' && item.title.trim() ? item.title.trim() : `Quiz ${id}`
+    quizTitleById.set(id, title)
+  })
 
-  lessonProgress.forEach((item) => {
+  const classProgress = new Map<string, { started: Set<string>; completed: Set<string> }>()
+  const chapterProgress = new Map<string, { started: Set<string>; completed: Set<string> }>()
+  const weeklyUsers = new Map<string, Set<string>>()
+  const learnersWithProgress = new Set<string>()
+
+  scopedLessonProgress.forEach((item) => {
     const classId = toId(item.class)
     const chapterId = toId(item.chapter)
     const userId = toId(item.user)
+    if (!userId) return
+
+    learnersWithProgress.add(userId)
     const isCompleted = Boolean(item.completed)
 
     if (classId) {
-      const current = classTotals.get(classId) ?? { total: 0, completed: 0 }
-      current.total += 1
-      if (isCompleted) current.completed += 1
-      classTotals.set(classId, current)
+      const current = classProgress.get(classId) ?? { started: new Set<string>(), completed: new Set<string>() }
+      current.started.add(userId)
+      if (isCompleted) current.completed.add(userId)
+      classProgress.set(classId, current)
     }
 
     if (chapterId) {
-      const current = chapterTotals.get(chapterId) ?? { total: 0, completed: 0 }
-      current.total += 1
-      if (isCompleted) current.completed += 1
-      chapterTotals.set(chapterId, current)
+      const current = chapterProgress.get(chapterId) ?? {
+        started: new Set<string>(),
+        completed: new Set<string>(),
+      }
+      current.started.add(userId)
+      if (isCompleted) current.completed.add(userId)
+      chapterProgress.set(chapterId, current)
     }
 
     const weekStart = getUtcWeekStart(item.updatedAt)
-    if (weekStart && userId) {
+    if (weekStart) {
       const set = weeklyUsers.get(weekStart) ?? new Set<string>()
       set.add(userId)
       weeklyUsers.set(weekStart, set)
     }
   })
 
-  const classCompletion = Array.from(classTotals.entries())
-    .map(([id, totals]) => ({
-      id,
-      title: classTitleById.get(id) ?? `Class ${id}`,
-      total: totals.total,
-      completed: totals.completed,
-      completionRate: totals.total ? totals.completed / totals.total : 0,
-    }))
+  // Reporting-grade completion is based on unique learner denominators, not row counts.
+  const classCompletion = Array.from(classProgress.entries())
+    .map(([id, totals]) => {
+      const uniqueLearnersStarted = totals.started.size
+      const uniqueLearnersCompleted = totals.completed.size
+      return {
+        id,
+        title: classTitleById.get(id) ?? `Class ${id}`,
+        uniqueLearnersStarted,
+        uniqueLearnersCompleted,
+        completionRate: uniqueLearnersStarted ? uniqueLearnersCompleted / uniqueLearnersStarted : 0,
+      }
+    })
     .sort((a, b) => b.completionRate - a.completionRate)
 
-  const chapterCompletion = Array.from(chapterTotals.entries())
-    .map(([id, totals]) => ({
-      id,
-      title: chapterTitleById.get(id) ?? `Chapter ${id}`,
-      total: totals.total,
-      completed: totals.completed,
-      completionRate: totals.total ? totals.completed / totals.total : 0,
-    }))
+  const chapterCompletion = Array.from(chapterProgress.entries())
+    .map(([id, totals]) => {
+      const uniqueLearnersStarted = totals.started.size
+      const uniqueLearnersCompleted = totals.completed.size
+      return {
+        id,
+        title: chapterTitleById.get(id) ?? `Chapter ${id}`,
+        uniqueLearnersStarted,
+        uniqueLearnersCompleted,
+        completionRate: uniqueLearnersStarted ? uniqueLearnersCompleted / uniqueLearnersStarted : 0,
+      }
+    })
     .sort((a, b) => b.completionRate - a.completionRate)
 
-  const scoredAttempts = quizAttempts
+  const scoredAttempts = scopedQuizAttempts
     .map((item) => normalizeScore(item as { score?: unknown; maxScore?: unknown }))
     .filter((value): value is number => value != null)
 
-  const quizMasteryDistribution: MasteryBand[] = MASTERY_BANDS.map((band) => {
+  const quizMasteryDistribution = MASTERY_BANDS.map((band) => {
     const count = scoredAttempts.filter((score) => score >= band.min && score < band.max).length
     const percentage = scoredAttempts.length ? count / scoredAttempts.length : 0
-    return { ...band, count, percentage }
+    return { label: band.label, count, percentage }
   })
 
+  const quizProgress = new Map<string, { attempted: Set<string>; mastered: Set<string>; attempts: number }>()
+  const learnersWithQuizAttempts = new Set<string>()
+
+  scopedQuizAttempts.forEach((attempt) => {
+    const quizId = toId(attempt.quiz)
+    const userId = toId(attempt.user)
+    if (!quizId || !userId) return
+
+    learnersWithQuizAttempts.add(userId)
+    const normalizedScore = normalizeScore(attempt as { score?: unknown; maxScore?: unknown })
+
+    const current = quizProgress.get(quizId) ?? {
+      attempted: new Set<string>(),
+      mastered: new Set<string>(),
+      attempts: 0,
+    }
+    current.attempted.add(userId)
+    current.attempts += 1
+    if (normalizedScore != null && normalizedScore >= MASTERY_THRESHOLD) {
+      current.mastered.add(userId)
+    }
+    quizProgress.set(quizId, current)
+  })
+
+  const quizPerformance = Array.from(quizProgress.entries())
+    .map(([quizId, totals]) => {
+      const uniqueLearnersAttempted = totals.attempted.size
+      const uniqueLearnersMastered = totals.mastered.size
+      return {
+        quizId,
+        title: quizTitleById.get(quizId) ?? `Quiz ${quizId}`,
+        uniqueLearnersAttempted,
+        uniqueLearnersMastered,
+        masteryRate: uniqueLearnersAttempted
+          ? uniqueLearnersMastered / uniqueLearnersAttempted
+          : 0,
+        attempts: totals.attempts,
+      }
+    })
+    .sort((a, b) => b.masteryRate - a.masteryRate)
+
   const orderedWeeks = Array.from(weeklyUsers.keys()).sort()
-  const last8Weeks = orderedWeeks.slice(-8)
-  const weeklyEngagement: WeeklyEngagement[] = []
+  const weeklyWindow = period ? orderedWeeks : orderedWeeks.slice(-8)
+  const weeklyEngagement: ReportingSummary['weeklyEngagement'] = []
   let previousCount: number | null = null
 
-  last8Weeks.forEach((weekStart) => {
+  weeklyWindow.forEach((weekStart) => {
     const activeStudents = weeklyUsers.get(weekStart)?.size ?? 0
     let weekOverWeekChange: number | null = null
     if (previousCount != null && previousCount > 0) {
@@ -204,12 +288,90 @@ export const getReportingSummary = async (payload: Payload): Promise<ReportingSu
     previousCount = activeStudents
   })
 
+  const artifacts = [
+    ...lessonsInPeriod.map((doc) => ({
+      collection: 'lessons' as const,
+      id: toId(doc.id) ?? '',
+      title:
+        typeof doc.title === 'string' && doc.title.trim() ? doc.title.trim() : `Lesson ${toId(doc.id) ?? ''}`,
+      createdAt: typeof doc.createdAt === 'string' ? doc.createdAt : '',
+    })),
+    ...quizzesInPeriod.map((doc) => ({
+      collection: 'quizzes' as const,
+      id: toId(doc.id) ?? '',
+      title:
+        typeof doc.title === 'string' && doc.title.trim() ? doc.title.trim() : `Quiz ${toId(doc.id) ?? ''}`,
+      createdAt: typeof doc.createdAt === 'string' ? doc.createdAt : '',
+    })),
+    ...pagesInPeriod.map((doc) => ({
+      collection: 'pages' as const,
+      id: toId(doc.id) ?? '',
+      title:
+        typeof doc.title === 'string' && doc.title.trim() ? doc.title.trim() : `Page ${toId(doc.id) ?? ''}`,
+      createdAt: typeof doc.createdAt === 'string' ? doc.createdAt : '',
+    })),
+    ...questionBankInPeriod.map((doc) => ({
+      collection: 'quiz-questions' as const,
+      id: toId(doc.id) ?? '',
+      title:
+        typeof doc.title === 'string' && doc.title.trim()
+          ? doc.title.trim()
+          : `Question ${toId(doc.id) ?? ''}`,
+      createdAt: typeof doc.createdAt === 'string' ? doc.createdAt : '',
+    })),
+  ]
+    .filter((item) => item.id && item.createdAt)
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+
+  const byCollection = artifacts.reduce<Record<string, number>>((acc, item) => {
+    acc[item.collection] = (acc[item.collection] ?? 0) + 1
+    return acc
+  }, {})
+
+  const warnings: ReportingSummary['warnings'] = []
+  if (mode === 'rppr' && period && artifacts.length === 0) {
+    warnings.push({
+      code: 'NO_PRODUCTS_IN_PERIOD',
+      message: 'No content artifacts were created during the selected reporting period.',
+    })
+  }
+  if (!scopedLessonProgress.length) {
+    warnings.push({
+      code: 'NO_PROGRESS_DATA',
+      message: 'No lesson progress data matched the selected scope.',
+    })
+  }
+  warnings.push(
+    ...scope.warnings.map((message) => ({
+      code: 'COHORT_SCOPE_WARNING',
+      message,
+    })),
+  )
+
   return {
+    reportMeta: {
+      mode,
+      reportType: period?.reportType ?? (mode === 'rppr' ? 'custom' : 'internal'),
+      period,
+      filters: scope.filters,
+      generatedAt: new Date().toISOString(),
+    },
+    participation: {
+      uniqueLearnersActive: new Set([...learnersWithProgress, ...learnersWithQuizAttempts]).size,
+      uniqueLearnersWithProgress: learnersWithProgress.size,
+      uniqueLearnersWithQuizAttempts: learnersWithQuizAttempts.size,
+    },
     classCompletion,
     chapterCompletion,
+    quizPerformance,
     quizMasteryDistribution,
     weeklyEngagement,
-    generatedAt: new Date().toISOString(),
+    productsInPeriod: {
+      total: artifacts.length,
+      byCollection,
+      artifacts,
+    },
+    warnings,
   }
 }
 

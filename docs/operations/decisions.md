@@ -5,7 +5,7 @@ Purpose
 
 Recent decisions
 
-- Title: Keep `main` and `production` in sync for releases
+- Title: Keep `main` and `prod` in sync for releases
 	- Date: 2026-03-05
 	- Owner: Alex
 	- Rationale: Reduces branch drift, keeps rollback points predictable, and ensures deployed code remains traceable to the primary development branch.
@@ -25,4 +25,3 @@ Example entry
 	- PR: `#123`
 
 Keep entries concise and link to PRs or RFCs when available.
-

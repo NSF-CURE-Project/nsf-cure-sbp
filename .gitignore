@@ -2,3 +2,35 @@
 
 # Mac OS Junk
 .DS_Store
+
+# Local planning workspace and scan outputs
+.local-work/
+
+# Local-only workflow/reference docs
+/.github/AGENT.md
+/.github/copilot-instructions.md
+/docs/developers/agent-guide.md
+/docs/developers/contributor-runbook.md
+/docs/developers/local-planning-workflow.md
+/docs/developers/repo-map.md
+/docs/developers/task-brief-template.md
+/docs/developers/plans/
+
+# AI tool config and memory files
+CLAUDE.md
+AGENTS.md
+.claude/
+.aider*
+.cursorrules
+.cursor/
+.copilot/
+.continuerc*
+openai-codex*
+
+# Local-only workflow scripts
+/scripts/build-context-pack.mjs
+/scripts/check-local-workflow.mjs
+/scripts/init-local-workspace.sh
+/scripts/lib/local-workflow.mjs
+/scripts/scan-repo.mjs
+/scripts/tests/local-workflow.test.mjs

@@ -20,6 +20,10 @@ import { Accounts } from './collections/Accounts'
 import { QuizQuestions } from './collections/QuizQuestions'
 import { Quizzes } from './collections/Quizzes'
 import { QuizAttempts } from './collections/QuizAttempts'
+import { EngineeringFigures } from './collections/EngineeringFigures'
+import { Problems } from './collections/Problems'
+import { ProblemSets } from './collections/ProblemSets'
+import { ProblemAttempts } from './collections/ProblemAttempts'
 import { MathFeature } from './lexical/math/MathFeature'
 import { Questions } from './collections/Questions'
 import { Notifications } from './collections/Notifications'
@@ -29,6 +33,14 @@ import { Feedback } from './collections/Feedback'
 import { LessonFeedback } from './collections/LessonFeedback'
 import { Classrooms } from './collections/Classrooms'
 import { ClassroomMemberships } from './collections/ClassroomMemberships'
+import { Organizations } from './collections/Organizations'
+import { ReportingPeriods } from './collections/ReportingPeriods'
+import { RpprReports } from './collections/RpprReports'
+import { ReportingSnapshots } from './collections/ReportingSnapshots'
+import { ReportingAuditEvents } from './collections/ReportingAuditEvents'
+import { ReportingSavedViews } from './collections/ReportingSavedViews'
+import { ReportingEvidenceLinks } from './collections/ReportingEvidenceLinks'
+import { ReportingProductRecords } from './collections/ReportingProductRecords'
 import { AdminHelp } from './globals/AdminHelp'
 import { Footer } from './globals/Footer'
 import { SiteBranding } from './globals/SiteBranding'
@@ -41,6 +53,12 @@ import { confirmEmailHandler, requestEmailConfirmationHandler } from './endpoint
 import { logoutAllSessionsHandler } from './endpoints/logoutAll'
 import { accountsMeHandler } from './endpoints/accountsMe'
 import { reportingSummaryHandler } from './endpoints/reportingSummary'
+import { nsfRpprSummaryHandler } from './endpoints/nsfRpprSummary'
+import { reportingCenterHandler } from './endpoints/reportingCenter'
+import { metricDefinitionsHandler } from './endpoints/metricDefinitions'
+import { emailPreviewHandler } from './endpoints/emailPreview'
+import { certificateHandler } from './endpoints/certificate'
+import { quizAttemptReviewHandler } from './endpoints/quizAttemptReview'
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
   path: '@/views/StaffDashboardView#default',
@@ -71,31 +89,221 @@ const parseFrom = (value?: string) => {
   return { fromName: undefined, fromAddress: value.trim() }
 }
 
-const { fromName, fromAddress } = parseFrom(process.env.SMTP_FROM)
+const stripEnvQuotes = (value?: string) => {
+  if (!value) return undefined
+  const trimmed = value.trim()
+  return trimmed.replace(/^['"]+|['"]+$/g, '')
+}
+
+const formatAddress = (value: unknown): null | string => {
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    return trimmed.length ? trimmed : null
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    const entry = value as { address?: unknown; email?: unknown; name?: unknown }
+    const email = typeof entry.email === 'string' ? entry.email.trim() : ''
+    const address = typeof entry.address === 'string' ? entry.address.trim() : ''
+    const resolved = email || address
+    if (!resolved) return null
+
+    if (typeof entry.name === 'string' && entry.name.trim()) {
+      const escapedName = entry.name.trim().replace(/"/g, '\\"')
+      return `"${escapedName}" <${resolved}>`
+    }
+
+    return resolved
+  }
+
+  return null
+}
+
+const formatAddressList = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => formatAddress(item))
+      .filter((item): item is string => Boolean(item))
+  }
+
+  if (typeof value === 'string' && value.includes(',')) {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+
+  const single = formatAddress(value)
+  return single ? [single] : []
+}
+
+const resendApiKey = stripEnvQuotes(process.env.RESEND_API_KEY)
+const resendApiBaseUrl = stripEnvQuotes(process.env.RESEND_API_BASE_URL) ?? 'https://api.resend.com'
+const resendFrom = stripEnvQuotes(process.env.RESEND_FROM)
+const resendStarterBaseUrl = stripEnvQuotes(process.env.RESEND_STARTER_URL)
+const resendStarterSendUrl =
+  stripEnvQuotes(process.env.RESEND_STARTER_SEND_URL) ??
+  (resendStarterBaseUrl ? `${resendStarterBaseUrl.replace(/\/+$/, '')}/api/send` : undefined)
+const resendStarterAuthToken = stripEnvQuotes(process.env.RESEND_STARTER_AUTH_TOKEN)
+const resendStarterTimeoutMs = (() => {
+  const value = stripEnvQuotes(process.env.RESEND_STARTER_TIMEOUT_MS)
+  const parsed = value ? Number(value) : NaN
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 15000
+})()
+
+const smtpFrom = stripEnvQuotes(process.env.SMTP_FROM)
+const smtpHost = stripEnvQuotes(process.env.SMTP_HOST)
+const smtpPort = stripEnvQuotes(process.env.SMTP_PORT)
+const smtpSecure = (stripEnvQuotes(process.env.SMTP_SECURE) ?? '').toLowerCase() === 'true'
+const smtpUser = stripEnvQuotes(process.env.SMTP_USER)
+const smtpPass = stripEnvQuotes(process.env.SMTP_PASS)
+const smtpConnectionTimeout = stripEnvQuotes(process.env.SMTP_CONNECTION_TIMEOUT_MS)
+const smtpGreetingTimeout = stripEnvQuotes(process.env.SMTP_GREETING_TIMEOUT_MS)
+const smtpSocketTimeout = stripEnvQuotes(process.env.SMTP_SOCKET_TIMEOUT_MS)
+
+const { fromName, fromAddress } = parseFrom(resendFrom ?? smtpFrom)
 const frontendURL = process.env.FRONTEND_URL ?? 'http://localhost:3001'
 const serverURL = process.env.PAYLOAD_PUBLIC_SERVER_URL ?? 'http://localhost:3000'
 const allowedOrigins = [frontendURL, serverURL].filter(Boolean)
-const defaultFromAddress = fromAddress ?? process.env.SMTP_USER ?? 'info@payloadcms.com'
+const defaultFromAddress = fromAddress ?? smtpUser ?? 'info@payloadcms.com'
 const defaultFromName = fromName ?? 'NSF CURE SBP'
-const transport = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefined,
-  secure: process.env.SMTP_SECURE === 'true',
+const smtpTransport = nodemailer.createTransport({
+  host: smtpHost,
+  port: smtpPort ? Number(smtpPort) : undefined,
+  secure: smtpSecure,
+  connectionTimeout: smtpConnectionTimeout ? Number(smtpConnectionTimeout) : 10000,
+  greetingTimeout: smtpGreetingTimeout ? Number(smtpGreetingTimeout) : 10000,
+  socketTimeout: smtpSocketTimeout ? Number(smtpSocketTimeout) : 15000,
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: smtpUser,
+    pass: smtpPass,
   },
 })
-const buildEmailAdapter = () => ({
+const buildNodemailerAdapter = () => ({
   name: 'nodemailer',
   defaultFromAddress,
   defaultFromName,
   sendEmail: async (message: { [key: string]: unknown }) =>
-    transport.sendMail({
+    smtpTransport.sendMail({
       from: `"${defaultFromName}" <${defaultFromAddress}>`,
       ...message,
     }),
 })
+
+const buildResendAdapter = () => ({
+  name: 'resend',
+  defaultFromAddress,
+  defaultFromName,
+  sendEmail: async (message: { [key: string]: unknown }) => {
+    if (!resendApiKey) throw new Error('Missing RESEND_API_KEY')
+
+    const from = formatAddress(message.from) ?? `"${defaultFromName}" <${defaultFromAddress}>`
+    const to = formatAddressList(message.to)
+    if (!to.length) throw new Error('Resend email requires at least one "to" address')
+
+    const cc = formatAddressList(message.cc)
+    const bcc = formatAddressList(message.bcc)
+    const replyTo = formatAddressList(message.replyTo ?? message.reply_to)
+    const subject =
+      typeof message.subject === 'string' && message.subject.trim()
+        ? message.subject.trim()
+        : '(no subject)'
+    const html = typeof message.html === 'string' ? message.html : undefined
+    const text = typeof message.text === 'string' ? message.text : undefined
+
+    const response = await fetch(`${resendApiBaseUrl.replace(/\/+$/, '')}/emails`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from,
+        to,
+        subject,
+        ...(html ? { html } : {}),
+        ...(text ? { text } : {}),
+        ...(cc.length ? { cc } : {}),
+        ...(bcc.length ? { bcc } : {}),
+        ...(replyTo.length ? { reply_to: replyTo } : {}),
+      }),
+    })
+
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '')
+      throw new Error(`Resend send failed (${response.status}): ${detail || response.statusText}`)
+    }
+
+    return response.json().catch(() => undefined)
+  },
+})
+
+const buildResendStarterAdapter = () => ({
+  name: 'resend-starter',
+  defaultFromAddress,
+  defaultFromName,
+  sendEmail: async (message: { [key: string]: unknown }) => {
+    if (!resendStarterSendUrl) throw new Error('Missing RESEND_STARTER_SEND_URL')
+
+    const from = formatAddress(message.from) ?? `"${defaultFromName}" <${defaultFromAddress}>`
+    const to = formatAddressList(message.to)
+    if (!to.length) throw new Error('Resend starter email requires at least one "to" address')
+
+    const cc = formatAddressList(message.cc)
+    const bcc = formatAddressList(message.bcc)
+    const replyTo = formatAddressList(message.replyTo ?? message.reply_to)
+    const subject =
+      typeof message.subject === 'string' && message.subject.trim()
+        ? message.subject.trim()
+        : '(no subject)'
+    const html = typeof message.html === 'string' ? message.html : undefined
+    const text = typeof message.text === 'string' ? message.text : undefined
+
+    const response = await (async () => {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), resendStarterTimeoutMs)
+      try {
+        return await fetch(resendStarterSendUrl, {
+          method: 'POST',
+          headers: {
+            ...(resendStarterAuthToken
+              ? { Authorization: `Bearer ${resendStarterAuthToken}` }
+              : {}),
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+          body: JSON.stringify({
+            from,
+            to,
+            subject,
+            ...(html ? { html } : {}),
+            ...(text ? { text } : {}),
+            ...(cc.length ? { cc } : {}),
+            ...(bcc.length ? { bcc } : {}),
+            ...(replyTo.length ? { replyTo, reply_to: replyTo } : {}),
+          }),
+        })
+      } finally {
+        clearTimeout(timeout)
+      }
+    })()
+
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '')
+      throw new Error(
+        `Resend starter send failed (${response.status}): ${detail || response.statusText}`,
+      )
+    }
+
+    return response.json().catch(() => undefined)
+  },
+})
+
+const buildEmailAdapter = () => {
+  if (resendStarterSendUrl) return buildResendStarterAdapter()
+  if (resendApiKey) return buildResendAdapter()
+  return buildNodemailerAdapter()
+}
 
 export default buildConfig({
   serverURL,
@@ -158,6 +366,14 @@ export default buildConfig({
     Pages,
     Classrooms,
     ClassroomMemberships,
+    Organizations,
+    ReportingPeriods,
+    RpprReports,
+    ReportingSnapshots,
+    ReportingAuditEvents,
+    ReportingSavedViews,
+    ReportingEvidenceLinks,
+    ReportingProductRecords,
     Accounts,
     Users,
     Media,
@@ -165,6 +381,10 @@ export default buildConfig({
     QuizQuestions,
     Quizzes,
     QuizAttempts,
+    EngineeringFigures,
+    Problems,
+    ProblemSets,
+    ProblemAttempts,
     Notifications,
     LessonProgress,
     LessonBookmarks,
@@ -197,6 +417,8 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URI || '',
     },
+    // Prevent accidental schema drift against shared/production databases.
+    push: false,
   }),
   sharp,
   plugins: [],
@@ -242,9 +464,44 @@ export default buildConfig({
       handler: logoutAllSessionsHandler,
     },
     {
+      path: '/accounts/email-preview',
+      method: 'post',
+      handler: emailPreviewHandler,
+    },
+    {
+      path: '/accounts/email-preview',
+      method: 'get',
+      handler: emailPreviewHandler,
+    },
+    {
       path: '/analytics/reporting-summary',
       method: 'get',
       handler: reportingSummaryHandler,
+    },
+    {
+      path: '/analytics/nsf-rppr',
+      method: 'get',
+      handler: nsfRpprSummaryHandler,
+    },
+    {
+      path: '/analytics/reporting-center',
+      method: 'get',
+      handler: reportingCenterHandler,
+    },
+    {
+      path: '/analytics/metric-definitions',
+      method: 'get',
+      handler: metricDefinitionsHandler,
+    },
+    {
+      path: '/classrooms/:classroomId/certificate',
+      method: 'get',
+      handler: certificateHandler,
+    },
+    {
+      path: '/quiz-attempts/:attemptId/review',
+      method: 'get',
+      handler: quizAttemptReviewHandler,
     },
   ],
 })

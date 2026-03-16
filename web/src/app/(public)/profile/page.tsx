@@ -5,6 +5,7 @@ import { Copy, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { LoginLink } from "@/components/auth/LoginLink";
+import { DownloadCertificateButton } from "@/components/profile/DownloadCertificateButton";
 import { Button } from "@/components/ui/button";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
@@ -427,6 +428,7 @@ export default function ProfilePage() {
                       totalLessons > 0 && completionRate >= 1
                         ? "Completed"
                         : "Active";
+                    const isCompleted = totalLessons > 0 && completionRate >= 1;
                     const lastActivity = membership.lastActivityAt
                       ? new Date(membership.lastActivityAt).toLocaleDateString()
                       : "No activity yet";
@@ -462,6 +464,11 @@ export default function ProfilePage() {
                           >
                             Go to class
                           </Link>
+                        ) : null}
+                        {isCompleted && membership.classroom?.id ? (
+                          <DownloadCertificateButton
+                            classroomId={membership.classroom.id}
+                          />
                         ) : null}
                       </div>
                     );
