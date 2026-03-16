@@ -4,7 +4,8 @@ const EXAMPLE_FIGURE_TITLE = "Statics Fundamentals — Simply Supported Beam FBD
 const EXAMPLE_PROBLEM_TITLE = "Statics Fundamentals — Reactions of a Simply Supported Beam";
 const EXAMPLE_SET_TITLE = "Statics Fundamentals — Beam Equilibrium Starter";
 
-const richText = (text: string) => ({
+const richText = (text: string) =>
+  ({
   root: {
     type: "root",
     format: "",
@@ -34,7 +35,7 @@ const richText = (text: string) => ({
     ],
     direction: "ltr" as const,
   },
-});
+} as const);
 
 async function upsertEngineeringFigure(payload: Payload) {
   const existing = await payload.find({
