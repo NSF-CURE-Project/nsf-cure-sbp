@@ -54,6 +54,7 @@ import { reportingCenterHandler } from './endpoints/reportingCenter'
 import { metricDefinitionsHandler } from './endpoints/metricDefinitions'
 import { emailPreviewHandler } from './endpoints/emailPreview'
 import { certificateHandler } from './endpoints/certificate'
+import { quizAttemptReviewHandler } from './endpoints/quizAttemptReview'
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
   path: '@/views/StaffDashboardView#default',
@@ -488,6 +489,11 @@ export default buildConfig({
       path: '/classrooms/:classroomId/certificate',
       method: 'get',
       handler: certificateHandler,
+    },
+    {
+      path: '/quiz-attempts/:attemptId/review',
+      method: 'get',
+      handler: quizAttemptReviewHandler,
     },
   ],
 })
