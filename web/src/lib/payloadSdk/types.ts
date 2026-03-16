@@ -207,6 +207,205 @@ export type QuizBlock = {
   timeLimitSec?: number | null;
 };
 
+export type FBDData = {
+  type: "fbd";
+  body: {
+    shape: "rect" | "circle" | "polygon";
+    label?: string;
+    x: number;
+    y: number;
+    width?: number;
+    height?: number;
+    radius?: number;
+    points?: [number, number][];
+  };
+  forces: {
+    id: string;
+    label: string;
+    origin: [number, number];
+    angle: number;
+    magnitude: number;
+    color?: string;
+  }[];
+  dimensions?: { from: [number, number]; to: [number, number]; label: string }[];
+  angles?: { vertex: [number, number]; from: number; to: number; label: string }[];
+};
+
+export type TrussData = {
+  type: "truss";
+  nodes: { id: string; x: number; y: number; support?: "pin" | "roller" | "fixed" | null }[];
+  members: { from: string; to: string; id?: string }[];
+  loads: { node: string; angle: number; magnitude: number; label?: string }[];
+};
+
+export type BeamData = {
+  type: "beam";
+  length: number;
+  scale: number;
+  supports: { x: number; type: "pin" | "roller" | "fixed" }[];
+  distributedLoads?: {
+    xStart: number;
+    xEnd: number;
+    wStart: number;
+    wEnd: number;
+    label?: string;
+  }[];
+  pointLoads?: { x: number; magnitude: number; angle: number; label?: string }[];
+  moments?: { x: number; value: number; label?: string }[];
+  dimensions?: boolean;
+};
+
+export type MomentDiagramData = {
+  type: "moment-diagram";
+  length: number;
+  scale: number;
+  yScale: number;
+  points: { x: number; M: number }[];
+  labels?: { x: number; label: string }[];
+};
+
+export type EngineeringFigureData = FBDData | TrussData | BeamData | MomentDiagramData;
+
+export type EngineeringFigureDoc = {
+  id: string | number;
+  title?: string;
+  type: EngineeringFigureData["type"];
+  description?: string;
+  figureData: EngineeringFigureData;
+  width?: number;
+  height?: number;
+};
+
+export type ProblemPart = {
+  id?: string;
+  label: string;
+  prompt?: unknown;
+  unit?: string;
+  partType?: "numeric" | "symbolic" | "fbd-draw";
+  correctAnswer?: number;
+  tolerance?: number;
+  toleranceType?: "absolute" | "relative";
+  significantFigures?: number | null;
+  scoringMode?: "threshold" | "linear-decay" | "stepped";
+  scoringSteps?: { id?: string; errorBound: number; score: number }[];
+  symbolicAnswer?: string;
+  symbolicVariables?: {
+    id?: string;
+    variable: string;
+    testMin?: number;
+    testMax?: number;
+  }[];
+  symbolicTolerance?: number;
+  fbdRubric?: {
+    requiredForces?: {
+      id: string;
+      label?: string;
+      correctAngle?: number;
+      angleTolerance?: number;
+      magnitudeRequired?: boolean;
+      correctMagnitude?: number;
+      magnitudeTolerance?: number;
+    }[];
+    forbiddenForces?: number;
+  };
+  explanation?: unknown;
+};
+
+export type ProblemResultPlotSegment = {
+  id?: string;
+  xStart: string;
+  xEnd: string;
+  formula: string;
+};
+
+export type ProblemResultPlotCriticalPoint = {
+  id?: string;
+  x: string;
+  label?: string;
+};
+
+export type ProblemResultPlot = {
+  id?: string;
+  plotType: "shear" | "moment" | "deflection" | "custom";
+  title?: string;
+  xLabel?: string;
+  yLabel?: string;
+  xMin?: number;
+  xMax?: string;
+  segments?: ProblemResultPlotSegment[];
+  criticalPoints?: ProblemResultPlotCriticalPoint[];
+};
+
+export type ProblemDoc = {
+  id: string | number;
+  title?: string;
+  prompt?: unknown;
+  figure?: EngineeringFigureDoc | string | number;
+  difficulty?: "intro" | "easy" | "medium" | "hard" | string;
+  topic?: string;
+  tags?: string[];
+  parts?: ProblemPart[];
+  resultPlots?: ProblemResultPlot[];
+};
+
+export type ProblemSetDoc = {
+  id: string | number;
+  title?: string;
+  description?: string;
+  problems?: (ProblemDoc | string | number)[];
+  showAnswers?: boolean;
+  maxAttempts?: number | null;
+  shuffleProblems?: boolean;
+};
+
+export type ProblemAttemptPartAnswer = {
+  id?: string;
+  partIndex: number;
+  studentAnswer?: number | null;
+  studentExpression?: string | null;
+  placedForces?: {
+    forces: {
+      id: string;
+      origin: [number, number];
+      angle: number;
+      magnitude: number;
+      label: string;
+    }[];
+  } | null;
+  isCorrect?: boolean;
+  score?: number;
+};
+
+export type ProblemAttemptAnswer = {
+  id?: string;
+  problem: ProblemDoc | string | number;
+  parts?: ProblemAttemptPartAnswer[];
+};
+
+export type ProblemAttemptDoc = {
+  id: string | number;
+  problemSet: ProblemSetDoc | string | number;
+  lesson?: LessonDoc | string | number;
+  user?: string | number | { id?: string | number };
+  startedAt?: string;
+  completedAt?: string;
+  durationSec?: number | null;
+  answers?: ProblemAttemptAnswer[];
+  score?: number | null;
+  maxScore?: number | null;
+  correctCount?: number | null;
+};
+
+export type ProblemSetBlock = {
+  id?: string;
+  blockType: "problemSetBlock";
+  title?: string;
+  problemSet?: ProblemSetDoc | string | number;
+  showTitle?: boolean;
+  maxAttempts?: number | null;
+  showAnswers?: boolean;
+};
+
 export type PageLayoutBlock =
   | HeroBlock
   | SectionTitleBlock
@@ -219,6 +418,7 @@ export type PageLayoutBlock =
   | ButtonBlock
   | ResourcesListBlock
   | ContactsListBlock
-  | QuizBlock;
+  | QuizBlock
+  | ProblemSetBlock;
 
 export type LessonBlock = PageLayoutBlock;

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
 import type { PageLayoutBlock } from "@/lib/payloadSdk/types";
 import { QuizBlock as QuizBlockComponent } from "@/components/quiz/QuizBlock";
+import { ProblemSetBlock as ProblemSetBlockComponent } from "@/components/problemSet/ProblemSetBlock";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
 const CMS_URL = getPayloadBaseUrl();
@@ -654,6 +655,16 @@ export function PageLayout({
         if (block.blockType === "quizBlock") {
           return (
             <QuizBlockComponent
+              key={block.id ?? idx}
+              block={block}
+              lessonId={lessonId}
+            />
+          );
+        }
+
+        if (block.blockType === "problemSetBlock") {
+          return (
+            <ProblemSetBlockComponent
               key={block.id ?? idx}
               block={block}
               lessonId={lessonId}
