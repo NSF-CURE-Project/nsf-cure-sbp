@@ -1,4 +1,4 @@
-import type { ReportingPeriod, ReportType } from './period'
+import type { ReportingPeriod, ReportType } from './period.ts'
 
 export type ReportMode = 'internal' | 'rppr'
 

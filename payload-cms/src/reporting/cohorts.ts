@@ -1,6 +1,6 @@
 import type { Payload } from 'payload'
-import { findAllDocs } from './data'
-import type { ReportingCohortFilters } from './types'
+import { findAllDocs } from './data.ts'
+import type { ReportingCohortFilters } from './types.ts'
 
 export type ReportingScope = {
   filters: ReportingCohortFilters
