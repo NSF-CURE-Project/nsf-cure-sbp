@@ -17,6 +17,7 @@ import * as migration_20260312_030000_add_accounts_reporting_columns from './202
 import * as migration_20260312_040000_add_reporting_product_records from './20260312_040000_add_reporting_product_records';
 import * as migration_20260312_050000_expand_admin_help_portal from './20260312_050000_expand_admin_help_portal';
 import * as migration_20260315_235000_add_account_streak_columns from './20260315_235000_add_account_streak_columns';
+import * as migration_20260316_080657_add_problem_set_collections_v1 from './20260316_080657_add_problem_set_collections_v1';
 
 export const migrations = [
   {
@@ -113,5 +114,10 @@ export const migrations = [
     up: migration_20260315_235000_add_account_streak_columns.up,
     down: migration_20260315_235000_add_account_streak_columns.down,
     name: '20260315_235000_add_account_streak_columns',
+  },
+  {
+    up: migration_20260316_080657_add_problem_set_collections_v1.up,
+    down: migration_20260316_080657_add_problem_set_collections_v1.down,
+    name: '20260316_080657_add_problem_set_collections_v1',
   },
 ];
