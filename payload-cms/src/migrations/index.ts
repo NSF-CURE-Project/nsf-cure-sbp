@@ -16,6 +16,7 @@ import * as migration_20260312_020000_create_organizations_table from './2026031
 import * as migration_20260312_030000_add_accounts_reporting_columns from './20260312_030000_add_accounts_reporting_columns';
 import * as migration_20260312_040000_add_reporting_product_records from './20260312_040000_add_reporting_product_records';
 import * as migration_20260312_050000_expand_admin_help_portal from './20260312_050000_expand_admin_help_portal';
+import * as migration_20260315_235000_add_account_streak_columns from './20260315_235000_add_account_streak_columns';
 
 export const migrations = [
   {
@@ -107,5 +108,10 @@ export const migrations = [
     up: migration_20260312_050000_expand_admin_help_portal.up,
     down: migration_20260312_050000_expand_admin_help_portal.down,
     name: '20260312_050000_expand_admin_help_portal',
+  },
+  {
+    up: migration_20260315_235000_add_account_streak_columns.up,
+    down: migration_20260315_235000_add_account_streak_columns.down,
+    name: '20260315_235000_add_account_streak_columns',
   },
 ];

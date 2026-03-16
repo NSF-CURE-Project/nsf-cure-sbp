@@ -178,6 +178,35 @@ export const Accounts: CollectionConfig = {
       type: 'text',
     },
     {
+      name: 'currentStreak',
+      label: 'Current streak',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'longestStreak',
+      label: 'Longest streak',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'lastStreakDate',
+      label: 'Last streak date',
+      type: 'date',
+      admin: {
+        readOnly: true,
+        hidden: true,
+      },
+    },
+    {
       name: 'participantType',
       label: 'Participant type',
       type: 'select',

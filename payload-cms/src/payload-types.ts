@@ -835,6 +835,9 @@ export interface Account {
    */
   role: 'student';
   fullName?: string | null;
+  currentStreak?: number | null;
+  longestStreak?: number | null;
+  lastStreakDate?: string | null;
   /**
    * Used for NSF participant reporting exports.
    */
@@ -1287,9 +1290,13 @@ export interface QuizAttempt {
 export interface Notification {
   id: number;
   recipient: number | Account;
-  type: 'question_answered';
+  type: 'question_answered' | 'new_content' | 'announcement' | 'quiz_deadline';
   title: string;
   body?: string | null;
+  /**
+   * Optional URL the student is taken to when clicking this notification.
+   */
+  link?: string | null;
   question?: (number | null) | Question;
   read?: boolean | null;
   updatedAt: string;
@@ -2074,6 +2081,9 @@ export interface AccountsSelect<T extends boolean = true> {
   emailVerificationExpiresAt?: T;
   role?: T;
   fullName?: T;
+  currentStreak?: T;
+  longestStreak?: T;
+  lastStreakDate?: T;
   participantType?: T;
   projectRole?: T;
   organization?: T;
@@ -2267,6 +2277,7 @@ export interface NotificationsSelect<T extends boolean = true> {
   type?: T;
   title?: T;
   body?: T;
+  link?: T;
   question?: T;
   read?: T;
   updatedAt?: T;

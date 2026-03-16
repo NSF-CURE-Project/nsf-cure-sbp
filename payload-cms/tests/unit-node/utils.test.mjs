@@ -218,27 +218,41 @@ describe('auth email template utilities', () => {
     delete process.env.WEB_PUBLIC_URL
   })
 
-  it('buildAuthEmail returns matching text and html content', () => {
+  it('buildAuthEmail returns structured text and table-based html content', () => {
     process.env.SUPPORT_EMAIL = 'help@example.com'
 
     const message = buildAuthEmail({
-      heading: 'Confirm your account',
-      intro: 'Please confirm your account.',
-      actionLabel: 'Confirm account',
-      actionUrl: 'https://app.example.com/confirm?token=123',
+      heading: 'Confirm your <account>',
+      intro: 'Please confirm your account. This intro line should appear in the preheader.',
+      actionLabel: 'Confirm "account"',
+      actionUrl: 'https://app.example.com/confirm?token=123&source=email',
       expiresIn: '48 hours',
       securityNote: 'If this was not you, ignore this email.',
     })
 
-    assert.match(message.text, /Confirm account: https:\/\/app\.example\.com\/confirm\?token=123/)
+    assert.match(
+      message.text,
+      /Confirm "account": https:\/\/app\.example\.com\/confirm\?token=123&source=email/,
+    )
     assert.match(message.text, /expires in 48 hours\./)
     assert.match(message.text, /If this was not you, ignore this email\./)
     assert.match(message.text, /contact support at help@example\.com\./)
-    assert.match(message.html, /<h2[^>]*>Confirm your account<\/h2>/)
-    assert.match(message.html, /href="https:\/\/app\.example\.com\/confirm\?token=123"/)
+    assert.match(message.html, /<table role="presentation" width="100%"/)
+    assert.match(message.html, /bgcolor="#f4f5f7"/)
+    assert.match(message.html, /NSF CURE SBP/)
+    assert.match(message.html, /Summer Bridge Program/)
+    assert.match(message.html, /Confirm your &lt;account&gt;/)
+    assert.match(message.html, /Confirm &quot;account&quot;/)
+    assert.match(
+      message.html,
+      /href="https:\/\/app\.example\.com\/confirm\?token=123&amp;source=email"/,
+    )
+    assert.match(message.html, /<span style="font-size:1px;color:#ffffff;max-height:0;overflow:hidden;mso-hide:all;/)
+    assert.match(message.html, /xmlns:v="urn:schemas-microsoft-com:vml"/)
     assert.match(message.html, /This link expires in 48 hours\./)
     assert.match(message.html, /If this was not you, ignore this email\./)
-    assert.match(message.html, /contact support at help@example\.com\./)
+    assert.match(message.html, /href="mailto:help@example\.com"/)
+    assert.match(message.html, /Supported by NSF Award #2318158 · Cal Poly Pomona/)
 
     delete process.env.SUPPORT_EMAIL
   })
