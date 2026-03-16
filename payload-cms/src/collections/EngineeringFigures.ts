@@ -76,17 +76,19 @@ export const EngineeringFigures: CollectionConfig = {
   access: {
     read: () => true,
     create: ({ req }) => isStaff(req),
-    update: ({ req, doc }) => {
+    update: ({ req }) => {
       if (isAdmin(req)) return true
       if (!isStaff(req)) return false
-      if ((doc as { isTemplate?: boolean } | undefined)?.isTemplate) return false
-      return true
+      return {
+        isTemplate: { not_equals: true },
+      }
     },
-    delete: ({ req, doc }) => {
+    delete: ({ req }) => {
       if (isAdmin(req)) return true
       if (!isStaff(req)) return false
-      if ((doc as { isTemplate?: boolean } | undefined)?.isTemplate) return false
-      return true
+      return {
+        isTemplate: { not_equals: true },
+      }
     },
   },
   fields: [
