@@ -1,5 +1,5 @@
 import type { Payload } from "payload";
-import type { Problem } from "../payload-types";
+import type { EngineeringFigure, Problem, ProblemSet } from "../payload-types";
 
 const EXAMPLE_FIGURE_TITLE = "Statics Fundamentals — Simply Supported Beam FBD";
 const EXAMPLE_PROBLEM_TITLE = "Statics Fundamentals — Reactions of a Simply Supported Beam";
@@ -65,7 +65,7 @@ async function upsertEngineeringFigure(payload: Payload) {
     depth: 0,
   });
 
-  const data = {
+  const data: Partial<EngineeringFigure> = {
     title: EXAMPLE_FIGURE_TITLE,
     type: "fbd" as const,
     description:
@@ -96,7 +96,7 @@ async function upsertEngineeringFigure(payload: Payload) {
       collection: "engineering-figures",
       data,
       depth: 0,
-    });
+    } as never);
   }
 
   return payload.update({
@@ -104,7 +104,7 @@ async function upsertEngineeringFigure(payload: Payload) {
     id: existing.docs[0].id,
     data,
     depth: 0,
-  });
+  } as never);
 }
 
 async function upsertProblem(payload: Payload, figureId: number) {
@@ -115,13 +115,13 @@ async function upsertProblem(payload: Payload, figureId: number) {
     depth: 0,
   });
 
-  const data = {
+  const data: Partial<Problem> = {
     title: EXAMPLE_PROBLEM_TITLE,
     prompt: richText(
       "A simply supported beam has span L = 8 m and a downward point load P = 12 kN at midspan. Compute support reactions and identify the fundamental shear diagram shape."
     ),
     figure: figureId,
-    difficulty: "intro" as const,
+    difficulty: "intro",
     topic: "statics",
     tags: ["equilibrium", "beam", "support-reactions", "fundamentals"],
     parts: [
@@ -129,28 +129,28 @@ async function upsertProblem(payload: Payload, figureId: number) {
         label: "Ra",
         prompt: richText("Find the vertical reaction at support A in kN."),
         unit: "kN",
-        partType: "numeric" as const,
+        partType: "numeric",
         correctAnswer: 6,
         tolerance: 0.03,
-        toleranceType: "relative" as const,
-        scoringMode: "linear-decay" as const,
+        toleranceType: "relative",
+        scoringMode: "linear-decay",
         explanation: richText("By symmetry and sum of moments, R_A = R_B = P/2 = 6 kN."),
       },
       {
         label: "Rb",
         prompt: richText("Find the vertical reaction at support B in kN."),
         unit: "kN",
-        partType: "numeric" as const,
+        partType: "numeric",
         correctAnswer: 6,
         tolerance: 0.03,
-        toleranceType: "relative" as const,
-        scoringMode: "linear-decay" as const,
+        toleranceType: "relative",
+        scoringMode: "linear-decay",
         explanation: richText("For this centered load case, R_B equals R_A."),
       },
       {
         label: "Rexpr",
         prompt: richText("Enter an expression for each reaction in terms of P."),
-        partType: "symbolic" as const,
+        partType: "symbolic",
         symbolicAnswer: "P / 2",
         symbolicVariables: [{ variable: "P", testMin: 2, testMax: 50 }],
         symbolicTolerance: 0.000001,
@@ -161,7 +161,7 @@ async function upsertProblem(payload: Payload, figureId: number) {
         prompt: richText(
           "Draw the three main forces on the beam FBD: upward reactions at A and B, and the downward point load at midspan."
         ),
-        partType: "fbd-draw" as const,
+        partType: "fbd-draw",
         fbdRubric: {
           requiredForces: [
             { id: "Ra", label: "R_A", correctAngle: 90, angleTolerance: 10 },
@@ -177,7 +177,7 @@ async function upsertProblem(payload: Payload, figureId: number) {
     ],
     resultPlots: [
       {
-        plotType: "shear" as const,
+        plotType: "shear",
         title: "Student Shear Diagram V(x)",
         xLabel: "x (m)",
         yLabel: "V (kN)",
@@ -193,7 +193,7 @@ async function upsertProblem(payload: Payload, figureId: number) {
         ],
       },
       {
-        plotType: "moment" as const,
+        plotType: "moment",
         title: "Student Moment Diagram M(x)",
         xLabel: "x (m)",
         yLabel: "M (kN·m)",
@@ -213,7 +213,7 @@ async function upsertProblem(payload: Payload, figureId: number) {
       collection: "problems",
       data,
       depth: 0,
-    });
+    } as never);
   }
 
   return payload.update({
@@ -221,7 +221,7 @@ async function upsertProblem(payload: Payload, figureId: number) {
     id: existing.docs[0].id,
     data,
     depth: 0,
-  });
+  } as never);
 }
 
 async function upsertProblemSet(payload: Payload, problemId: number) {
@@ -232,7 +232,7 @@ async function upsertProblemSet(payload: Payload, problemId: number) {
     depth: 0,
   });
 
-  const data = {
+  const data: Partial<ProblemSet> = {
     title: EXAMPLE_SET_TITLE,
     description:
       "Canonical starter set for introductory statics: beam equilibrium, reaction forces, symbolic relation, FBD quality, and post-submit shear/moment feedback.",
@@ -247,7 +247,7 @@ async function upsertProblemSet(payload: Payload, problemId: number) {
       collection: "problem-sets",
       data,
       depth: 0,
-    });
+    } as never);
   }
 
   return payload.update({
@@ -255,7 +255,7 @@ async function upsertProblemSet(payload: Payload, problemId: number) {
     id: existing.docs[0].id,
     data,
     depth: 0,
-  });
+  } as never);
 }
 
 export default async function seedStaticsFundamentalsExample(payload: Payload) {

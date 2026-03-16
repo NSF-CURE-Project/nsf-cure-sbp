@@ -13,8 +13,28 @@ type Part = {
   explanation?: unknown
 }
 
+type LexicalRichText = {
+  root: {
+    type: string
+    version: number
+    children: unknown[]
+  }
+}
+
 const toParts = (value: unknown): Part[] =>
   Array.isArray(value) ? (value as Part[]) : []
+
+const isLexicalRichText = (value: unknown): value is LexicalRichText => {
+  if (!value || typeof value !== 'object') return false
+  const root = (value as { root?: unknown }).root
+  if (!root || typeof root !== 'object') return false
+  const rootNode = root as { type?: unknown; version?: unknown; children?: unknown }
+  return (
+    typeof rootNode.type === 'string' &&
+    typeof rootNode.version === 'number' &&
+    Array.isArray(rootNode.children)
+  )
+}
 
 const scoreClass = (score: number) => {
   if (score === 1) return { label: 'Correct', color: '#16a34a' }
@@ -45,18 +65,18 @@ export default function ProblemPreviewTab() {
         }}
       >
         <h3 style={{ margin: 0 }}>{title}</h3>
-        {prompt ? (
+        {isLexicalRichText(prompt) ? (
           <div>
-            <RichText data={prompt} />
+            <RichText data={prompt as never} />
           </div>
         ) : null}
         <div style={{ display: 'grid', gap: 8 }}>
           {parts.map((part, index) => (
             <div key={index} style={{ border: '1px solid var(--theme-elevation-150)', borderRadius: 8, padding: 10 }}>
               <div style={{ fontWeight: 600 }}>{part.label ?? `Part ${index + 1}`}</div>
-              {part.prompt ? (
+              {isLexicalRichText(part.prompt) ? (
                 <div style={{ marginTop: 6 }}>
-                  <RichText data={part.prompt} />
+                  <RichText data={part.prompt as never} />
                 </div>
               ) : null}
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
@@ -100,9 +120,9 @@ export default function ProblemPreviewTab() {
               <div style={{ marginTop: 6, fontSize: 12 }}>
                 Correct answer: {part.correctAnswer ?? '—'} {part.unit ?? ''}
               </div>
-              {part.explanation ? (
+              {isLexicalRichText(part.explanation) ? (
                 <div style={{ marginTop: 8 }}>
-                  <RichText data={part.explanation} />
+                  <RichText data={part.explanation as never} />
                 </div>
               ) : null}
             </div>
@@ -112,4 +132,3 @@ export default function ProblemPreviewTab() {
     </div>
   )
 }
-
