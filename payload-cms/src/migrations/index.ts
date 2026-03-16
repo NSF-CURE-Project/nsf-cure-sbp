@@ -8,6 +8,8 @@ import * as migration_20260212_161835_add_classrooms_and_memberships from './202
 import * as migration_20260212_203500_add_classroom_rel_columns from './20260212_203500_add_classroom_rel_columns';
 import * as migration_20260304_000000_add_lesson_bookmarks_rel_columns from './20260304_000000_add_lesson_bookmarks_rel_columns';
 import * as migration_20260316_080657_add_problem_set_collections_v1 from './20260316_080657_add_problem_set_collections_v1';
+import * as migration_20260316_081500_add_engineering_figure_templates_flag from './20260316_081500_add_engineering_figure_templates_flag';
+import * as migration_20260316_084525_add_problem_set_v2_extensions from './20260316_084525_add_problem_set_v2_extensions';
 
 export const migrations = [
   {
@@ -58,6 +60,16 @@ export const migrations = [
   {
     up: migration_20260316_080657_add_problem_set_collections_v1.up,
     down: migration_20260316_080657_add_problem_set_collections_v1.down,
-    name: '20260316_080657_add_problem_set_collections_v1'
+    name: '20260316_080657_add_problem_set_collections_v1',
+  },
+  {
+    up: migration_20260316_081500_add_engineering_figure_templates_flag.up,
+    down: migration_20260316_081500_add_engineering_figure_templates_flag.down,
+    name: '20260316_081500_add_engineering_figure_templates_flag',
+  },
+  {
+    up: migration_20260316_084525_add_problem_set_v2_extensions.up,
+    down: migration_20260316_084525_add_problem_set_v2_extensions.down,
+    name: '20260316_084525_add_problem_set_v2_extensions'
   },
 ];

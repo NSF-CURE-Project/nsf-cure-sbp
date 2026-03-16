@@ -20,6 +20,10 @@ import { Accounts } from './collections/Accounts'
 import { QuizQuestions } from './collections/QuizQuestions'
 import { Quizzes } from './collections/Quizzes'
 import { QuizAttempts } from './collections/QuizAttempts'
+import { EngineeringFigures } from './collections/EngineeringFigures'
+import { Problems } from './collections/Problems'
+import { ProblemSets } from './collections/ProblemSets'
+import { ProblemAttempts } from './collections/ProblemAttempts'
 import { MathFeature } from './lexical/math/MathFeature'
 import { Questions } from './collections/Questions'
 import { Notifications } from './collections/Notifications'
@@ -165,6 +169,10 @@ export default buildConfig({
     QuizQuestions,
     Quizzes,
     QuizAttempts,
+    EngineeringFigures,
+    Problems,
+    ProblemSets,
+    ProblemAttempts,
     Notifications,
     LessonProgress,
     LessonBookmarks,
