@@ -19,6 +19,7 @@ Important permission note:
 ## Admin layout quick tour
 
 - Home dashboard: `/admin`
+- NSF reporting workspace: `/admin/reporting`
 - Top bar:
   - `Back` appears when you are not on `/admin`.
   - `Light mode`/`Dark mode` toggle.
@@ -149,6 +150,36 @@ What you can do:
 - Admin help content:
   - `/admin/globals/admin-help`
   - currently admin-only to update
+
+### 6. NSF reporting (RPPR workflow)
+
+Primary route:
+- `/admin/reporting`
+
+What you can do:
+- Select a reporting period from `Reporting Periods`.
+- Apply cohort filters (class, professor, classroom, first-gen, transfer).
+- Review RPPR section completeness and missing fields.
+- Review KPI trend deltas versus the most recent comparable snapshot.
+- Review metric definitions and drilldown API links.
+- Review data quality warnings and anomaly checks before export.
+- Generate deterministic draft narratives (staff-edit required).
+- Create immutable reporting snapshots (with automatic reuse when unchanged).
+- Review evidence-link coverage by RPPR section.
+- Save the current scope/filter combination for reuse.
+- Review recent reporting audit events.
+- Export period-specific outputs:
+  - RPPR JSON
+  - Overview CSV
+  - Participants CSV
+  - Organizations CSV
+  - Products CSV
+  - Evidence CSV
+  - Data quality CSV
+  - Metric drilldown CSV (authorized roles only)
+- Save and reuse scope/filter sets via `Reporting Saved Views`.
+- Edit manual narrative sections in `RPPR Reports`.
+- Manage partner records in `Organizations`.
 
 Pages support drafts and publishing.
 

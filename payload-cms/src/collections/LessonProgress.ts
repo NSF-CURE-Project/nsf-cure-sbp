@@ -1,7 +1,9 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
+import { computeNextStreak } from '../utils/streak'
 
 const isStaff = (req?: PayloadRequest | null) =>
-  req?.user?.collection === 'users' || ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
+  req?.user?.collection === 'users' &&
+  ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
 
 export const LessonProgress: CollectionConfig = {
   slug: 'lesson-progress',
@@ -77,6 +79,51 @@ export const LessonProgress: CollectionConfig = {
         }
 
         return data
+      },
+    ],
+    afterChange: [
+      async ({ doc, previousDoc, req }) => {
+        if (!req?.payload || !doc?.completed) return
+        if (previousDoc?.completed) return
+
+        const userId =
+          typeof doc.user === 'object' && doc.user !== null
+            ? (doc.user as { id?: string | number }).id
+            : doc.user
+        if (!userId) return
+
+        try {
+          const account = await req.payload.findByID({
+            collection: 'accounts',
+            id: userId,
+            depth: 0,
+            overrideAccess: true,
+          })
+
+          const next = computeNextStreak({
+            lastStreakDate: (account as { lastStreakDate?: string | null }).lastStreakDate ?? null,
+            currentStreak: (account as { currentStreak?: number | null }).currentStreak ?? 0,
+            longestStreak: (account as { longestStreak?: number | null }).longestStreak ?? 0,
+          })
+
+          if (!next.changed) return
+
+          await req.payload.update({
+            collection: 'accounts',
+            id: userId,
+            overrideAccess: true,
+            data: {
+              currentStreak: next.currentStreak,
+              longestStreak: next.longestStreak,
+              lastStreakDate: `${next.lastStreakDate}T00:00:00.000Z`,
+            } as never,
+          })
+        } catch (error) {
+          req.payload.logger.error({
+            err: error,
+            msg: `Failed to update streak for account ${String(userId)}`,
+          })
+        }
       },
     ],
   },

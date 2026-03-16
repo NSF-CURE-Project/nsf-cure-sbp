@@ -73,8 +73,10 @@ export default async function LearningPage() {
 
   return (
     <main className="mx-auto w-full max-w-[var(--content-max,110ch)] px-6 pt-6 pb-12">
-      <header className="space-y-1">
-        <h1 className="text-3xl font-bold">Learning Portal</h1>
+      <header className="mb-1">
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+          Learning Portal
+        </h1>
       </header>
 
       <LearningPersonalization

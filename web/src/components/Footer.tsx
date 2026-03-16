@@ -41,6 +41,11 @@ type FooterData = {
   bottom?: {
     copyrightLine?: string | null;
     subLine?: string | null;
+    nsfCompliance?: {
+      enabled?: boolean | null;
+      fundingAcknowledgment?: string | null;
+      disclaimer?: string | null;
+    } | null;
   } | null;
 };
 
@@ -69,7 +74,13 @@ const defaultFooter: FooterData = {
   bottom: {
     copyrightLine:
       "© {year} Cal Poly Pomona Engineering — NSF CURE Summer Bridge Program",
-    subLine: "Built using Next.js, Tailwind CSS, and Payload.",
+    nsfCompliance: {
+      enabled: true,
+      fundingAcknowledgment:
+        "Supported by the National Science Foundation under Award No. 2318158.",
+      disclaimer:
+        "Any opinions, findings, and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of the National Science Foundation.",
+    },
   },
 };
 
@@ -175,6 +186,10 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
     const bottom = {
       ...defaultFooter.bottom,
       ...(previewData?.bottom ?? {}),
+      nsfCompliance: {
+        ...defaultFooter.bottom?.nsfCompliance,
+        ...(previewData?.bottom?.nsfCompliance ?? {}),
+      },
     };
 
     return { exploreLinks, resourcesLinks, connect, feedback, bottom };
@@ -449,8 +464,19 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                   .replace("{year}", String(year))
                   .trim()}
               </p>
-              {content.bottom?.subLine ? (
-                <p className="mt-1">{content.bottom.subLine}</p>
+              {content.bottom?.nsfCompliance?.enabled !== false ? (
+                <>
+                  {content.bottom?.nsfCompliance?.fundingAcknowledgment ? (
+                    <p className="mt-1">
+                      {content.bottom?.nsfCompliance?.fundingAcknowledgment}
+                    </p>
+                  ) : null}
+                  {content.bottom?.nsfCompliance?.disclaimer ? (
+                    <p className="mt-1">
+                      {content.bottom?.nsfCompliance?.disclaimer}
+                    </p>
+                  ) : null}
+                </>
               ) : null}
             </div>
           </div>

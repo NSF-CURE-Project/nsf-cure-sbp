@@ -74,6 +74,14 @@ export interface Config {
     pages: Page;
     classrooms: Classroom;
     'classroom-memberships': ClassroomMembership;
+    organizations: Organization;
+    'reporting-periods': ReportingPeriod;
+    'rppr-reports': RpprReport;
+    'reporting-snapshots': ReportingSnapshot;
+    'reporting-audit-events': ReportingAuditEvent;
+    'reporting-saved-views': ReportingSavedView;
+    'reporting-evidence-links': ReportingEvidenceLink;
+    'reporting-product-records': ReportingProductRecord;
     accounts: Account;
     users: User;
     media: Media;
@@ -103,6 +111,14 @@ export interface Config {
     pages: PagesSelect<false> | PagesSelect<true>;
     classrooms: ClassroomsSelect<false> | ClassroomsSelect<true>;
     'classroom-memberships': ClassroomMembershipsSelect<false> | ClassroomMembershipsSelect<true>;
+    organizations: OrganizationsSelect<false> | OrganizationsSelect<true>;
+    'reporting-periods': ReportingPeriodsSelect<false> | ReportingPeriodsSelect<true>;
+    'rppr-reports': RpprReportsSelect<false> | RpprReportsSelect<true>;
+    'reporting-snapshots': ReportingSnapshotsSelect<false> | ReportingSnapshotsSelect<true>;
+    'reporting-audit-events': ReportingAuditEventsSelect<false> | ReportingAuditEventsSelect<true>;
+    'reporting-saved-views': ReportingSavedViewsSelect<false> | ReportingSavedViewsSelect<true>;
+    'reporting-evidence-links': ReportingEvidenceLinksSelect<false> | ReportingEvidenceLinksSelect<true>;
+    'reporting-product-records': ReportingProductRecordsSelect<false> | ReportingProductRecordsSelect<true>;
     accounts: AccountsSelect<false> | AccountsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -1007,10 +1023,43 @@ export interface Account {
   emailVerificationTokenHash?: string | null;
   emailVerificationExpiresAt?: string | null;
   /**
-   * Default is student. Staff/admin can be used for special access.
+   * Student role for learner accounts.
    */
-  role: 'student' | 'staff' | 'admin';
+  role: 'student';
   fullName?: string | null;
+  currentStreak?: number | null;
+  longestStreak?: number | null;
+  lastStreakDate?: string | null;
+  /**
+   * Used for NSF participant reporting exports.
+   */
+  participantType?:
+    | ('undergraduate_student' | 'graduate_student' | 'k12_student' | 'teacher' | 'staff' | 'faculty' | 'other')
+    | null;
+  /**
+   * RPPR participant role in this project.
+   */
+  projectRole?: string | null;
+  organization?: (number | null) | Organization;
+  /**
+   * Optional reporting snapshot for exports when the organization relationship is empty.
+   */
+  organizationName?: string | null;
+  /**
+   * Summary of participant contributions used in RPPR narratives.
+   */
+  contributionSummary?: string | null;
+  participationStartDate?: string | null;
+  participationEndDate?: string | null;
+  /**
+   * Supports cohort filtering in reporting center.
+   */
+  firstGenCollegeStudent?: boolean | null;
+  /**
+   * Supports cohort filtering in reporting center.
+   */
+  transferStudent?: boolean | null;
+  includeInRppr?: boolean | null;
   /**
    * Reserved for CPP SSO integration (e.g., Okta, Azure AD).
    */
@@ -1036,6 +1085,302 @@ export interface Account {
       }[]
     | null;
   password?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "organizations".
+ */
+export interface Organization {
+  id: number;
+  organizationName: string;
+  organizationType?: ('academic' | 'industry' | 'nonprofit' | 'government' | 'school_district' | 'other') | null;
+  /**
+   * Role this organization plays in the project (e.g., curriculum partner).
+   */
+  partnerRole?: string | null;
+  contributionSummary?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  website?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-periods".
+ */
+export interface ReportingPeriod {
+  id: number;
+  label: string;
+  /**
+   * Optional award budget period label.
+   */
+  budgetPeriodName?: string | null;
+  reportType: 'annual' | 'final' | 'internal' | 'custom';
+  startDate: string;
+  endDate: string;
+  status?: ('draft' | 'active' | 'archived') | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rppr-reports".
+ */
+export interface RpprReport {
+  id: number;
+  title: string;
+  reportingPeriod?: (number | null) | ReportingPeriod;
+  reportType: 'annual' | 'final' | 'internal' | 'custom';
+  startDate: string;
+  endDate: string;
+  accomplishmentsNarrative?: string | null;
+  productsNarrative?: string | null;
+  impactNarrative?: string | null;
+  changesProblemsNarrative?: string | null;
+  specialRequirementsNarrative?: string | null;
+  reportNotes?: string | null;
+  attachments?: (number | Media)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-snapshots".
+ */
+export interface ReportingSnapshot {
+  id: number;
+  label: string;
+  reportType: 'annual' | 'final' | 'internal' | 'custom';
+  reportingPeriod?: (number | null) | ReportingPeriod;
+  periodStart: string;
+  periodEnd: string;
+  filterScope:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  metricPayload:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  rpprPayload?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  dataQualityPayload?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  anomaliesPayload?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  narrativeDrafts?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  snapshotHash: string;
+  reproducibilityKey: string;
+  versionLabel: string;
+  createdBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-audit-events".
+ */
+export interface ReportingAuditEvent {
+  id: number;
+  eventType:
+    | 'report_generated'
+    | 'snapshot_created'
+    | 'snapshot_reused'
+    | 'export_generated'
+    | 'drilldown_viewed'
+    | 'saved_view_created';
+  reportType?: ('annual' | 'final' | 'internal' | 'custom') | null;
+  reportingPeriod?: (number | null) | ReportingPeriod;
+  periodStart?: string | null;
+  periodEnd?: string | null;
+  filters?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  exportType?: string | null;
+  exportFormat?: string | null;
+  metricKey?: string | null;
+  snapshot?: (number | null) | ReportingSnapshot;
+  notes?: string | null;
+  createdBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-saved-views".
+ */
+export interface ReportingSavedView {
+  id: number;
+  label: string;
+  owner: number | User;
+  isShared?: boolean | null;
+  reportType?: ('annual' | 'final' | 'internal' | 'custom') | null;
+  reportingPeriod?: (number | null) | ReportingPeriod;
+  startDate?: string | null;
+  endDate?: string | null;
+  filters:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  metricKeys?:
+    | {
+        metricKey: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-evidence-links".
+ */
+export interface ReportingEvidenceLink {
+  id: number;
+  title: string;
+  evidenceType: 'curriculum_change' | 'intervention' | 'product_resource' | 'publication' | 'other';
+  rpprSection:
+    | 'accomplishments'
+    | 'products'
+    | 'participantsOrganizations'
+    | 'impact'
+    | 'changesProblems'
+    | 'specialRequirements';
+  summary?: string | null;
+  impactNote?: string | null;
+  reportingPeriod?: (number | null) | ReportingPeriod;
+  linkedArtifacts?:
+    | (
+        | {
+            relationTo: 'classes';
+            value: number | Class;
+          }
+        | {
+            relationTo: 'lessons';
+            value: number | Lesson;
+          }
+        | {
+            relationTo: 'quizzes';
+            value: number | Quiz;
+          }
+        | {
+            relationTo: 'pages';
+            value: number | Page;
+          }
+        | {
+            relationTo: 'quiz-questions';
+            value: number | QuizQuestion;
+          }
+      )[]
+    | null;
+  linkedSnapshot?: (number | null) | ReportingSnapshot;
+  linkedRpprReport?: (number | null) | RpprReport;
+  occurredAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-product-records".
+ */
+export interface ReportingProductRecord {
+  id: number;
+  title: string;
+  productType: 'publication' | 'patent' | 'dataset' | 'software' | 'educational_material' | 'other';
+  /**
+   * Formal citation or product description used for RPPR products section.
+   */
+  citation?: string | null;
+  /**
+   * DOI, patent number, accession ID, or other stable identifier.
+   */
+  identifier?: string | null;
+  /**
+   * Public URL where the product can be reviewed.
+   */
+  url?: string | null;
+  reportingPeriod?: (number | null) | ReportingPeriod;
+  linkedRpprReport?: (number | null) | RpprReport;
+  linkedArtifacts?:
+    | (
+        | {
+            relationTo: 'classes';
+            value: number | Class;
+          }
+        | {
+            relationTo: 'lessons';
+            value: number | Lesson;
+          }
+        | {
+            relationTo: 'quizzes';
+            value: number | Quiz;
+          }
+        | {
+            relationTo: 'pages';
+            value: number | Page;
+          }
+        | {
+            relationTo: 'quiz-questions';
+            value: number | QuizQuestion;
+          }
+      )[]
+    | null;
+  reportedAt?: string | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1180,9 +1525,13 @@ export interface ProblemAttempt {
 export interface Notification {
   id: number;
   recipient: number | Account;
-  type: 'question_answered';
+  type: 'question_answered' | 'new_content' | 'announcement' | 'quiz_deadline';
   title: string;
   body?: string | null;
+  /**
+   * Optional URL the student is taken to when clicking this notification.
+   */
+  link?: string | null;
   question?: (number | null) | Question;
   read?: boolean | null;
   updatedAt: string;
@@ -1306,6 +1655,38 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'classroom-memberships';
         value: number | ClassroomMembership;
+      } | null)
+    | ({
+        relationTo: 'organizations';
+        value: number | Organization;
+      } | null)
+    | ({
+        relationTo: 'reporting-periods';
+        value: number | ReportingPeriod;
+      } | null)
+    | ({
+        relationTo: 'rppr-reports';
+        value: number | RpprReport;
+      } | null)
+    | ({
+        relationTo: 'reporting-snapshots';
+        value: number | ReportingSnapshot;
+      } | null)
+    | ({
+        relationTo: 'reporting-audit-events';
+        value: number | ReportingAuditEvent;
+      } | null)
+    | ({
+        relationTo: 'reporting-saved-views';
+        value: number | ReportingSavedView;
+      } | null)
+    | ({
+        relationTo: 'reporting-evidence-links';
+        value: number | ReportingEvidenceLink;
+      } | null)
+    | ({
+        relationTo: 'reporting-product-records';
+        value: number | ReportingProductRecord;
       } | null)
     | ({
         relationTo: 'accounts';
@@ -1802,6 +2183,157 @@ export interface ClassroomMembershipsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "organizations_select".
+ */
+export interface OrganizationsSelect<T extends boolean = true> {
+  organizationName?: T;
+  organizationType?: T;
+  partnerRole?: T;
+  contributionSummary?: T;
+  contactName?: T;
+  contactEmail?: T;
+  website?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-periods_select".
+ */
+export interface ReportingPeriodsSelect<T extends boolean = true> {
+  label?: T;
+  budgetPeriodName?: T;
+  reportType?: T;
+  startDate?: T;
+  endDate?: T;
+  status?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rppr-reports_select".
+ */
+export interface RpprReportsSelect<T extends boolean = true> {
+  title?: T;
+  reportingPeriod?: T;
+  reportType?: T;
+  startDate?: T;
+  endDate?: T;
+  accomplishmentsNarrative?: T;
+  productsNarrative?: T;
+  impactNarrative?: T;
+  changesProblemsNarrative?: T;
+  specialRequirementsNarrative?: T;
+  reportNotes?: T;
+  attachments?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-snapshots_select".
+ */
+export interface ReportingSnapshotsSelect<T extends boolean = true> {
+  label?: T;
+  reportType?: T;
+  reportingPeriod?: T;
+  periodStart?: T;
+  periodEnd?: T;
+  filterScope?: T;
+  metricPayload?: T;
+  rpprPayload?: T;
+  dataQualityPayload?: T;
+  anomaliesPayload?: T;
+  narrativeDrafts?: T;
+  snapshotHash?: T;
+  reproducibilityKey?: T;
+  versionLabel?: T;
+  createdBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-audit-events_select".
+ */
+export interface ReportingAuditEventsSelect<T extends boolean = true> {
+  eventType?: T;
+  reportType?: T;
+  reportingPeriod?: T;
+  periodStart?: T;
+  periodEnd?: T;
+  filters?: T;
+  exportType?: T;
+  exportFormat?: T;
+  metricKey?: T;
+  snapshot?: T;
+  notes?: T;
+  createdBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-saved-views_select".
+ */
+export interface ReportingSavedViewsSelect<T extends boolean = true> {
+  label?: T;
+  owner?: T;
+  isShared?: T;
+  reportType?: T;
+  reportingPeriod?: T;
+  startDate?: T;
+  endDate?: T;
+  filters?: T;
+  metricKeys?:
+    | T
+    | {
+        metricKey?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-evidence-links_select".
+ */
+export interface ReportingEvidenceLinksSelect<T extends boolean = true> {
+  title?: T;
+  evidenceType?: T;
+  rpprSection?: T;
+  summary?: T;
+  impactNote?: T;
+  reportingPeriod?: T;
+  linkedArtifacts?: T;
+  linkedSnapshot?: T;
+  linkedRpprReport?: T;
+  occurredAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reporting-product-records_select".
+ */
+export interface ReportingProductRecordsSelect<T extends boolean = true> {
+  title?: T;
+  productType?: T;
+  citation?: T;
+  identifier?: T;
+  url?: T;
+  reportingPeriod?: T;
+  linkedRpprReport?: T;
+  linkedArtifacts?: T;
+  reportedAt?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "accounts_select".
  */
 export interface AccountsSelect<T extends boolean = true> {
@@ -1811,6 +2343,19 @@ export interface AccountsSelect<T extends boolean = true> {
   emailVerificationExpiresAt?: T;
   role?: T;
   fullName?: T;
+  currentStreak?: T;
+  longestStreak?: T;
+  lastStreakDate?: T;
+  participantType?: T;
+  projectRole?: T;
+  organization?: T;
+  organizationName?: T;
+  contributionSummary?: T;
+  participationStartDate?: T;
+  participationEndDate?: T;
+  firstGenCollegeStudent?: T;
+  transferStudent?: T;
+  includeInRppr?: T;
   ssoProvider?: T;
   ssoSubject?: T;
   updatedAt?: T;
@@ -2147,6 +2692,7 @@ export interface NotificationsSelect<T extends boolean = true> {
   type?: T;
   title?: T;
   body?: T;
+  link?: T;
   question?: T;
   read?: T;
   updatedAt?: T;
@@ -2259,6 +2805,61 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface AdminHelp {
   id: number;
   title: string;
+  subtitle?: string | null;
+  /**
+   * JSON array: [{ "label": string, "desc": string, "href": string }].
+   */
+  quickActions?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * JSON array of strings for topic tags.
+   */
+  topicChips?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * JSON array: [{ "question": string, "answer": string }].
+   */
+  faqs?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  supportEmail?: string | null;
+  supportResponseTarget?: string | null;
+  /**
+   * Relative admin path or full URL.
+   */
+  supportRequestHref?: string | null;
+  /**
+   * JSON array: [{ "label": string, "desc": string, "href": string }].
+   */
+  resources?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   body?: {
     root: {
       type: string;
@@ -2313,12 +2914,20 @@ export interface Footer {
     description?: string | null;
     buttonLabel?: string | null;
   };
-  bottom?: {
+  bottom: {
     /**
      * Use {year} to insert the current year.
      */
     copyrightLine?: string | null;
     subLine?: string | null;
+    nsfCompliance: {
+      /**
+       * When enabled, NSF compliance text appears in the global site footer.
+       */
+      enabled?: boolean | null;
+      fundingAcknowledgment: string;
+      disclaimer: string;
+    };
   };
   _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
@@ -2350,6 +2959,14 @@ export interface SiteBranding {
  */
 export interface AdminHelpSelect<T extends boolean = true> {
   title?: T;
+  subtitle?: T;
+  quickActions?: T;
+  topicChips?: T;
+  faqs?: T;
+  supportEmail?: T;
+  supportResponseTarget?: T;
+  supportRequestHref?: T;
+  resources?: T;
   body?: T;
   _status?: T;
   updatedAt?: T;
@@ -2396,6 +3013,13 @@ export interface FooterSelect<T extends boolean = true> {
     | {
         copyrightLine?: T;
         subLine?: T;
+        nsfCompliance?:
+          | T
+          | {
+              enabled?: T;
+              fundingAcknowledgment?: T;
+              disclaimer?: T;
+            };
       };
   _status?: T;
   updatedAt?: T;

@@ -1,0 +1,56 @@
+name: Payload CMS Migrations
+
+on:
+  push:
+    branches:
+      - production
+    paths:
+      - 'payload-cms/**'
+      - '.github/workflows/payload-cms-migrate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: payload-cms-migrations-production
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Run Production Migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    defaults:
+      run:
+        working-directory: payload-cms
+    env:
+      PAYLOAD_DATABASE_URI: ${{ secrets.PAYLOAD_DATABASE_URI }}
+      PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: payload-cms/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate required secrets
+        run: |
+          test -n "$PAYLOAD_DATABASE_URI" || (echo "Missing secret: PAYLOAD_DATABASE_URI" && exit 1)
+          test -n "$PAYLOAD_SECRET" || (echo "Missing secret: PAYLOAD_SECRET" && exit 1)
+
+      - name: Run Payload migrations
+        run: DATABASE_URI="$PAYLOAD_DATABASE_URI" pnpm payload migrate

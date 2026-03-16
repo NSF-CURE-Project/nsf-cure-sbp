@@ -12,24 +12,20 @@ describe('reportRowsToCsv', () => {
       ['name', 'note'],
     )
 
-    expect(csv).toBe(
-      'name,note\nAlice,Simple\n"Bob, Jr.","He said ""hi""\nthen left"',
-    )
+    expect(csv).toBe('name,note\nAlice,Simple\n"Bob, Jr.","He said ""hi""\nthen left"')
   })
 })
 
 describe('getReportingSummary', () => {
-  it('aggregates class/chapter completion, mastery bands, and weekly engagement', async () => {
-    const find = vi.fn(async ({ collection, page = 1 }: { collection: string; page?: number }) => {
+  it('aggregates unique learner completion and quiz mastery in RPPR mode', async () => {
+    const find = vi.fn(async ({ collection, where }: { collection: string; where?: Record<string, unknown> }) => {
       if (collection === 'classes') {
-        if (page === 1) {
-          return {
-            docs: [
-              { id: 'class-1', title: 'Biology 101' },
-              { id: 'class-2', title: '' },
-            ],
-            hasNextPage: false,
-          }
+        return {
+          docs: [
+            { id: 'class-1', title: 'Biology 101' },
+            { id: 'class-2', title: 'Chemistry' },
+          ],
+          hasNextPage: false,
         }
       }
 
@@ -37,48 +33,98 @@ describe('getReportingSummary', () => {
         return {
           docs: [
             { id: 'chapter-1', title: 'Cells' },
-            { id: 'chapter-2' },
+            { id: 'chapter-2', title: 'Bonds' },
           ],
+          hasNextPage: false,
+        }
+      }
+
+      if (collection === 'quizzes') {
+        if (where?.createdAt) {
+          return {
+            docs: [{ id: 'quiz-1', title: 'Cells quiz', createdAt: '2026-01-15T00:00:00.000Z' }],
+            hasNextPage: false,
+          }
+        }
+        return {
+          docs: [{ id: 'quiz-1', title: 'Cells quiz' }],
           hasNextPage: false,
         }
       }
 
       if (collection === 'lesson-progress') {
+        if (where?.updatedAt) {
+          return {
+            docs: [
+              {
+                class: 'class-1',
+                chapter: 'chapter-1',
+                user: 'u1',
+                completed: true,
+                updatedAt: '2026-01-10T10:00:00.000Z',
+              },
+              {
+                class: 'class-1',
+                chapter: 'chapter-1',
+                user: 'u1',
+                completed: false,
+                updatedAt: '2026-01-11T10:00:00.000Z',
+              },
+              {
+                class: 'class-1',
+                chapter: 'chapter-1',
+                user: 'u2',
+                completed: false,
+                updatedAt: '2026-01-12T10:00:00.000Z',
+              },
+            ],
+            hasNextPage: false,
+          }
+        }
+
+        return { docs: [], hasNextPage: false }
+      }
+
+      if (collection === 'quiz-attempts') {
         return {
           docs: [
             {
-              class: 'class-1',
-              chapter: 'chapter-1',
+              quiz: 'quiz-1',
               user: 'u1',
-              completed: true,
-              updatedAt: '2026-01-06T10:00:00.000Z',
+              score: 9,
+              maxScore: 10,
+              completedAt: '2026-01-14T00:00:00.000Z',
+              createdAt: '2026-01-14T00:00:00.000Z',
             },
             {
-              class: 'class-1',
-              chapter: 'chapter-1',
+              quiz: 'quiz-1',
               user: 'u2',
-              completed: false,
-              updatedAt: '2026-01-08T12:00:00.000Z',
-            },
-            {
-              class: 'class-2',
-              chapter: 'chapter-2',
-              user: 'u1',
-              completed: true,
-              updatedAt: '2026-01-13T11:00:00.000Z',
+              score: 4,
+              maxScore: 10,
+              completedAt: '2026-01-16T00:00:00.000Z',
+              createdAt: '2026-01-16T00:00:00.000Z',
             },
           ],
           hasNextPage: false,
         }
       }
 
-      if (collection === 'quiz-attempts') {
+      if (['lessons', 'pages', 'quiz-questions'].includes(collection)) {
         return {
           docs: [
-            { score: 55, maxScore: 100 },
-            { score: 0.74 },
-            { score: '95', maxScore: '100' },
+            {
+              id: `${collection}-1`,
+              title: `${collection} title`,
+              createdAt: '2026-01-20T00:00:00.000Z',
+            },
           ],
+          hasNextPage: false,
+        }
+      }
+
+      if (collection === 'classrooms' || collection === 'classroom-memberships' || collection === 'accounts') {
+        return {
+          docs: [],
           hasNextPage: false,
         }
       }
@@ -86,57 +132,61 @@ describe('getReportingSummary', () => {
       throw new Error(`Unexpected collection: ${collection}`)
     })
 
-    const summary = await getReportingSummary({ find } as never)
+    const summary = await getReportingSummary({ find } as never, {
+      mode: 'rppr',
+      period: {
+        startDate: '2026-01-01',
+        endDate: '2026-01-31',
+        reportType: 'annual',
+      },
+    })
 
     expect(summary.classCompletion).toEqual([
       {
-        id: 'class-2',
-        title: 'Class class-2',
-        total: 1,
-        completed: 1,
-        completionRate: 1,
-      },
-      {
         id: 'class-1',
         title: 'Biology 101',
-        total: 2,
-        completed: 1,
+        uniqueLearnersStarted: 2,
+        uniqueLearnersCompleted: 1,
         completionRate: 0.5,
       },
     ])
 
-    expect(summary.chapterCompletion).toEqual([
+    expect(summary.chapterCompletion[0]).toEqual({
+      id: 'chapter-1',
+      title: 'Cells',
+      uniqueLearnersStarted: 2,
+      uniqueLearnersCompleted: 1,
+      completionRate: 0.5,
+    })
+
+    expect(summary.quizPerformance).toEqual([
       {
-        id: 'chapter-2',
-        title: 'Chapter chapter-2',
-        total: 1,
-        completed: 1,
-        completionRate: 1,
-      },
-      {
-        id: 'chapter-1',
-        title: 'Cells',
-        total: 2,
-        completed: 1,
-        completionRate: 0.5,
+        quizId: 'quiz-1',
+        title: 'Cells quiz',
+        uniqueLearnersAttempted: 2,
+        uniqueLearnersMastered: 1,
+        masteryRate: 0.5,
+        attempts: 2,
       },
     ])
 
-    expect(summary.quizMasteryDistribution.map(({ label, count }) => ({ label, count }))).toEqual([
-      { label: '0-59%', count: 1 },
-      { label: '60-69%', count: 0 },
-      { label: '70-79%', count: 1 },
-      { label: '80-89%', count: 0 },
-      { label: '90-100%', count: 1 },
-    ])
+    expect(summary.participation.uniqueLearnersActive).toBe(2)
+    expect(summary.productsInPeriod.total).toBe(4)
+    expect(summary.reportMeta.mode).toBe('rppr')
+    expect(summary.reportMeta.filters).toEqual({
+      classId: null,
+      professorId: null,
+      classroomId: null,
+      firstGen: null,
+      transfer: null,
+    })
+  })
 
-    expect(summary.weeklyEngagement).toEqual([
-      { weekStart: '2026-01-05', activeStudents: 2, weekOverWeekChange: null },
-      { weekStart: '2026-01-12', activeStudents: 1, weekOverWeekChange: -0.5 },
-    ])
-
-    expect(summary.generatedAt).toBeTypeOf('string')
-    expect(new Date(summary.generatedAt).toString()).not.toBe('Invalid Date')
-    expect(find).toHaveBeenCalled()
+  it('requires period for rppr mode', async () => {
+    await expect(
+      getReportingSummary({ find: vi.fn() } as never, {
+        mode: 'rppr',
+      }),
+    ).rejects.toThrow('RPPR reporting requires a reporting period.')
   })
 })
