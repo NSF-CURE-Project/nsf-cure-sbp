@@ -5,6 +5,26 @@ const EXAMPLE_FIGURE_TITLE = "Statics Fundamentals — Simply Supported Beam FBD
 const EXAMPLE_PROBLEM_TITLE = "Statics Fundamentals — Reactions of a Simply Supported Beam";
 const EXAMPLE_SET_TITLE = "Statics Fundamentals — Beam Equilibrium Starter";
 
+const ensureNumericId = (value: unknown, label: string): number => {
+  const maybeId =
+    typeof value === "object" && value !== null && "id" in value
+      ? (value as { id?: unknown }).id
+      : value;
+
+  const asNumber =
+    typeof maybeId === "number"
+      ? maybeId
+      : typeof maybeId === "string"
+      ? Number.parseInt(maybeId, 10)
+      : Number.NaN;
+
+  if (!Number.isFinite(asNumber)) {
+    throw new Error(`Expected numeric ${label} id but received ${String(maybeId)}`);
+  }
+
+  return asNumber;
+};
+
 const richText = (text: string): Problem["prompt"] => ({
   root: {
     type: "root",
@@ -87,7 +107,7 @@ async function upsertEngineeringFigure(payload: Payload) {
   });
 }
 
-async function upsertProblem(payload: Payload, figureId: string | number) {
+async function upsertProblem(payload: Payload, figureId: number) {
   const existing = await payload.find({
     collection: "problems",
     where: { title: { equals: EXAMPLE_PROBLEM_TITLE } },
@@ -101,7 +121,7 @@ async function upsertProblem(payload: Payload, figureId: string | number) {
       "A simply supported beam has span L = 8 m and a downward point load P = 12 kN at midspan. Compute support reactions and identify the fundamental shear diagram shape."
     ),
     figure: figureId,
-    difficulty: "intro",
+    difficulty: "intro" as const,
     topic: "statics",
     tags: ["equilibrium", "beam", "support-reactions", "fundamentals"],
     parts: [
@@ -109,28 +129,28 @@ async function upsertProblem(payload: Payload, figureId: string | number) {
         label: "Ra",
         prompt: richText("Find the vertical reaction at support A in kN."),
         unit: "kN",
-        partType: "numeric",
+        partType: "numeric" as const,
         correctAnswer: 6,
         tolerance: 0.03,
-        toleranceType: "relative",
-        scoringMode: "linear-decay",
+        toleranceType: "relative" as const,
+        scoringMode: "linear-decay" as const,
         explanation: richText("By symmetry and sum of moments, R_A = R_B = P/2 = 6 kN."),
       },
       {
         label: "Rb",
         prompt: richText("Find the vertical reaction at support B in kN."),
         unit: "kN",
-        partType: "numeric",
+        partType: "numeric" as const,
         correctAnswer: 6,
         tolerance: 0.03,
-        toleranceType: "relative",
-        scoringMode: "linear-decay",
+        toleranceType: "relative" as const,
+        scoringMode: "linear-decay" as const,
         explanation: richText("For this centered load case, R_B equals R_A."),
       },
       {
         label: "Rexpr",
         prompt: richText("Enter an expression for each reaction in terms of P."),
-        partType: "symbolic",
+        partType: "symbolic" as const,
         symbolicAnswer: "P / 2",
         symbolicVariables: [{ variable: "P", testMin: 2, testMax: 50 }],
         symbolicTolerance: 0.000001,
@@ -141,7 +161,7 @@ async function upsertProblem(payload: Payload, figureId: string | number) {
         prompt: richText(
           "Draw the three main forces on the beam FBD: upward reactions at A and B, and the downward point load at midspan."
         ),
-        partType: "fbd-draw",
+        partType: "fbd-draw" as const,
         fbdRubric: {
           requiredForces: [
             { id: "Ra", label: "R_A", correctAngle: 90, angleTolerance: 10 },
@@ -157,7 +177,7 @@ async function upsertProblem(payload: Payload, figureId: string | number) {
     ],
     resultPlots: [
       {
-        plotType: "shear",
+        plotType: "shear" as const,
         title: "Student Shear Diagram V(x)",
         xLabel: "x (m)",
         yLabel: "V (kN)",
@@ -173,7 +193,7 @@ async function upsertProblem(payload: Payload, figureId: string | number) {
         ],
       },
       {
-        plotType: "moment",
+        plotType: "moment" as const,
         title: "Student Moment Diagram M(x)",
         xLabel: "x (m)",
         yLabel: "M (kN·m)",
@@ -204,7 +224,7 @@ async function upsertProblem(payload: Payload, figureId: string | number) {
   });
 }
 
-async function upsertProblemSet(payload: Payload, problemId: string | number) {
+async function upsertProblemSet(payload: Payload, problemId: number) {
   const existing = await payload.find({
     collection: "problem-sets",
     where: { title: { equals: EXAMPLE_SET_TITLE } },
@@ -242,10 +262,13 @@ export default async function seedStaticsFundamentalsExample(payload: Payload) {
   payload.logger.info("Seeding statics fundamentals example problem set...");
 
   const figure = await upsertEngineeringFigure(payload);
-  const problem = await upsertProblem(payload, figure.id);
-  const problemSet = await upsertProblemSet(payload, problem.id);
+  const figureId = ensureNumericId(figure, "engineering-figure");
+  const problem = await upsertProblem(payload, figureId);
+  const problemId = ensureNumericId(problem, "problem");
+  const problemSet = await upsertProblemSet(payload, problemId);
+  const problemSetId = ensureNumericId(problemSet, "problem-set");
 
   payload.logger.info(
-    `Seed complete: figure=${figure.id}, problem=${problem.id}, problemSet=${problemSet.id}`
+    `Seed complete: figure=${figureId}, problem=${problemId}, problemSet=${problemSetId}`
   );
 }
