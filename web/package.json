@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "NEXT_DISABLE_DEV_INDICATOR=1 PORT=3001 next dev --webpack -H 127.0.0.1",
     "build": "next build --webpack",
-    "start": "PORT=3001 next start -H app.sbp.local",
+    "start": "next start -H 0.0.0.0 -p ${PORT:-3000}",
     "lint": "eslint"
   },
   "dependencies": {
