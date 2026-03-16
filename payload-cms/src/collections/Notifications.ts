@@ -45,7 +45,12 @@ export const Notifications: CollectionConfig = {
       type: 'select',
       required: true,
       defaultValue: 'question_answered',
-      options: [{ label: 'Question answered', value: 'question_answered' }],
+      options: [
+        { label: 'Question answered', value: 'question_answered' },
+        { label: 'New content', value: 'new_content' },
+        { label: 'Announcement', value: 'announcement' },
+        { label: 'Quiz deadline', value: 'quiz_deadline' },
+      ],
       admin: {
         position: 'sidebar',
       },
@@ -58,6 +63,13 @@ export const Notifications: CollectionConfig = {
     {
       name: 'body',
       type: 'textarea',
+    },
+    {
+      name: 'link',
+      type: 'text',
+      admin: {
+        description: 'Optional URL the student is taken to when clicking this notification.',
+      },
     },
     {
       name: 'question',

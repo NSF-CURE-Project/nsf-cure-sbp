@@ -53,6 +53,7 @@ import { nsfRpprSummaryHandler } from './endpoints/nsfRpprSummary'
 import { reportingCenterHandler } from './endpoints/reportingCenter'
 import { metricDefinitionsHandler } from './endpoints/metricDefinitions'
 import { emailPreviewHandler } from './endpoints/emailPreview'
+import { certificateHandler } from './endpoints/certificate'
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
   path: '@/views/StaffDashboardView#default',
@@ -482,6 +483,11 @@ export default buildConfig({
       path: '/analytics/metric-definitions',
       method: 'get',
       handler: metricDefinitionsHandler,
+    },
+    {
+      path: '/classrooms/:classroomId/certificate',
+      method: 'get',
+      handler: certificateHandler,
     },
   ],
 })

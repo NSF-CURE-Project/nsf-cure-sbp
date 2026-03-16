@@ -27,6 +27,22 @@ const resolveChapterId = (chapter?: unknown) =>
     ? (chapter as { id?: string | number }).id
     : chapter
 
+const extractId = (value: unknown): string | number | null => {
+  if (typeof value === 'object' && value !== null && 'id' in value) {
+    const id = (value as { id?: string | number }).id
+    return id ?? null
+  }
+  if (typeof value === 'string' || typeof value === 'number') return value
+  return null
+}
+
+const extractSlug = (value: unknown): string => {
+  if (typeof value === 'object' && value !== null && 'slug' in value) {
+    return (value as { slug?: string }).slug ?? ''
+  }
+  return ''
+}
+
 export const Lessons: CollectionConfig = {
   slug: 'lessons',
   defaultSort: 'order',
@@ -70,6 +86,124 @@ export const Lessons: CollectionConfig = {
   },
   hooks: {
     afterChange: [
+      async ({ doc, previousDoc, req }) => {
+        const isNowPublished = doc?._status === 'published'
+        const wasPublished = previousDoc?._status === 'published'
+        if (!isNowPublished || wasPublished || !req?.payload) return
+
+        try {
+          const lessonSlug = typeof doc.slug === 'string' ? doc.slug : ''
+          const chapterId = extractId(doc.chapter)
+          if (!lessonSlug || !chapterId) return
+
+          const chapter = await req.payload.findByID({
+            collection: 'chapters',
+            id: chapterId,
+            depth: 1,
+            overrideAccess: true,
+          })
+
+          const classValue = (chapter as { class?: unknown }).class
+          const classId = extractId(classValue)
+          if (!classId) return
+
+          let classSlug = extractSlug(classValue)
+          if (!classSlug) {
+            const classDoc = await req.payload.findByID({
+              collection: 'classes',
+              id: classId,
+              depth: 0,
+              overrideAccess: true,
+            })
+            classSlug = typeof (classDoc as { slug?: unknown }).slug === 'string'
+              ? (classDoc as { slug?: string }).slug ?? ''
+              : ''
+          }
+
+          if (!classSlug) return
+
+          const lessonLink = `/classes/${classSlug}/lessons/${lessonSlug}`
+          const memberships = await req.payload.find({
+            collection: 'classroom-memberships',
+            depth: 1,
+            limit: 501,
+            overrideAccess: true,
+            where: {
+              'classroom.class': { equals: classId },
+            } as never,
+          })
+
+          const recipients = new Set<number>()
+          for (const membership of memberships.docs ?? []) {
+            const studentValue = (membership as { student?: unknown }).student
+            const studentId = extractId(studentValue)
+            const numericStudentId = Number(studentId)
+            if (Number.isFinite(numericStudentId)) recipients.add(numericStudentId)
+          }
+
+          const recipientIds = [...recipients]
+          if (recipientIds.length === 0) return
+          if (recipientIds.length > 500) {
+            req.payload.logger.warn(
+              `Skipping lesson publish notifications for lesson ${String(doc.id)}; recipient count exceeds 500.`,
+            )
+            return
+          }
+
+          const existing = await req.payload.find({
+            collection: 'notifications',
+            depth: 0,
+            limit: recipientIds.length,
+            overrideAccess: true,
+            where: {
+              and: [
+                { recipient: { in: recipientIds } },
+                { type: { equals: 'new_content' } },
+                { link: { equals: lessonLink } },
+                { read: { equals: false } },
+              ],
+            } as never,
+          })
+          const existingRecipients = new Set<number>(
+            (existing.docs ?? [])
+              .map((notification) => extractId((notification as { recipient?: unknown }).recipient))
+              .filter((id): id is string | number => id != null)
+              .map((id) => Number(id))
+              .filter((id) => Number.isFinite(id)),
+          )
+
+          const lessonTitle = typeof doc.title === 'string' ? doc.title : 'A new lesson was published.'
+          const createJobs = recipientIds
+            .filter((recipientId) => !existingRecipients.has(recipientId))
+            .map((recipientId) =>
+              req.payload.create({
+                collection: 'notifications',
+                overrideAccess: true,
+                data: {
+                  recipient: recipientId,
+                  type: 'new_content',
+                  title: 'New lesson available',
+                  body: lessonTitle,
+                  link: lessonLink,
+                  read: false,
+                } as never,
+              }),
+            )
+
+          const results = await Promise.allSettled(createJobs)
+          const failures = results.filter((result) => result.status === 'rejected')
+          if (failures.length > 0) {
+            req.payload.logger.error(
+              `Failed to create ${failures.length} publish notifications for lesson ${String(doc.id)}.`,
+            )
+          }
+        } catch (error) {
+          req.payload.logger.error({
+            err: error,
+            msg: `Failed publish notification fan-out for lesson ${String(doc?.id)}`,
+          })
+        }
+      },
       async ({ doc, previousDoc, req, operation }) => {
         if (!req?.payload) return
         const runChapterSyncAsync = process.env.PAYLOAD_ASYNC_LESSON_CHAPTER_SYNC !== 'false'

@@ -124,6 +124,7 @@ export default function Navbar() {
       body?: string;
       read?: boolean;
       createdAt?: string;
+      link?: string;
     }[]
   >([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -274,6 +275,7 @@ export default function Navbar() {
             body?: string;
             read?: boolean;
             createdAt?: string;
+            link?: string;
           }[];
         };
         setNotifications(data.docs ?? []);
@@ -648,7 +650,13 @@ export default function Navbar() {
                   <DropdownMenuItem
                     key={notification.id}
                     className="flex cursor-pointer flex-col items-start gap-1 py-2"
-                    onClick={() => handleNotificationRead(notification.id)}
+                    onClick={async () => {
+                      await handleNotificationRead(notification.id);
+                      setNotificationsOpen(false);
+                      if (notification.link) {
+                        router.push(notification.link);
+                      }
+                    }}
                   >
                     <div className="flex w-full items-center justify-between gap-2">
                       <span className="text-sm font-medium text-foreground">
