@@ -1,4 +1,5 @@
-import type { CollectionConfig } from 'payload'
+import { buildAuthEmail, buildResetPasswordUrl } from '../utils/authEmails'
+import type { CollectionConfig, PayloadRequest } from 'payload'
 
 const cookieSecure = (() => {
   const envValue = process.env.PAYLOAD_COOKIE_SECURE
@@ -19,6 +20,10 @@ const cookieDomain = (() => {
   return process.env.PAYLOAD_APP_COOKIE_DOMAIN || undefined
 })()
 
+const isStaffUser = (req?: PayloadRequest | null) =>
+  req?.user?.collection === 'users' &&
+  ['admin', 'staff', 'professor'].includes(req.user?.role ?? '')
+
 export const Accounts: CollectionConfig = {
   slug: 'accounts',
   auth: {
@@ -27,12 +32,34 @@ export const Accounts: CollectionConfig = {
       sameSite: cookieSameSite,
       domain: cookieDomain,
     },
+    forgotPassword: {
+      generateEmailSubject: () => 'Reset your NSF CURE account password',
+      generateEmailHTML: (args) => {
+        const resetUrl = buildResetPasswordUrl(args?.token ?? '')
+        return buildAuthEmail({
+          heading: 'Reset your NSF CURE account password',
+          intro: 'A password reset was requested for your account.',
+          actionLabel: 'Reset password',
+          actionUrl: resetUrl,
+          securityNote: 'If you did not request a password reset, you can safely ignore this email.',
+        }).html
+      },
+    },
   },
   admin: {
     useAsTitle: 'email',
     group: 'Students',
   },
   hooks: {
+    beforeValidate: [
+      ({ data }) => {
+        if (!data || typeof data !== 'object') return data
+        return {
+          ...(data as Record<string, unknown>),
+          role: 'student',
+        }
+      },
+    ],
     afterChange: [
       async ({ doc, operation, req }) => {
         if (operation !== 'create') return doc
@@ -53,15 +80,18 @@ export const Accounts: CollectionConfig = {
           overrideAccess: true,
         })
 
+        const message = buildAuthEmail({
+          heading: 'Confirm your NSF CURE account email',
+          intro: 'Please confirm your email address to activate your account.',
+          actionLabel: 'Confirm email address',
+          actionUrl: confirmUrl,
+          securityNote: 'If you did not create this account, no further action is needed.',
+        })
+
         await req.payload.sendEmail({
           to: doc.email,
           subject: 'Confirm your NSF CURE account email',
-          text: `Confirm your email address by visiting ${confirmUrl}. This link expires in 24 hours.`,
-          html: `
-            <p>Confirm your email address by clicking the link below:</p>
-            <p><a href="${confirmUrl}">Confirm email address</a></p>
-            <p>This link expires in 24 hours.</p>
-          `,
+          ...message,
         })
 
         return doc
@@ -89,14 +119,12 @@ export const Accounts: CollectionConfig = {
   },
   access: {
     read: ({ req, id }) =>
-      req.user?.role === 'admin' ||
-      req.user?.role === 'staff' ||
-      req.user?.role === 'professor' ||
-      req.user?.id === id,
+      isStaffUser(req) || (req.user?.collection === 'accounts' && req.user?.id === id),
     create: () => true,
     update: ({ req, id }) =>
-      req.user?.role === 'admin' || req.user?.role === 'staff' || req.user?.id === id,
-    delete: ({ req }) => req.user?.role === 'admin',
+      (req.user?.collection === 'users' && ['admin', 'staff'].includes(req.user?.role ?? '')) ||
+      (req.user?.collection === 'accounts' && req.user?.id === id),
+    delete: ({ req }) => req.user?.collection === 'users' && req.user?.role === 'admin',
   },
   fields: [
     {
@@ -139,19 +167,129 @@ export const Accounts: CollectionConfig = {
       type: 'select',
       required: true,
       defaultValue: 'student',
-      options: [
-        { label: 'Student', value: 'student' },
-        { label: 'Staff', value: 'staff' },
-        { label: 'Admin', value: 'admin' },
-      ],
+      options: [{ label: 'Student', value: 'student' }],
       admin: {
-        description: 'Default is student. Staff/admin can be used for special access.',
+        description: 'Student role for learner accounts.',
       },
     },
     {
       name: 'fullName',
       label: 'Full name',
       type: 'text',
+    },
+    {
+      name: 'currentStreak',
+      label: 'Current streak',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'longestStreak',
+      label: 'Longest streak',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'lastStreakDate',
+      label: 'Last streak date',
+      type: 'date',
+      admin: {
+        readOnly: true,
+        hidden: true,
+      },
+    },
+    {
+      name: 'participantType',
+      label: 'Participant type',
+      type: 'select',
+      options: [
+        { label: 'Undergraduate student', value: 'undergraduate_student' },
+        { label: 'Graduate student', value: 'graduate_student' },
+        { label: 'K-12 student', value: 'k12_student' },
+        { label: 'Teacher', value: 'teacher' },
+        { label: 'Staff', value: 'staff' },
+        { label: 'Faculty', value: 'faculty' },
+        { label: 'Other', value: 'other' },
+      ],
+      admin: {
+        description: 'Used for NSF participant reporting exports.',
+      },
+    },
+    {
+      name: 'projectRole',
+      label: 'Project role',
+      type: 'text',
+      admin: {
+        description: 'RPPR participant role in this project.',
+      },
+    },
+    {
+      name: 'organization',
+      label: 'Organization',
+      type: 'relationship',
+      relationTo: 'organizations',
+    },
+    {
+      name: 'organizationName',
+      label: 'Organization name (snapshot)',
+      type: 'text',
+      admin: {
+        description:
+          'Optional reporting snapshot for exports when the organization relationship is empty.',
+      },
+    },
+    {
+      name: 'contributionSummary',
+      label: 'Contribution summary',
+      type: 'textarea',
+      admin: {
+        description: 'Summary of participant contributions used in RPPR narratives.',
+      },
+    },
+    {
+      name: 'participationStartDate',
+      label: 'Participation start date',
+      type: 'date',
+    },
+    {
+      name: 'participationEndDate',
+      label: 'Participation end date',
+      type: 'date',
+    },
+    {
+      name: 'firstGenCollegeStudent',
+      label: 'First-generation college student',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Supports cohort filtering in reporting center.',
+      },
+    },
+    {
+      name: 'transferStudent',
+      label: 'Transfer student',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Supports cohort filtering in reporting center.',
+      },
+    },
+    {
+      name: 'includeInRppr',
+      label: 'Include in RPPR exports',
+      type: 'checkbox',
+      defaultValue: true,
+      admin: {
+        position: 'sidebar',
+      },
     },
     {
       name: 'ssoProvider',

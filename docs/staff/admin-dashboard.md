@@ -11,6 +11,8 @@ Common tasks
 - Manage lessons and curriculum: `Classes`, `Chapters`, and `Lessons` collections.
 - Upload media: use the `Media` collection.
 - View student progress: `LessonProgress` and `QuizAttempts` collections.
+- Generate NSF RPPR reporting outputs: open `/admin/reporting`.
+  - includes period/date-range scope, cohort filters, KPI trend deltas vs previous snapshots, evidence-link summaries, data quality checks, anomalies, exports, and snapshot trigger/reuse.
 
 Previewing content
 - Use the live preview pane for `lessons` and `pages` where configured (see `payload.config.ts` `admin.livePreview`).

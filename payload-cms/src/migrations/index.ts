@@ -7,6 +7,16 @@ import * as migration_20260105_120000_add_professor_role from './20260105_120000
 import * as migration_20260212_161835_add_classrooms_and_memberships from './20260212_161835_add_classrooms_and_memberships';
 import * as migration_20260212_203500_add_classroom_rel_columns from './20260212_203500_add_classroom_rel_columns';
 import * as migration_20260304_000000_add_lesson_bookmarks_rel_columns from './20260304_000000_add_lesson_bookmarks_rel_columns';
+import * as migration_20260310_060000_add_site_branding_and_footer_nsf from './20260310_060000_add_site_branding_and_footer_nsf';
+import * as migration_20260311_000000_add_reporting_snapshot_reproducibility_key from './20260311_000000_add_reporting_snapshot_reproducibility_key';
+import * as migration_20260311_010000_add_reporting_rel_columns from './20260311_010000_add_reporting_rel_columns';
+import * as migration_20260312_000000_create_reporting_tables from './20260312_000000_create_reporting_tables';
+import * as migration_20260312_010000_repair_reporting_rel_columns from './20260312_010000_repair_reporting_rel_columns';
+import * as migration_20260312_020000_create_organizations_table from './20260312_020000_create_organizations_table';
+import * as migration_20260312_030000_add_accounts_reporting_columns from './20260312_030000_add_accounts_reporting_columns';
+import * as migration_20260312_040000_add_reporting_product_records from './20260312_040000_add_reporting_product_records';
+import * as migration_20260312_050000_expand_admin_help_portal from './20260312_050000_expand_admin_help_portal';
+import * as migration_20260315_235000_add_account_streak_columns from './20260315_235000_add_account_streak_columns';
 import * as migration_20260316_080657_add_problem_set_collections_v1 from './20260316_080657_add_problem_set_collections_v1';
 import * as migration_20260316_081500_add_engineering_figure_templates_flag from './20260316_081500_add_engineering_figure_templates_flag';
 import * as migration_20260316_084525_add_problem_set_v2_extensions from './20260316_084525_add_problem_set_v2_extensions';
@@ -58,6 +68,56 @@ export const migrations = [
     name: '20260304_000000_add_lesson_bookmarks_rel_columns',
   },
   {
+    up: migration_20260310_060000_add_site_branding_and_footer_nsf.up,
+    down: migration_20260310_060000_add_site_branding_and_footer_nsf.down,
+    name: '20260310_060000_add_site_branding_and_footer_nsf',
+  },
+  {
+    up: migration_20260311_000000_add_reporting_snapshot_reproducibility_key.up,
+    down: migration_20260311_000000_add_reporting_snapshot_reproducibility_key.down,
+    name: '20260311_000000_add_reporting_snapshot_reproducibility_key',
+  },
+  {
+    up: migration_20260311_010000_add_reporting_rel_columns.up,
+    down: migration_20260311_010000_add_reporting_rel_columns.down,
+    name: '20260311_010000_add_reporting_rel_columns',
+  },
+  {
+    up: migration_20260312_000000_create_reporting_tables.up,
+    down: migration_20260312_000000_create_reporting_tables.down,
+    name: '20260312_000000_create_reporting_tables',
+  },
+  {
+    up: migration_20260312_010000_repair_reporting_rel_columns.up,
+    down: migration_20260312_010000_repair_reporting_rel_columns.down,
+    name: '20260312_010000_repair_reporting_rel_columns',
+  },
+  {
+    up: migration_20260312_020000_create_organizations_table.up,
+    down: migration_20260312_020000_create_organizations_table.down,
+    name: '20260312_020000_create_organizations_table',
+  },
+  {
+    up: migration_20260312_030000_add_accounts_reporting_columns.up,
+    down: migration_20260312_030000_add_accounts_reporting_columns.down,
+    name: '20260312_030000_add_accounts_reporting_columns',
+  },
+  {
+    up: migration_20260312_040000_add_reporting_product_records.up,
+    down: migration_20260312_040000_add_reporting_product_records.down,
+    name: '20260312_040000_add_reporting_product_records',
+  },
+  {
+    up: migration_20260312_050000_expand_admin_help_portal.up,
+    down: migration_20260312_050000_expand_admin_help_portal.down,
+    name: '20260312_050000_expand_admin_help_portal',
+  },
+  {
+    up: migration_20260315_235000_add_account_streak_columns.up,
+    down: migration_20260315_235000_add_account_streak_columns.down,
+    name: '20260315_235000_add_account_streak_columns',
+  },
+  {
     up: migration_20260316_080657_add_problem_set_collections_v1.up,
     down: migration_20260316_080657_add_problem_set_collections_v1.down,
     name: '20260316_080657_add_problem_set_collections_v1',
@@ -70,6 +130,6 @@ export const migrations = [
   {
     up: migration_20260316_084525_add_problem_set_v2_extensions.up,
     down: migration_20260316_084525_add_problem_set_v2_extensions.down,
-    name: '20260316_084525_add_problem_set_v2_extensions'
+    name: '20260316_084525_add_problem_set_v2_extensions',
   },
 ];

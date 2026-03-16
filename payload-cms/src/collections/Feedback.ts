@@ -1,7 +1,7 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
 
 const isStaff = (req?: PayloadRequest | null) =>
-  req?.user?.collection === 'users' ||
+  req?.user?.collection === 'users' &&
   ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
 
 export const Feedback: CollectionConfig = {

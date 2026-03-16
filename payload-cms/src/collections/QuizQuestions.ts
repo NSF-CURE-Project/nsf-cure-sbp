@@ -1,7 +1,8 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
 
 const isStaff = (req?: PayloadRequest | null) =>
-  req?.user?.collection === 'users' || ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
+  req?.user?.collection === 'users' &&
+  ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
 
 const validateOptions = (value: unknown) => {
   if (!Array.isArray(value)) {
