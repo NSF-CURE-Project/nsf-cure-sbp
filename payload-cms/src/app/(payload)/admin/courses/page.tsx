@@ -7,14 +7,17 @@ import CourseCardList from '@/views/CourseCardList'
 type CourseTree = {
   id: string | number
   title: string
+  order?: number | null
   chapters: {
     id: string | number
     title: string
     chapterNumber?: number | null
+    courseId?: string | number
     lessons: {
       id: string | number
       title: string
       order?: number | null
+      chapterId?: string | number
       quizTitle?: string | null
     }[]
   }[]
@@ -23,6 +26,7 @@ type CourseTree = {
 type CourseDoc = {
   id?: string | number
   title?: string
+  order?: number | null
   chapters?: unknown[]
 }
 
@@ -71,6 +75,7 @@ const buildCourseTree = async () => {
                 id: lessonDoc.id ?? lesson,
                 title: lessonDoc.title ?? 'Untitled lesson',
                 order: lessonDoc.order ?? null,
+                chapterId: chapterDoc.id ?? chapter,
                 quizTitle,
               }
             })
@@ -86,6 +91,7 @@ const buildCourseTree = async () => {
           title: chapterDoc.title ?? 'Untitled chapter',
           chapterNumber:
             typeof chapterDoc.chapterNumber === 'number' ? chapterDoc.chapterNumber : null,
+          courseId: courseDoc.id ?? course,
           lessons,
         }
       })
@@ -99,6 +105,7 @@ const buildCourseTree = async () => {
     return {
       id: courseDoc.id ?? course,
       title: courseDoc.title ?? 'Untitled class',
+      order: typeof courseDoc.order === 'number' ? courseDoc.order : null,
       chapters,
     }
   }) as CourseTree[]
