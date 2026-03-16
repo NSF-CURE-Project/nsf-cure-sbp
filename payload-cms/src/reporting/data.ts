@@ -1,6 +1,6 @@
 import type { Payload } from 'payload'
-import { buildPeriodWhere, mergeWhere, resolveReportingPeriod, type ReportingPeriod } from './period'
-import { isMissingColumnError, isSchemaMismatchError } from './schema'
+import { buildPeriodWhere, mergeWhere, resolveReportingPeriod, type ReportingPeriod } from './period.ts'
+import { isMissingColumnError, isSchemaMismatchError } from './schema.ts'
 
 type PayloadFindResult = {
   docs: unknown[]

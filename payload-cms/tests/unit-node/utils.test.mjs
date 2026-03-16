@@ -123,6 +123,9 @@ describe('analytics summary utilities', () => {
         if (collection === 'chapters') {
           return { docs: [{ id: 'chapter-1', title: 'Cells' }, { id: 'chapter-2' }], hasNextPage: false }
         }
+        if (collection === 'quizzes') {
+          return { docs: [{ id: 'quiz-1', title: 'Quiz 1' }], hasNextPage: false }
+        }
         if (collection === 'lesson-progress') {
           return {
             docs: [
@@ -166,6 +169,9 @@ describe('analytics summary utilities', () => {
           }
         }
         if (collection === 'chapters') {
+          return { docs: [], hasNextPage: false }
+        }
+        if (collection === 'quizzes') {
           return { docs: [], hasNextPage: false }
         }
         if (collection === 'lesson-progress') {

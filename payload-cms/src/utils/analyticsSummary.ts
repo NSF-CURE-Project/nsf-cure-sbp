@@ -1,8 +1,8 @@
 import type { Payload } from 'payload'
-import { findAllDocs, findAllDocsInPeriod } from '../reporting/data'
-import { resolveReportingPeriod, type ReportingPeriodInput } from '../reporting/period'
-import { resolveReportingScope } from '../reporting/cohorts'
-import type { ReportingSummary, ReportMode, ReportingCohortFilters } from '../reporting/types'
+import { findAllDocs, findAllDocsInPeriod } from '../reporting/data.ts'
+import { resolveReportingPeriod, type ReportingPeriodInput } from '../reporting/period.ts'
+import { resolveReportingScope } from '../reporting/cohorts.ts'
+import type { ReportingSummary, ReportMode, ReportingCohortFilters } from '../reporting/types.ts'
 
 const MASTERY_BANDS = [
   { label: '0-59%', min: 0, max: 0.6 },
