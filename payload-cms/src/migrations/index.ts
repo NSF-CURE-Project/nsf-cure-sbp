@@ -5,7 +5,9 @@ import * as migration_20251228_190000_lesson_feedback_nav_order from './20251228
 import * as migration_20251229_183000_user_names_theme from './20251229_183000_user_names_theme';
 import * as migration_20260105_120000_add_professor_role from './20260105_120000_add_professor_role';
 import * as migration_20260212_161835_add_classrooms_and_memberships from './20260212_161835_add_classrooms_and_memberships';
+import * as migration_20260212_203500_add_classroom_rel_columns from './20260212_203500_add_classroom_rel_columns';
 import * as migration_20260304_000000_add_lesson_bookmarks_rel_columns from './20260304_000000_add_lesson_bookmarks_rel_columns';
+import * as migration_20260316_080657_add_problem_set_collections_v1 from './20260316_080657_add_problem_set_collections_v1';
 
 export const migrations = [
   {
@@ -44,8 +46,18 @@ export const migrations = [
     name: '20260212_161835_add_classrooms_and_memberships',
   },
   {
+    up: migration_20260212_203500_add_classroom_rel_columns.up,
+    down: migration_20260212_203500_add_classroom_rel_columns.down,
+    name: '20260212_203500_add_classroom_rel_columns',
+  },
+  {
     up: migration_20260304_000000_add_lesson_bookmarks_rel_columns.up,
     down: migration_20260304_000000_add_lesson_bookmarks_rel_columns.down,
     name: '20260304_000000_add_lesson_bookmarks_rel_columns',
+  },
+  {
+    up: migration_20260316_080657_add_problem_set_collections_v1.up,
+    down: migration_20260316_080657_add_problem_set_collections_v1.down,
+    name: '20260316_080657_add_problem_set_collections_v1'
   },
 ];
