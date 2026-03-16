@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  main-production-sync:
-    name: Ensure production is in sync with main
+  main-prod-sync:
+    name: Ensure prod is in sync with main
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -15,21 +15,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Fetch main and production
+      - name: Fetch main and prod
         run: |
-          git fetch origin main production
+          git fetch origin main prod
 
       - name: Compare branch tips
         run: |
           MAIN_SHA="$(git rev-parse origin/main)"
-          PROD_SHA="$(git rev-parse origin/production)"
+          PROD_SHA="$(git rev-parse origin/prod)"
 
           echo "main:       $MAIN_SHA"
-          echo "production: $PROD_SHA"
+          echo "prod:       $PROD_SHA"
 
           if [ "$MAIN_SHA" != "$PROD_SHA" ]; then
-            echo "::error::Branch drift detected: origin/production is not at the same commit as origin/main."
-            echo "Promote with: git checkout production && git merge --ff-only origin/main && git push origin production"
+            echo "::error::Branch drift detected: origin/prod is not at the same commit as origin/main."
+            echo "Promote with: git checkout prod && git merge --ff-only origin/main && git push origin prod"
             exit 1
           fi
 
