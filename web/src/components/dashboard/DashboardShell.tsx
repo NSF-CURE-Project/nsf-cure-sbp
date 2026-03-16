@@ -8,6 +8,18 @@ import {
   NextLessonCard,
   type NextLessonTarget,
 } from "@/components/dashboard/NextLessonCard";
+import {
+  InProgressLessonsList,
+  type InProgressLessonItem,
+} from "@/components/dashboard/InProgressLessonsList";
+import {
+  RecommendedActions,
+  type RecommendedActionItem,
+} from "@/components/dashboard/RecommendedActions";
+import {
+  ResumeLearningCard,
+} from "@/components/dashboard/ResumeLearningCard";
+import { SavedLessonsList, type SavedLessonItem } from "@/components/dashboard/SavedLessonsList";
 
 type DashboardShellProps = {
   fullName?: string;
@@ -15,6 +27,15 @@ type DashboardShellProps = {
   longestStreak: number;
   enrollments: DashboardEnrollment[];
   nextLesson: NextLessonTarget | null;
+  resumeItem: {
+    title: string;
+    subtitle: string;
+    href: string;
+    hint?: string;
+  } | null;
+  savedLessons: SavedLessonItem[];
+  inProgressLessons: InProgressLessonItem[];
+  recommendedActions: RecommendedActionItem[];
 };
 
 export function DashboardShell({
@@ -23,6 +44,10 @@ export function DashboardShell({
   longestStreak,
   enrollments,
   nextLesson,
+  resumeItem,
+  savedLessons,
+  inProgressLessons,
+  recommendedActions,
 }: DashboardShellProps) {
   return (
     <main className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 py-6 sm:px-6 lg:px-8">
@@ -45,6 +70,14 @@ export function DashboardShell({
         </section>
 
         <NextLessonCard nextLesson={nextLesson} />
+        <ResumeLearningCard item={resumeItem} />
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <SavedLessonsList items={savedLessons} />
+          <InProgressLessonsList items={inProgressLessons} />
+        </div>
+
+        <RecommendedActions actions={recommendedActions} />
 
         <section className="rounded-md border border-border/60 bg-background/80 p-6">
           <h2 className="text-sm font-semibold text-foreground">Enrolled classes</h2>
