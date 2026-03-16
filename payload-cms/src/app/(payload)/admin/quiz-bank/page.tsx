@@ -38,30 +38,41 @@ const toId = (value: unknown): string | null => {
 
 export default async function QuizBankPage() {
   const payload = await getPayload({ config: configPromise })
-  const [quizRes, courseRes, chapterRes] = await Promise.all([
-    payload.find({
-      collection: 'quizzes',
-      depth: 0,
-      limit: 200,
-      sort: '-updatedAt',
-      draft: true,
-      overrideAccess: true,
-    }),
-    payload.find({
-      collection: 'classes',
-      depth: 0,
-      limit: 200,
-      sort: 'order',
-      overrideAccess: true,
-    }),
-    payload.find({
-      collection: 'chapters',
-      depth: 1,
-      limit: 500,
-      sort: 'chapterNumber',
-      overrideAccess: true,
-    }),
-  ])
+  let loadError: string | null = null
+  let quizRes: { docs: Array<Record<string, unknown>> } = { docs: [] }
+  let courseRes: { docs: Array<Record<string, unknown>> } = { docs: [] }
+  let chapterRes: { docs: Array<Record<string, unknown>> } = { docs: [] }
+
+  try {
+    const [quizzes, courses, chapters] = await Promise.all([
+      payload.find({
+        collection: 'quizzes',
+        depth: 0,
+        limit: 200,
+        sort: '-updatedAt',
+        overrideAccess: true,
+      }),
+      payload.find({
+        collection: 'classes',
+        depth: 0,
+        limit: 200,
+        sort: 'order',
+        overrideAccess: true,
+      }),
+      payload.find({
+        collection: 'chapters',
+        depth: 1,
+        limit: 500,
+        sort: 'chapterNumber',
+        overrideAccess: true,
+      }),
+    ])
+    quizRes = quizzes as unknown as { docs: Array<Record<string, unknown>> }
+    courseRes = courses as unknown as { docs: Array<Record<string, unknown>> }
+    chapterRes = chapters as unknown as { docs: Array<Record<string, unknown>> }
+  } catch (error) {
+    loadError = error instanceof Error ? error.message : 'Unable to load quiz bank data.'
+  }
 
   const initialQuizzes: QuizSummary[] = quizRes.docs.map((doc) => ({
     id: String(doc.id),
@@ -93,6 +104,21 @@ export default async function QuizBankPage() {
   return (
     <Gutter>
       <div style={{ maxWidth: 1100, margin: '24px auto 80px' }}>
+        {loadError ? (
+          <div
+            style={{
+              marginBottom: 16,
+              border: '1px solid #fecaca',
+              borderRadius: 10,
+              background: '#fff1f2',
+              color: '#9f1239',
+              padding: '10px 12px',
+              fontSize: 13,
+            }}
+          >
+            Quiz Bank loaded with limited data: {loadError}
+          </div>
+        ) : null}
         <QuizBankView initialQuizzes={initialQuizzes} courses={courses} chapters={chapters} />
       </div>
     </Gutter>

@@ -288,7 +288,6 @@ export default function QuizBankView({ initialQuizzes, courses, chapters }: Quiz
         limit: '200',
         depth: '0',
         sort: '-updatedAt',
-        draft: 'true',
       })
       if (filters.search) {
         params.set('where[title][like]', `%${filters.search}%`)
