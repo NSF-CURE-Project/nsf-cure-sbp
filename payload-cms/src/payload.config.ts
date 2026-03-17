@@ -1,4 +1,5 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { s3Storage } from '@payloadcms/storage-s3'
 import {
   FixedToolbarFeature,
   InlineToolbarFeature,
@@ -424,6 +425,27 @@ export default buildConfig({
       payload.sendEmail = adapter.sendEmail
       payload.logger.warn('Email adapter was missing; reattached.')
     }
+
+    process.once('SIGTERM', async () => {
+      payload.logger.info('[shutdown] SIGTERM received, draining...')
+      const forceExitTimer = setTimeout(() => {
+        payload.logger.error('[shutdown] Forced exit after timeout')
+        process.exit(1)
+      }, 10_000)
+
+      try {
+        await payload.db?.destroy?.()
+        clearTimeout(forceExitTimer)
+        process.exit(0)
+      } catch (error) {
+        clearTimeout(forceExitTimer)
+        payload.logger.error({
+          msg: '[shutdown] Failed to close database cleanly',
+          err: error,
+        })
+        process.exit(1)
+      }
+    })
   },
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
@@ -431,13 +453,41 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URI || '',
+      max: 20,
+      min: 2,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
     },
     // Prevent accidental schema drift against shared/production databases.
     push: false,
   }),
   sharp,
-  plugins: [],
+  plugins: [
+    s3Storage({
+      collections: {
+        media: true,
+      },
+      bucket: process.env.S3_BUCKET ?? '',
+      config: {
+        credentials: {
+          accessKeyId: process.env.S3_ACCESS_KEY_ID ?? '',
+          secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? '',
+        },
+        region: process.env.S3_REGION ?? 'us-east-1',
+        endpoint: process.env.S3_ENDPOINT || undefined,
+      },
+    }),
+  ],
   endpoints: [
+    {
+      path: '/health',
+      method: 'get',
+      handler: async () =>
+        new Response(JSON.stringify({ status: 'ok', ts: Date.now() }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+    },
     {
       path: '/classrooms/join',
       method: 'post',

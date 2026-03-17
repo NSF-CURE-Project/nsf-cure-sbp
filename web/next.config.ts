@@ -69,6 +69,22 @@ const nextConfig: NextConfig = {
         hostname: "i.ytimg.com",
         pathname: "/vi/**",
       },
+      ...(process.env.NEXT_PUBLIC_CMS_URL
+        ? (() => {
+            try {
+              const hostname = new URL(process.env.NEXT_PUBLIC_CMS_URL).hostname;
+              return [
+                {
+                  protocol: "https" as const,
+                  hostname,
+                  pathname: "/api/media/**",
+                },
+              ];
+            } catch {
+              return [];
+            }
+          })()
+        : []),
       // Optional: add your production Strapi domain later
       // {
       //   protocol: "https",

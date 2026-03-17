@@ -1,6 +1,6 @@
 'use client'
 
-import { parse } from 'mathjs'
+import { evaluate, parse, simplify } from 'mathjs'
 import katex from 'katex'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useField } from '@payloadcms/ui'
@@ -165,9 +165,35 @@ const expressionToLatex = (expr: string) => {
 
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
+function testSymbolicAnswer(
+  rubricExpr: string,
+  studentExpr: string,
+  variables: Array<{ name: string; testValue: number }>,
+  tolerance: number,
+): { pass: boolean; rubricResult: number; studentResult: number; error?: string } {
+  try {
+    const scope = Object.fromEntries(variables.map((variable) => [variable.name, variable.testValue]))
+    const rubricResult = evaluate(rubricExpr, scope) as number
+    const studentResult = evaluate(studentExpr, scope) as number
+    const diff = Math.abs(rubricResult - studentResult)
+    const relErr = Math.abs(rubricResult) > 1e-10 ? diff / Math.abs(rubricResult) : diff
+    return { pass: relErr <= tolerance, rubricResult, studentResult }
+  } catch (error) {
+    return { pass: false, rubricResult: 0, studentResult: 0, error: String(error) }
+  }
+}
+
+const formatNumber = (value: number) => {
+  if (!Number.isFinite(value)) return 'NaN'
+  return Number(value.toFixed(6)).toString()
+}
+
 export default function FormulaHelperField() {
   const { value: symbolicAnswerValue, setValue: setSymbolicAnswerValue } = useField<string>({
     path: 'symbolicAnswer',
+  })
+  const { value: symbolicToleranceValue } = useField<number | null>({
+    path: 'symbolicTolerance',
   })
   const { setValue: setSymbolicVariablesValue } = useField<
     { variable: string; testMin: number; testMax: number }[]
@@ -178,6 +204,14 @@ export default function FormulaHelperField() {
   const [category, setCategory] = useState<Category>('equilibrium')
   const [formulaId, setFormulaId] = useState<string>(FORMULAS[0]?.id ?? '')
   const [variableMap, setVariableMap] = useState<Record<string, string>>({})
+  const [studentExpression, setStudentExpression] = useState('')
+  const [testValues, setTestValues] = useState<Record<string, string>>({})
+  const [testResult, setTestResult] = useState<{
+    pass: boolean
+    rubricResult: number
+    studentResult: number
+    error?: string
+  } | null>(null)
 
   const categoryFormulas = useMemo(
     () => FORMULAS.filter((formula) => formula.category === category),
@@ -233,6 +267,58 @@ export default function FormulaHelperField() {
     if (category === 'custom') return expressionToLatex(symbolicAnswerValue ?? '')
     return expressionToLatex(symbolicAnswerValue ?? selectedFormula?.mathjs ?? '')
   }, [category, selectedFormula?.mathjs, symbolicAnswerValue])
+
+  const mappedVariables = useMemo(() => {
+    const seen = new Set<string>()
+    return Object.values(variableMap)
+      .map((value) => value.trim())
+      .filter((value) => {
+        if (!value || seen.has(value)) return false
+        seen.add(value)
+        return true
+      })
+  }, [variableMap])
+
+  useEffect(() => {
+    setTestValues((prev) => {
+      const next: Record<string, string> = {}
+      for (const variable of mappedVariables) {
+        next[variable] = prev[variable] ?? '1'
+      }
+      return next
+    })
+  }, [mappedVariables])
+
+  const tolerance = Math.abs(symbolicToleranceValue ?? 0.01) || 0.01
+  const simplifiedRubric = useMemo(() => {
+    const expression = (symbolicAnswerValue ?? '').trim()
+    if (!expression) return ''
+    try {
+      return simplify(expression).toString()
+    } catch {
+      return expression
+    }
+  }, [symbolicAnswerValue])
+
+  const runTest = () => {
+    const rubricExpr = (symbolicAnswerValue ?? '').trim()
+    const studentExpr = studentExpression.trim()
+    if (!rubricExpr || !studentExpr) {
+      setTestResult({
+        pass: false,
+        rubricResult: 0,
+        studentResult: 0,
+        error: 'Rubric and student expressions are required.',
+      })
+      return
+    }
+    const variables = mappedVariables.map((name) => ({
+      name,
+      testValue: Number(testValues[name] ?? 1),
+    }))
+    const result = testSymbolicAnswer(rubricExpr, studentExpr, variables, tolerance)
+    setTestResult(result)
+  }
 
   return (
     <div
@@ -328,6 +414,92 @@ export default function FormulaHelperField() {
           </div>
         )}
       </div>
+
+      {(symbolicAnswerValue ?? '').trim() ? (
+        <div
+          style={{
+            borderTop: '1px solid var(--theme-elevation-200)',
+            paddingTop: 10,
+            display: 'grid',
+            gap: 10,
+          }}
+        >
+          <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+            Test a student answer
+          </div>
+          <label style={{ display: 'grid', gap: 4 }}>
+            <span style={{ fontSize: 12 }}>Student expression</span>
+            <input
+              value={studentExpression}
+              onChange={(event) => setStudentExpression(event.target.value)}
+              placeholder="Example: m * g / sin(theta)"
+            />
+          </label>
+          <div style={{ display: 'grid', gap: 4 }}>
+            <div style={{ fontSize: 12, fontWeight: 600 }}>Rubric expression</div>
+            <code style={{ fontSize: 12 }}>{symbolicAnswerValue}</code>
+            <div style={{ fontSize: 11, color: 'var(--theme-elevation-700)' }}>
+              Simplified: <code>{simplifiedRubric}</code>
+            </div>
+          </div>
+          {mappedVariables.length ? (
+            <div style={{ display: 'grid', gap: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>Variable test values</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8 }}>
+                {mappedVariables.map((name) => (
+                  <label key={name} style={{ display: 'grid', gap: 4 }}>
+                    <span style={{ fontSize: 12 }}>{name}</span>
+                    <input
+                      type="number"
+                      value={testValues[name] ?? '1'}
+                      onChange={(event) =>
+                        setTestValues((prev) => ({
+                          ...prev,
+                          [name]: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          <div>
+            <button type="button" onClick={runTest}>
+              Run test
+            </button>
+          </div>
+          {testResult ? (
+            testResult.error ? (
+              <div className="rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                Could not parse expression: {testResult.error}
+              </div>
+            ) : testResult.pass ? (
+              <div className="rounded border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+                ✓ Pass — rubric: {formatNumber(testResult.rubricResult)}, student:{' '}
+                {formatNumber(testResult.studentResult)} (within {Math.round(tolerance * 100)}% tolerance)
+              </div>
+            ) : (
+              <div className="rounded border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-900">
+                ✗ Fail — rubric: {formatNumber(testResult.rubricResult)}, student:{' '}
+                {formatNumber(testResult.studentResult)} (error:{' '}
+                {Math.abs(testResult.rubricResult) > 1e-10
+                  ? `${formatNumber(
+                      (Math.abs(testResult.rubricResult - testResult.studentResult) /
+                        Math.abs(testResult.rubricResult)) *
+                        100,
+                    )}%`
+                  : formatNumber(Math.abs(testResult.rubricResult - testResult.studentResult))}
+                )
+              </div>
+            )
+          ) : null}
+          <div style={{ fontSize: 12, color: 'var(--theme-elevation-700)' }}>
+            This tests one numeric sample point. Algebraically equivalent but numerically different expressions may
+            still fail if the sample values are not in a realistic domain.
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

@@ -5,7 +5,7 @@ import { useField } from '@payloadcms/ui'
 
 type FigureType = 'fbd' | 'truss' | 'beam' | 'moment-diagram'
 
-type Force = {
+export type Force = {
   id: string
   label: string
   origin: [number, number]
@@ -14,7 +14,7 @@ type Force = {
   color?: string
 }
 
-type FBDData = {
+export type FBDData = {
   type: 'fbd'
   body: {
     shape: 'rect' | 'circle' | 'polygon'
@@ -29,14 +29,14 @@ type FBDData = {
   forces: Force[]
 }
 
-type TrussData = {
+export type TrussData = {
   type: 'truss'
   nodes: { id: string; x: number; y: number; support?: 'pin' | 'roller' | 'fixed' | null }[]
   members: { from: string; to: string; id?: string }[]
   loads: { node: string; angle: number; magnitude: number; label?: string }[]
 }
 
-type BeamData = {
+export type BeamData = {
   type: 'beam'
   length: number
   scale: number
@@ -47,7 +47,7 @@ type BeamData = {
   dimensions?: boolean
 }
 
-type MomentDiagramData = {
+export type MomentDiagramData = {
   type: 'moment-diagram'
   length: number
   scale: number
@@ -55,7 +55,7 @@ type MomentDiagramData = {
   points: { x: number; M: number }[]
 }
 
-type FigureData = FBDData | TrussData | BeamData | MomentDiagramData
+export type FigureData = FBDData | TrussData | BeamData | MomentDiagramData
 type TemplateDoc = {
   id: string | number
   title?: string
@@ -64,7 +64,7 @@ type TemplateDoc = {
 }
 
 const toRadians = (degrees: number) => (degrees * Math.PI) / 180
-const arrowEnd = (x: number, y: number, angleDeg: number, magnitude = 1) => {
+export const arrowEnd = (x: number, y: number, angleDeg: number, magnitude = 1) => {
   const length = 60 * magnitude
   const radians = toRadians(angleDeg)
   return {

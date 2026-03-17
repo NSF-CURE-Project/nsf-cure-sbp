@@ -248,6 +248,9 @@ export const Problems: CollectionConfig = {
                   type: 'group',
                   admin: {
                     condition: (_, siblingData) => siblingData?.partType === 'fbd-draw',
+                    components: {
+                      Field: '/src/views/FbdRubricBuilderField#FbdRubricBuilderField',
+                    },
                   },
                   fields: [
                     {
@@ -296,6 +299,16 @@ export const Problems: CollectionConfig = {
                       defaultValue: 0,
                     },
                   ],
+                },
+                {
+                  name: 'fbdSyncValidator',
+                  type: 'ui',
+                  admin: {
+                    condition: (_, siblingData) => siblingData?.partType === 'fbd-draw',
+                    components: {
+                      Field: '/src/views/FbdSyncValidatorField#FbdSyncValidatorField',
+                    },
+                  },
                 },
                 {
                   name: 'explanation',
