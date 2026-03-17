@@ -82,6 +82,7 @@ export interface Config {
     'reporting-saved-views': ReportingSavedView;
     'reporting-evidence-links': ReportingEvidenceLink;
     'reporting-product-records': ReportingProductRecord;
+    'api-keys': ApiKey;
     accounts: Account;
     users: User;
     media: Media;
@@ -119,6 +120,7 @@ export interface Config {
     'reporting-saved-views': ReportingSavedViewsSelect<false> | ReportingSavedViewsSelect<true>;
     'reporting-evidence-links': ReportingEvidenceLinksSelect<false> | ReportingEvidenceLinksSelect<true>;
     'reporting-product-records': ReportingProductRecordsSelect<false> | ReportingProductRecordsSelect<true>;
+    'api-keys': ApiKeysSelect<false> | ApiKeysSelect<true>;
     accounts: AccountsSelect<false> | AccountsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -667,6 +669,16 @@ export interface Problem {
             magnitudeTolerance?: number | null;
           }[]
         | null;
+      requiredMoments?:
+        | {
+            id: string;
+            label?: string | null;
+            direction: 'cw' | 'ccw';
+            magnitudeRequired?: boolean | null;
+            correctMagnitude?: number | null;
+            magnitudeTolerance?: number | null;
+          }[]
+        | null;
       forbiddenForces?: number | null;
     };
     explanation?: {
@@ -736,6 +748,14 @@ export interface EngineeringFigure {
     | null;
   width?: number | null;
   height?: number | null;
+  axes?: {
+    show?: boolean | null;
+    x?: number | null;
+    y?: number | null;
+    length?: number | null;
+    xLabel?: string | null;
+    yLabel?: string | null;
+  };
   /**
    * Mark as a reusable template. Templates appear in the template picker.
    */
@@ -1060,6 +1080,12 @@ export interface Account {
    */
   transferStudent?: boolean | null;
   includeInRppr?: boolean | null;
+  notificationPreferences?: {
+    questionAnswered?: boolean | null;
+    newContent?: boolean | null;
+    announcement?: boolean | null;
+    quizDeadline?: boolean | null;
+  };
   /**
    * Reserved for CPP SSO integration (e.g., Okta, Azure AD).
    */
@@ -1384,6 +1410,25 @@ export interface ReportingProductRecord {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "api-keys".
+ */
+export interface ApiKey {
+  id: number;
+  name: string;
+  /**
+   * API key is shown once at creation time and masked thereafter.
+   */
+  key: string;
+  owner: number | User;
+  scopes: ('reporting:read' | 'accounts:read')[];
+  lastUsedAt?: string | null;
+  expiresAt?: string | null;
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "questions".
  */
 export interface Question {
@@ -1687,6 +1732,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'reporting-product-records';
         value: number | ReportingProductRecord;
+      } | null)
+    | ({
+        relationTo: 'api-keys';
+        value: number | ApiKey;
       } | null)
     | ({
         relationTo: 'accounts';
@@ -2334,6 +2383,21 @@ export interface ReportingProductRecordsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "api-keys_select".
+ */
+export interface ApiKeysSelect<T extends boolean = true> {
+  name?: T;
+  key?: T;
+  owner?: T;
+  scopes?: T;
+  lastUsedAt?: T;
+  expiresAt?: T;
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "accounts_select".
  */
 export interface AccountsSelect<T extends boolean = true> {
@@ -2356,6 +2420,14 @@ export interface AccountsSelect<T extends boolean = true> {
   firstGenCollegeStudent?: T;
   transferStudent?: T;
   includeInRppr?: T;
+  notificationPreferences?:
+    | T
+    | {
+        questionAnswered?: T;
+        newContent?: T;
+        announcement?: T;
+        quizDeadline?: T;
+      };
   ssoProvider?: T;
   ssoSubject?: T;
   updatedAt?: T;
@@ -2541,6 +2613,16 @@ export interface EngineeringFiguresSelect<T extends boolean = true> {
   figureData?: T;
   width?: T;
   height?: T;
+  axes?:
+    | T
+    | {
+        show?: T;
+        x?: T;
+        y?: T;
+        length?: T;
+        xLabel?: T;
+        yLabel?: T;
+      };
   isTemplate?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -2595,6 +2677,16 @@ export interface ProblemsSelect<T extends boolean = true> {
                     label?: T;
                     correctAngle?: T;
                     angleTolerance?: T;
+                    magnitudeRequired?: T;
+                    correctMagnitude?: T;
+                    magnitudeTolerance?: T;
+                  };
+              requiredMoments?:
+                | T
+                | {
+                    id?: T;
+                    label?: T;
+                    direction?: T;
                     magnitudeRequired?: T;
                     correctMagnitude?: T;
                     magnitudeTolerance?: T;

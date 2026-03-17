@@ -18,3 +18,23 @@ export async function getProblemSetById(
     return data as ProblemSetDoc;
   }, null);
 }
+
+export async function getProblemSetsByTitlePrefix(
+  prefix: string,
+  options?: { draft?: boolean; revalidate?: number; limit?: number }
+): Promise<ProblemSetDoc[]> {
+  return withCmsFallback(async () => {
+    const qs = new URLSearchParams();
+    qs.set("depth", "3");
+    qs.set("limit", String(options?.limit ?? 50));
+    qs.set("where[title][like]", prefix);
+    qs.set("sort", "title");
+
+    const data = await payload.get<{ docs?: ProblemSetDoc[] }>(
+      `/problem-sets?${qs.toString()}`,
+      { draft: options?.draft, revalidate: options?.revalidate ?? 60 }
+    );
+
+    return Array.isArray(data?.docs) ? data.docs : [];
+  }, []);
+}

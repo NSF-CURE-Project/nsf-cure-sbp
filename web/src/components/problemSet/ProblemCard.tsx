@@ -1,7 +1,7 @@
 "use client";
 
 import { EngineeringFigure } from "@/components/problemSet/EngineeringFigure";
-import { type PlacedForce } from "@/components/problemSet/FBDCanvas";
+import { type FBDPlacedAnswer } from "@/components/problemSet/FBDCanvas";
 import { PartInputRow } from "@/components/problemSet/PartInputRow";
 import { ResultPlot } from "@/components/problemSet/ResultPlot";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
@@ -27,8 +27,8 @@ type ProblemEvaluation = {
 type ProblemCardProps = {
   problem: ProblemDoc;
   index: number;
-  partAnswers: Record<number, string | PlacedForce[]>;
-  onChange: (partIndex: number, value: string | PlacedForce[]) => void;
+  partAnswers: Record<number, string | FBDPlacedAnswer>;
+  onChange: (partIndex: number, value: string | FBDPlacedAnswer) => void;
   submitted: boolean;
   evaluation?: ProblemEvaluation;
   showAnswers: boolean;

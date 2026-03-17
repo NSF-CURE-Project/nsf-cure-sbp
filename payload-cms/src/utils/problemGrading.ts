@@ -29,6 +29,14 @@ export type ProblemPartForGrading = PartGradingConfig & {
       correctMagnitude?: number
       magnitudeTolerance?: number
     }[]
+    requiredMoments?: {
+      id: string
+      label?: string
+      direction: 'cw' | 'ccw'
+      magnitudeRequired?: boolean
+      correctMagnitude?: number
+      magnitudeTolerance?: number
+    }[]
     forbiddenForces?: number
   } | null
 }
@@ -44,6 +52,14 @@ export type SubmittedPartAnswer = {
       angle: number
       magnitude: number
       label: string
+    }[]
+    moments?: {
+      id: string
+      label?: string
+      x: number
+      y: number
+      direction: 'cw' | 'ccw'
+      magnitude: number
     }[]
   } | null
 }
@@ -88,17 +104,29 @@ const gradeFbdPart = (
     magnitude: number
     label: string
   }[],
+  submittedMoments: {
+    id: string
+    label?: string
+    x: number
+    y: number
+    direction: 'cw' | 'ccw'
+    magnitude: number
+  }[],
   rubric: ProblemPartForGrading['fbdRubric'],
 ) => {
   const requiredForces = Array.isArray(rubric?.requiredForces) ? rubric?.requiredForces : []
+  const requiredMoments = Array.isArray(rubric?.requiredMoments) ? rubric?.requiredMoments : []
   const forbiddenForces = Math.max(0, Number(rubric?.forbiddenForces ?? 0))
-  if (!requiredForces.length) {
-    const score = submittedForces.length <= forbiddenForces ? 1 : 0
+  if (!requiredForces.length && !requiredMoments.length) {
+    const score = submittedForces.length <= forbiddenForces && submittedMoments.length === 0 ? 1 : 0
     return { score, isCorrect: score === 1 }
   }
 
-  const used = new Set<number>()
-  let matched = 0
+  const usedForceIndexes = new Set<number>()
+  const usedMomentIndexes = new Set<number>()
+  let matchedForces = 0
+  let matchedMoments = 0
+
   for (const requiredForce of requiredForces) {
     const angleTolerance = Math.abs(Number(requiredForce.angleTolerance ?? 5))
     const magnitudeRequired = Boolean(requiredForce.magnitudeRequired)
@@ -106,7 +134,7 @@ const gradeFbdPart = (
     const magnitudeTolerance = Math.abs(Number(requiredForce.magnitudeTolerance ?? 0.05))
 
     const matchIndex = submittedForces.findIndex((force, index) => {
-      if (used.has(index)) return false
+      if (usedForceIndexes.has(index)) return false
       if (angleDiff(force.angle, Number(requiredForce.correctAngle ?? 0)) > angleTolerance) return false
       if (!magnitudeRequired) return true
       if (!Number.isFinite(correctMagnitude)) return false
@@ -115,14 +143,36 @@ const gradeFbdPart = (
     })
 
     if (matchIndex >= 0) {
-      used.add(matchIndex)
-      matched += 1
+      usedForceIndexes.add(matchIndex)
+      matchedForces += 1
     }
   }
 
-  const unmatchedExtra = Math.max(0, submittedForces.length - matched - forbiddenForces)
-  const deduction = requiredForces.length ? unmatchedExtra / requiredForces.length : 0
-  const score = clampScore(matched / requiredForces.length - deduction)
+  for (const requiredMoment of requiredMoments) {
+    const magnitudeRequired = Boolean(requiredMoment.magnitudeRequired)
+    const correctMagnitude = Number(requiredMoment.correctMagnitude ?? 0)
+    const magnitudeTolerance = Math.abs(Number(requiredMoment.magnitudeTolerance ?? 0.05))
+    const requiredDirection = requiredMoment.direction === 'ccw' ? 'ccw' : 'cw'
+
+    const matchIndex = submittedMoments.findIndex((moment, index) => {
+      if (usedMomentIndexes.has(index)) return false
+      if (moment.direction !== requiredDirection) return false
+      if (!magnitudeRequired) return true
+      if (!Number.isFinite(correctMagnitude)) return false
+      const magnitudeError = Math.abs(moment.magnitude - correctMagnitude)
+      return magnitudeError <= magnitudeTolerance
+    })
+
+    if (matchIndex >= 0) {
+      usedMomentIndexes.add(matchIndex)
+      matchedMoments += 1
+    }
+  }
+
+  const totalRequired = requiredForces.length + requiredMoments.length
+  const unmatchedExtraForces = Math.max(0, submittedForces.length - matchedForces - forbiddenForces)
+  const forceDeduction = totalRequired ? unmatchedExtraForces / totalRequired : 0
+  const score = clampScore((matchedForces + matchedMoments) / Math.max(totalRequired, 1) - forceDeduction)
   return {
     score,
     isCorrect: score === 1,
@@ -249,7 +299,27 @@ export const gradeProblemAttemptAnswers = async (
                 label: force.label,
               }))
           : []
-        graded = gradeFbdPart(submittedForces, part.fbdRubric)
+        const submittedMoments = Array.isArray(submittedPart?.placedForces?.moments)
+          ? submittedPart.placedForces?.moments
+              ?.slice(0, 20)
+              .filter(
+                (moment) =>
+                  typeof moment?.id === 'string' &&
+                  Number.isFinite(moment?.x) &&
+                  Number.isFinite(moment?.y) &&
+                  Number.isFinite(moment?.magnitude) &&
+                  (moment?.direction === 'cw' || moment?.direction === 'ccw'),
+              )
+              .map((moment) => ({
+                id: moment.id,
+                label: typeof moment.label === 'string' ? moment.label : undefined,
+                x: moment.x,
+                y: moment.y,
+                direction: moment.direction,
+                magnitude: moment.magnitude,
+              }))
+          : []
+        graded = gradeFbdPart(submittedForces, submittedMoments, part.fbdRubric)
       } else {
         graded =
           rawStudent == null
@@ -272,8 +342,15 @@ export const gradeProblemAttemptAnswers = async (
         studentAnswer: rawStudent,
         studentExpression: studentExpression || null,
         placedForces:
-          partType === 'fbd-draw' && Array.isArray(submittedPart?.placedForces?.forces)
-            ? { forces: submittedPart?.placedForces?.forces?.slice(0, 20) ?? [] }
+          partType === 'fbd-draw' &&
+          (Array.isArray(submittedPart?.placedForces?.forces) ||
+            Array.isArray(submittedPart?.placedForces?.moments))
+            ? {
+                forces: submittedPart?.placedForces?.forces?.slice(0, 20) ?? [],
+                moments: Array.isArray(submittedPart?.placedForces?.moments)
+                  ? submittedPart.placedForces.moments.slice(0, 20)
+                  : [],
+              }
             : null,
         isCorrect: graded.isCorrect,
         score: partScore,

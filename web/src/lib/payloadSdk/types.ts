@@ -274,6 +274,14 @@ export type EngineeringFigureDoc = {
   figureData: EngineeringFigureData;
   width?: number;
   height?: number;
+  axes?: {
+    show?: boolean;
+    x?: number;
+    y?: number;
+    length?: number;
+    xLabel?: string;
+    yLabel?: string;
+  };
 };
 
 export type ProblemPart = {
@@ -302,6 +310,14 @@ export type ProblemPart = {
       label?: string;
       correctAngle?: number;
       angleTolerance?: number;
+      magnitudeRequired?: boolean;
+      correctMagnitude?: number;
+      magnitudeTolerance?: number;
+    }[];
+    requiredMoments?: {
+      id: string;
+      label?: string;
+      direction: "cw" | "ccw";
       magnitudeRequired?: boolean;
       correctMagnitude?: number;
       magnitudeTolerance?: number;

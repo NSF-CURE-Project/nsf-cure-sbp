@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { FBDCanvas, type PlacedForce } from "@/components/problemSet/FBDCanvas";
+import {
+  FBDCanvas,
+  type FBDPlacedAnswer,
+  type PlacedForce,
+} from "@/components/problemSet/FBDCanvas";
 import { InlineMath } from "@/components/problemSet/InlineMath";
 import { SymbolicInput } from "@/components/problemSet/SymbolicInput";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
@@ -18,8 +22,8 @@ type PartEvaluation = {
 type PartInputRowProps = {
   part: ProblemPart;
   figure?: EngineeringFigureDoc | null;
-  value?: string | PlacedForce[];
-  onChange: (value: string | PlacedForce[]) => void;
+  value?: string | FBDPlacedAnswer | PlacedForce[];
+  onChange: (value: string | FBDPlacedAnswer) => void;
   submitted: boolean;
   partEval?: PartEvaluation;
   showAnswers: boolean;
@@ -48,7 +52,18 @@ export function PartInputRow({
       : null;
   const isPartial = submitted && score != null && score > 0 && score < 1;
   const numericOrSymbolicValue = typeof value === "string" ? value : "";
-  const fbdValue = Array.isArray(value) ? value : [];
+  const fbdValue: FBDPlacedAnswer = Array.isArray(value)
+    ? { forces: value, moments: [] }
+    : value && typeof value === "object"
+    ? {
+        forces: Array.isArray((value as FBDPlacedAnswer).forces)
+          ? (value as FBDPlacedAnswer).forces
+          : [],
+        moments: Array.isArray((value as FBDPlacedAnswer).moments)
+          ? (value as FBDPlacedAnswer).moments
+          : [],
+      }
+    : { forces: [], moments: [] };
 
   return (
     <div className="rounded-lg border border-border/60 bg-background/70 p-4 space-y-3">

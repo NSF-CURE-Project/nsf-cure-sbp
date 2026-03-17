@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { parse } from "mathjs";
-import { type PlacedForce } from "@/components/problemSet/FBDCanvas";
+import {
+  type FBDPlacedAnswer,
+  type PlacedForce,
+  type PlacedMoment,
+} from "@/components/problemSet/FBDCanvas";
 import { ProblemCard } from "@/components/problemSet/ProblemCard";
 import { Button } from "@/components/ui/button";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
@@ -23,7 +27,7 @@ type ProblemPartEval = {
   partIndex: number;
   studentAnswer?: number | null;
   studentExpression?: string | null;
-  placedForces?: { forces?: PlacedForce[] } | null;
+  placedForces?: { forces?: PlacedForce[]; moments?: PlacedMoment[] } | null;
   isCorrect?: boolean | null;
   score?: number | null;
 };
@@ -83,7 +87,7 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
   const [attemptLoading, setAttemptLoading] = useState(false);
   const [attemptCount, setAttemptCount] = useState<number | null>(null);
   const [answers, setAnswers] = useState<
-    Record<string, Record<number, string | PlacedForce[]>>
+    Record<string, Record<number, string | FBDPlacedAnswer>>
   >({});
   const [orderedProblemIds, setOrderedProblemIds] = useState<string[]>([]);
   const [evaluation, setEvaluation] = useState<{
@@ -254,7 +258,7 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
   const handleAnswerChange = (
     problemId: string,
     partIndex: number,
-    value: string | PlacedForce[]
+    value: string | FBDPlacedAnswer
   ) => {
     setAnswers((prev) => ({
       ...prev,
@@ -295,12 +299,27 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
             };
           }
           if (part?.partType === "fbd-draw") {
+            const fbdValue: FBDPlacedAnswer =
+              raw && typeof raw === "object" && !Array.isArray(raw)
+                ? ({
+                    forces: Array.isArray((raw as FBDPlacedAnswer).forces)
+                      ? (raw as FBDPlacedAnswer).forces
+                      : [],
+                    moments: Array.isArray((raw as FBDPlacedAnswer).moments)
+                      ? (raw as FBDPlacedAnswer).moments
+                      : [],
+                  } as FBDPlacedAnswer)
+                : {
+                    forces: Array.isArray(raw) ? raw : [],
+                    moments: [],
+                  };
             return {
               partIndex,
               studentAnswer: null,
               studentExpression: null,
               placedForces: {
-                forces: Array.isArray(raw) ? raw : [],
+                forces: fbdValue.forces,
+                moments: fbdValue.moments,
               },
             };
           }

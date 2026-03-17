@@ -17,6 +17,14 @@ type RequiredForce = {
 
 type FbdRubric = {
   requiredForces?: RequiredForce[]
+  requiredMoments?: {
+    id: string
+    label?: string
+    direction: 'cw' | 'ccw'
+    magnitudeRequired?: boolean
+    correctMagnitude?: number
+    magnitudeTolerance?: number
+  }[]
   forbiddenForces?: number
 }
 
@@ -38,6 +46,16 @@ const toForce = (force: RequiredForce, idx: number): RequiredForce => ({
 const normalizeRubric = (value: FbdRubric | null | undefined): Required<FbdRubric> => ({
   requiredForces: Array.isArray(value?.requiredForces)
     ? value.requiredForces.map((force, idx) => toForce(force, idx))
+    : [],
+  requiredMoments: Array.isArray(value?.requiredMoments)
+    ? value.requiredMoments.map((moment, idx) => ({
+        id: moment.id || `moment-${idx + 1}`,
+        label: moment.label ?? '',
+        direction: moment.direction === 'ccw' ? 'ccw' : 'cw',
+        magnitudeRequired: Boolean(moment.magnitudeRequired),
+        correctMagnitude: Number(moment.correctMagnitude ?? 1),
+        magnitudeTolerance: Math.max(0, Number(moment.magnitudeTolerance ?? 0.1)),
+      }))
     : [],
   forbiddenForces: Math.max(0, Number(value?.forbiddenForces ?? 0)),
 })
@@ -286,6 +304,142 @@ export function FbdRubricBuilderField() {
           }
         />
       </label>
+
+      <div style={{ display: 'grid', gap: 8 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+          Required Moments
+        </div>
+        {(rubric.requiredMoments ?? []).map((moment, index) => (
+          <div
+            key={moment.id}
+            style={{
+              border: '1px solid var(--theme-elevation-200)',
+              borderRadius: 8,
+              padding: 10,
+              display: 'grid',
+              gap: 8,
+            }}
+          >
+            <div style={{ display: 'grid', gap: 4 }}>
+              <span style={{ fontSize: 12 }}>Label</span>
+              <input
+                value={moment.label ?? ''}
+                onChange={(event) =>
+                  setRubric((prev) => ({
+                    ...prev,
+                    requiredMoments: (prev.requiredMoments ?? []).map((entry, idx) =>
+                      idx === index ? { ...entry, label: event.target.value } : entry,
+                    ),
+                  }))
+                }
+              />
+            </div>
+            <div style={{ display: 'grid', gap: 4 }}>
+              <span style={{ fontSize: 12 }}>Direction</span>
+              <select
+                value={moment.direction}
+                onChange={(event) =>
+                  setRubric((prev) => ({
+                    ...prev,
+                    requiredMoments: (prev.requiredMoments ?? []).map((entry, idx) =>
+                      idx === index
+                        ? { ...entry, direction: event.target.value === 'ccw' ? 'ccw' : 'cw' }
+                        : entry,
+                    ),
+                  }))
+                }
+              >
+                <option value="cw">Clockwise</option>
+                <option value="ccw">Counter-clockwise</option>
+              </select>
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={Boolean(moment.magnitudeRequired)}
+                onChange={(event) =>
+                  setRubric((prev) => ({
+                    ...prev,
+                    requiredMoments: (prev.requiredMoments ?? []).map((entry, idx) =>
+                      idx === index ? { ...entry, magnitudeRequired: event.target.checked } : entry,
+                    ),
+                  }))
+                }
+              />
+              <span style={{ fontSize: 12 }}>Magnitude required</span>
+            </label>
+            {moment.magnitudeRequired ? (
+              <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
+                <label style={{ display: 'grid', gap: 4 }}>
+                  <span style={{ fontSize: 12 }}>Correct magnitude</span>
+                  <input
+                    type="number"
+                    value={moment.correctMagnitude ?? 1}
+                    onChange={(event) =>
+                      setRubric((prev) => ({
+                        ...prev,
+                        requiredMoments: (prev.requiredMoments ?? []).map((entry, idx) =>
+                          idx === index ? { ...entry, correctMagnitude: Number(event.target.value || 0) } : entry,
+                        ),
+                      }))
+                    }
+                  />
+                </label>
+                <label style={{ display: 'grid', gap: 4 }}>
+                  <span style={{ fontSize: 12 }}>Magnitude tolerance</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={moment.magnitudeTolerance ?? 0.1}
+                    onChange={(event) =>
+                      setRubric((prev) => ({
+                        ...prev,
+                        requiredMoments: (prev.requiredMoments ?? []).map((entry, idx) =>
+                          idx === index
+                            ? { ...entry, magnitudeTolerance: Math.max(0, Number(event.target.value || 0)) }
+                            : entry,
+                        ),
+                      }))
+                    }
+                  />
+                </label>
+              </div>
+            ) : null}
+            <button
+              type="button"
+              onClick={() =>
+                setRubric((prev) => ({
+                  ...prev,
+                  requiredMoments: (prev.requiredMoments ?? []).filter((_, idx) => idx !== index),
+                }))
+              }
+            >
+              Remove moment rubric row
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() =>
+            setRubric((prev) => ({
+              ...prev,
+              requiredMoments: [
+                ...(prev.requiredMoments ?? []),
+                {
+                  id: `moment-${Date.now()}-${(prev.requiredMoments ?? []).length + 1}`,
+                  label: `M${(prev.requiredMoments ?? []).length + 1}`,
+                  direction: 'cw',
+                  magnitudeRequired: false,
+                  correctMagnitude: 1,
+                  magnitudeTolerance: 0.1,
+                },
+              ],
+            }))
+          }
+        >
+          Add required moment
+        </button>
+      </div>
     </div>
   )
 }

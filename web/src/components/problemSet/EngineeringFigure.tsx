@@ -208,6 +208,48 @@ function renderBeam(figure: EngineeringFigureDoc) {
           <Arrow key={`point-load-${idx}`} x1={x} y1={y - 60} x2={end.x} y2={end.y} label={load.label} />
         );
       })}
+      {(data.distributedLoads ?? []).map((load, idx) => {
+        const xStart = left + load.xStart * data.scale;
+        const xEnd = left + load.xEnd * data.scale;
+        const arrowCount = Math.max(2, Math.round((xEnd - xStart) / 20));
+        const arrowY = y - 50;
+        return (
+          <g key={`dist-${idx}`}>
+            <line
+              x1={xStart}
+              y1={arrowY - 20}
+              x2={xEnd}
+              y2={arrowY - 20}
+              stroke="#ef4444"
+              strokeWidth={1.5}
+            />
+            {Array.from({ length: arrowCount }, (_, i) => {
+              const x = xStart + (i / (arrowCount - 1)) * (xEnd - xStart);
+              return (
+                <Arrow
+                  key={`dist-arrow-${idx}-${i}`}
+                  x1={x}
+                  y1={arrowY - 20}
+                  x2={x}
+                  y2={arrowY}
+                  color="#ef4444"
+                />
+              );
+            })}
+            {load.label ? (
+              <text
+                x={(xStart + xEnd) / 2}
+                y={arrowY - 26}
+                textAnchor="middle"
+                fontSize={11}
+                fill="#ef4444"
+              >
+                {load.label}
+              </text>
+            ) : null}
+          </g>
+        );
+      })}
       {(data.moments ?? []).map((moment, idx) => {
         const x = left + moment.x * data.scale;
         return (
@@ -220,6 +262,33 @@ function renderBeam(figure: EngineeringFigureDoc) {
         );
       })}
     </>
+  );
+}
+
+function AxesOverlay({
+  x,
+  y,
+  length,
+  xLabel,
+  yLabel,
+}: {
+  x: number;
+  y: number;
+  length: number;
+  xLabel: string;
+  yLabel: string;
+}) {
+  return (
+    <g>
+      <Arrow x1={x} y1={y} x2={x + length} y2={y} color="#0f172a" />
+      <text x={x + length + 4} y={y + 4} fontSize={11} fill="#0f172a">
+        {xLabel}
+      </text>
+      <Arrow x1={x} y1={y} x2={x} y2={y - length} color="#0f172a" />
+      <text x={x - 4} y={y - length - 4} fontSize={11} fill="#0f172a" textAnchor="middle">
+        {yLabel}
+      </text>
+    </g>
   );
 }
 
@@ -269,6 +338,15 @@ export function EngineeringFigure({ figure }: EngineeringFigureProps) {
         {renderTruss(figure)}
         {renderBeam(figure)}
         {renderMomentDiagram(figure)}
+        {figure.axes?.show ? (
+          <AxesOverlay
+            x={figure.axes.x ?? 40}
+            y={figure.axes.y ?? 360}
+            length={figure.axes.length ?? 50}
+            xLabel={figure.axes.xLabel ?? "x"}
+            yLabel={figure.axes.yLabel ?? "y"}
+          />
+        ) : null}
       </svg>
       {figure.description ? (
         <figcaption className="mt-2 text-xs text-muted-foreground">

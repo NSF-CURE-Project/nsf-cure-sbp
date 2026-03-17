@@ -245,6 +245,7 @@ export const Problems: CollectionConfig = {
                 },
                 {
                   name: 'fbdRubric',
+                  dbName: 'fbd_r',
                   type: 'group',
                   admin: {
                     condition: (_, siblingData) => siblingData?.partType === 'fbd-draw',
@@ -255,6 +256,7 @@ export const Problems: CollectionConfig = {
                   fields: [
                     {
                       name: 'requiredForces',
+                      dbName: 'req_f',
                       type: 'array',
                       fields: [
                         {
@@ -290,6 +292,52 @@ export const Problems: CollectionConfig = {
                           name: 'magnitudeTolerance',
                           type: 'number',
                           defaultValue: 0.05,
+                        },
+                      ],
+                    },
+                    {
+                      name: 'requiredMoments',
+                      dbName: 'req_m',
+                      type: 'array',
+                      label: 'Required Moment Arrows',
+                      fields: [
+                        {
+                          name: 'id',
+                          type: 'text',
+                          required: true,
+                        },
+                        {
+                          name: 'label',
+                          type: 'text',
+                        },
+                        {
+                          name: 'direction',
+                          dbName: 'dir',
+                          type: 'select',
+                          required: true,
+                          options: [
+                            { label: 'Clockwise', value: 'cw' },
+                            { label: 'Counter-clockwise', value: 'ccw' },
+                          ],
+                        },
+                        {
+                          name: 'magnitudeRequired',
+                          type: 'checkbox',
+                          defaultValue: false,
+                        },
+                        {
+                          name: 'correctMagnitude',
+                          type: 'number',
+                          admin: {
+                            condition: (_, siblingData) => Boolean(siblingData?.magnitudeRequired),
+                          },
+                        },
+                        {
+                          name: 'magnitudeTolerance',
+                          type: 'number',
+                          admin: {
+                            condition: (_, siblingData) => Boolean(siblingData?.magnitudeRequired),
+                          },
                         },
                       ],
                     },
