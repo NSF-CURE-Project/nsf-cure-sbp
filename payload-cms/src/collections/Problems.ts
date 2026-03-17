@@ -245,7 +245,6 @@ export const Problems: CollectionConfig = {
                 },
                 {
                   name: 'fbdRubric',
-                  dbName: 'fbd_r',
                   type: 'group',
                   admin: {
                     condition: (_, siblingData) => siblingData?.partType === 'fbd-draw',

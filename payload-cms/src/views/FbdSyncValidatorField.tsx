@@ -69,7 +69,7 @@ export function FbdSyncValidatorField() {
           key={`rubric-${label}`}
           className="rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900"
         >
-          Force "{label}" is in the rubric but not drawn in the figure — students will not see it.
+          Force &quot;{label}&quot; is in the rubric but not drawn in the figure — students will not see it.
         </div>
       ))}
 
@@ -78,7 +78,7 @@ export function FbdSyncValidatorField() {
           key={`figure-${label}`}
           className="rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900"
         >
-          Force "{label}" is drawn in the figure but has no rubric entry — it will not be graded.
+          Force &quot;{label}&quot; is drawn in the figure but has no rubric entry — it will not be graded.
         </div>
       ))}
     </div>
