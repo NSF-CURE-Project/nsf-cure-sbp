@@ -87,8 +87,6 @@ const AdminLogo: CustomComponent = {
 const AdminIcon: CustomComponent = {
   path: '@/views/AdminIcon#default',
 }
-const enableStaffProvider = process.env.PAYLOAD_ENABLE_STAFF_PROVIDER === 'true'
-
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
@@ -361,7 +359,7 @@ export default buildConfig({
     },
 
     components: {
-      providers: enableStaffProvider ? [StaffProvider] : [],
+      providers: [StaffProvider],
       graphics: {
         Logo: AdminLogo,
         Icon: AdminIcon,
