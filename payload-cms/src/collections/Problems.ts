@@ -249,7 +249,7 @@ export const Problems: CollectionConfig = {
                   admin: {
                     condition: (_, siblingData) => siblingData?.partType === 'fbd-draw',
                     components: {
-                      Field: '/src/views/FbdRubricBuilderField#FbdRubricBuilderField',
+                      Field: '@/views/FbdRubricBuilderField#FbdRubricBuilderField',
                     },
                   },
                   fields: [
@@ -353,7 +353,7 @@ export const Problems: CollectionConfig = {
                   admin: {
                     condition: (_, siblingData) => siblingData?.partType === 'fbd-draw',
                     components: {
-                      Field: '/src/views/FbdSyncValidatorField#FbdSyncValidatorField',
+                      Field: '@/views/FbdSyncValidatorField#FbdSyncValidatorField',
                     },
                   },
                 },
