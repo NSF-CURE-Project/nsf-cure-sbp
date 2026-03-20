@@ -31,6 +31,9 @@ import { default as default_4b04de482248e5cf6439b466d2c48d43 } from '@/views/Pag
 import { default as default_5565cf0809d37ddd6682af69dc08c9da } from '@/views/ClassroomJoinCodeField'
 import { default as default_8ecf3705f4486154c43b65ffcba083a4 } from '@/views/QuizQuestionPickerField'
 import { default as default_b228ebeb356b13e416a25a2727293bbc } from '@/views/QuizPreviewField'
+import { default as default_apikeydisplay_3c1d8d6b } from '@/views/ApiKeyDisplay'
+import { FbdRubricBuilderField as FbdRubricBuilderField_7a5d4f2e } from '@/views/FbdRubricBuilderField'
+import { FbdSyncValidatorField as FbdSyncValidatorField_34b6c1aa } from '@/views/FbdSyncValidatorField'
 import { default as default_0937aecc147b64e1fe0af8b25be8b04e } from '@/views/FigureBuilderField'
 import { default as default_5c42f65881579824c215aea0ce8e7864 } from '@/views/ToleranceExplainerField'
 import { default as default_edf03fc31873d58cdebfd253d2bc5043 } from '@/views/FormulaHelperField'
@@ -75,6 +78,9 @@ export const importMap = {
   "@/views/ClassroomJoinCodeField#default": default_5565cf0809d37ddd6682af69dc08c9da,
   "@/views/QuizQuestionPickerField#default": default_8ecf3705f4486154c43b65ffcba083a4,
   "@/views/QuizPreviewField#default": default_b228ebeb356b13e416a25a2727293bbc,
+  "@/views/ApiKeyDisplay#default": default_apikeydisplay_3c1d8d6b,
+  "@/views/FbdRubricBuilderField#FbdRubricBuilderField": FbdRubricBuilderField_7a5d4f2e,
+  "@/views/FbdSyncValidatorField#FbdSyncValidatorField": FbdSyncValidatorField_34b6c1aa,
   "@/views/FigureBuilderField#default": default_0937aecc147b64e1fe0af8b25be8b04e,
   "@/views/ToleranceExplainerField#default": default_5c42f65881579824c215aea0ce8e7864,
   "@/views/FormulaHelperField#default": default_edf03fc31873d58cdebfd253d2bc5043,
