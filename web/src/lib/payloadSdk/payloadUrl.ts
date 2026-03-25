@@ -38,6 +38,7 @@ export const getPayloadBaseUrl = () => {
   return normalizePayloadBase(
     process.env.PAYLOAD_URL ??
       process.env.PAYLOAD_PROXY_TARGET ??
+      process.env.NEXT_PUBLIC_CMS_URL ??
       process.env.NEXT_PUBLIC_PAYLOAD_URL ??
       process.env.NEXT_PUBLIC_SITE_URL ??
       "http://localhost:3000"

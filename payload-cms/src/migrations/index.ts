@@ -23,6 +23,7 @@ import * as migration_20260316_084525_add_problem_set_v2_extensions from './2026
 import * as migration_20260316_120000_add_account_notification_preferences from './20260316_120000_add_account_notification_preferences';
 import * as migration_20260316_130000_create_api_keys from './20260316_130000_create_api_keys';
 import * as migration_20260317_120000_add_engineering_figure_axes from './20260317_120000_add_engineering_figure_axes';
+import * as migration_20260325_120000_add_help_topic_structured_fields from './20260325_120000_add_help_topic_structured_fields';
 
 export const migrations = [
   {
@@ -149,5 +150,10 @@ export const migrations = [
     up: migration_20260317_120000_add_engineering_figure_axes.up,
     down: migration_20260317_120000_add_engineering_figure_axes.down,
     name: '20260317_120000_add_engineering_figure_axes',
+  },
+  {
+    up: migration_20260325_120000_add_help_topic_structured_fields.up,
+    down: migration_20260325_120000_add_help_topic_structured_fields.down,
+    name: '20260325_120000_add_help_topic_structured_fields',
   },
 ];

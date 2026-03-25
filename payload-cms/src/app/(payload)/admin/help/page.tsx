@@ -5,28 +5,9 @@ import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { AdminHelp as AdminHelpType } from '@/payload-types'
+import { HELP_TOPICS, TOPIC_GLYPHS } from '@/lib/adminHelpDocs'
 
-type QuickAction = { label: string; desc: string; href: string }
 type FaqItem = { question: string; answer: string }
-type ResourceCard = { label: string; desc: string; href: string }
-
-const defaultQuickActions: QuickAction[] = [
-  {
-    label: 'Getting Started',
-    desc: 'Core dashboard orientation, navigation, and common workflows.',
-    href: '/admin',
-  },
-  {
-    label: 'Reporting Guide',
-    desc: 'Period setup, RPPR checks, exports, and readiness expectations.',
-    href: '/admin/reporting',
-  },
-  {
-    label: 'Account & Access',
-    desc: 'Profile settings, role boundaries, and access troubleshooting.',
-    href: '/admin/account',
-  },
-]
 
 const defaultFaqs: FaqItem[] = [
   {
@@ -51,31 +32,8 @@ const defaultFaqs: FaqItem[] = [
   },
 ]
 
-const defaultResources: ResourceCard[] = [
-  { label: 'Admin Documentation', href: '/admin/help', desc: 'Internal guidance and help content' },
-  { label: 'Reporting Center', href: '/admin/reporting', desc: 'RPPR and period exports' },
-  { label: 'Site Management', href: '/admin/site-management', desc: 'Navigation and global pages' },
-]
-
-const defaultTopicChips = ['Reporting', 'Courses', 'Classrooms', 'Quizzes', 'Troubleshooting']
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null
-
-const parseQuickActions = (value: unknown): QuickAction[] => {
-  if (!Array.isArray(value)) return defaultQuickActions
-  const parsed = value
-    .map((entry) => {
-      if (!isRecord(entry)) return null
-      const label = typeof entry.label === 'string' ? entry.label.trim() : ''
-      const desc = typeof entry.desc === 'string' ? entry.desc.trim() : ''
-      const href = typeof entry.href === 'string' ? entry.href.trim() : ''
-      if (!label || !href) return null
-      return { label, desc, href }
-    })
-    .filter((entry): entry is QuickAction => Boolean(entry))
-  return parsed.length ? parsed : defaultQuickActions
-}
+const isRecord = (v: unknown): v is Record<string, unknown> =>
+  typeof v === 'object' && v !== null
 
 const parseFaqs = (value: unknown): FaqItem[] => {
   if (!Array.isArray(value)) return defaultFaqs
@@ -87,32 +45,10 @@ const parseFaqs = (value: unknown): FaqItem[] => {
       if (!question || !answer) return null
       return { question, answer }
     })
-    .filter((entry): entry is FaqItem => Boolean(entry))
+    .filter((e): e is FaqItem => Boolean(e))
   return parsed.length ? parsed : defaultFaqs
 }
 
-const parseResources = (value: unknown): ResourceCard[] => {
-  if (!Array.isArray(value)) return defaultResources
-  const parsed = value
-    .map((entry) => {
-      if (!isRecord(entry)) return null
-      const label = typeof entry.label === 'string' ? entry.label.trim() : ''
-      const desc = typeof entry.desc === 'string' ? entry.desc.trim() : ''
-      const href = typeof entry.href === 'string' ? entry.href.trim() : ''
-      if (!label || !href) return null
-      return { label, desc, href }
-    })
-    .filter((entry): entry is ResourceCard => Boolean(entry))
-  return parsed.length ? parsed : defaultResources
-}
-
-const parseTopicChips = (value: unknown): string[] => {
-  if (!Array.isArray(value)) return defaultTopicChips
-  const parsed = value
-    .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
-    .filter(Boolean)
-  return parsed.length ? parsed : defaultTopicChips
-}
 
 export default async function AdminHelpPage() {
   const payload = await getPayload({ config: configPromise })
@@ -121,38 +57,31 @@ export default async function AdminHelpPage() {
     overrideAccess: true,
   })) as AdminHelpType | null
 
+  const helpAny = help as unknown as Record<string, unknown> | null
+
   const title = help?.title ?? 'Help & Support'
   const subtitle =
-    ((help as unknown as { subtitle?: string | null } | null)?.subtitle ??
-      'Find quick guidance, reporting references, and escalation paths for the admin dashboard.')
-      .toString()
-      .trim()
+    (typeof helpAny?.subtitle === 'string' ? helpAny.subtitle.trim() : '') ||
+    'Find quick guidance, reporting references, and escalation paths for the admin dashboard.'
   const supportEmail =
-    (help as unknown as { supportEmail?: string | null } | null)?.supportEmail?.trim() ||
+    (typeof helpAny?.supportEmail === 'string' ? helpAny.supportEmail.trim() : '') ||
     process.env.SUPPORT_EMAIL ||
     'sbp-support@cpp.edu'
   const supportResponseTarget =
-    (help as unknown as { supportResponseTarget?: string | null } | null)?.supportResponseTarget?.trim() ||
-    'Within 1 business day'
+    (typeof helpAny?.supportResponseTarget === 'string'
+      ? helpAny.supportResponseTarget.trim()
+      : '') || 'Within 1 business day'
   const supportRequestHref =
-    (help as unknown as { supportRequestHref?: string | null } | null)?.supportRequestHref?.trim() ||
+    (typeof helpAny?.supportRequestHref === 'string' ? helpAny.supportRequestHref.trim() : '') ||
     '/admin/collections/feedback/create'
 
-  const quickActions = parseQuickActions(
-    (help as unknown as { quickActions?: unknown } | null)?.quickActions,
-  )
-  const faqs = parseFaqs((help as unknown as { faqs?: unknown } | null)?.faqs)
-  const topicChips = parseTopicChips(
-    (help as unknown as { topicChips?: unknown } | null)?.topicChips,
-  )
-  const resources = parseResources(
-    (help as unknown as { resources?: unknown } | null)?.resources,
-  )
+  const faqs = parseFaqs(helpAny?.faqs)
   const body = help?.body
 
   return (
     <Gutter>
       <div style={{ maxWidth: 1120, margin: '20px auto 72px', color: 'var(--cpp-ink)' }}>
+        {/* ── Header ── */}
         <div
           style={{
             borderRadius: 12,
@@ -170,8 +99,8 @@ export default async function AdminHelpPage() {
           <div>
             <div
               style={{
-                fontSize: 12,
-                letterSpacing: 1.2,
+                fontSize: 11,
+                letterSpacing: 1.4,
                 textTransform: 'uppercase',
                 color: 'var(--cpp-muted)',
                 fontWeight: 700,
@@ -179,8 +108,10 @@ export default async function AdminHelpPage() {
             >
               Support Hub
             </div>
-            <h1 style={{ fontSize: 30, margin: '8px 0 8px' }}>{title}</h1>
-            <p style={{ margin: 0, color: 'var(--cpp-muted)', lineHeight: 1.5 }}>{subtitle}</p>
+            <h1 style={{ fontSize: 28, margin: '6px 0 6px', fontWeight: 800 }}>{title}</h1>
+            <p style={{ margin: 0, color: 'var(--cpp-muted)', lineHeight: 1.55, maxWidth: 560 }}>
+              {subtitle}
+            </p>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <a
@@ -194,6 +125,7 @@ export default async function AdminHelpPage() {
                 fontWeight: 700,
                 border: '1px solid #111827',
                 whiteSpace: 'nowrap',
+                fontSize: 14,
               }}
             >
               Contact Admin
@@ -209,6 +141,7 @@ export default async function AdminHelpPage() {
                 fontWeight: 700,
                 border: '1px solid var(--admin-surface-border)',
                 whiteSpace: 'nowrap',
+                fontSize: 14,
               }}
             >
               Edit Help Portal
@@ -216,198 +149,224 @@ export default async function AdminHelpPage() {
           </div>
         </div>
 
-        <div
-          style={{
-            marginTop: 14,
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: 10,
-          }}
-        >
-          {quickActions.map((item) => (
-            <Link
-              key={`${item.label}:${item.href}`}
-              href={item.href}
-              style={{
-                textDecoration: 'none',
-                borderRadius: 10,
-                border: '1px solid var(--admin-surface-border)',
-                background: 'var(--admin-surface)',
-                padding: '12px 12px',
-                color: 'var(--cpp-ink)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: 7,
-                    border: '1px solid var(--admin-surface-border)',
-                    background: '#f8fafc',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 12,
-                    fontWeight: 700,
-                  }}
-                >
-                  ?
-                </span>
-                <span style={{ fontWeight: 700 }}>{item.label}</span>
-              </div>
-              {item.desc ? (
-                <p style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.45, color: 'var(--cpp-muted)' }}>
-                  {item.desc}
-                </p>
-              ) : null}
-            </Link>
-          ))}
-        </div>
-
-        <div
-          style={{
-            marginTop: 14,
-            border: '1px solid var(--admin-surface-border)',
-            borderRadius: 12,
-            background: 'var(--admin-surface)',
-            padding: '14px 14px',
-          }}
-        >
-          <input
-            type="search"
-            placeholder="Search help topics..."
-            aria-label="Search help topics"
+        {/* ── Topic Grid ── */}
+        <div style={{ marginTop: 10 }}>
+          <div
             style={{
-              width: '100%',
-              height: 40,
-              borderRadius: 10,
-              border: '1px solid var(--admin-surface-border)',
-              background: '#ffffff',
-              color: 'var(--cpp-ink)',
-              padding: '0 12px',
-              fontSize: 14,
+              fontSize: 11,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              color: 'var(--cpp-muted)',
+              fontWeight: 700,
+              marginBottom: 10,
             }}
-          />
-          <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {topicChips.map((chip) => (
-              <a
-                key={chip}
-                href="#"
+          >
+            Browse by topic
+          </div>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+              gap: 10,
+            }}
+          >
+            {HELP_TOPICS.map((topic) => (
+              <Link
+                key={topic.id}
+                href={`/admin/help/${topic.id}`}
                 style={{
                   textDecoration: 'none',
+                  borderRadius: 12,
                   border: '1px solid var(--admin-surface-border)',
-                  borderRadius: 999,
-                  padding: '6px 10px',
-                  fontSize: 12,
-                  fontWeight: 600,
+                  background: 'var(--admin-surface)',
+                  padding: '14px 14px',
                   color: 'var(--cpp-ink)',
-                  background: '#f8fafc',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
                 }}
               >
-                {chip}
-              </a>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                  <span
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 8,
+                      background: topic.accentColor + '18',
+                      border: `1px solid ${topic.accentColor}30`,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 16,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {TOPIC_GLYPHS[topic.id] ?? '📄'}
+                  </span>
+                  <span style={{ fontWeight: 700, fontSize: 15 }}>{topic.title}</span>
+                </div>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 13,
+                    lineHeight: 1.5,
+                    color: 'var(--cpp-muted)',
+                  }}
+                >
+                  {topic.description}
+                </p>
+                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 2 }}>
+                  {topic.primaryLinks.slice(0, 3).map((lnk) => (
+                    <span
+                      key={lnk.href}
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        padding: '3px 7px',
+                        borderRadius: 999,
+                        border: `1px solid ${topic.accentColor}40`,
+                        color: topic.accentColor,
+                        background: topic.accentColor + '0d',
+                      }}
+                    >
+                      {lnk.label}
+                    </span>
+                  ))}
+                  {topic.primaryLinks.length > 3 && (
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        padding: '3px 7px',
+                        borderRadius: 999,
+                        border: '1px solid var(--admin-surface-border)',
+                        color: 'var(--cpp-muted)',
+                        background: '#f8fafc',
+                      }}
+                    >
+                      +{topic.primaryLinks.length - 3} more
+                    </span>
+                  )}
+                </div>
+              </Link>
             ))}
           </div>
         </div>
 
+        {/* ── Lower: FAQs + Need Help ── */}
         <div
           style={{
-            marginTop: 14,
+            marginTop: 12,
             display: 'grid',
             gridTemplateColumns: 'minmax(0, 1.8fr) minmax(260px, 1fr)',
             gap: 12,
+            alignItems: 'start',
           }}
         >
+          {/* FAQs */}
           <div
             style={{
               border: '1px solid var(--admin-surface-border)',
               borderRadius: 12,
               background: 'var(--admin-surface)',
-              padding: 14,
+              padding: 16,
             }}
           >
             <div
               style={{
-                fontSize: 12,
-                letterSpacing: 1.1,
+                fontSize: 11,
+                letterSpacing: 1.4,
                 textTransform: 'uppercase',
                 color: 'var(--cpp-muted)',
                 fontWeight: 700,
+                marginBottom: 10,
               }}
             >
               Frequently Asked Questions
             </div>
-            <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+            <div style={{ display: 'grid', gap: 7 }}>
               {faqs.map((item) => (
                 <details
                   key={item.question}
                   style={{
                     border: '1px solid var(--admin-surface-border)',
                     borderRadius: 10,
-                    padding: '8px 10px',
+                    padding: '9px 11px',
                     background: '#fbfcff',
                   }}
                 >
-                  <summary style={{ cursor: 'pointer', fontWeight: 700 }}>{item.question}</summary>
-                  <p style={{ margin: '8px 0 2px', color: 'var(--cpp-muted)', lineHeight: 1.5 }}>
+                  <summary style={{ cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                    {item.question}
+                  </summary>
+                  <p
+                    style={{
+                      margin: '8px 0 2px',
+                      color: 'var(--cpp-muted)',
+                      lineHeight: 1.55,
+                      fontSize: 13,
+                    }}
+                  >
                     {item.answer}
                   </p>
                 </details>
               ))}
             </div>
 
-            <div style={{ marginTop: 14 }}>
-              <div
-                style={{
-                  fontSize: 12,
-                  letterSpacing: 1.1,
-                  textTransform: 'uppercase',
-                  color: 'var(--cpp-muted)',
-                  fontWeight: 700,
-                  marginBottom: 8,
-                }}
-              >
-                Program-specific guidance
-              </div>
-              <div
-                style={{
-                  border: '1px solid var(--admin-surface-border)',
-                  borderRadius: 10,
-                  padding: 12,
-                  color: 'var(--cpp-muted)',
-                  lineHeight: 1.6,
-                  background: '#fbfcff',
-                }}
-              >
-                {body ? (
+            {body && (
+              <div style={{ marginTop: 16 }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    letterSpacing: 1.4,
+                    textTransform: 'uppercase',
+                    color: 'var(--cpp-muted)',
+                    fontWeight: 700,
+                    marginBottom: 8,
+                  }}
+                >
+                  Program-specific guidance
+                </div>
+                <div
+                  style={{
+                    border: '1px solid var(--admin-surface-border)',
+                    borderRadius: 10,
+                    padding: 12,
+                    color: 'var(--cpp-muted)',
+                    lineHeight: 1.6,
+                    background: '#fbfcff',
+                    fontSize: 13,
+                  }}
+                >
                   <RichText data={body} />
-                ) : (
-                  <p style={{ margin: 0 }}>
-                    Add help content in the “Admin Help” global to customize this section.
-                  </p>
-                )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
+          {/* Need Help Now */}
           <div
             style={{
               border: '1px solid var(--admin-surface-border)',
               borderRadius: 12,
               background: 'var(--admin-surface)',
-              padding: 14,
-              alignSelf: 'start',
+              padding: 16,
               position: 'sticky',
               top: 88,
             }}
           >
             <div style={{ fontWeight: 800, fontSize: 16 }}>Need help now?</div>
-            <p style={{ margin: '8px 0 0', color: 'var(--cpp-muted)', lineHeight: 1.5 }}>
+            <p
+              style={{
+                margin: '7px 0 0',
+                color: 'var(--cpp-muted)',
+                lineHeight: 1.55,
+                fontSize: 13,
+              }}
+            >
               For account blockers, reporting issues, or data inconsistencies, contact support and
               include a short screenshot + URL.
             </p>
-            <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+            <div style={{ marginTop: 10, display: 'grid', gap: 7 }}>
               <div
                 style={{
                   border: '1px solid var(--admin-surface-border)',
@@ -416,8 +375,13 @@ export default async function AdminHelpPage() {
                   background: '#fbfcff',
                 }}
               >
-                <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Support email</div>
-                <a href={`mailto:${supportEmail}`} style={{ color: 'var(--cpp-ink)', fontWeight: 700 }}>
+                <div style={{ fontSize: 11, color: 'var(--cpp-muted)', marginBottom: 2 }}>
+                  Support email
+                </div>
+                <a
+                  href={`mailto:${supportEmail}`}
+                  style={{ color: 'var(--cpp-ink)', fontWeight: 700, fontSize: 14 }}
+                >
                   {supportEmail}
                 </a>
               </div>
@@ -429,8 +393,10 @@ export default async function AdminHelpPage() {
                   background: '#fbfcff',
                 }}
               >
-                <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Response target</div>
-                <div style={{ fontWeight: 700 }}>{supportResponseTarget}</div>
+                <div style={{ fontSize: 11, color: 'var(--cpp-muted)', marginBottom: 2 }}>
+                  Response target
+                </div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>{supportResponseTarget}</div>
               </div>
               <Link
                 href={supportRequestHref}
@@ -442,52 +408,56 @@ export default async function AdminHelpPage() {
                   color: '#f8fafc',
                   border: '1px solid #111827',
                   fontWeight: 700,
-                  padding: '9px 10px',
+                  padding: '10px 10px',
+                  fontSize: 14,
                 }}
               >
                 Submit Support Request
               </Link>
             </div>
-          </div>
-        </div>
 
-        <div style={{ marginTop: 14 }}>
-          <div
-            style={{
-              fontSize: 12,
-              letterSpacing: 1.1,
-              textTransform: 'uppercase',
-              color: 'var(--cpp-muted)',
-              fontWeight: 700,
-              marginBottom: 8,
-            }}
-          >
-            Resources
-          </div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: 10,
-            }}
-          >
-            {resources.map((item) => (
-              <Link
-                key={`${item.label}:${item.href}`}
-                href={item.href}
+            <div
+              style={{
+                marginTop: 14,
+                borderTop: '1px solid var(--admin-surface-border)',
+                paddingTop: 14,
+              }}
+            >
+              <div
                 style={{
-                  textDecoration: 'none',
-                  border: '1px solid var(--admin-surface-border)',
-                  borderRadius: 10,
-                  background: 'var(--admin-surface)',
-                  padding: '12px 12px',
-                  color: 'var(--cpp-ink)',
+                  fontSize: 11,
+                  letterSpacing: 1.4,
+                  textTransform: 'uppercase',
+                  color: 'var(--cpp-muted)',
+                  fontWeight: 700,
+                  marginBottom: 8,
                 }}
               >
-                <div style={{ fontWeight: 700 }}>{item.label}</div>
-                <div style={{ marginTop: 6, fontSize: 13, color: 'var(--cpp-muted)' }}>{item.desc}</div>
-              </Link>
-            ))}
+                Daily checklist
+              </div>
+              {[
+                'Review open questions',
+                'Review unread platform feedback',
+                'Check lesson feedback & reply',
+                'Confirm planned content is published',
+                'Validate quiz assignments',
+              ].map((item) => (
+                <div
+                  key={item}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 7,
+                    marginBottom: 5,
+                    fontSize: 13,
+                    color: 'var(--cpp-muted)',
+                  }}
+                >
+                  <span style={{ marginTop: 1, flexShrink: 0 }}>☐</span>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

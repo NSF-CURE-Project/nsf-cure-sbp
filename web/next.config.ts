@@ -3,7 +3,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const payloadProxyTarget =
-  process.env.PAYLOAD_PROXY_TARGET ?? "http://localhost:3000";
+  process.env.PAYLOAD_PROXY_TARGET ??
+  process.env.NEXT_PUBLIC_CMS_URL ??
+  "http://localhost:3000";
 const normalizePayloadTarget = (value: string) => {
   const trimmed = value.trim().replace(/\/+$/, "");
   try {
@@ -25,6 +27,7 @@ const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  output: "standalone",
   outputFileTracingRoot: projectRoot,
   turbopack: {
     root: projectRoot,
@@ -72,11 +75,13 @@ const nextConfig: NextConfig = {
       ...(process.env.NEXT_PUBLIC_CMS_URL
         ? (() => {
             try {
-              const hostname = new URL(process.env.NEXT_PUBLIC_CMS_URL).hostname;
+              const cmsUrl = new URL(process.env.NEXT_PUBLIC_CMS_URL);
+              const protocol =
+                cmsUrl.protocol === "http:" ? ("http" as const) : ("https" as const);
               return [
                 {
-                  protocol: "https" as const,
-                  hostname,
+                  protocol,
+                  hostname: cmsUrl.hostname,
                   pathname: "/api/media/**",
                 },
               ];
@@ -104,7 +109,7 @@ const nextConfig: NextConfig = {
   redirects: async () => [
     {
       source: "/admin",
-      destination: `${normalizedPayloadTarget}/admin`,
+      destination: `${normalizedPayloadTarget}/admin/login`,
       permanent: false,
     },
     {

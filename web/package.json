@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "NEXT_DISABLE_DEV_INDICATOR=1 PORT=3001 next dev --webpack -H 127.0.0.1",
     "build": "next build --webpack",
-    "start": "next start -H 0.0.0.0 -p ${PORT:-3000}",
+    "start": "NODE_OPTIONS=\"--max-old-space-size=2048\" next start -H 0.0.0.0 -p ${PORT:-3000}",
     "lint": "eslint"
   },
   "dependencies": {
