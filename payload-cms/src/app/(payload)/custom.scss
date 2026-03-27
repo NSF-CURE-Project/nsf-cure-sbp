@@ -420,46 +420,46 @@ body {
 }
 
 /* Hide admin sidebar only in the authenticated app shell. */
-html .nav,
-html .nav--collapsed,
-html .nav--closed {
+html[data-admin-context='app'] .nav,
+html[data-admin-context='app'] .nav--collapsed,
+html[data-admin-context='app'] .nav--closed {
   display: none !important;
   width: 0 !important;
 }
 
-html .nav-toggler,
-html .nav-toggle,
-html .nav__toggle,
-html [data-element='nav-toggle'] {
+html[data-admin-context='app'] .nav-toggler,
+html[data-admin-context='app'] .nav-toggle,
+html[data-admin-context='app'] .nav__toggle,
+html[data-admin-context='app'] [data-element='nav-toggle'] {
   display: none !important;
 }
 
-html .template,
-html .template__body,
-html .template__content {
+html[data-admin-context='app'] .template,
+html[data-admin-context='app'] .template__body,
+html[data-admin-context='app'] .template__content {
   margin-left: 0 !important;
   padding-left: 0 !important;
 }
 
-html .template-default--nav-hydrated aside.nav,
-html #nav-toggler {
+html[data-admin-context='app'] .template-default--nav-hydrated aside.nav,
+html[data-admin-context='app'] #nav-toggler {
   display: none !important;
 }
 
-html .template-default {
+html[data-admin-context='app'] .template-default {
   display: inherit !important;
   grid-template-columns: 0 minmax(0, 1fr) !important;
 }
 
-html .template-default__wrap,
-html .template__wrap {
+html[data-admin-context='app'] .template-default__wrap,
+html[data-admin-context='app'] .template__wrap {
   margin-left: 0 !important;
   padding-left: 0 !important;
   width: 100% !important;
 }
 
-html .template-default__content,
-html .template__content {
+html[data-admin-context='app'] .template-default__content,
+html[data-admin-context='app'] .template__content {
   margin-left: 0 !important;
   padding-left: 0 !important;
   width: 100% !important;
