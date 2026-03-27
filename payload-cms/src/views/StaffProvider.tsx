@@ -1194,6 +1194,10 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     }
   }, [forceStatusChanged, syncStatusFromDoc])
 
+  if (isLoginPath) {
+    return <>{props.children}</>
+  }
+
   return (
     <>
       <style>{`
