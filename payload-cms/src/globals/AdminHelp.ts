@@ -207,9 +207,6 @@ export const AdminHelp: GlobalConfig = {
                 {
                   slug: 'note',
                   labels: { singular: 'Note', plural: 'Notes' },
-                  admin: {
-                    description: 'Renders as a highlighted block with a blue left border.',
-                  },
                   fields: [
                     {
                       name: 'text',
