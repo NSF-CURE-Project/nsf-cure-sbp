@@ -1,5 +1,6 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
 import { gradeProblemAttemptAnswers } from '../utils/problemGrading'
+import { getAttemptLimitContext, isProblemAttemptRateLimited } from '@/lib/problemSet/submissionGuards'
 
 const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' && ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
@@ -39,6 +40,35 @@ export const ProblemAttempts: CollectionConfig = {
 
         if (!data.user && req.user?.collection === 'accounts' && req.user?.id) {
           data.user = req.user.id
+        }
+
+        if (operation === 'create' && req.user?.collection === 'accounts') {
+          const rateLimit = isProblemAttemptRateLimited(req)
+          if (rateLimit.blocked) {
+            req.payload.logger.warn({
+              msg: 'Problem attempt create rate-limited',
+              user: String(req.user.id ?? ''),
+              retryAfterSec: rateLimit.retryAfterSec,
+            })
+            throw new Error(
+              `Too many submissions. Please wait ${rateLimit.retryAfterSec} seconds and try again.`,
+            )
+          }
+
+          const { maxAttempts, attemptCount } = await getAttemptLimitContext(
+            req,
+            data as Record<string, unknown>,
+          )
+          if (maxAttempts != null && attemptCount >= maxAttempts) {
+            req.payload.logger.warn({
+              msg: 'Problem attempt blocked by maxAttempts guard',
+              user: String(req.user.id ?? ''),
+              maxAttempts,
+            })
+            throw new Error(
+              'Attempt limit reached for this problem set. You cannot submit additional attempts.',
+            )
+          }
         }
 
         const answerRows = Array.isArray(data.answers) ? data.answers : []

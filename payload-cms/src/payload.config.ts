@@ -68,6 +68,7 @@ import { emailPreviewHandler } from './endpoints/emailPreview'
 import { certificateHandler } from './endpoints/certificate'
 import { quizAttemptReviewHandler } from './endpoints/quizAttemptReview'
 import { problemAttemptReviewHandler } from './endpoints/problemAttemptReview'
+import { publicProblemSetByIdHandler, publicProblemSetListHandler } from './endpoints/publicProblemSets'
 import { lessonQuestionsHandler, questionDetailHandler } from './endpoints/questionsEndpoints'
 import { studentAnalyticsHandler } from './endpoints/studentAnalytics'
 import { classroomListHandler, classroomRosterHandler } from './endpoints/instructorEndpoints'
@@ -610,6 +611,16 @@ export default buildConfig({
       path: '/problem-attempts/:attemptId/review',
       method: 'get',
       handler: problemAttemptReviewHandler,
+    },
+    {
+      path: '/public/problem-sets',
+      method: 'get',
+      handler: publicProblemSetListHandler,
+    },
+    {
+      path: '/public/problem-sets/:problemSetId',
+      method: 'get',
+      handler: publicProblemSetByIdHandler,
     },
     {
       path: '/questions/by-lesson/:lessonId',

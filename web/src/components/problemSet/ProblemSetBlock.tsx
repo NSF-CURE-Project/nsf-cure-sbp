@@ -102,20 +102,15 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
   useEffect(() => {
     const source = block.problemSet;
     if (!source) return;
-
     const resolved = resolveProblemSet(source);
-    if (resolved) {
-      setProblemSet(resolved);
-      return;
-    }
-
-    const id = String(source);
+    const id = resolved ? String(resolved.id) : String(source);
+    if (!id) return;
     const controller = new AbortController();
     const run = async () => {
       setLoading(true);
       try {
         const res = await fetch(
-          `${PAYLOAD_URL}/api/problem-sets/${encodeURIComponent(id)}?depth=3`,
+          `${PAYLOAD_URL}/api/public/problem-sets/${encodeURIComponent(id)}`,
           {
             signal: controller.signal,
           }

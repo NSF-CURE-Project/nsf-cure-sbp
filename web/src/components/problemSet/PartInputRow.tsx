@@ -50,6 +50,12 @@ export function PartInputRow({
     typeof partEval?.score === "number" && Number.isFinite(partEval.score)
       ? partEval.score
       : null;
+  const hasRevealableAnswer =
+    part.partType === "symbolic"
+      ? Boolean(part.symbolicAnswer)
+      : part.partType === "fbd-draw"
+      ? Array.isArray(part.fbdRubric?.requiredForces) || Array.isArray(part.fbdRubric?.requiredMoments)
+      : Number.isFinite(part.correctAnswer);
   const isPartial = submitted && score != null && score > 0 && score < 1;
   const numericOrSymbolicValue = typeof value === "string" ? value : "";
   const fbdValue: FBDPlacedAnswer = Array.isArray(value)
@@ -141,7 +147,7 @@ export function PartInputRow({
               Partial credit: {Math.round(score * 100)}%
             </div>
           ) : null}
-          {showAnswers ? (
+          {showAnswers && hasRevealableAnswer ? (
             <div className="text-xs text-muted-foreground">
               {part.partType === "symbolic" ? (
                 <>
