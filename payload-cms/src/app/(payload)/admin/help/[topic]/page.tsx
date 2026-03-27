@@ -366,6 +366,29 @@ function QuizzesContent() {
         />
       </DocSection>
 
+      <DocSection id="interactive-problem-creator" title="Interactive Problem Creator">
+        <p style={{ color: 'var(--cpp-muted)', fontSize: 13, lineHeight: 1.6, marginBottom: 8 }}>
+          Use <InlineLink href="/admin/collections/problems">Problems</InlineLink> and{' '}
+          <InlineLink href="/admin/collections/problem-sets">Problem Sets</InlineLink> to build interactive assessment flows for lessons.
+        </p>
+        <StepList
+          items={[
+            <>Create a problem at <InlineLink href="/admin/collections/problems/create">Create Problem</InlineLink>.</>,
+            'In the Problem tab, add title, prompt, topic/tags, and one or more parts.',
+            <>For each part, choose a <Code>partType</Code>: <Code>numeric</Code>, <Code>symbolic</Code>, or <Code>fbd-draw</Code>.</>,
+            <>Configure grading fields for that part type (e.g., tolerance/scoring mode for numeric, symbolic expression for symbolic, rubric fields for FBD draw).</>,
+            <>Publish the problem when ready (or keep as draft while iterating).</>,
+            <>Create a set at <InlineLink href="/admin/collections/problem-sets/create">Create Problem Set</InlineLink> and select one or more problems in the <Code>problems</Code> relationship field.</>,
+            <>Configure set behavior: <Code>showAnswers</Code>, <Code>maxAttempts</Code>, and <Code>shuffleProblems</Code>.</>,
+            <>Open a lesson in <InlineLink href="/admin/collections/lessons">Lessons</InlineLink>, add a <strong>Problem Set</strong> content block, and select the set.</>,
+            'Save draft and use preview to validate rendering and grading behavior before publishing.',
+          ]}
+        />
+        <Note>
+          The lesson block can override attempt and answer-display behavior per lesson instance even if the problem set has defaults.
+        </Note>
+      </DocSection>
+
       <DocSection id="csv-import" title="CSV Import Format">
         <p style={{ color: 'var(--cpp-muted)', fontSize: 13, lineHeight: 1.6, marginBottom: 8 }}>
           Import quiz questions in bulk from a CSV file. Required and optional columns:
@@ -793,6 +816,7 @@ const TOPIC_TOC: Record<string, { id: string; label: string }[]> = {
   quizzes: [
     { id: 'quiz-bank-overview', label: 'Quiz Bank Overview' },
     { id: 'quiz-editor', label: 'Quiz Editor' },
+    { id: 'interactive-problem-creator', label: 'Interactive Problem Creator' },
     { id: 'csv-import', label: 'CSV Import Format' },
     { id: 'quiz-attempts', label: 'Quiz Attempts' },
   ],
