@@ -15,6 +15,7 @@ import type {
   ProblemSetBlock as ProblemSetBlockType,
   ProblemSetDoc,
 } from "@/lib/payloadSdk/types";
+import { cn } from "@/lib/utils";
 
 const PAYLOAD_URL = getPayloadBaseUrl();
 
@@ -96,8 +97,10 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
     maxScore: number;
   } | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [activeProblemId, setActiveProblemId] = useState<string | null>(null);
   const startedAtRef = useRef<number | null>(null);
   const problemSetKeyRef = useRef<string | number | null>(null);
+  const problemRefs = useRef<Record<string, HTMLElement | null>>({});
 
   useEffect(() => {
     const source = block.problemSet;
@@ -161,6 +164,14 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
       .map((id) => map.get(id))
       .filter((problem): problem is ProblemDoc => Boolean(problem));
   }, [normalizedProblems, orderedProblemIds]);
+
+  useEffect(() => {
+    if (!orderedProblems.length) {
+      setActiveProblemId(null);
+      return;
+    }
+    setActiveProblemId((prev) => prev ?? String(orderedProblems[0]?.id ?? ""));
+  }, [orderedProblems]);
 
   const maxAttempts =
     typeof block.maxAttempts === "number"
@@ -229,6 +240,40 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
     () => new Map((evaluation?.answers ?? []).map((answer) => [answer.problem, answer])),
     [evaluation]
   );
+  const getProblemStatus = (problemId: string) => {
+    const parts = evaluationByProblem.get(problemId)?.parts ?? [];
+    if (submitted && parts.length) {
+      const allCorrect = parts.every((part) => Boolean(part.isCorrect));
+      return allCorrect ? "correct" : "review";
+    }
+    const values = Object.values(answers[problemId] ?? {});
+    const hasInput = values.some((value) => {
+      if (typeof value === "string") return value.trim().length > 0;
+      if (value && typeof value === "object") {
+        const fbdValue = value as FBDPlacedAnswer;
+        return (
+          (Array.isArray(fbdValue.forces) && fbdValue.forces.length > 0) ||
+          (Array.isArray(fbdValue.moments) && fbdValue.moments.length > 0)
+        );
+      }
+      return false;
+    });
+    if (!started) return "locked";
+    return hasInput ? "progress" : "pending";
+  };
+  const completedCount = orderedProblems.filter((problem) =>
+    ["correct", "review"].includes(getProblemStatus(String(problem.id)))
+  ).length;
+  const progressPercent = orderedProblems.length
+    ? Math.round((completedCount / orderedProblems.length) * 100)
+    : 0;
+
+  const scrollToProblem = (problemId: string) => {
+    const node = problemRefs.current[problemId];
+    if (!node) return;
+    node.scrollIntoView({ behavior: "smooth", block: "start" });
+    setActiveProblemId(problemId);
+  };
   const hasInvalidSymbolicInput = useMemo(() => {
     for (const problem of orderedProblems) {
       const problemId = String(problem.id);
@@ -425,6 +470,9 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
               onClick={() => {
                 setStarted(true);
                 startedAtRef.current = Date.now();
+                if (orderedProblems.length) {
+                  setActiveProblemId(String(orderedProblems[0]?.id ?? ""));
+                }
               }}
             >
               Start Problem Set
@@ -433,53 +481,131 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
         </div>
       ) : (
         <div className="space-y-4">
-          {orderedProblems.map((problem, index) => {
-            const problemId = String(problem.id);
-            return (
-              <ProblemCard
-                key={problemId}
-                problem={problem}
-                index={index}
-                partAnswers={answers[problemId] ?? {}}
-                onChange={(partIndex, value) =>
-                  handleAnswerChange(problemId, partIndex, value)
-                }
-                submitted={submitted}
-                evaluation={evaluationByProblem.get(problemId)}
-                showAnswers={showAnswers}
+          <div className="sticky top-2 z-20 rounded-xl border border-primary/20 bg-background/95 backdrop-blur px-3 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Progress
+                </p>
+                <p className="text-sm font-semibold text-foreground">
+                  {completedCount}/{orderedProblems.length} complete
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={
+                    submitting ||
+                    submitted ||
+                    orderedProblems.length === 0 ||
+                    attemptLimitReached ||
+                    hasInvalidSymbolicInput
+                  }
+                >
+                  {submitting ? "Submitting..." : submitted ? "Submitted" : "Submit"}
+                </Button>
+                {submitted && showAnswers && evaluation ? (
+                  <span className="text-sm text-muted-foreground">
+                    Score: {evaluation.score} / {evaluation.maxScore}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+            <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full bg-primary transition-all"
+                style={{ width: `${progressPercent}%` }}
               />
-            );
-          })}
+            </div>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
+            <aside className="rounded-xl border border-border/60 bg-background/70 p-3 h-fit lg:sticky lg:top-24">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
+                Problem Navigator
+              </p>
+              <div className="space-y-2">
+                {orderedProblems.map((problem, index) => {
+                  const problemId = String(problem.id);
+                  const status = getProblemStatus(problemId);
+                  return (
+                    <button
+                      key={problemId}
+                      type="button"
+                      onClick={() => scrollToProblem(problemId)}
+                      className={cn(
+                        "w-full text-left rounded-lg border px-3 py-2 transition-colors",
+                        activeProblemId === problemId
+                          ? "border-primary/50 bg-primary/10"
+                          : "border-border/60 hover:bg-accent/40"
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium text-foreground">
+                          Problem {index + 1}
+                        </span>
+                        <span
+                          className={cn(
+                            "rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide",
+                            status === "correct" && "bg-emerald-100 text-emerald-700",
+                            status === "review" && "bg-amber-100 text-amber-700",
+                            status === "progress" && "bg-blue-100 text-blue-700",
+                            (status === "pending" || status === "locked") &&
+                              "bg-muted text-muted-foreground"
+                          )}
+                        >
+                          {status === "correct"
+                            ? "Correct"
+                            : status === "review"
+                            ? "Review"
+                            : status === "progress"
+                            ? "In Progress"
+                            : "Not Started"}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </aside>
+
+            <div className="space-y-4">
+              {orderedProblems.map((problem, index) => {
+                const problemId = String(problem.id);
+                return (
+                  <section
+                    key={problemId}
+                    ref={(node) => {
+                      problemRefs.current[problemId] = node;
+                    }}
+                  >
+                    <ProblemCard
+                      problem={problem}
+                      index={index}
+                      partAnswers={answers[problemId] ?? {}}
+                      onChange={(partIndex, value) =>
+                        handleAnswerChange(problemId, partIndex, value)
+                      }
+                      submitted={submitted}
+                      evaluation={evaluationByProblem.get(problemId)}
+                      showAnswers={showAnswers}
+                      isActive={activeProblemId === problemId}
+                      onFocus={() => setActiveProblemId(problemId)}
+                    />
+                  </section>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
 
-      {started ? (
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={
-              submitting ||
-              submitted ||
-              orderedProblems.length === 0 ||
-              attemptLimitReached ||
-              hasInvalidSymbolicInput
-            }
-          >
-            {submitting ? "Submitting..." : submitted ? "Submitted" : "Submit"}
-          </Button>
-          {submitted && showAnswers && evaluation ? (
-            <span className="text-sm text-muted-foreground">
-              Score: {evaluation.score} / {evaluation.maxScore}
-            </span>
-          ) : null}
-          {submitted && !showAnswers ? (
-            <span className="text-sm text-muted-foreground">Submitted.</span>
-          ) : null}
-          {attemptLimitReached ? (
-            <span className="text-sm text-muted-foreground">Attempt limit reached.</span>
-          ) : null}
-        </div>
+      {started && submitted && !showAnswers ? (
+        <span className="text-sm text-muted-foreground">Submitted.</span>
+      ) : null}
+      {started && attemptLimitReached ? (
+        <span className="text-sm text-muted-foreground">Attempt limit reached.</span>
       ) : null}
       {submitError ? <p className="text-sm text-red-500">{submitError}</p> : null}
     </section>

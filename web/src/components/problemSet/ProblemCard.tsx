@@ -5,6 +5,7 @@ import { type FBDPlacedAnswer } from "@/components/problemSet/FBDCanvas";
 import { PartInputRow } from "@/components/problemSet/PartInputRow";
 import { ResultPlot } from "@/components/problemSet/ResultPlot";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
+import { cn } from "@/lib/utils";
 import type {
   EngineeringFigureDoc,
   ProblemDoc,
@@ -32,6 +33,8 @@ type ProblemCardProps = {
   submitted: boolean;
   evaluation?: ProblemEvaluation;
   showAnswers: boolean;
+  isActive?: boolean;
+  onFocus?: () => void;
 };
 
 const isRichTextValue = (value: unknown): value is Record<string, unknown> =>
@@ -57,6 +60,8 @@ export function ProblemCard({
   submitted,
   evaluation,
   showAnswers,
+  isActive,
+  onFocus,
 }: ProblemCardProps) {
   const parts: ProblemPart[] = Array.isArray(problem.parts) ? problem.parts : [];
   const figure = resolveFigure(problem.figure);
@@ -84,13 +89,21 @@ export function ProblemCard({
   const resultPlots = Array.isArray(problem.resultPlots) ? problem.resultPlots : [];
 
   return (
-    <article className="rounded-xl border border-border/60 bg-card/50 p-5 space-y-4">
+    <article
+      className={cn(
+        "rounded-xl border bg-card/70 p-4 md:p-5 space-y-3 transition-colors",
+        isActive
+          ? "border-primary/45 shadow-sm shadow-primary/10"
+          : "border-border/60"
+      )}
+      onClick={onFocus}
+    >
       <header className="space-y-1">
-        <h3 className="text-lg font-semibold text-foreground">
+        <h3 className="text-lg font-semibold text-foreground leading-tight">
           Problem {index + 1}
         </h3>
         {problem.title ? (
-          <p className="text-sm text-muted-foreground">{problem.title}</p>
+          <p className="text-sm text-muted-foreground leading-snug">{problem.title}</p>
         ) : null}
       </header>
 
