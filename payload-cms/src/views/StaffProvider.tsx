@@ -169,16 +169,33 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
   const getIsHelpPath = (pathname: string) => pathname.startsWith('/admin/help')
   const getIsAccountPath = (pathname: string) =>
     pathname.startsWith('/admin/account') || /\/admin\/collections\/users\/[^/]+/.test(pathname)
+  const serverPathname = (() => {
+    const req = (props as { initPageResult?: { req?: { url?: unknown; path?: unknown; originalUrl?: unknown } } })
+      ?.initPageResult?.req
+    const raw = req?.url ?? req?.path ?? req?.originalUrl
+    if (typeof raw !== 'string' || !raw.length) return null
+    try {
+      return new URL(raw, 'http://localhost').pathname
+    } catch {
+      return raw.split('?')[0] ?? null
+    }
+  })()
   const [theme, setTheme] = useState<ThemeMode>('light')
   const [backHref, setBackHref] = useState<string | null>(null)
-  const [isLoginPage, setIsLoginPage] = useState(false)
+  const [isLoginPage, setIsLoginPage] = useState(() =>
+    serverPathname
+      ? getIsLoginPath(serverPathname)
+      : typeof window !== 'undefined'
+        ? getIsLoginPath(window.location.pathname)
+        : false,
+  )
   const [previewGate, setPreviewGate] = useState<{
     open: boolean
     url: string | null
     loading: boolean
     error: string | null
   }>({ open: false, url: null, loading: false, error: null })
-  const [currentPath, setCurrentPath] = useState('/admin')
+  const [currentPath, setCurrentPath] = useState(serverPathname ?? '/admin')
   const previewGateOpenRef = useRef(false)
   const isMountedRef = useRef(true)
   const pendingPublishRef = useRef<HTMLButtonElement | null>(null)

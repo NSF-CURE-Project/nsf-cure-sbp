@@ -6,7 +6,7 @@ import {
   lexicalEditor,
 } from '@payloadcms/richtext-lexical'
 import path from 'path'
-import { buildConfig, type PayloadComponent } from 'payload'
+import { buildConfig, type CustomComponent, type PayloadComponent } from 'payload'
 import nodemailer from 'nodemailer'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
@@ -80,6 +80,12 @@ const StaffDashboardView: PayloadComponent = {
 }
 const StaffProvider: PayloadComponent = {
   path: '@/views/StaffProvider#default',
+}
+const AdminLogo: CustomComponent = {
+  path: '@/views/AdminLogo#default',
+}
+const AdminIcon: CustomComponent = {
+  path: '@/views/AdminIcon#default',
 }
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -354,6 +360,10 @@ export default buildConfig({
 
     components: {
       providers: [StaffProvider],
+      graphics: {
+        Logo: AdminLogo,
+        Icon: AdminIcon,
+      },
       views: {
         dashboard: {
           Component: StaffDashboardView,
