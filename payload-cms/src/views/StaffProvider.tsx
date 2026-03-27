@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import NextImage from 'next/image'
 import type { AdminViewServerProps } from 'payload'
 import { useAuth } from '@payloadcms/ui'
 
@@ -714,6 +715,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     if (!rawRole) return 'Team Member'
     return rawRole.charAt(0).toUpperCase() + rawRole.slice(1)
   }, [user])
+  const cppLogo = theme === 'dark' ? '/assets/logos/cpp_yellow.png' : '/assets/logos/cpp_green.png'
+  const nsfLogo = '/assets/logos/nsf.png'
   const closeUserMenu = useCallback(() => {
     setIsUserMenuOpen(false)
   }, [])
@@ -1195,39 +1198,39 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     <>
       <style>{`
         :root {
-          --cpp-green: #0f172a;
-          --cpp-gold: #64748b;
-          --cpp-cream: #f7f9ff;
-          --cpp-ink: #111827;
-          --cpp-muted: #6b7280;
-          --admin-surface: #ffffff;
-          --admin-surface-muted: #f3f4f6;
-          --admin-surface-border: rgba(15, 23, 42, 0.12);
-          --admin-hero-bg: var(--admin-surface);
+          --cpp-green: #0f4fd6;
+          --cpp-gold: #0b7bbf;
+          --cpp-cream: #edf4ff;
+          --cpp-ink: #0f2040;
+          --cpp-muted: #516889;
+          --admin-surface: #f8fbff;
+          --admin-surface-muted: #ebf3ff;
+          --admin-surface-border: rgba(23, 78, 177, 0.2);
+          --admin-hero-bg: linear-gradient(140deg, #e6f1ff 0%, #f1edff 48%, #e9fbf3 100%);
           --admin-hero-border: var(--admin-surface-border);
-          --admin-hero-grid: rgba(15, 23, 42, 0.04);
-          --admin-chip-bg: rgba(15, 23, 42, 0.06);
-          --admin-chip-primary-bg: #111827;
+          --admin-hero-grid: rgba(28, 100, 242, 0.14);
+          --admin-chip-bg: rgba(28, 100, 242, 0.1);
+          --admin-chip-primary-bg: linear-gradient(135deg, #1553cf 0%, #0a89c2 100%);
           --admin-chip-primary-text: #ffffff;
-          --admin-shadow: 0 18px 34px rgba(15, 23, 42, 0.12);
-          --theme-bg: #f7f9ff;
-          --theme-text: #111827;
+          --admin-shadow: 0 18px 34px rgba(18, 65, 147, 0.16);
+          --theme-bg: #edf4ff;
+          --theme-text: #0f2040;
           --theme-input-bg: #ffffff;
-          --theme-elevation-0: #f7f9ff;
-          --theme-elevation-50: #f2f5fb;
-          --theme-elevation-100: #e3e9f3;
-          --theme-elevation-150: #d4ddec;
-          --theme-elevation-200: #c2cfe6;
+          --theme-elevation-0: #edf4ff;
+          --theme-elevation-50: #e5efff;
+          --theme-elevation-100: #d4e5ff;
+          --theme-elevation-150: #c2d8ff;
+          --theme-elevation-200: #afcbfc;
           --theme-elevation-800: #0f172a;
           --theme-elevation-900: #0b1220;
           --theme-elevation-1000: #05080f;
-          --color-success-250: #e2e8f0;
+          --color-success-250: #d6e7ff;
         }
 
         :root[data-theme="light"] {
-          --cpp-cream: #f7f9ff;
-          --theme-bg: #f7f9ff;
-          --theme-elevation-0: #f7f9ff;
+          --cpp-cream: #edf4ff;
+          --theme-bg: #edf4ff;
+          --theme-elevation-0: #edf4ff;
         }
 
         :root[data-theme="dark"] {
@@ -2331,8 +2334,45 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           display: inline-flex;
           align-items: center;
           gap: 10px;
-          min-width: 120px;
+          min-width: 220px;
           z-index: 1;
+        }
+
+        .admin-topbar-brand {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          text-decoration: none;
+          padding: 2px 6px;
+          border-radius: 10px;
+          border: 1px solid transparent;
+          transition: border-color 140ms ease, background 140ms ease;
+        }
+
+        .admin-topbar-brand:hover {
+          border-color: var(--admin-surface-border);
+          background: rgba(21, 83, 207, 0.06);
+        }
+
+        .admin-topbar-brand-cpp {
+          width: auto;
+          height: 28px;
+        }
+
+        .admin-topbar-brand-nsf {
+          width: 28px;
+          height: 28px;
+          border-radius: 999px;
+          object-fit: cover;
+        }
+
+        .admin-topbar-brand-text {
+          font-size: 15px;
+          font-weight: 700;
+          line-height: 1;
+          letter-spacing: 0.01em;
+          color: var(--cpp-ink);
+          white-space: nowrap;
         }
 
         .admin-topbar-center {
@@ -2401,6 +2441,16 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           }
           .admin-topbar-center {
             max-width: 0;
+          }
+          .admin-topbar-brand-cpp {
+            height: 24px;
+          }
+          .admin-topbar-brand-nsf {
+            width: 24px;
+            height: 24px;
+          }
+          .admin-topbar-brand-text {
+            display: none;
           }
         }
 
@@ -2783,6 +2833,27 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       {!isLoginPath ? (
         <div className="admin-topbar">
           <div className="admin-topbar-left">
+            <Link href="/admin" className="admin-topbar-brand" aria-label="Dashboard home">
+              <NextImage
+                src={cppLogo}
+                alt="Cal Poly Pomona Logo"
+                width={300}
+                height={150}
+                className="admin-topbar-brand-cpp"
+                sizes="120px"
+                priority
+              />
+              <NextImage
+                src={nsfLogo}
+                alt="NSF Logo"
+                width={80}
+                height={80}
+                className="admin-topbar-brand-nsf"
+                sizes="28px"
+                priority
+              />
+              <span className="admin-topbar-brand-text">NSF CURE SBP</span>
+            </Link>
             {backHref && currentPath !== '/admin' && currentPath !== '/admin/' ? (
               <button
                 type="button"

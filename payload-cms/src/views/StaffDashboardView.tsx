@@ -5,8 +5,11 @@ import Link from 'next/link'
 import { getReportingSummary } from '../utils/analyticsSummary'
 import { findAllDocs } from '../reporting/data'
 
-const cppGold = 'var(--cpp-muted)'
+const cppGold = 'var(--cpp-gold)'
 const cppInk = 'var(--cpp-ink)'
+const accentBlue = '#1553cf'
+const accentCyan = '#0a89c2'
+const accentMint = '#11a36f'
 const ratingScoreMap: Record<string, number> = {
   not_helpful: 1,
   somewhat_helpful: 2,
@@ -26,8 +29,8 @@ const statCardStyle: React.CSSProperties = {
   border: '1px solid var(--admin-surface-border)',
   borderRadius: 12,
   padding: '12px 14px',
-  background: 'var(--admin-surface)',
-  boxShadow: '0 1px 0 rgba(15, 23, 42, 0.06)',
+  background: 'linear-gradient(165deg, #ffffff 0%, #ecf4ff 55%, #e2f6ff 100%)',
+  boxShadow: '0 1px 0 rgba(18, 65, 147, 0.1)',
   minWidth: 0,
   textAlign: 'left',
 }
@@ -78,7 +81,7 @@ const sectionLabelStyle: React.CSSProperties = {
   fontSize: 12,
   letterSpacing: 0.8,
   textTransform: 'uppercase',
-  color: 'var(--cpp-muted)',
+  color: '#0b61b9',
   marginTop: 12,
   fontWeight: 800,
   alignSelf: 'center',
@@ -90,7 +93,7 @@ const sectionLabelStyle: React.CSSProperties = {
 const contentHealthCardStyle: React.CSSProperties = {
   borderRadius: 0,
   border: '1px solid transparent',
-  background: 'var(--admin-surface)',
+  background: 'linear-gradient(140deg, #ffffff 0%, #eef6ff 100%)',
   padding: '12px 14px',
   boxShadow: 'none',
 }
@@ -98,7 +101,7 @@ const contentHealthCardStyle: React.CSSProperties = {
 const workspaceCardStyle: React.CSSProperties = {
   borderRadius: 12,
   border: '1px solid var(--admin-surface-border)',
-  background: 'var(--admin-surface)',
+  background: 'linear-gradient(165deg, #ffffff 0%, #ecf4ff 55%, #e2f6ff 100%)',
   padding: '12px',
   boxShadow: 'none',
   width: '100%',
@@ -131,17 +134,17 @@ const heroGridStyle: React.CSSProperties = {
 const summaryPanelStyle: React.CSSProperties = {
   borderRadius: 14,
   border: '1px solid var(--admin-surface-border)',
-  background: 'var(--admin-surface)',
-  boxShadow: '0 1px 0 rgba(15, 23, 42, 0.06)',
+  background: 'linear-gradient(160deg, #ffffff 0%, #edf5ff 62%, #e7f7ff 100%)',
+  boxShadow: '0 1px 0 rgba(18, 65, 147, 0.1)',
   padding: '14px 16px',
 }
 
 const moduleRowStyle: React.CSSProperties = {
   borderRadius: 14,
   border: '1px solid var(--admin-surface-border)',
-  background: 'var(--admin-surface)',
+  background: 'linear-gradient(160deg, #ffffff 0%, #edf5ff 62%, #e7f7ff 100%)',
   padding: '14px 16px',
-  boxShadow: '0 1px 0 rgba(15, 23, 42, 0.06)',
+  boxShadow: '0 1px 0 rgba(18, 65, 147, 0.1)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -160,7 +163,7 @@ const moduleIconStyle: React.CSSProperties = {
   height: 34,
   borderRadius: 10,
   border: '1px solid var(--admin-surface-border)',
-  background: 'var(--admin-surface-muted)',
+  background: 'linear-gradient(160deg, #ecf4ff 0%, #d3e7ff 100%)',
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -203,15 +206,15 @@ const heroPrimaryStyle: React.CSSProperties = {
   ...mockChipStyle,
   background: 'var(--admin-chip-primary-bg)',
   color: 'var(--admin-chip-primary-text)',
-  borderColor: 'rgba(148, 163, 184, 0.35)',
+  borderColor: 'rgba(24, 92, 208, 0.45)',
   boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
 }
 
 const heroSecondaryStyle: React.CSSProperties = {
   ...mockChipStyle,
-  background: 'transparent',
-  borderColor: 'rgba(148, 163, 184, 0.4)',
-  color: cppInk,
+  background: 'linear-gradient(135deg, rgba(21, 83, 207, 0.14) 0%, rgba(10, 137, 194, 0.16) 100%)',
+  borderColor: 'rgba(25, 96, 216, 0.42)',
+  color: '#0b4aaf',
   boxShadow: 'none',
 }
 
@@ -230,19 +233,19 @@ const contentHealthToneStyles: Record<
   { accent: string; iconBg: string; badgeBg: string }
 > = {
   completion: {
-    accent: '#1d4ed8',
-    iconBg: 'rgba(37, 99, 235, 0.12)',
-    badgeBg: 'rgba(37, 99, 235, 0.1)',
+    accent: '#1553cf',
+    iconBg: 'rgba(21, 83, 207, 0.14)',
+    badgeBg: 'rgba(21, 83, 207, 0.12)',
   },
   questions: {
-    accent: '#0f766e',
-    iconBg: 'rgba(15, 118, 110, 0.12)',
-    badgeBg: 'rgba(15, 118, 110, 0.1)',
+    accent: '#0a89c2',
+    iconBg: 'rgba(10, 137, 194, 0.14)',
+    badgeBg: 'rgba(10, 137, 194, 0.12)',
   },
   helpfulness: {
-    accent: '#9a3412',
-    iconBg: 'rgba(154, 52, 18, 0.12)',
-    badgeBg: 'rgba(154, 52, 18, 0.1)',
+    accent: '#11a36f',
+    iconBg: 'rgba(17, 163, 111, 0.14)',
+    badgeBg: 'rgba(17, 163, 111, 0.12)',
   },
 }
 
@@ -496,7 +499,7 @@ const StaffDashboardContent = ({
       .content-health-card {
         border-radius: 14px;
         border: 1px solid var(--admin-surface-border);
-        background: var(--admin-surface);
+        background: linear-gradient(160deg, #ffffff 0%, #eef6ff 100%);
         padding: 12px;
         box-shadow: 0 1px 0 rgba(15, 23, 42, 0.06);
         display: flex;
@@ -557,7 +560,7 @@ const StaffDashboardContent = ({
       .content-health-item {
         border: 1px solid var(--admin-surface-border);
         border-radius: 10px;
-        background: var(--admin-surface-muted);
+        background: linear-gradient(140deg, #f2f8ff 0%, #e5f2ff 100%);
         padding: 10px 10px;
         display: flex;
         align-items: center;
@@ -612,7 +615,7 @@ const StaffDashboardContent = ({
       .content-health-empty {
         border: 1px dashed var(--admin-surface-border);
         border-radius: 10px;
-        background: var(--admin-surface-muted);
+        background: linear-gradient(140deg, #f2f8ff 0%, #e5f2ff 100%);
         padding: 12px;
       }
       .content-health-empty-title {
@@ -698,7 +701,7 @@ const StaffDashboardContent = ({
             border: '1px solid var(--admin-surface-border)',
             position: 'relative',
             overflow: 'hidden',
-            boxShadow: '0 2px 0 rgba(15, 23, 42, 0.04)',
+            boxShadow: '0 8px 24px rgba(19, 80, 191, 0.14)',
           }}
           className="admin-dashboard-hero"
         >
@@ -731,7 +734,7 @@ const StaffDashboardContent = ({
                   fontSize: 28,
                   fontWeight: 900,
                   margin: '6px 0 10px',
-                  color: cppInk,
+                  color: accentBlue,
                   lineHeight: 1.15,
                   letterSpacing: -0.1,
                 }}
@@ -765,7 +768,7 @@ const StaffDashboardContent = ({
                       fontWeight: 800,
                       textTransform: 'uppercase',
                       letterSpacing: 0.8,
-                      color: 'var(--cpp-muted)',
+                      color: accentBlue,
                     }}
                   >
                     Analytics
@@ -791,7 +794,7 @@ const StaffDashboardContent = ({
                   fontWeight: 800,
                   textTransform: 'uppercase',
                   letterSpacing: 0.8,
-                  color: 'var(--cpp-muted)',
+                  color: accentCyan,
                 }}
               >
                 Quick Actions
@@ -806,13 +809,13 @@ const StaffDashboardContent = ({
                 >
                   <div style={workspaceCardStyle} className="dashboard-panel">
                     <div
-                      style={{
-                        fontSize: 11,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        color: 'var(--cpp-muted)',
-                        lineHeight: 1.1,
-                      }}
+                    style={{
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
+                      color: accentBlue,
+                      lineHeight: 1.1,
+                    }}
                     >
                       Questions
                     </div>
@@ -835,13 +838,13 @@ const StaffDashboardContent = ({
                 >
                   <div style={workspaceCardStyle} className="dashboard-panel">
                     <div
-                      style={{
-                        fontSize: 11,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        color: 'var(--cpp-muted)',
-                        lineHeight: 1.1,
-                      }}
+                    style={{
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
+                      color: accentCyan,
+                      lineHeight: 1.1,
+                    }}
                     >
                       Feedback
                     </div>
@@ -966,14 +969,14 @@ const StaffDashboardContent = ({
                 </div>
               </div>
               <div
-                style={{
+              style={{
                   display: 'flex',
                   gap: 8,
                   flexWrap: 'wrap',
                   padding: 3,
                   borderRadius: 12,
                   border: '1px solid var(--admin-surface-border)',
-                  background: 'var(--admin-surface-muted)',
+                  background: 'linear-gradient(140deg, #edf6ff 0%, #e1f1ff 100%)',
                 }}
               >
                 <Link href="/admin/collections/classrooms" className="dashboard-chip-link">

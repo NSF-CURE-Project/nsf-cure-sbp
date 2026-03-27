@@ -3042,7 +3042,6 @@ export interface AdminHelp {
         id?: string | null;
       }[]
     | null;
-  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -3194,7 +3193,6 @@ export interface AdminHelpSelect<T extends boolean = true> {
             };
         id?: T;
       };
-  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

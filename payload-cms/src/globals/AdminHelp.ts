@@ -8,9 +8,6 @@ export const AdminHelp: GlobalConfig = {
     update: ({ req }) =>
       req.user?.collection === 'users' && (req.user?.role === 'admin' || req.user?.role === 'staff'),
   },
-  versions: {
-    drafts: true,
-  },
   admin: {
     group: 'Settings',
     description: 'Guidance content shown on the admin Help page.',
