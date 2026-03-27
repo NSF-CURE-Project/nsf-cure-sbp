@@ -38,3 +38,21 @@ export async function getProblemSetsByTitlePrefix(
     return Array.isArray(data?.docs) ? data.docs : [];
   }, []);
 }
+
+export async function getProblemSets(
+  options?: { draft?: boolean; revalidate?: number; limit?: number; sort?: string }
+): Promise<ProblemSetDoc[]> {
+  return withCmsFallback(async () => {
+    const qs = new URLSearchParams();
+    qs.set("depth", "3");
+    qs.set("limit", String(options?.limit ?? 50));
+    qs.set("sort", options?.sort ?? "title");
+
+    const data = await payload.get<{ docs?: ProblemSetDoc[] }>(
+      `/problem-sets?${qs.toString()}`,
+      { draft: options?.draft, revalidate: options?.revalidate ?? 60 }
+    );
+
+    return Array.isArray(data?.docs) ? data.docs : [];
+  }, []);
+}

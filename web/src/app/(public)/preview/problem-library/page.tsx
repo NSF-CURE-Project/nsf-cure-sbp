@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { ProblemSetBlock as ProblemSetBlockComponent } from "@/components/problemSet/ProblemSetBlock";
-import { getProblemSetsByTitlePrefix } from "@/lib/payloadSdk/problemSets";
+import { getProblemSets, getProblemSetsByTitlePrefix } from "@/lib/payloadSdk/problemSets";
 import type { ProblemDoc, ProblemSetBlock, ProblemSetDoc } from "@/lib/payloadSdk/types";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
@@ -23,11 +23,30 @@ export default async function PreviewProblemLibraryPage({
 }) {
   const sp = (await searchParams) ?? {};
   const isPreview = await resolvePreview(sp);
-  const sets = await getProblemSetsByTitlePrefix(LIBRARY_PREFIX, {
+  let sets = await getProblemSetsByTitlePrefix(LIBRARY_PREFIX, {
     draft: isPreview,
     revalidate: 0,
     limit: 20,
   }).catch(() => []);
+
+  if (!sets.length) {
+    sets = await getProblemSets({
+      draft: isPreview,
+      revalidate: 0,
+      limit: 20,
+      sort: "-updatedAt",
+    }).catch(() => []);
+  }
+
+  // Preview routes should remain useful even when only drafts exist.
+  if (!sets.length && !isPreview) {
+    sets = await getProblemSets({
+      draft: true,
+      revalidate: 0,
+      limit: 20,
+      sort: "-updatedAt",
+    }).catch(() => []);
+  }
 
   if (!sets.length) return notFound();
 
