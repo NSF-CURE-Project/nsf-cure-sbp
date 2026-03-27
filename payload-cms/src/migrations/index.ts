@@ -24,6 +24,7 @@ import * as migration_20260316_120000_add_account_notification_preferences from 
 import * as migration_20260316_130000_create_api_keys from './20260316_130000_create_api_keys';
 import * as migration_20260317_120000_add_engineering_figure_axes from './20260317_120000_add_engineering_figure_axes';
 import * as migration_20260325_120000_add_help_topic_structured_fields from './20260325_120000_add_help_topic_structured_fields';
+import * as migration_20260327_070000_add_api_keys_locked_rel_column from './20260327_070000_add_api_keys_locked_rel_column';
 
 export const migrations = [
   {
@@ -155,5 +156,10 @@ export const migrations = [
     up: migration_20260325_120000_add_help_topic_structured_fields.up,
     down: migration_20260325_120000_add_help_topic_structured_fields.down,
     name: '20260325_120000_add_help_topic_structured_fields',
+  },
+  {
+    up: migration_20260327_070000_add_api_keys_locked_rel_column.up,
+    down: migration_20260327_070000_add_api_keys_locked_rel_column.down,
+    name: '20260327_070000_add_api_keys_locked_rel_column',
   },
 ];
