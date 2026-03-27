@@ -258,9 +258,6 @@ export const AdminHelp: GlobalConfig = {
                 {
                   slug: 'linkCardGrid',
                   labels: { singular: 'Link Card Grid', plural: 'Link Card Grids' },
-                  admin: {
-                    description: 'A grid of cards linking to admin pages.',
-                  },
                   fields: [
                     {
                       name: 'cards',

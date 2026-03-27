@@ -2967,6 +2967,81 @@ export interface AdminHelp {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * Structured content for each help topic doc page. Add an entry for a topic to override its built-in defaults. Leave empty to use the hardcoded fallback.
+   */
+  helpTopics?:
+    | {
+        topicId:
+          | 'getting-started'
+          | 'courses'
+          | 'quizzes'
+          | 'student-support'
+          | 'classrooms'
+          | 'reporting'
+          | 'site-management'
+          | 'troubleshooting';
+        /**
+         * Each section becomes a heading with an anchor in the table of contents.
+         */
+        sections?:
+          | {
+              /**
+               * Used for #anchor links in the TOC sidebar. No spaces or special chars — e.g. "access", "roles", "daily-checklist".
+               */
+              anchorId: string;
+              heading: string;
+              blocks?:
+                | (
+                    | {
+                        text: string;
+                        id?: string | null;
+                        blockName?: string | null;
+                        blockType: 'paragraph';
+                      }
+                    | {
+                        text: string;
+                        id?: string | null;
+                        blockName?: string | null;
+                        blockType: 'note';
+                      }
+                    | {
+                        type?: ('bullets' | 'steps') | null;
+                        items?:
+                          | {
+                              text: string;
+                              /**
+                               * If set, the item text is rendered as a link to this URL.
+                               */
+                              href?: string | null;
+                              id?: string | null;
+                            }[]
+                          | null;
+                        id?: string | null;
+                        blockName?: string | null;
+                        blockType: 'list';
+                      }
+                    | {
+                        cards?:
+                          | {
+                              label: string;
+                              href: string;
+                              desc?: string | null;
+                              id?: string | null;
+                            }[]
+                          | null;
+                        id?: string | null;
+                        blockName?: string | null;
+                        blockType: 'linkCardGrid';
+                      }
+                  )[]
+                | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
   _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -3060,6 +3135,65 @@ export interface AdminHelpSelect<T extends boolean = true> {
   supportRequestHref?: T;
   resources?: T;
   body?: T;
+  helpTopics?:
+    | T
+    | {
+        topicId?: T;
+        sections?:
+          | T
+          | {
+              anchorId?: T;
+              heading?: T;
+              blocks?:
+                | T
+                | {
+                    paragraph?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    note?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    list?:
+                      | T
+                      | {
+                          type?: T;
+                          items?:
+                            | T
+                            | {
+                                text?: T;
+                                href?: T;
+                                id?: T;
+                              };
+                          id?: T;
+                          blockName?: T;
+                        };
+                    linkCardGrid?:
+                      | T
+                      | {
+                          cards?:
+                            | T
+                            | {
+                                label?: T;
+                                href?: T;
+                                desc?: T;
+                                id?: T;
+                              };
+                          id?: T;
+                          blockName?: T;
+                        };
+                  };
+              id?: T;
+            };
+        id?: T;
+      };
   _status?: T;
   updatedAt?: T;
   createdAt?: T;

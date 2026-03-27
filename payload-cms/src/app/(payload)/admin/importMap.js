@@ -29,19 +29,20 @@ import { default as default_944838cdb41db1e12687a26697354cee } from '@/views/Les
 import { default as default_d92ed4247662a281e6e3a53a615b206a } from '@/views/LessonQuizPreviewField'
 import { default as default_4b04de482248e5cf6439b466d2c48d43 } from '@/views/PageOrderField'
 import { default as default_5565cf0809d37ddd6682af69dc08c9da } from '@/views/ClassroomJoinCodeField'
+import { default as default_4c635b207a892622d6930c06b05f52ee } from '@/views/ApiKeyDisplay'
 import { default as default_8ecf3705f4486154c43b65ffcba083a4 } from '@/views/QuizQuestionPickerField'
 import { default as default_b228ebeb356b13e416a25a2727293bbc } from '@/views/QuizPreviewField'
-import { default as default_apikeydisplay_3c1d8d6b } from '@/views/ApiKeyDisplay'
-import { FbdRubricBuilderField as FbdRubricBuilderField_7a5d4f2e } from '@/views/FbdRubricBuilderField'
-import { FbdSyncValidatorField as FbdSyncValidatorField_34b6c1aa } from '@/views/FbdSyncValidatorField'
 import { default as default_0937aecc147b64e1fe0af8b25be8b04e } from '@/views/FigureBuilderField'
 import { default as default_5c42f65881579824c215aea0ce8e7864 } from '@/views/ToleranceExplainerField'
 import { default as default_edf03fc31873d58cdebfd253d2bc5043 } from '@/views/FormulaHelperField'
+import { FbdRubricBuilderField as FbdRubricBuilderField_e970eb0b5f4a807fcabb100596d5fff9 } from '@/views/FbdRubricBuilderField'
+import { FbdSyncValidatorField as FbdSyncValidatorField_2df2862d914337bd2adac086d72d23ca } from '@/views/FbdSyncValidatorField'
 import { default as default_468efbae130dde8cd1b02c5dba12007e } from '@/views/PlotWizardField'
 import { default as default_83665b2e457b847ee9222917fde5a7ab } from '@/views/ProblemPreviewTab'
 import { default as default_20b4b595011067220e22f7c98e94e4e7 } from '@/views/AdminIcon'
 import { default as default_1c527c7f8e4abfd6959bbf71cc426e00 } from '@/views/AdminLogo'
 import { default as default_9d5e242f5b9448a15263946a6aafe2ce } from '@/views/StaffProvider'
+import { S3ClientUploadHandler as S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24 } from '@payloadcms/storage-s3/client'
 import { default as default_afe82a4d7d416ef3822c4ceeb7b60fa0 } from '@/views/StaffDashboardView'
 
 export const importMap = {
@@ -76,18 +77,19 @@ export const importMap = {
   "@/views/LessonQuizPreviewField#default": default_d92ed4247662a281e6e3a53a615b206a,
   "@/views/PageOrderField#default": default_4b04de482248e5cf6439b466d2c48d43,
   "@/views/ClassroomJoinCodeField#default": default_5565cf0809d37ddd6682af69dc08c9da,
+  "@/views/ApiKeyDisplay#default": default_4c635b207a892622d6930c06b05f52ee,
   "@/views/QuizQuestionPickerField#default": default_8ecf3705f4486154c43b65ffcba083a4,
   "@/views/QuizPreviewField#default": default_b228ebeb356b13e416a25a2727293bbc,
-  "@/views/ApiKeyDisplay#default": default_apikeydisplay_3c1d8d6b,
-  "@/views/FbdRubricBuilderField#FbdRubricBuilderField": FbdRubricBuilderField_7a5d4f2e,
-  "@/views/FbdSyncValidatorField#FbdSyncValidatorField": FbdSyncValidatorField_34b6c1aa,
   "@/views/FigureBuilderField#default": default_0937aecc147b64e1fe0af8b25be8b04e,
   "@/views/ToleranceExplainerField#default": default_5c42f65881579824c215aea0ce8e7864,
   "@/views/FormulaHelperField#default": default_edf03fc31873d58cdebfd253d2bc5043,
+  "@/views/FbdRubricBuilderField#FbdRubricBuilderField": FbdRubricBuilderField_e970eb0b5f4a807fcabb100596d5fff9,
+  "@/views/FbdSyncValidatorField#FbdSyncValidatorField": FbdSyncValidatorField_2df2862d914337bd2adac086d72d23ca,
   "@/views/PlotWizardField#default": default_468efbae130dde8cd1b02c5dba12007e,
   "@/views/ProblemPreviewTab#default": default_83665b2e457b847ee9222917fde5a7ab,
   "@/views/AdminIcon#default": default_20b4b595011067220e22f7c98e94e4e7,
   "@/views/AdminLogo#default": default_1c527c7f8e4abfd6959bbf71cc426e00,
   "@/views/StaffProvider#default": default_9d5e242f5b9448a15263946a6aafe2ce,
+  "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24,
   "@/views/StaffDashboardView#default": default_afe82a4d7d416ef3822c4ceeb7b60fa0
 }
