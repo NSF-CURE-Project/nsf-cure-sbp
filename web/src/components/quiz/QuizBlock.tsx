@@ -88,8 +88,9 @@ const scoreQuestion = (
   }
 
   const correctSelected = selectedIds.filter((id) => correctSet.has(id)).length;
-  const incorrectSelected = selectedIds.filter((id) => !correctSet.has(id))
-    .length;
+  const incorrectSelected = selectedIds.filter(
+    (id) => !correctSet.has(id)
+  ).length;
   const raw = (correctSelected - incorrectSelected) / correctIds.length;
   const score = Math.max(0, Math.min(1, raw));
   return { score, isCorrect: score === 1 };
@@ -153,9 +154,12 @@ export function QuizBlock({ block, lessonId }: Props) {
     const loadQuiz = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${PAYLOAD_URL}/api/quizzes/${quizId}?depth=2`, {
-          signal: controller.signal,
-        });
+        const res = await fetch(
+          `${PAYLOAD_URL}/api/quizzes/${quizId}?depth=2`,
+          {
+            signal: controller.signal,
+          }
+        );
         if (!res.ok) return;
         const data = (await res.json()) as { doc?: QuizDoc };
         setQuiz(data.doc ?? null);
@@ -219,7 +223,7 @@ export function QuizBlock({ block, lessonId }: Props) {
   const scoring = quiz?.scoring ?? "per-question";
   const quizTitle =
     block.title ||
-    (block.showTitle === false ? undefined : quiz?.title ?? "Quiz");
+    (block.showTitle === false ? undefined : (quiz?.title ?? "Quiz"));
   const quizDescription = quiz?.description ?? null;
   const showAnswers = block.showAnswers !== false;
   const maxAttempts =
@@ -227,7 +231,7 @@ export function QuizBlock({ block, lessonId }: Props) {
   const effectiveTimeLimit =
     typeof block.timeLimitSec === "number"
       ? block.timeLimitSec
-      : quiz?.timeLimitSec ?? null;
+      : (quiz?.timeLimitSec ?? null);
   const questionsPerPage = 3;
   const totalQuestions = orderedQuestions.length;
   const pageCount = Math.max(1, Math.ceil(totalQuestions / questionsPerPage));
@@ -238,6 +242,19 @@ export function QuizBlock({ block, lessonId }: Props) {
   );
   const isFirstPage = pageIndex === 0;
   const isLastPage = pageIndex >= pageCount - 1;
+  const answeredQuestionCount = useMemo(
+    () =>
+      orderedQuestions.filter(
+        (question) => (answers[question.id] ?? []).length > 0
+      ).length,
+    [answers, orderedQuestions]
+  );
+  const completionPercent = totalQuestions
+    ? Math.round((answeredQuestionCount / totalQuestions) * 100)
+    : 0;
+  const nextUnansweredQuestionIndex = orderedQuestions.findIndex(
+    (question) => (answers[question.id] ?? []).length === 0
+  );
 
   useEffect(() => {
     if (!started || !effectiveTimeLimit) return;
@@ -338,7 +355,11 @@ export function QuizBlock({ block, lessonId }: Props) {
     };
   }, [answers, orderedQuestions, scoring, submitted]);
 
-  const handleSelect = (questionId: string, optionId: string, multi: boolean) => {
+  const handleSelect = (
+    questionId: string,
+    optionId: string,
+    multi: boolean
+  ) => {
     setAnswers((prev) => {
       const existing = prev[questionId] ?? [];
       if (multi) {
@@ -361,7 +382,10 @@ export function QuizBlock({ block, lessonId }: Props) {
     setSubmitting(true);
     const startedAt = startedAtRef.current ?? Date.now();
     const completedAt = Date.now();
-    const durationSec = Math.max(0, Math.round((completedAt - startedAt) / 1000));
+    const durationSec = Math.max(
+      0,
+      Math.round((completedAt - startedAt) / 1000)
+    );
 
     const questionOrderPayload = orderedQuestions.map((question) => ({
       question: question.id,
@@ -396,9 +420,9 @@ export function QuizBlock({ block, lessonId }: Props) {
       });
 
       if (response.ok) {
-        const attempt = (await response.json().catch(() => null)) as
-          | { id?: string | number }
-          | null;
+        const attempt = (await response.json().catch(() => null)) as {
+          id?: string | number;
+        } | null;
         if (attempt?.id != null) {
           redirectedToReview = true;
           router.push(`/quiz-attempts/${attempt.id}`);
@@ -408,9 +432,7 @@ export function QuizBlock({ block, lessonId }: Props) {
       setSubmitting(false);
       if (!redirectedToReview) {
         setSubmitted(true);
-        setAttemptCount((prev) =>
-          typeof prev === "number" ? prev + 1 : prev
-        );
+        setAttemptCount((prev) => (typeof prev === "number" ? prev + 1 : prev));
       }
     }
   };
@@ -486,9 +508,7 @@ export function QuizBlock({ block, lessonId }: Props) {
                   ? ` • ${effectiveTimeLimit}s time limit`
                   : ""}
                 {maxAttempts != null
-                  ? ` • ${maxAttempts} attempt${
-                      maxAttempts === 1 ? "" : "s"
-                    }`
+                  ? ` • ${maxAttempts} attempt${maxAttempts === 1 ? "" : "s"}`
                   : ""}
               </p>
             </div>
@@ -516,7 +536,39 @@ export function QuizBlock({ block, lessonId }: Props) {
         </div>
       ) : (
         <div className={questionsContainerClass}>
-          <div className="sticky top-0 z-10 rounded-lg border border-border/60 bg-background/90 px-4 py-2 text-xs text-muted-foreground backdrop-blur">
+          <div className="sticky top-0 z-20 rounded-xl border border-primary/20 bg-background/95 px-4 py-3 backdrop-blur space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Completion
+                </p>
+                <p className="text-sm font-semibold">
+                  {answeredQuestionCount}/{totalQuestions} questions answered
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={nextUnansweredQuestionIndex < 0 || submitted}
+                  onClick={() =>
+                    setPageIndex(
+                      Math.floor(nextUnansweredQuestionIndex / questionsPerPage)
+                    )
+                  }
+                >
+                  Next Unanswered
+                </Button>
+              </div>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full bg-primary transition-all"
+                style={{ width: `${completionPercent}%` }}
+              />
+            </div>
+          </div>
+          <div className="sticky top-[5.5rem] z-10 rounded-lg border border-border/60 bg-background/90 px-4 py-2 text-xs text-muted-foreground backdrop-blur">
             {totalQuestions > 0
               ? `Questions ${pageStart + 1}–${Math.min(
                   pageStart + pageQuestions.length,
@@ -542,138 +594,168 @@ export function QuizBlock({ block, lessonId }: Props) {
             const questionScore = evaluation?.perQuestion[question.id] ?? 0;
             const isCorrect =
               submitted && showAnswers ? questionScore === 1 : null;
-            const explanationOpen = Boolean(
-              expandedExplanations[question.id]
-            );
+            const explanationOpen = Boolean(expandedExplanations[question.id]);
             const showExplanation =
-              submitted && showAnswers && question.explanation && explanationOpen;
+              submitted &&
+              showAnswers &&
+              question.explanation &&
+              explanationOpen;
             const questionNumber = pageStart + index + 1;
 
-          const attachments = Array.isArray(question.attachments)
-            ? question.attachments
-            : question.attachments
-            ? [question.attachments]
-            : [];
+            const attachments = Array.isArray(question.attachments)
+              ? question.attachments
+              : question.attachments
+                ? [question.attachments]
+                : [];
 
             return (
               <fieldset
                 key={question.id}
                 className="rounded-xl border border-border/60 bg-card/50 p-5 space-y-4"
               >
-                <legend className="text-base font-semibold text-foreground">
-                  {`${questionNumber}.`}
+                <legend className="flex items-center gap-2 text-base font-semibold text-foreground">
+                  <span>{`${questionNumber}.`}</span>
+                  {(() => {
+                    const isAnswered = selected.length > 0;
+                    if (submitted && showAnswers) {
+                      return isCorrect ? (
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] uppercase tracking-wide text-emerald-700">
+                          Correct
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] uppercase tracking-wide text-amber-700">
+                          Review
+                        </span>
+                      );
+                    }
+                    return isAnswered ? (
+                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] uppercase tracking-wide text-blue-700">
+                        Answered
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                        Not Answered
+                      </span>
+                    );
+                  })()}
                 </legend>
 
-              {question.prompt ? (
-                <PayloadRichText
-                  content={
-                    question.prompt as unknown as Parameters<
-                      typeof PayloadRichText
-                    >[0]["content"]
-                  }
-                  className="prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
-                />
-              ) : null}
-
-              {attachments.length ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {attachments.map((item, attachmentIndex) => {
-                    const url = resolveMediaUrl(item);
-                    if (!url) return null;
-                    return (
-                      <div
-                        key={`${question.id}-media-${attachmentIndex}`}
-                        className="relative aspect-video w-full overflow-hidden rounded-lg border border-border/60"
-                      >
-                        <Image
-                          src={url}
-                          alt="Question attachment"
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : null}
-
-              <div className="space-y-2">
-                {orderedOptions.map((option) => {
-                  if (!option) return null;
-                  const isSelected = selected.includes(option.id);
-                  const showResult =
-                    submitted && showAnswers && option.isCorrect;
-                  const isIncorrectSelected =
-                    submitted && showAnswers && isSelected && !option.isCorrect;
-                  return (
-                    <label
-                      key={option.id}
-                      className={cn(
-                        "flex items-start gap-3 rounded-lg border border-border/50 px-4 py-3 text-sm transition",
-                        isSelected
-                          ? "border-primary/60 bg-primary/10"
-                          : "bg-background/60",
-                        showResult && "border-emerald-500/70 bg-emerald-500/10",
-                        isIncorrectSelected &&
-                          "border-red-400/70 bg-red-500/10"
-                      )}
-                    >
-                      <input
-                        type={multi ? "checkbox" : "radio"}
-                        name={`question-${question.id}`}
-                        value={option.id}
-                        checked={isSelected}
-                        onChange={() =>
-                          handleSelect(question.id, option.id, multi)
-                        }
-                        className="mt-1"
-                        disabled={submitted}
-                      />
-                      <span>{option.label}</span>
-                    </label>
-                  );
-                })}
-              </div>
-
-              {submitted && showAnswers ? (
-                <div className="flex flex-wrap items-center gap-3 text-sm font-semibold">
-                  {isCorrect ? (
-                    <span className="text-emerald-500">Correct</span>
-                  ) : (
-                    <span className="text-red-400">Incorrect</span>
-                  )}
-                  {question.explanation ? (
-                    <button
-                      type="button"
-                      className="text-xs font-medium text-muted-foreground underline-offset-2 hover:underline"
-                      onClick={() =>
-                        setExpandedExplanations((prev) => ({
-                          ...prev,
-                          [question.id]: !prev[question.id],
-                        }))
-                      }
-                    >
-                      {explanationOpen ? "Hide explanation" : "Show explanation"}
-                    </button>
-                  ) : null}
-                </div>
-              ) : null}
-
-              {showExplanation ? (
-                <div className="rounded-lg border border-border/60 bg-muted/40 p-4">
-                  <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
-                    Explanation
-                  </div>
+                {question.prompt ? (
                   <PayloadRichText
                     content={
-                      question.explanation as unknown as Parameters<
+                      question.prompt as unknown as Parameters<
                         typeof PayloadRichText
                       >[0]["content"]
                     }
                     className="prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
                   />
+                ) : null}
+
+                {attachments.length ? (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {attachments.map((item, attachmentIndex) => {
+                      const url = resolveMediaUrl(item);
+                      if (!url) return null;
+                      return (
+                        <div
+                          key={`${question.id}-media-${attachmentIndex}`}
+                          className="relative aspect-video w-full overflow-hidden rounded-lg border border-border/60"
+                        >
+                          <Image
+                            src={url}
+                            alt="Question attachment"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : null}
+
+                <div className="space-y-2">
+                  {orderedOptions.map((option) => {
+                    if (!option) return null;
+                    const isSelected = selected.includes(option.id);
+                    const showResult =
+                      submitted && showAnswers && option.isCorrect;
+                    const isIncorrectSelected =
+                      submitted &&
+                      showAnswers &&
+                      isSelected &&
+                      !option.isCorrect;
+                    return (
+                      <label
+                        key={option.id}
+                        className={cn(
+                          "flex items-start gap-3 rounded-lg border border-border/50 px-4 py-3 text-sm transition",
+                          isSelected
+                            ? "border-primary/60 bg-primary/10"
+                            : "bg-background/60",
+                          showResult &&
+                            "border-emerald-500/70 bg-emerald-500/10",
+                          isIncorrectSelected &&
+                            "border-red-400/70 bg-red-500/10"
+                        )}
+                      >
+                        <input
+                          type={multi ? "checkbox" : "radio"}
+                          name={`question-${question.id}`}
+                          value={option.id}
+                          checked={isSelected}
+                          onChange={() =>
+                            handleSelect(question.id, option.id, multi)
+                          }
+                          className="mt-1"
+                          disabled={submitted}
+                        />
+                        <span>{option.label}</span>
+                      </label>
+                    );
+                  })}
                 </div>
-              ) : null}
+
+                {submitted && showAnswers ? (
+                  <div className="flex flex-wrap items-center gap-3 text-sm font-semibold">
+                    {isCorrect ? (
+                      <span className="text-emerald-500">Correct</span>
+                    ) : (
+                      <span className="text-red-400">Incorrect</span>
+                    )}
+                    {question.explanation ? (
+                      <button
+                        type="button"
+                        className="text-xs font-medium text-muted-foreground underline-offset-2 hover:underline"
+                        onClick={() =>
+                          setExpandedExplanations((prev) => ({
+                            ...prev,
+                            [question.id]: !prev[question.id],
+                          }))
+                        }
+                      >
+                        {explanationOpen
+                          ? "Hide explanation"
+                          : "Show explanation"}
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {showExplanation ? (
+                  <div className="rounded-lg border border-border/60 bg-muted/40 p-4">
+                    <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
+                      Explanation
+                    </div>
+                    <PayloadRichText
+                      content={
+                        question.explanation as unknown as Parameters<
+                          typeof PayloadRichText
+                        >[0]["content"]
+                      }
+                      className="prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
+                    />
+                  </div>
+                ) : null}
               </fieldset>
             );
           })}
@@ -717,7 +799,11 @@ export function QuizBlock({ block, lessonId }: Props) {
                   attemptCount >= maxAttempts)
               }
             >
-              {submitting ? "Submitting..." : submitted ? "Submitted" : "Submit"}
+              {submitting
+                ? "Submitting..."
+                : submitted
+                  ? "Submitted"
+                  : "Submit"}
             </Button>
           )}
           {submitted && evaluation && showAnswers ? (

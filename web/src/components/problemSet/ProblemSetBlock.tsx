@@ -156,7 +156,9 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
   }, [normalizedProblems, problemSet]);
 
   const orderedProblems = useMemo(() => {
-    const map = new Map(normalizedProblems.map((problem) => [String(problem.id), problem]));
+    const map = new Map(
+      normalizedProblems.map((problem) => [String(problem.id), problem])
+    );
     const sourceIds = orderedProblemIds.length
       ? orderedProblemIds
       : normalizedProblems.map((problem) => String(problem.id));
@@ -177,8 +179,8 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
     typeof block.maxAttempts === "number"
       ? block.maxAttempts
       : typeof problemSet?.maxAttempts === "number"
-      ? problemSet.maxAttempts
-      : null;
+        ? problemSet.maxAttempts
+        : null;
   const showAnswers =
     typeof block.showAnswers === "boolean"
       ? block.showAnswers
@@ -237,36 +239,71 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
     maxAttempts != null && attemptCount != null && attemptCount >= maxAttempts;
 
   const evaluationByProblem = useMemo(
-    () => new Map((evaluation?.answers ?? []).map((answer) => [answer.problem, answer])),
+    () =>
+      new Map(
+        (evaluation?.answers ?? []).map((answer) => [answer.problem, answer])
+      ),
     [evaluation]
   );
+  const isAnswerFilled = (value: string | FBDPlacedAnswer | undefined) => {
+    if (typeof value === "string") return value.trim().length > 0;
+    if (value && typeof value === "object") {
+      return (
+        (Array.isArray(value.forces) && value.forces.length > 0) ||
+        (Array.isArray(value.moments) && value.moments.length > 0)
+      );
+    }
+    return false;
+  };
+  const partProgressByProblem = useMemo(() => {
+    return new Map(
+      orderedProblems.map((problem) => {
+        const problemId = String(problem.id);
+        const total = Array.isArray(problem.parts) ? problem.parts.length : 0;
+        const answered = Array.from({ length: total }).filter((_, partIndex) =>
+          isAnswerFilled(
+            answers[problemId]?.[partIndex] as
+              | string
+              | FBDPlacedAnswer
+              | undefined
+          )
+        ).length;
+        return [problemId, { answered, total }] as const;
+      })
+    );
+  }, [answers, orderedProblems]);
   const getProblemStatus = (problemId: string) => {
     const parts = evaluationByProblem.get(problemId)?.parts ?? [];
     if (submitted && parts.length) {
       const allCorrect = parts.every((part) => Boolean(part.isCorrect));
       return allCorrect ? "correct" : "review";
     }
-    const values = Object.values(answers[problemId] ?? {});
-    const hasInput = values.some((value) => {
-      if (typeof value === "string") return value.trim().length > 0;
-      if (value && typeof value === "object") {
-        const fbdValue = value as FBDPlacedAnswer;
-        return (
-          (Array.isArray(fbdValue.forces) && fbdValue.forces.length > 0) ||
-          (Array.isArray(fbdValue.moments) && fbdValue.moments.length > 0)
-        );
-      }
-      return false;
-    });
+    const progress = partProgressByProblem.get(problemId);
+    const hasInput = Boolean(progress && progress.answered > 0);
+    const isReady = Boolean(
+      progress && progress.total > 0 && progress.answered >= progress.total
+    );
     if (!started) return "locked";
+    if (isReady) return "ready";
     return hasInput ? "progress" : "pending";
   };
   const completedCount = orderedProblems.filter((problem) =>
-    ["correct", "review"].includes(getProblemStatus(String(problem.id)))
+    ["correct", "review", "ready"].includes(
+      getProblemStatus(String(problem.id))
+    )
   ).length;
   const progressPercent = orderedProblems.length
     ? Math.round((completedCount / orderedProblems.length) * 100)
     : 0;
+  const activeProblemIndex = orderedProblems.findIndex(
+    (problem) => String(problem.id) === activeProblemId
+  );
+  const nextIncompleteProblemId = orderedProblems.find((problem) => {
+    const problemId = String(problem.id);
+    const progress = partProgressByProblem.get(problemId);
+    if (!progress || progress.total === 0) return false;
+    return progress.answered < progress.total;
+  })?.id;
 
   const scrollToProblem = (problemId: string) => {
     const node = problemRefs.current[problemId];
@@ -319,7 +356,10 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
     setSubmitError(null);
     const startedAt = startedAtRef.current ?? Date.now();
     const completedAt = Date.now();
-    const durationSec = Math.max(0, Math.round((completedAt - startedAt) / 1000));
+    const durationSec = Math.max(
+      0,
+      Math.round((completedAt - startedAt) / 1000)
+    );
 
     const answersPayload = orderedProblems.map((problem) => {
       const problemId = String(problem.id);
@@ -400,9 +440,9 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
         }),
       });
 
-      const payload = (await res.json().catch(() => null)) as
-        | ProblemAttemptResponse
-        | null;
+      const payload = (await res
+        .json()
+        .catch(() => null)) as ProblemAttemptResponse | null;
 
       if (res.ok) {
         const doc = payload?.doc ?? payload;
@@ -434,7 +474,9 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
         <header className="space-y-1">
           <h2 className="text-2xl font-semibold">{blockTitle}</h2>
           {problemSet?.description ? (
-            <p className="text-sm text-muted-foreground">{problemSet.description}</p>
+            <p className="text-sm text-muted-foreground">
+              {problemSet.description}
+            </p>
           ) : null}
           {maxAttempts != null ? (
             <p className="text-xs text-muted-foreground">
@@ -449,17 +491,24 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
         </header>
       ) : null}
 
-      {loading ? <div className="text-sm text-muted-foreground">Loading problem set…</div> : null}
+      {loading ? (
+        <div className="text-sm text-muted-foreground">
+          Loading problem set…
+        </div>
+      ) : null}
 
       {!loading && orderedProblems.length === 0 ? (
-        <div className="text-sm text-muted-foreground">No problems available yet.</div>
+        <div className="text-sm text-muted-foreground">
+          No problems available yet.
+        </div>
       ) : null}
 
       {!started ? (
         <div className="rounded-xl border border-border/60 bg-background/60 p-5">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
-              {orderedProblems.length} problem{orderedProblems.length === 1 ? "" : "s"}
+              {orderedProblems.length} problem
+              {orderedProblems.length === 1 ? "" : "s"}
               {maxAttempts != null
                 ? ` • ${maxAttempts} attempt${maxAttempts === 1 ? "" : "s"}`
                 : ""}
@@ -490,8 +539,51 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
                 <p className="text-sm font-semibold text-foreground">
                   {completedCount}/{orderedProblems.length} complete
                 </p>
+                {activeProblemIndex >= 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    Working on Problem {activeProblemIndex + 1}
+                  </p>
+                ) : null}
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={activeProblemIndex <= 0}
+                  onClick={() => {
+                    const previousId =
+                      orderedProblems[activeProblemIndex - 1]?.id;
+                    if (previousId != null) scrollToProblem(String(previousId));
+                  }}
+                >
+                  Previous
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={
+                    activeProblemIndex < 0 ||
+                    activeProblemIndex >= orderedProblems.length - 1
+                  }
+                  onClick={() => {
+                    const nextId = orderedProblems[activeProblemIndex + 1]?.id;
+                    if (nextId != null) scrollToProblem(String(nextId));
+                  }}
+                >
+                  Next
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!nextIncompleteProblemId}
+                  onClick={() => {
+                    if (nextIncompleteProblemId != null) {
+                      scrollToProblem(String(nextIncompleteProblemId));
+                    }
+                  }}
+                >
+                  Next Incomplete
+                </Button>
                 <Button
                   type="button"
                   onClick={handleSubmit}
@@ -503,7 +595,11 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
                     hasInvalidSymbolicInput
                   }
                 >
-                  {submitting ? "Submitting..." : submitted ? "Submitted" : "Submit"}
+                  {submitting
+                    ? "Submitting..."
+                    : submitted
+                      ? "Submitted"
+                      : "Submit"}
                 </Button>
                 {submitted && showAnswers && evaluation ? (
                   <span className="text-sm text-muted-foreground">
@@ -517,6 +613,23 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
                 className="h-full bg-primary transition-all"
                 style={{ width: `${progressPercent}%` }}
               />
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+              <span className="rounded-full bg-muted px-2 py-0.5">
+                Not Started
+              </span>
+              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-blue-700">
+                In Progress
+              </span>
+              <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-cyan-700">
+                Ready
+              </span>
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-700">
+                Correct
+              </span>
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">
+                Review
+              </span>
             </div>
           </div>
 
@@ -548,9 +661,13 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
                         <span
                           className={cn(
                             "rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide",
-                            status === "correct" && "bg-emerald-100 text-emerald-700",
-                            status === "review" && "bg-amber-100 text-amber-700",
-                            status === "progress" && "bg-blue-100 text-blue-700",
+                            status === "correct" &&
+                              "bg-emerald-100 text-emerald-700",
+                            status === "review" &&
+                              "bg-amber-100 text-amber-700",
+                            status === "progress" &&
+                              "bg-blue-100 text-blue-700",
+                            status === "ready" && "bg-cyan-100 text-cyan-700",
                             (status === "pending" || status === "locked") &&
                               "bg-muted text-muted-foreground"
                           )}
@@ -558,12 +675,22 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
                           {status === "correct"
                             ? "Correct"
                             : status === "review"
-                            ? "Review"
-                            : status === "progress"
-                            ? "In Progress"
-                            : "Not Started"}
+                              ? "Review"
+                              : status === "progress"
+                                ? "In Progress"
+                                : status === "ready"
+                                  ? "Ready"
+                                  : "Not Started"}
                         </span>
                       </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {(() => {
+                          const progress = partProgressByProblem.get(problemId);
+                          if (!progress || progress.total === 0)
+                            return "No parts";
+                          return `${progress.answered}/${progress.total} parts complete`;
+                        })()}
+                      </p>
                     </button>
                   );
                 })}
@@ -605,9 +732,13 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
         <span className="text-sm text-muted-foreground">Submitted.</span>
       ) : null}
       {started && attemptLimitReached ? (
-        <span className="text-sm text-muted-foreground">Attempt limit reached.</span>
+        <span className="text-sm text-muted-foreground">
+          Attempt limit reached.
+        </span>
       ) : null}
-      {submitError ? <p className="text-sm text-red-500">{submitError}</p> : null}
+      {submitError ? (
+        <p className="text-sm text-red-500">{submitError}</p>
+      ) : null}
     </section>
   );
 }
