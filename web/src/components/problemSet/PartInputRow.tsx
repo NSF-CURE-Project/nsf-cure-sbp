@@ -21,6 +21,7 @@ type PartEvaluation = {
 
 type PartInputRowProps = {
   part: ProblemPart;
+  partNumber?: number;
   figure?: EngineeringFigureDoc | null;
   value?: string | FBDPlacedAnswer | PlacedForce[];
   onChange: (value: string | FBDPlacedAnswer) => void;
@@ -35,6 +36,7 @@ const isRichTextValue = (value: unknown): value is Record<string, unknown> =>
 
 export function PartInputRow({
   part,
+  partNumber,
   figure,
   value,
   onChange,
@@ -54,33 +56,41 @@ export function PartInputRow({
     part.partType === "symbolic"
       ? Boolean(part.symbolicAnswer)
       : part.partType === "fbd-draw"
-      ? Array.isArray(part.fbdRubric?.requiredForces) || Array.isArray(part.fbdRubric?.requiredMoments)
-      : Number.isFinite(part.correctAnswer);
+        ? Array.isArray(part.fbdRubric?.requiredForces) ||
+          Array.isArray(part.fbdRubric?.requiredMoments)
+        : Number.isFinite(part.correctAnswer);
   const isPartial = submitted && score != null && score > 0 && score < 1;
   const numericOrSymbolicValue = typeof value === "string" ? value : "";
   const fbdValue: FBDPlacedAnswer = Array.isArray(value)
     ? { forces: value, moments: [] }
     : value && typeof value === "object"
-    ? {
-        forces: Array.isArray((value as FBDPlacedAnswer).forces)
-          ? (value as FBDPlacedAnswer).forces
-          : [],
-        moments: Array.isArray((value as FBDPlacedAnswer).moments)
-          ? (value as FBDPlacedAnswer).moments
-          : [],
-      }
-    : { forces: [], moments: [] };
+      ? {
+          forces: Array.isArray((value as FBDPlacedAnswer).forces)
+            ? (value as FBDPlacedAnswer).forces
+            : [],
+          moments: Array.isArray((value as FBDPlacedAnswer).moments)
+            ? (value as FBDPlacedAnswer).moments
+            : [],
+        }
+      : { forces: [], moments: [] };
 
   return (
-    <div className="rounded-lg border border-border/60 bg-background/70 p-4 space-y-3">
-      <div className="text-sm font-medium text-foreground">
-        <InlineMath text={part.label || "Part"} />
+    <div className="rounded-lg border border-border/60 bg-background/70 p-4 space-y-3 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
+          Step {partNumber ?? 1}
+        </span>
+        <div className="text-sm font-semibold text-foreground">
+          <InlineMath text={part.label || "Part"} />
+        </div>
       </div>
 
       {isRichTextValue(part.prompt) ? (
         <PayloadRichText
           content={
-            part.prompt as unknown as Parameters<typeof PayloadRichText>[0]["content"]
+            part.prompt as unknown as Parameters<
+              typeof PayloadRichText
+            >[0]["content"]
           }
           className="prose dark:prose-invert prose-invert leading-7 max-w-none text-muted-foreground"
         />
@@ -136,11 +146,15 @@ export function PartInputRow({
               isPartial
                 ? "text-amber-600"
                 : isCorrect
-                ? "text-emerald-600"
-                : "text-red-500"
+                  ? "text-emerald-600"
+                  : "text-red-500"
             )}
           >
-            {isPartial ? "Partially correct" : isCorrect ? "Correct" : "Incorrect"}
+            {isPartial
+              ? "Partially correct"
+              : isCorrect
+                ? "Correct"
+                : "Incorrect"}
           </div>
           {isPartial ? (
             <div className="text-xs font-medium text-amber-700">
@@ -160,14 +174,17 @@ export function PartInputRow({
                 <>
                   FBD rubric:{" "}
                   <span className="font-medium text-foreground">
-                    {(part.fbdRubric?.requiredForces ?? []).length} required force(s)
+                    {(part.fbdRubric?.requiredForces ?? []).length} required
+                    force(s)
                   </span>
                 </>
               ) : (
                 <>
                   Correct answer:{" "}
                   <span className="font-medium text-foreground">
-                    {Number.isFinite(part.correctAnswer) ? part.correctAnswer : "N/A"}
+                    {Number.isFinite(part.correctAnswer)
+                      ? part.correctAnswer
+                      : "N/A"}
                     {part.unit ? ` ${part.unit}` : ""}
                   </span>
                 </>
@@ -193,7 +210,9 @@ export function PartInputRow({
           </div>
           <PayloadRichText
             content={
-              part.explanation as unknown as Parameters<typeof PayloadRichText>[0]["content"]
+              part.explanation as unknown as Parameters<
+                typeof PayloadRichText
+              >[0]["content"]
             }
             className="prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
           />

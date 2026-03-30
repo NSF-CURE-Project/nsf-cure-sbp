@@ -27,6 +27,7 @@ function Arrow({
   y2,
   color = "#ef4444",
   label,
+  strokeWidth = 2.5,
 }: {
   x1: number;
   y1: number;
@@ -34,9 +35,10 @@ function Arrow({
   y2: number;
   color?: string;
   label?: string;
+  strokeWidth?: number;
 }) {
   const theta = Math.atan2(y2 - y1, x2 - x1);
-  const size = 8;
+  const size = 10;
   const ax = x2 - size * Math.cos(theta - Math.PI / 6);
   const ay = y2 - size * Math.sin(theta - Math.PI / 6);
   const bx = x2 - size * Math.cos(theta + Math.PI / 6);
@@ -44,10 +46,26 @@ function Arrow({
 
   return (
     <g>
-      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth={2} />
+      <line
+        x1={x1}
+        y1={y1}
+        x2={x2}
+        y2={y2}
+        stroke={color}
+        strokeWidth={strokeWidth}
+      />
       <polygon points={`${x2},${y2} ${ax},${ay} ${bx},${by}`} fill={color} />
       {label ? (
-        <text x={x2 + 6} y={y2 - 6} fill={color} fontSize={12}>
+        <text
+          x={x2 + 8}
+          y={y2 - 8}
+          fill={color}
+          fontSize={14}
+          fontWeight={700}
+          paintOrder="stroke"
+          stroke="#f8fafc"
+          strokeWidth={2}
+        >
           {label}
         </text>
       ) : null}
@@ -61,7 +79,14 @@ function renderFbd(figure: EngineeringFigureDoc) {
   const body = data.body;
   const bodyShape =
     body.shape === "circle" ? (
-      <circle cx={body.x} cy={body.y} r={body.radius ?? 28} fill="#f8fafc" stroke="#334155" />
+      <circle
+        cx={body.x}
+        cy={body.y}
+        r={body.radius ?? 28}
+        fill="#f8fafc"
+        stroke="#334155"
+        strokeWidth={2}
+      />
     ) : body.shape === "polygon" ? (
       <polygon
         points={(body.points ?? [])
@@ -69,6 +94,7 @@ function renderFbd(figure: EngineeringFigureDoc) {
           .join(" ")}
         fill="#f8fafc"
         stroke="#334155"
+        strokeWidth={2}
       />
     ) : (
       <rect
@@ -78,6 +104,7 @@ function renderFbd(figure: EngineeringFigureDoc) {
         height={body.height ?? 60}
         fill="#f8fafc"
         stroke="#334155"
+        strokeWidth={2}
       />
     );
 
@@ -85,12 +112,23 @@ function renderFbd(figure: EngineeringFigureDoc) {
     <>
       {bodyShape}
       {body.label ? (
-        <text x={body.x + 8} y={body.y + 20} fill="#0f172a" fontSize={12}>
+        <text
+          x={body.x + 10}
+          y={body.y + 22}
+          fill="#0f172a"
+          fontSize={14}
+          fontWeight={600}
+        >
           {body.label}
         </text>
       ) : null}
       {data.forces.map((force) => {
-        const end = arrowEnd(force.origin[0], force.origin[1], force.angle, force.magnitude);
+        const end = arrowEnd(
+          force.origin[0],
+          force.origin[1],
+          force.angle,
+          force.magnitude
+        );
         return (
           <Arrow
             key={force.id}
@@ -100,6 +138,7 @@ function renderFbd(figure: EngineeringFigureDoc) {
             y2={end.y}
             color={force.color}
             label={force.label}
+            strokeWidth={3}
           />
         );
       })}
@@ -112,12 +151,14 @@ function renderFbd(figure: EngineeringFigureDoc) {
             y2={dimension.to[1]}
             stroke="#64748b"
             strokeDasharray="3 3"
+            strokeWidth={1.5}
           />
           <text
             x={(dimension.from[0] + dimension.to[0]) / 2}
             y={(dimension.from[1] + dimension.to[1]) / 2 - 4}
             fill="#64748b"
-            fontSize={11}
+            fontSize={13}
+            fontWeight={600}
             textAnchor="middle"
           >
             {dimension.label}
@@ -147,14 +188,20 @@ function renderTruss(figure: EngineeringFigureDoc) {
             x2={end.x}
             y2={end.y}
             stroke="#334155"
-            strokeWidth={2}
+            strokeWidth={2.5}
           />
         );
       })}
       {data.nodes.map((node) => (
         <g key={node.id}>
-          <circle cx={node.x} cy={node.y} r={4} fill="#1d4ed8" />
-          <text x={node.x + 6} y={node.y - 6} fontSize={12} fill="#0f172a">
+          <circle cx={node.x} cy={node.y} r={5} fill="#1d4ed8" />
+          <text
+            x={node.x + 8}
+            y={node.y - 8}
+            fontSize={13}
+            fontWeight={600}
+            fill="#0f172a"
+          >
             {node.id}
           </text>
         </g>
@@ -162,7 +209,12 @@ function renderTruss(figure: EngineeringFigureDoc) {
       {data.loads.map((load, idx) => {
         const node = nodes.get(load.node);
         if (!node) return null;
-        const end = arrowEnd(node.x, node.y, load.angle, Math.max(0.3, load.magnitude / 10));
+        const end = arrowEnd(
+          node.x,
+          node.y,
+          load.angle,
+          Math.max(0.3, load.magnitude / 10)
+        );
         return (
           <Arrow
             key={`load-${idx}`}
@@ -172,6 +224,7 @@ function renderTruss(figure: EngineeringFigureDoc) {
             y2={end.y}
             color="#ef4444"
             label={load.label}
+            strokeWidth={3}
           />
         );
       })}
@@ -182,37 +235,82 @@ function renderTruss(figure: EngineeringFigureDoc) {
 function renderBeam(figure: EngineeringFigureDoc) {
   const data = figure.figureData;
   if (data.type !== "beam") return null;
-  const left = 60;
-  const y = 180;
-  const right = left + data.length * data.scale;
+  const width = figure.width ?? 760;
+  const height = figure.height ?? 420;
+  const left = 80;
+  const y = Math.round(height * 0.52);
+  const available = Math.max(120, width - left * 2);
+  const readableScale = (available / Math.max(data.length, 1)) * 0.92;
+  const scale = Math.max(data.scale, readableScale);
+  const right = left + data.length * scale;
 
   return (
     <>
-      <line x1={left} y1={y} x2={right} y2={y} stroke="#334155" strokeWidth={4} />
+      <line
+        x1={left}
+        y1={y}
+        x2={right}
+        y2={y}
+        stroke="#1e3a5f"
+        strokeWidth={6}
+        strokeLinecap="round"
+      />
       {data.supports.map((support, idx) => {
-        const x = left + support.x * data.scale;
+        const x = left + support.x * scale;
         return (
           <g key={`support-${idx}`}>
+            <line
+              x1={x - 14}
+              y1={y + 30}
+              x2={x + 14}
+              y2={y + 30}
+              stroke="#334155"
+              strokeWidth={2}
+            />
             <polygon
-              points={`${x - 12},${y + 26} ${x + 12},${y + 26} ${x},${y + 6}`}
+              points={`${x - 13},${y + 30} ${x + 13},${y + 30} ${x},${y + 7}`}
               fill="#94a3b8"
               stroke="#334155"
+              strokeWidth={1.5}
             />
+            <text
+              x={x}
+              y={y + 47}
+              textAnchor="middle"
+              fill="#334155"
+              fontSize={11}
+              fontWeight={600}
+            >
+              {support.type.toUpperCase()}
+            </text>
           </g>
         );
       })}
       {(data.pointLoads ?? []).map((load, idx) => {
-        const x = left + load.x * data.scale;
-        const end = arrowEnd(x, y - 60, load.angle, Math.max(0.3, load.magnitude / 20));
+        const x = left + load.x * scale;
+        const end = arrowEnd(
+          x,
+          y - 74,
+          load.angle,
+          Math.max(0.35, load.magnitude / 18)
+        );
         return (
-          <Arrow key={`point-load-${idx}`} x1={x} y1={y - 60} x2={end.x} y2={end.y} label={load.label} />
+          <Arrow
+            key={`point-load-${idx}`}
+            x1={x}
+            y1={y - 74}
+            x2={end.x}
+            y2={end.y}
+            label={load.label}
+            strokeWidth={3}
+          />
         );
       })}
       {(data.distributedLoads ?? []).map((load, idx) => {
-        const xStart = left + load.xStart * data.scale;
-        const xEnd = left + load.xEnd * data.scale;
+        const xStart = left + load.xStart * scale;
+        const xEnd = left + load.xEnd * scale;
         const arrowCount = Math.max(2, Math.round((xEnd - xStart) / 20));
-        const arrowY = y - 50;
+        const arrowY = y - 64;
         return (
           <g key={`dist-${idx}`}>
             <line
@@ -221,7 +319,7 @@ function renderBeam(figure: EngineeringFigureDoc) {
               x2={xEnd}
               y2={arrowY - 20}
               stroke="#ef4444"
-              strokeWidth={1.5}
+              strokeWidth={2}
             />
             {Array.from({ length: arrowCount }, (_, i) => {
               const x = xStart + (i / (arrowCount - 1)) * (xEnd - xStart);
@@ -233,6 +331,7 @@ function renderBeam(figure: EngineeringFigureDoc) {
                   x2={x}
                   y2={arrowY}
                   color="#ef4444"
+                  strokeWidth={2.5}
                 />
               );
             })}
@@ -241,7 +340,8 @@ function renderBeam(figure: EngineeringFigureDoc) {
                 x={(xStart + xEnd) / 2}
                 y={arrowY - 26}
                 textAnchor="middle"
-                fontSize={11}
+                fontSize={13}
+                fontWeight={700}
                 fill="#ef4444"
               >
                 {load.label}
@@ -251,11 +351,22 @@ function renderBeam(figure: EngineeringFigureDoc) {
         );
       })}
       {(data.moments ?? []).map((moment, idx) => {
-        const x = left + moment.x * data.scale;
+        const x = left + moment.x * scale;
         return (
           <g key={`moment-${idx}`}>
-            <path d={`M ${x - 16} ${y - 26} A 16 16 0 1 1 ${x + 16} ${y - 26}`} fill="none" stroke="#7c3aed" strokeWidth={2} />
-            <text x={x + 18} y={y - 28} fill="#7c3aed" fontSize={11}>
+            <path
+              d={`M ${x - 18} ${y - 28} A 18 18 0 1 1 ${x + 18} ${y - 28}`}
+              fill="none"
+              stroke="#d97706"
+              strokeWidth={2.5}
+            />
+            <text
+              x={x + 20}
+              y={y - 30}
+              fill="#d97706"
+              fontSize={13}
+              fontWeight={700}
+            >
               {moment.label ?? moment.value}
             </text>
           </g>
@@ -281,11 +392,24 @@ function AxesOverlay({
   return (
     <g>
       <Arrow x1={x} y1={y} x2={x + length} y2={y} color="#0f172a" />
-      <text x={x + length + 4} y={y + 4} fontSize={11} fill="#0f172a">
+      <text
+        x={x + length + 4}
+        y={y + 4}
+        fontSize={12}
+        fontWeight={600}
+        fill="#0f172a"
+      >
         {xLabel}
       </text>
       <Arrow x1={x} y1={y} x2={x} y2={y - length} color="#0f172a" />
-      <text x={x - 4} y={y - length - 4} fontSize={11} fill="#0f172a" textAnchor="middle">
+      <text
+        x={x - 4}
+        y={y - length - 4}
+        fontSize={12}
+        fontWeight={600}
+        fill="#0f172a"
+        textAnchor="middle"
+      >
         {yLabel}
       </text>
     </g>
@@ -309,11 +433,28 @@ function renderMomentDiagram(figure: EngineeringFigureDoc) {
 
   return (
     <>
-      <line x1={left} y1={baseY} x2={left + data.length * data.scale} y2={baseY} stroke="#334155" />
-      <polyline points={points.map((point) => `${point.x},${point.y}`).join(" ")} fill="none" stroke="#1d4ed8" strokeWidth={2} />
+      <line
+        x1={left}
+        y1={baseY}
+        x2={left + data.length * data.scale}
+        y2={baseY}
+        stroke="#334155"
+      />
+      <polyline
+        points={points.map((point) => `${point.x},${point.y}`).join(" ")}
+        fill="none"
+        stroke="#1d4ed8"
+        strokeWidth={2}
+      />
       <polygon points={polygon} fill="rgba(59,130,246,0.15)" />
       {(data.labels ?? []).map((label, idx) => (
-        <text key={`label-${idx}`} x={left + label.x * data.scale + 6} y={baseY - 8} fontSize={11} fill="#0f172a">
+        <text
+          key={`label-${idx}`}
+          x={left + label.x * data.scale + 6}
+          y={baseY - 8}
+          fontSize={11}
+          fill="#0f172a"
+        >
           {label.label}
         </text>
       ))}
@@ -322,34 +463,55 @@ function renderMomentDiagram(figure: EngineeringFigureDoc) {
 }
 
 export function EngineeringFigure({ figure }: EngineeringFigureProps) {
-  const width = figure.width ?? 600;
-  const height = figure.height ?? 400;
-  const ariaLabel = figure.description?.trim() || figure.title || "Engineering figure";
+  const width = figure.width ?? 760;
+  const height = figure.height ?? 420;
+  const ariaLabel =
+    figure.description?.trim() || figure.title || "Engineering figure";
 
   return (
-    <figure className="rounded-lg border border-border/60 bg-muted/20 p-3">
-      <svg
-        role="img"
-        aria-label={ariaLabel}
-        viewBox={`0 0 ${width} ${height}`}
-        className="h-auto w-full"
-      >
-        {renderFbd(figure)}
-        {renderTruss(figure)}
-        {renderBeam(figure)}
-        {renderMomentDiagram(figure)}
-        {figure.axes?.show ? (
-          <AxesOverlay
-            x={figure.axes.x ?? 40}
-            y={figure.axes.y ?? 360}
-            length={figure.axes.length ?? 50}
-            xLabel={figure.axes.xLabel ?? "x"}
-            yLabel={figure.axes.yLabel ?? "y"}
-          />
-        ) : null}
-      </svg>
+    <figure className="overflow-hidden rounded-xl border border-border/60 bg-gradient-to-b from-background to-muted/20 shadow-sm">
+      <div className="flex items-center justify-between border-b border-border/50 px-4 py-2.5">
+        <div className="text-sm font-semibold text-foreground">
+          {figure.title || "Engineering Diagram"}
+        </div>
+        <span className="rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+          {figure.type.replace("-", " ")}
+        </span>
+      </div>
+      <div className="relative overflow-hidden px-2 py-3 sm:px-4">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-35"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, rgba(100,116,139,0.14) 1px, transparent 1px), linear-gradient(to bottom, rgba(100,116,139,0.14) 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+        <svg
+          role="img"
+          aria-label={ariaLabel}
+          viewBox={`0 0 ${width} ${height}`}
+          className="relative z-10 h-auto w-full"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          {renderFbd(figure)}
+          {renderTruss(figure)}
+          {renderBeam(figure)}
+          {renderMomentDiagram(figure)}
+          {figure.axes?.show ? (
+            <AxesOverlay
+              x={figure.axes.x ?? 40}
+              y={figure.axes.y ?? 360}
+              length={figure.axes.length ?? 50}
+              xLabel={figure.axes.xLabel ?? "x"}
+              yLabel={figure.axes.yLabel ?? "y"}
+            />
+          ) : null}
+        </svg>
+      </div>
       {figure.description ? (
-        <figcaption className="mt-2 text-xs text-muted-foreground">
+        <figcaption className="border-t border-border/50 px-4 py-2.5 text-xs text-muted-foreground">
           <InlineMath text={figure.description} />
         </figcaption>
       ) : null}

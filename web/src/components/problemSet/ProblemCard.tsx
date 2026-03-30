@@ -52,6 +52,49 @@ const resolveFigure = (value: unknown): EngineeringFigureDoc | null => {
   return value as EngineeringFigureDoc;
 };
 
+const normalizeDifficulty = (difficulty?: string) => {
+  if (!difficulty) return null;
+  if (difficulty.toLowerCase() === "intro") return "Intro";
+  return difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+};
+
+const buildGivenFacts = (
+  problem: ProblemDoc,
+  figure: EngineeringFigureDoc | null
+) => {
+  const facts: string[] = [];
+  if (problem.topic) facts.push(`Topic: ${problem.topic}`);
+  const difficulty = normalizeDifficulty(problem.difficulty);
+  if (difficulty) facts.push(`Difficulty: ${difficulty}`);
+  if (Array.isArray(problem.tags) && problem.tags.length > 0) {
+    facts.push(`Tags: ${problem.tags.slice(0, 2).join(", ")}`);
+  }
+
+  if (figure?.figureData?.type === "beam") {
+    const beam = figure.figureData;
+    facts.push(`Span: ${beam.length} m`);
+    facts.push(`Supports: ${beam.supports.length}`);
+    if (Array.isArray(beam.pointLoads) && beam.pointLoads.length > 0) {
+      facts.push(`Point loads: ${beam.pointLoads.length}`);
+    }
+    if (
+      Array.isArray(beam.distributedLoads) &&
+      beam.distributedLoads.length > 0
+    ) {
+      facts.push(`Distributed loads: ${beam.distributedLoads.length}`);
+    }
+  }
+  if (figure?.figureData?.type === "truss") {
+    const truss = figure.figureData;
+    facts.push(`Nodes: ${truss.nodes.length}`);
+    facts.push(`Members: ${truss.members.length}`);
+  }
+  if (figure?.figureData?.type === "fbd") {
+    facts.push(`Forces: ${figure.figureData.forces.length}`);
+  }
+  return facts.slice(0, 6);
+};
+
 export function ProblemCard({
   problem,
   index,
@@ -63,59 +106,99 @@ export function ProblemCard({
   isActive,
   onFocus,
 }: ProblemCardProps) {
-  const parts: ProblemPart[] = Array.isArray(problem.parts) ? problem.parts : [];
+  const parts: ProblemPart[] = Array.isArray(problem.parts)
+    ? problem.parts
+    : [];
   const figure = resolveFigure(problem.figure);
   const evaluationByPart = new Map(
     (evaluation?.parts ?? []).map((part) => [part.partIndex, part])
   );
-  const plotScope = parts.reduce<Record<string, number>>((scope, part, partIndex) => {
-    const partLabel = (part.label ?? "").trim();
-    if (!partLabel) return scope;
-    const rawInput = partAnswers[partIndex];
-    const fromInput =
-      typeof rawInput === "string" ? Number.parseFloat(rawInput) : Number.NaN;
-    const fromEvaluation = evaluationByPart.get(partIndex)?.studentAnswer;
-    const value = Number.isFinite(fromInput)
-      ? fromInput
-      : typeof fromEvaluation === "number" && Number.isFinite(fromEvaluation)
-      ? fromEvaluation
-      : null;
-    if (value == null) return scope;
-    scope[partLabel] = value;
-    const sanitized = toVariableName(partLabel);
-    if (sanitized) scope[sanitized] = value;
-    return scope;
-  }, {});
-  const resultPlots = Array.isArray(problem.resultPlots) ? problem.resultPlots : [];
+  const plotScope = parts.reduce<Record<string, number>>(
+    (scope, part, partIndex) => {
+      const partLabel = (part.label ?? "").trim();
+      if (!partLabel) return scope;
+      const rawInput = partAnswers[partIndex];
+      const fromInput =
+        typeof rawInput === "string" ? Number.parseFloat(rawInput) : Number.NaN;
+      const fromEvaluation = evaluationByPart.get(partIndex)?.studentAnswer;
+      const value = Number.isFinite(fromInput)
+        ? fromInput
+        : typeof fromEvaluation === "number" && Number.isFinite(fromEvaluation)
+          ? fromEvaluation
+          : null;
+      if (value == null) return scope;
+      scope[partLabel] = value;
+      const sanitized = toVariableName(partLabel);
+      if (sanitized) scope[sanitized] = value;
+      return scope;
+    },
+    {}
+  );
+  const resultPlots = Array.isArray(problem.resultPlots)
+    ? problem.resultPlots
+    : [];
+  const givenFacts = buildGivenFacts(problem, figure);
 
   return (
     <article
       className={cn(
-        "rounded-xl border bg-card/70 p-4 md:p-5 space-y-3 transition-colors",
+        "rounded-xl border bg-card/70 p-4 md:p-5 space-y-4 transition-colors",
         isActive
           ? "border-primary/45 shadow-sm shadow-primary/10"
           : "border-border/60"
       )}
       onClick={onFocus}
     >
-      <header className="space-y-1">
-        <h3 className="text-lg font-semibold text-foreground leading-tight">
-          Problem {index + 1}
-        </h3>
+      <header className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
+            Problem {index + 1}
+          </span>
+          <span className="rounded-full border border-border/60 bg-background/60 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            {parts.length} Step{parts.length === 1 ? "" : "s"}
+          </span>
+        </div>
         {problem.title ? (
-          <p className="text-sm text-muted-foreground leading-snug">{problem.title}</p>
+          <p className="text-xl font-semibold text-foreground leading-snug">
+            {problem.title}
+          </p>
         ) : null}
       </header>
 
       {figure ? <EngineeringFigure figure={figure} /> : null}
 
+      {givenFacts.length ? (
+        <section className="rounded-lg border border-border/60 bg-background/60 p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Given
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {givenFacts.map((fact) => (
+              <span
+                key={fact}
+                className="rounded-full border border-border/60 bg-muted/30 px-2.5 py-1 text-xs text-foreground"
+              >
+                {fact}
+              </span>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {isRichTextValue(problem.prompt) ? (
-        <PayloadRichText
-          content={
-            problem.prompt as unknown as Parameters<typeof PayloadRichText>[0]["content"]
-          }
-          className="prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
-        />
+        <section className="rounded-lg border border-border/60 bg-background/60 p-4">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Task
+          </p>
+          <PayloadRichText
+            content={
+              problem.prompt as unknown as Parameters<
+                typeof PayloadRichText
+              >[0]["content"]
+            }
+            className="prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
+          />
+        </section>
       ) : null}
 
       <div className="space-y-3">
@@ -123,6 +206,7 @@ export function ProblemCard({
           <PartInputRow
             key={part.id ?? `${problem.id}-${partIndex}`}
             part={part}
+            partNumber={partIndex + 1}
             value={partAnswers[partIndex] ?? ""}
             onChange={(nextValue) => onChange(partIndex, nextValue)}
             figure={figure}
@@ -135,7 +219,9 @@ export function ProblemCard({
 
       {submitted && resultPlots.length ? (
         <section className="space-y-3">
-          <h4 className="text-sm font-semibold text-foreground">Result Plots</h4>
+          <h4 className="text-sm font-semibold text-foreground">
+            Result Plots
+          </h4>
           {resultPlots.map((plot, plotIndex) => (
             <ResultPlot
               key={plot.id ?? `${problem.id}-plot-${plotIndex}`}
