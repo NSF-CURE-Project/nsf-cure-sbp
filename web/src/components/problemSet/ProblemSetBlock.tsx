@@ -469,7 +469,7 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
   if (!block.problemSet) return null;
 
   return (
-    <section className="mx-auto w-full max-w-4xl rounded-2xl border border-primary/15 bg-primary/5 p-6 shadow-sm space-y-5">
+    <section className="mx-auto w-full max-w-6xl rounded-2xl border border-primary/15 bg-primary/5 p-6 shadow-sm space-y-5">
       {blockTitle ? (
         <header className="space-y-1">
           <h2 className="text-2xl font-semibold">{blockTitle}</h2>
@@ -633,7 +633,7 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
             </div>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
+          <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)]">
             <aside className="rounded-xl border border-border/60 bg-background/70 p-3 h-fit lg:sticky lg:top-24">
               <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
                 Problem Navigator
