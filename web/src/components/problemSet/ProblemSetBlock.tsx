@@ -101,6 +101,9 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
   const startedAtRef = useRef<number | null>(null);
   const problemSetKeyRef = useRef<string | number | null>(null);
   const problemRefs = useRef<Record<string, HTMLElement | null>>({});
+  const variantSeedRef = useRef(
+    `run-${Date.now()}-${Math.floor(getRandom() * 1_000_000)}`
+  );
 
   useEffect(() => {
     const source = block.problemSet;
@@ -112,8 +115,11 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
     const run = async () => {
       setLoading(true);
       try {
+        const params = new URLSearchParams({
+          seed: variantSeedRef.current,
+        });
         const res = await fetch(
-          `${PAYLOAD_URL}/api/public/problem-sets/${encodeURIComponent(id)}`,
+          `${PAYLOAD_URL}/api/public/problem-sets/${encodeURIComponent(id)}?${params.toString()}`,
           {
             signal: controller.signal,
           }
@@ -367,6 +373,10 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
       const parts = Array.isArray(problem.parts) ? problem.parts : [];
       return {
         problem: problem.id,
+        variantSeed:
+          typeof problem.variant?.seed === "string"
+            ? problem.variant.seed
+            : null,
         parts: parts.map((_, partIndex) => {
           const part = parts[partIndex];
           const raw = partValues[partIndex];
@@ -469,7 +479,7 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
   if (!block.problemSet) return null;
 
   return (
-    <section className="mx-auto w-full max-w-6xl rounded-2xl border border-primary/15 bg-primary/5 p-6 shadow-sm space-y-5">
+    <section className="mx-auto w-full max-w-6xl rounded-xl border border-primary/15 bg-primary/5 p-6 shadow-sm space-y-5">
       {blockTitle ? (
         <header className="space-y-1">
           <h2 className="text-2xl font-semibold">{blockTitle}</h2>
@@ -504,7 +514,7 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
       ) : null}
 
       {!started ? (
-        <div className="rounded-xl border border-border/60 bg-background/60 p-5">
+        <div className="rounded-lg border border-border/60 bg-background/60 p-5">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
               {orderedProblems.length} problem
@@ -530,7 +540,7 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="sticky top-2 z-20 rounded-xl border border-primary/20 bg-background/95 backdrop-blur px-3 py-3">
+          <div className="sticky top-2 z-20 rounded-lg border border-primary/20 bg-background/95 backdrop-blur px-3 py-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -634,7 +644,7 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
           </div>
 
           <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)]">
-            <aside className="rounded-xl border border-border/60 bg-background/70 p-3 h-fit lg:sticky lg:top-24">
+            <aside className="rounded-lg border border-border/60 bg-background/70 p-3 h-fit lg:sticky lg:top-24">
               <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
                 Problem Navigator
               </p>
@@ -648,7 +658,7 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
                       type="button"
                       onClick={() => scrollToProblem(problemId)}
                       className={cn(
-                        "w-full text-left rounded-lg border px-3 py-2 transition-colors",
+                        "w-full text-left rounded-md border px-3 py-2 transition-colors",
                         activeProblemId === problemId
                           ? "border-primary/50 bg-primary/10"
                           : "border-border/60 hover:bg-accent/40"

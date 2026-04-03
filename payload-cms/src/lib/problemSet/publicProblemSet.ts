@@ -11,6 +11,7 @@ const stripPartAnswerKeyFields = (part: UnknownRecord): UnknownRecord => {
   delete next.significantFigures
   delete next.scoringMode
   delete next.scoringSteps
+  delete next.correctAnswerExpression
   delete next.symbolicAnswer
   delete next.symbolicVariables
   delete next.symbolicTolerance
@@ -29,6 +30,9 @@ const sanitizeProblem = (problem: unknown): unknown => {
       return partRecord ? stripPartAnswerKeyFields(partRecord) : part
     })
   }
+  delete next.parameterDefinitions
+  delete next.derivedValues
+  delete next.parameterSeed
 
   return next
 }

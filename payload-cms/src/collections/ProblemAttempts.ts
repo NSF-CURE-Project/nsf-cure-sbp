@@ -1,9 +1,17 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
 import { gradeProblemAttemptAnswers } from '../utils/problemGrading'
-import { getAttemptLimitContext, isProblemAttemptRateLimited } from '@/lib/problemSet/submissionGuards'
+import {
+  getAttemptLimitContext,
+  isProblemAttemptRateLimited,
+} from '@/lib/problemSet/submissionGuards'
+import {
+  evaluateTemplateExpression,
+  resolveProblemTemplateScope,
+} from '@/lib/problemSet/problemTemplate'
 
 const isStaff = (req?: PayloadRequest | null) =>
-  req?.user?.collection === 'users' && ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
+  req?.user?.collection === 'users' &&
+  ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
 
 const getId = (value: unknown): string | null => {
   if (typeof value === 'string' || typeof value === 'number') return String(value)
@@ -12,6 +20,12 @@ const getId = (value: unknown): string | null => {
     return id != null ? String(id) : null
   }
   return null
+}
+
+const getVariantSeed = (value: unknown): string => {
+  if (!value || typeof value !== 'object') return ''
+  const raw = (value as { variantSeed?: unknown }).variantSeed
+  return typeof raw === 'string' ? raw.trim() : ''
 }
 
 export const ProblemAttempts: CollectionConfig = {
@@ -86,9 +100,20 @@ export const ProblemAttempts: CollectionConfig = {
           ),
         )
 
+        const problemTemplateScopeById = new Map<
+          string,
+          {
+            seed: string
+            scope: Record<string, number>
+            parameters: unknown
+            derived: unknown
+          }
+        >()
+
         const graded = await gradeProblemAttemptAnswers(
           answerRows.map((item) => ({
             problem: getId((item as { problem?: unknown }).problem) ?? '',
+            variantSeed: getVariantSeed(item),
             parts: Array.isArray((item as { parts?: unknown[] }).parts)
               ? ((item as { parts?: unknown[] }).parts ?? []).map((part) => ({
                   partIndex:
@@ -114,22 +139,58 @@ export const ProblemAttempts: CollectionConfig = {
           })),
           problems.map((problem) => ({
             id: String((problem as { id?: string | number }).id ?? ''),
+            templateScope: (() => {
+              const problemId = String((problem as { id?: string | number }).id ?? '')
+              const answerRow = answerRows.find(
+                (item) => getId((item as { problem?: unknown }).problem) === problemId,
+              )
+              const variantSeed = getVariantSeed(answerRow)
+              const resolved = resolveProblemTemplateScope({
+                enabled: Boolean(
+                  (problem as { parameterizationEnabled?: boolean }).parameterizationEnabled,
+                ),
+                parameterDefinitions: (problem as { parameterDefinitions?: unknown })
+                  .parameterDefinitions,
+                derivedValues: (problem as { derivedValues?: unknown }).derivedValues,
+                seed: variantSeed,
+              })
+
+              if (!resolved.errors.length) {
+                problemTemplateScopeById.set(problemId, {
+                  seed: variantSeed,
+                  scope: resolved.scope,
+                  parameters: resolved.parameters,
+                  derived: resolved.derived,
+                })
+              }
+
+              return resolved.scope
+            })(),
             parts: Array.isArray((problem as { parts?: unknown[] }).parts)
               ? ((problem as { parts?: unknown[] }).parts ?? []).map((part) => ({
                   partType: ((part as { partType?: string }).partType ?? 'numeric') as
                     | 'numeric'
                     | 'symbolic'
                     | 'fbd-draw',
-                  correctAnswer: Number((part as { correctAnswer?: number }).correctAnswer ?? 0),
+                  correctAnswer: (() => {
+                    const staticCorrectAnswer = Number(
+                      (part as { correctAnswer?: number }).correctAnswer ?? 0,
+                    )
+                    const expression = (part as { correctAnswerExpression?: string | null })
+                      .correctAnswerExpression
+                    const scope = (
+                      problem as { templateScope?: Record<string, number> | undefined }
+                    ).templateScope
+                    if (!expression || !scope) return staticCorrectAnswer
+                    return evaluateTemplateExpression(expression, scope) ?? staticCorrectAnswer
+                  })(),
                   tolerance: Number((part as { tolerance?: number }).tolerance ?? 0.05),
-                  toleranceType:
-                    ((part as { toleranceType?: 'absolute' | 'relative' }).toleranceType ??
-                      'absolute') as 'absolute' | 'relative',
+                  toleranceType: ((part as { toleranceType?: 'absolute' | 'relative' })
+                    .toleranceType ?? 'absolute') as 'absolute' | 'relative',
                   significantFigures: (part as { significantFigures?: number | null })
                     .significantFigures,
-                  scoringMode: (
-                    part as { scoringMode?: 'threshold' | 'linear-decay' | 'stepped' }
-                  ).scoringMode,
+                  scoringMode: (part as { scoringMode?: 'threshold' | 'linear-decay' | 'stepped' })
+                    .scoringMode,
                   scoringSteps: Array.isArray((part as { scoringSteps?: unknown[] }).scoringSteps)
                     ? ((part as { scoringSteps?: unknown[] }).scoringSteps ?? [])
                         .map((step) => ({
@@ -141,19 +202,39 @@ export const ProblemAttempts: CollectionConfig = {
                         )
                     : [],
                   symbolicAnswer: (part as { symbolicAnswer?: string | null }).symbolicAnswer,
-                  symbolicVariables: Array.isArray((part as { symbolicVariables?: unknown[] }).symbolicVariables)
+                  symbolicVariables: Array.isArray(
+                    (part as { symbolicVariables?: unknown[] }).symbolicVariables,
+                  )
                     ? ((part as { symbolicVariables?: unknown[] }).symbolicVariables ?? [])
-                        .map((variable) => ({
-                          variable: String((variable as { variable?: string }).variable ?? ''),
-                          testMin: Number((variable as { testMin?: number }).testMin ?? 1),
-                          testMax: Number((variable as { testMax?: number }).testMax ?? 10),
-                        }))
+                        .map((variable) => {
+                          const variableName = String(
+                            (variable as { variable?: string }).variable ?? '',
+                          )
+                          const scope = (
+                            problem as { templateScope?: Record<string, number> | undefined }
+                          ).templateScope
+                          const scopedValue =
+                            scope && variableName in scope ? Number(scope[variableName]) : null
+                          if (scopedValue != null && Number.isFinite(scopedValue)) {
+                            return {
+                              variable: variableName,
+                              testMin: scopedValue,
+                              testMax: scopedValue,
+                            }
+                          }
+                          return {
+                            variable: variableName,
+                            testMin: Number((variable as { testMin?: number }).testMin ?? 1),
+                            testMax: Number((variable as { testMax?: number }).testMax ?? 10),
+                          }
+                        })
                         .filter((variable) => Boolean(variable.variable))
                     : [],
                   symbolicTolerance: Number(
                     (part as { symbolicTolerance?: number }).symbolicTolerance ?? 0.000001,
                   ),
-                  fbdRubric: (part as { fbdRubric?: Record<string, unknown> | null }).fbdRubric ?? null,
+                  fbdRubric:
+                    (part as { fbdRubric?: Record<string, unknown> | null }).fbdRubric ?? null,
                   unit: (part as { unit?: string | null }).unit,
                 }))
               : [],
@@ -161,6 +242,22 @@ export const ProblemAttempts: CollectionConfig = {
         )
 
         data.answers = graded.answers
+        data.answers = (Array.isArray(data.answers) ? data.answers : []).map((answer) => {
+          if (!answer || typeof answer !== 'object') return answer
+          const answerProblemId = getId((answer as { problem?: unknown }).problem)
+          if (!answerProblemId) return answer
+          const template = problemTemplateScopeById.get(answerProblemId)
+          if (!template) return answer
+          return {
+            ...(answer as Record<string, unknown>),
+            variantSeed: template.seed,
+            variantScope: template.scope,
+            generatedVariant: {
+              parameters: template.parameters,
+              derived: template.derived,
+            },
+          }
+        })
         data.score = graded.score
         data.maxScore = graded.maxScore
         data.correctCount = graded.correctCount
@@ -220,6 +317,20 @@ export const ProblemAttempts: CollectionConfig = {
           type: 'relationship',
           relationTo: 'problems',
           required: true,
+        },
+        {
+          name: 'variantSeed',
+          type: 'text',
+        },
+        {
+          name: 'variantScope',
+          type: 'json',
+          admin: { readOnly: true },
+        },
+        {
+          name: 'generatedVariant',
+          type: 'json',
+          admin: { readOnly: true },
         },
         {
           name: 'parts',

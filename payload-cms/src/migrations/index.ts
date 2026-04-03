@@ -1,31 +1,32 @@
-import * as migration_20251220_024730_add_versions from './20251220_024730_add_versions';
-import * as migration_20251220_041833_add_layout_blocks from './20251220_041833_add_layout_blocks';
-import * as migration_20251225_182747 from './20251225_182747';
-import * as migration_20251228_190000_lesson_feedback_nav_order from './20251228_190000_lesson_feedback_nav_order';
-import * as migration_20251229_183000_user_names_theme from './20251229_183000_user_names_theme';
-import * as migration_20260105_120000_add_professor_role from './20260105_120000_add_professor_role';
-import * as migration_20260212_161835_add_classrooms_and_memberships from './20260212_161835_add_classrooms_and_memberships';
-import * as migration_20260212_203500_add_classroom_rel_columns from './20260212_203500_add_classroom_rel_columns';
-import * as migration_20260304_000000_add_lesson_bookmarks_rel_columns from './20260304_000000_add_lesson_bookmarks_rel_columns';
-import * as migration_20260310_060000_add_site_branding_and_footer_nsf from './20260310_060000_add_site_branding_and_footer_nsf';
-import * as migration_20260311_000000_add_reporting_snapshot_reproducibility_key from './20260311_000000_add_reporting_snapshot_reproducibility_key';
-import * as migration_20260311_010000_add_reporting_rel_columns from './20260311_010000_add_reporting_rel_columns';
-import * as migration_20260312_000000_create_reporting_tables from './20260312_000000_create_reporting_tables';
-import * as migration_20260312_010000_repair_reporting_rel_columns from './20260312_010000_repair_reporting_rel_columns';
-import * as migration_20260312_020000_create_organizations_table from './20260312_020000_create_organizations_table';
-import * as migration_20260312_030000_add_accounts_reporting_columns from './20260312_030000_add_accounts_reporting_columns';
-import * as migration_20260312_040000_add_reporting_product_records from './20260312_040000_add_reporting_product_records';
-import * as migration_20260312_050000_expand_admin_help_portal from './20260312_050000_expand_admin_help_portal';
-import * as migration_20260315_235000_add_account_streak_columns from './20260315_235000_add_account_streak_columns';
-import * as migration_20260316_080657_add_problem_set_collections_v1 from './20260316_080657_add_problem_set_collections_v1';
-import * as migration_20260316_081500_add_engineering_figure_templates_flag from './20260316_081500_add_engineering_figure_templates_flag';
-import * as migration_20260316_084525_add_problem_set_v2_extensions from './20260316_084525_add_problem_set_v2_extensions';
-import * as migration_20260316_120000_add_account_notification_preferences from './20260316_120000_add_account_notification_preferences';
-import * as migration_20260316_130000_create_api_keys from './20260316_130000_create_api_keys';
-import * as migration_20260317_120000_add_engineering_figure_axes from './20260317_120000_add_engineering_figure_axes';
-import * as migration_20260325_120000_add_help_topic_structured_fields from './20260325_120000_add_help_topic_structured_fields';
-import * as migration_20260327_070000_add_api_keys_locked_rel_column from './20260327_070000_add_api_keys_locked_rel_column';
-import * as migration_20260327_130000_repair_problem_schema_drift from './20260327_130000_repair_problem_schema_drift';
+import * as migration_20251220_024730_add_versions from './20251220_024730_add_versions'
+import * as migration_20251220_041833_add_layout_blocks from './20251220_041833_add_layout_blocks'
+import * as migration_20251225_182747 from './20251225_182747'
+import * as migration_20251228_190000_lesson_feedback_nav_order from './20251228_190000_lesson_feedback_nav_order'
+import * as migration_20251229_183000_user_names_theme from './20251229_183000_user_names_theme'
+import * as migration_20260105_120000_add_professor_role from './20260105_120000_add_professor_role'
+import * as migration_20260212_161835_add_classrooms_and_memberships from './20260212_161835_add_classrooms_and_memberships'
+import * as migration_20260212_203500_add_classroom_rel_columns from './20260212_203500_add_classroom_rel_columns'
+import * as migration_20260304_000000_add_lesson_bookmarks_rel_columns from './20260304_000000_add_lesson_bookmarks_rel_columns'
+import * as migration_20260310_060000_add_site_branding_and_footer_nsf from './20260310_060000_add_site_branding_and_footer_nsf'
+import * as migration_20260311_000000_add_reporting_snapshot_reproducibility_key from './20260311_000000_add_reporting_snapshot_reproducibility_key'
+import * as migration_20260311_010000_add_reporting_rel_columns from './20260311_010000_add_reporting_rel_columns'
+import * as migration_20260312_000000_create_reporting_tables from './20260312_000000_create_reporting_tables'
+import * as migration_20260312_010000_repair_reporting_rel_columns from './20260312_010000_repair_reporting_rel_columns'
+import * as migration_20260312_020000_create_organizations_table from './20260312_020000_create_organizations_table'
+import * as migration_20260312_030000_add_accounts_reporting_columns from './20260312_030000_add_accounts_reporting_columns'
+import * as migration_20260312_040000_add_reporting_product_records from './20260312_040000_add_reporting_product_records'
+import * as migration_20260312_050000_expand_admin_help_portal from './20260312_050000_expand_admin_help_portal'
+import * as migration_20260315_235000_add_account_streak_columns from './20260315_235000_add_account_streak_columns'
+import * as migration_20260316_080657_add_problem_set_collections_v1 from './20260316_080657_add_problem_set_collections_v1'
+import * as migration_20260316_081500_add_engineering_figure_templates_flag from './20260316_081500_add_engineering_figure_templates_flag'
+import * as migration_20260316_084525_add_problem_set_v2_extensions from './20260316_084525_add_problem_set_v2_extensions'
+import * as migration_20260316_120000_add_account_notification_preferences from './20260316_120000_add_account_notification_preferences'
+import * as migration_20260316_130000_create_api_keys from './20260316_130000_create_api_keys'
+import * as migration_20260317_120000_add_engineering_figure_axes from './20260317_120000_add_engineering_figure_axes'
+import * as migration_20260325_120000_add_help_topic_structured_fields from './20260325_120000_add_help_topic_structured_fields'
+import * as migration_20260327_070000_add_api_keys_locked_rel_column from './20260327_070000_add_api_keys_locked_rel_column'
+import * as migration_20260327_130000_repair_problem_schema_drift from './20260327_130000_repair_problem_schema_drift'
+import * as migration_20260402_090000_add_problem_templates_runtime from './20260402_090000_add_problem_templates_runtime'
 
 export const migrations = [
   {
@@ -168,4 +169,9 @@ export const migrations = [
     down: migration_20260327_130000_repair_problem_schema_drift.down,
     name: '20260327_130000_repair_problem_schema_drift',
   },
-];
+  {
+    up: migration_20260402_090000_add_problem_templates_runtime.up,
+    down: migration_20260402_090000_add_problem_templates_runtime.down,
+    name: '20260402_090000_add_problem_templates_runtime',
+  },
+]

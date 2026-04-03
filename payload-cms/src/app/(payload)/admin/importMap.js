@@ -38,6 +38,7 @@ import { default as default_edf03fc31873d58cdebfd253d2bc5043 } from '@/views/For
 import { FbdRubricBuilderField as FbdRubricBuilderField_e970eb0b5f4a807fcabb100596d5fff9 } from '@/views/FbdRubricBuilderField'
 import { FbdSyncValidatorField as FbdSyncValidatorField_2df2862d914337bd2adac086d72d23ca } from '@/views/FbdSyncValidatorField'
 import { default as default_468efbae130dde8cd1b02c5dba12007e } from '@/views/PlotWizardField'
+import { default as default_220cbcd0bd9a8f747153f5d7043b0ab7 } from '@/views/ProblemTemplatePreviewField'
 import { default as default_83665b2e457b847ee9222917fde5a7ab } from '@/views/ProblemPreviewTab'
 import { default as default_20b4b595011067220e22f7c98e94e4e7 } from '@/views/AdminIcon'
 import { default as default_1c527c7f8e4abfd6959bbf71cc426e00 } from '@/views/AdminLogo'
@@ -86,6 +87,7 @@ export const importMap = {
   "@/views/FbdRubricBuilderField#FbdRubricBuilderField": FbdRubricBuilderField_e970eb0b5f4a807fcabb100596d5fff9,
   "@/views/FbdSyncValidatorField#FbdSyncValidatorField": FbdSyncValidatorField_2df2862d914337bd2adac086d72d23ca,
   "@/views/PlotWizardField#default": default_468efbae130dde8cd1b02c5dba12007e,
+  "@/views/ProblemTemplatePreviewField#default": default_220cbcd0bd9a8f747153f5d7043b0ab7,
   "@/views/ProblemPreviewTab#default": default_83665b2e457b847ee9222917fde5a7ab,
   "@/views/AdminIcon#default": default_20b4b595011067220e22f7c98e94e4e7,
   "@/views/AdminLogo#default": default_1c527c7f8e4abfd6959bbf71cc426e00,

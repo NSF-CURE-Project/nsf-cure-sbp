@@ -92,6 +92,9 @@ const buildGivenFacts = (
   if (figure?.figureData?.type === "fbd") {
     facts.push(`Forces: ${figure.figureData.forces.length}`);
   }
+  if (problem.variant?.parameters?.length) {
+    facts.push(`Variant seed: ${problem.variant.seed}`);
+  }
   return facts.slice(0, 6);
 };
 
@@ -138,11 +141,17 @@ export function ProblemCard({
     ? problem.resultPlots
     : [];
   const givenFacts = buildGivenFacts(problem, figure);
+  const variantValues = [
+    ...(Array.isArray(problem.variant?.parameters)
+      ? problem.variant.parameters
+      : []),
+    ...(Array.isArray(problem.variant?.derived) ? problem.variant.derived : []),
+  ];
 
   return (
     <article
       className={cn(
-        "rounded-xl border bg-card/70 p-4 md:p-5 space-y-4 transition-colors",
+        "rounded-lg border bg-card/70 p-4 md:p-5 space-y-4 transition-colors",
         isActive
           ? "border-primary/45 shadow-sm shadow-primary/10"
           : "border-border/60"
@@ -168,7 +177,7 @@ export function ProblemCard({
       {figure ? <EngineeringFigure figure={figure} /> : null}
 
       {givenFacts.length ? (
-        <section className="rounded-lg border border-border/60 bg-background/60 p-3">
+        <section className="rounded-md border border-border/60 bg-background/60 p-3">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
             Given
           </p>
@@ -185,8 +194,27 @@ export function ProblemCard({
         </section>
       ) : null}
 
+      {variantValues.length ? (
+        <section className="rounded-md border border-border/60 bg-background/60 p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Variant Inputs
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {variantValues.map((entry) => (
+              <span
+                key={`${entry.key}-${entry.value}`}
+                className="rounded-md border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs text-foreground"
+              >
+                {entry.label}: {Number(entry.value.toFixed(6))}{" "}
+                {entry.unit ? entry.unit : ""}
+              </span>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {isRichTextValue(problem.prompt) ? (
-        <section className="rounded-lg border border-border/60 bg-background/60 p-4">
+        <section className="rounded-md border border-border/60 bg-background/60 p-4">
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
             Task
           </p>

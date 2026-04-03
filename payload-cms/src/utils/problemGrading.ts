@@ -66,11 +66,14 @@ export type SubmittedPartAnswer = {
 
 export type SubmittedProblemAnswer = {
   problem: string | number
+  variantSeed?: string | null
+  variantScope?: Record<string, number> | null
   parts?: SubmittedPartAnswer[]
 }
 
 export type ProblemForGrading = {
   id: string | number
+  templateScope?: Record<string, number> | null
   parts?: ProblemPartForGrading[]
 }
 
@@ -135,7 +138,8 @@ const gradeFbdPart = (
 
     const matchIndex = submittedForces.findIndex((force, index) => {
       if (usedForceIndexes.has(index)) return false
-      if (angleDiff(force.angle, Number(requiredForce.correctAngle ?? 0)) > angleTolerance) return false
+      if (angleDiff(force.angle, Number(requiredForce.correctAngle ?? 0)) > angleTolerance)
+        return false
       if (!magnitudeRequired) return true
       if (!Number.isFinite(correctMagnitude)) return false
       const magnitudeError = Math.abs(force.magnitude - correctMagnitude)
@@ -172,7 +176,9 @@ const gradeFbdPart = (
   const totalRequired = requiredForces.length + requiredMoments.length
   const unmatchedExtraForces = Math.max(0, submittedForces.length - matchedForces - forbiddenForces)
   const forceDeduction = totalRequired ? unmatchedExtraForces / totalRequired : 0
-  const score = clampScore((matchedForces + matchedMoments) / Math.max(totalRequired, 1) - forceDeduction)
+  const score = clampScore(
+    (matchedForces + matchedMoments) / Math.max(totalRequired, 1) - forceDeduction,
+  )
   return {
     score,
     isCorrect: score === 1,
@@ -195,7 +201,10 @@ const getNormalizedError = (studentRaw: number, config: PartGradingConfig): numb
   return diff
 }
 
-export function gradePart(studentRaw: number, config: PartGradingConfig): { score: number; isCorrect: boolean } {
+export function gradePart(
+  studentRaw: number,
+  config: PartGradingConfig,
+): { score: number; isCorrect: boolean } {
   const tolerance = Math.abs(config.tolerance)
   const normalizedError = getNormalizedError(studentRaw, config)
   const scoringMode = config.scoringMode ?? 'threshold'
@@ -245,123 +254,127 @@ export const gradeProblemAttemptAnswers = async (
   let totalParts = 0
   let correctCount = 0
 
-  const normalizedAnswers = await Promise.all(submission.map(async (item) => {
-    const problemId = String(item.problem)
-    const problem = problemsById.get(problemId)
-    const canonicalParts = Array.isArray(problem?.parts) ? problem.parts : []
-    const submittedParts = Array.isArray(item.parts) ? item.parts : []
-    const submittedByIndex = new Map<number, SubmittedPartAnswer>(
-      submittedParts.map((part) => [part.partIndex, part]),
-    )
+  const normalizedAnswers = await Promise.all(
+    submission.map(async (item) => {
+      const problemId = String(item.problem)
+      const problem = problemsById.get(problemId)
+      const canonicalParts = Array.isArray(problem?.parts) ? problem.parts : []
+      const submittedParts = Array.isArray(item.parts) ? item.parts : []
+      const submittedByIndex = new Map<number, SubmittedPartAnswer>(
+        submittedParts.map((part) => [part.partIndex, part]),
+      )
 
-    const gradedParts = await Promise.all(canonicalParts.map(async (part, partIndex) => {
-      totalParts += 1
-      const submittedPart = submittedByIndex.get(partIndex)
-      const partType = part.partType ?? 'numeric'
-      const rawStudent = toFiniteNumber(submittedPart?.studentAnswer)
-      const studentExpression =
-        typeof submittedPart?.studentExpression === 'string'
-          ? submittedPart.studentExpression.trim()
-          : ''
+      const gradedParts = await Promise.all(
+        canonicalParts.map(async (part, partIndex) => {
+          totalParts += 1
+          const submittedPart = submittedByIndex.get(partIndex)
+          const partType = part.partType ?? 'numeric'
+          const rawStudent = toFiniteNumber(submittedPart?.studentAnswer)
+          const studentExpression =
+            typeof submittedPart?.studentExpression === 'string'
+              ? submittedPart.studentExpression.trim()
+              : ''
 
-      let graded = { score: 0, isCorrect: false }
+          let graded = { score: 0, isCorrect: false }
 
-      if (partType === 'symbolic') {
-        const isCorrect = await gradeSymbolic(
-          studentExpression,
-          part.symbolicAnswer ?? '',
-          part.symbolicVariables ?? [],
-          Math.abs(part.symbolicTolerance ?? 0.000001),
-          5,
-          `${problemId}:${partIndex}`,
-        )
-        graded = { score: isCorrect ? 1 : 0, isCorrect }
-      } else if (partType === 'fbd-draw') {
-        const submittedForces = Array.isArray(submittedPart?.placedForces?.forces)
-          ? submittedPart.placedForces?.forces
-              ?.slice(0, 20)
-              .filter(
-                (force) =>
-                  typeof force?.id === 'string' &&
-                  Array.isArray(force?.origin) &&
-                  force.origin.length === 2 &&
-                  Number.isFinite(force.origin[0]) &&
-                  Number.isFinite(force.origin[1]) &&
-                  Number.isFinite(force?.angle) &&
-                  Number.isFinite(force?.magnitude) &&
-                  typeof force?.label === 'string',
-              )
-              .map((force) => ({
-                id: force.id,
-                origin: [force.origin[0], force.origin[1]] as [number, number],
-                angle: force.angle,
-                magnitude: force.magnitude,
-                label: force.label,
-              }))
-          : []
-        const submittedMoments = Array.isArray(submittedPart?.placedForces?.moments)
-          ? submittedPart.placedForces?.moments
-              ?.slice(0, 20)
-              .filter(
-                (moment) =>
-                  typeof moment?.id === 'string' &&
-                  Number.isFinite(moment?.x) &&
-                  Number.isFinite(moment?.y) &&
-                  Number.isFinite(moment?.magnitude) &&
-                  (moment?.direction === 'cw' || moment?.direction === 'ccw'),
-              )
-              .map((moment) => ({
-                id: moment.id,
-                label: typeof moment.label === 'string' ? moment.label : undefined,
-                x: moment.x,
-                y: moment.y,
-                direction: moment.direction,
-                magnitude: moment.magnitude,
-              }))
-          : []
-        graded = gradeFbdPart(submittedForces, submittedMoments, part.fbdRubric)
-      } else {
-        graded =
-          rawStudent == null
-            ? { score: 0, isCorrect: false }
-            : gradePart(rawStudent, {
-                correctAnswer: part.correctAnswer,
-                tolerance: part.tolerance,
-                toleranceType: part.toleranceType,
-                significantFigures: part.significantFigures,
-                scoringMode: part.scoringMode,
-                scoringSteps: part.scoringSteps,
-              })
-      }
-      const partScore = Number(graded.score.toFixed(4))
-      totalScore += partScore
-      if (graded.isCorrect) correctCount += 1
+          if (partType === 'symbolic') {
+            const isCorrect = await gradeSymbolic(
+              studentExpression,
+              part.symbolicAnswer ?? '',
+              part.symbolicVariables ?? [],
+              Math.abs(part.symbolicTolerance ?? 0.000001),
+              5,
+              `${problemId}:${partIndex}`,
+            )
+            graded = { score: isCorrect ? 1 : 0, isCorrect }
+          } else if (partType === 'fbd-draw') {
+            const submittedForces = Array.isArray(submittedPart?.placedForces?.forces)
+              ? submittedPart.placedForces?.forces
+                  ?.slice(0, 20)
+                  .filter(
+                    (force) =>
+                      typeof force?.id === 'string' &&
+                      Array.isArray(force?.origin) &&
+                      force.origin.length === 2 &&
+                      Number.isFinite(force.origin[0]) &&
+                      Number.isFinite(force.origin[1]) &&
+                      Number.isFinite(force?.angle) &&
+                      Number.isFinite(force?.magnitude) &&
+                      typeof force?.label === 'string',
+                  )
+                  .map((force) => ({
+                    id: force.id,
+                    origin: [force.origin[0], force.origin[1]] as [number, number],
+                    angle: force.angle,
+                    magnitude: force.magnitude,
+                    label: force.label,
+                  }))
+              : []
+            const submittedMoments = Array.isArray(submittedPart?.placedForces?.moments)
+              ? submittedPart.placedForces?.moments
+                  ?.slice(0, 20)
+                  .filter(
+                    (moment) =>
+                      typeof moment?.id === 'string' &&
+                      Number.isFinite(moment?.x) &&
+                      Number.isFinite(moment?.y) &&
+                      Number.isFinite(moment?.magnitude) &&
+                      (moment?.direction === 'cw' || moment?.direction === 'ccw'),
+                  )
+                  .map((moment) => ({
+                    id: moment.id,
+                    label: typeof moment.label === 'string' ? moment.label : undefined,
+                    x: moment.x,
+                    y: moment.y,
+                    direction: moment.direction,
+                    magnitude: moment.magnitude,
+                  }))
+              : []
+            graded = gradeFbdPart(submittedForces, submittedMoments, part.fbdRubric)
+          } else {
+            graded =
+              rawStudent == null
+                ? { score: 0, isCorrect: false }
+                : gradePart(rawStudent, {
+                    correctAnswer: part.correctAnswer,
+                    tolerance: part.tolerance,
+                    toleranceType: part.toleranceType,
+                    significantFigures: part.significantFigures,
+                    scoringMode: part.scoringMode,
+                    scoringSteps: part.scoringSteps,
+                  })
+          }
+          const partScore = Number(graded.score.toFixed(4))
+          totalScore += partScore
+          if (graded.isCorrect) correctCount += 1
+
+          return {
+            partIndex,
+            studentAnswer: rawStudent,
+            studentExpression: studentExpression || null,
+            placedForces:
+              partType === 'fbd-draw' &&
+              (Array.isArray(submittedPart?.placedForces?.forces) ||
+                Array.isArray(submittedPart?.placedForces?.moments))
+                ? {
+                    forces: submittedPart?.placedForces?.forces?.slice(0, 20) ?? [],
+                    moments: Array.isArray(submittedPart?.placedForces?.moments)
+                      ? submittedPart.placedForces.moments.slice(0, 20)
+                      : [],
+                  }
+                : null,
+            isCorrect: graded.isCorrect,
+            score: partScore,
+          }
+        }),
+      )
 
       return {
-        partIndex,
-        studentAnswer: rawStudent,
-        studentExpression: studentExpression || null,
-        placedForces:
-          partType === 'fbd-draw' &&
-          (Array.isArray(submittedPart?.placedForces?.forces) ||
-            Array.isArray(submittedPart?.placedForces?.moments))
-            ? {
-                forces: submittedPart?.placedForces?.forces?.slice(0, 20) ?? [],
-                moments: Array.isArray(submittedPart?.placedForces?.moments)
-                  ? submittedPart.placedForces.moments.slice(0, 20)
-                  : [],
-              }
-            : null,
-        isCorrect: graded.isCorrect,
-        score: partScore,
+        problem: problemId,
+        parts: gradedParts,
       }
-    }))
-
-    return {
-      problem: problemId,
-      parts: gradedParts,
-    }
-  }))
+    }),
+  )
 
   return {
     answers: normalizedAnswers,

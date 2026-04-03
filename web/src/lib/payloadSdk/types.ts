@@ -227,13 +227,27 @@ export type FBDData = {
     magnitude: number;
     color?: string;
   }[];
-  dimensions?: { from: [number, number]; to: [number, number]; label: string }[];
-  angles?: { vertex: [number, number]; from: number; to: number; label: string }[];
+  dimensions?: {
+    from: [number, number];
+    to: [number, number];
+    label: string;
+  }[];
+  angles?: {
+    vertex: [number, number];
+    from: number;
+    to: number;
+    label: string;
+  }[];
 };
 
 export type TrussData = {
   type: "truss";
-  nodes: { id: string; x: number; y: number; support?: "pin" | "roller" | "fixed" | null }[];
+  nodes: {
+    id: string;
+    x: number;
+    y: number;
+    support?: "pin" | "roller" | "fixed" | null;
+  }[];
   members: { from: string; to: string; id?: string }[];
   loads: { node: string; angle: number; magnitude: number; label?: string }[];
 };
@@ -250,7 +264,12 @@ export type BeamData = {
     wEnd: number;
     label?: string;
   }[];
-  pointLoads?: { x: number; magnitude: number; angle: number; label?: string }[];
+  pointLoads?: {
+    x: number;
+    magnitude: number;
+    angle: number;
+    label?: string;
+  }[];
   moments?: { x: number; value: number; label?: string }[];
   dimensions?: boolean;
 };
@@ -264,7 +283,11 @@ export type MomentDiagramData = {
   labels?: { x: number; label: string }[];
 };
 
-export type EngineeringFigureData = FBDData | TrussData | BeamData | MomentDiagramData;
+export type EngineeringFigureData =
+  | FBDData
+  | TrussData
+  | BeamData
+  | MomentDiagramData;
 
 export type EngineeringFigureDoc = {
   id: string | number;
@@ -291,6 +314,7 @@ export type ProblemPart = {
   unit?: string;
   partType?: "numeric" | "symbolic" | "fbd-draw";
   correctAnswer?: number;
+  correctAnswerExpression?: string;
   tolerance?: number;
   toleranceType?: "absolute" | "relative";
   significantFigures?: number | null;
@@ -352,6 +376,13 @@ export type ProblemResultPlot = {
   criticalPoints?: ProblemResultPlotCriticalPoint[];
 };
 
+export type ProblemVariantValue = {
+  key: string;
+  label: string;
+  unit?: string | null;
+  value: number;
+};
+
 export type ProblemDoc = {
   id: string | number;
   title?: string;
@@ -360,6 +391,11 @@ export type ProblemDoc = {
   difficulty?: "intro" | "easy" | "medium" | "hard" | string;
   topic?: string;
   tags?: string[];
+  variant?: {
+    seed: string;
+    parameters: ProblemVariantValue[];
+    derived: ProblemVariantValue[];
+  };
   parts?: ProblemPart[];
   resultPlots?: ProblemResultPlot[];
 };
