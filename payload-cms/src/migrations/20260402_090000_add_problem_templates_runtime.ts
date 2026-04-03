@@ -10,11 +10,13 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
 
     ALTER TABLE IF EXISTS "problem_attempts_answers"
       ADD COLUMN IF NOT EXISTS "variant_seed" varchar,
+      ADD COLUMN IF NOT EXISTS "variant_signature" varchar,
       ADD COLUMN IF NOT EXISTS "variant_scope" jsonb,
       ADD COLUMN IF NOT EXISTS "generated_variant" jsonb;
 
     ALTER TABLE IF EXISTS "_problem_attempts_v_version_answers"
       ADD COLUMN IF NOT EXISTS "variant_seed" varchar,
+      ADD COLUMN IF NOT EXISTS "variant_signature" varchar,
       ADD COLUMN IF NOT EXISTS "variant_scope" jsonb,
       ADD COLUMN IF NOT EXISTS "generated_variant" jsonb;
 
@@ -165,11 +167,13 @@ export async function down({ db }: MigrateDownArgs): Promise<void> {
 
     ALTER TABLE IF EXISTS "problem_attempts_answers"
       DROP COLUMN IF EXISTS "variant_seed",
+      DROP COLUMN IF EXISTS "variant_signature",
       DROP COLUMN IF EXISTS "variant_scope",
       DROP COLUMN IF EXISTS "generated_variant";
 
     ALTER TABLE IF EXISTS "_problem_attempts_v_version_answers"
       DROP COLUMN IF EXISTS "variant_seed",
+      DROP COLUMN IF EXISTS "variant_signature",
       DROP COLUMN IF EXISTS "variant_scope",
       DROP COLUMN IF EXISTS "generated_variant";
 

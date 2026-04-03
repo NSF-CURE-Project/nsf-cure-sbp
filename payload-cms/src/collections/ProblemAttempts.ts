@@ -8,6 +8,10 @@ import {
   evaluateTemplateExpression,
   resolveProblemTemplateScope,
 } from '@/lib/problemSet/problemTemplate'
+import {
+  signProblemTemplateVariant,
+  verifyProblemTemplateVariantSignature,
+} from '@/lib/problemSet/problemTemplateSignature'
 
 const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' &&
@@ -25,6 +29,12 @@ const getId = (value: unknown): string | null => {
 const getVariantSeed = (value: unknown): string => {
   if (!value || typeof value !== 'object') return ''
   const raw = (value as { variantSeed?: unknown }).variantSeed
+  return typeof raw === 'string' ? raw.trim() : ''
+}
+
+const getVariantSignature = (value: unknown): string => {
+  if (!value || typeof value !== 'object') return ''
+  const raw = (value as { variantSignature?: unknown }).variantSignature
   return typeof raw === 'string' ? raw.trim() : ''
 }
 
@@ -114,6 +124,7 @@ export const ProblemAttempts: CollectionConfig = {
           answerRows.map((item) => ({
             problem: getId((item as { problem?: unknown }).problem) ?? '',
             variantSeed: getVariantSeed(item),
+            variantSignature: getVariantSignature(item),
             parts: Array.isArray((item as { parts?: unknown[] }).parts)
               ? ((item as { parts?: unknown[] }).parts ?? []).map((part) => ({
                   partIndex:
@@ -144,7 +155,15 @@ export const ProblemAttempts: CollectionConfig = {
               const answerRow = answerRows.find(
                 (item) => getId((item as { problem?: unknown }).problem) === problemId,
               )
-              const variantSeed = getVariantSeed(answerRow)
+              const requestedSeed = getVariantSeed(answerRow)
+              const requestedSignature = getVariantSignature(answerRow)
+              const verifiedSeed = verifyProblemTemplateVariantSignature({
+                problemId,
+                seed: requestedSeed,
+                signature: requestedSignature,
+              })
+                ? requestedSeed
+                : ''
               const resolved = resolveProblemTemplateScope({
                 enabled: Boolean(
                   (problem as { parameterizationEnabled?: boolean }).parameterizationEnabled,
@@ -152,12 +171,12 @@ export const ProblemAttempts: CollectionConfig = {
                 parameterDefinitions: (problem as { parameterDefinitions?: unknown })
                   .parameterDefinitions,
                 derivedValues: (problem as { derivedValues?: unknown }).derivedValues,
-                seed: variantSeed,
+                seed: verifiedSeed,
               })
 
               if (!resolved.errors.length) {
                 problemTemplateScopeById.set(problemId, {
-                  seed: variantSeed,
+                  seed: verifiedSeed,
                   scope: resolved.scope,
                   parameters: resolved.parameters,
                   derived: resolved.derived,
@@ -251,6 +270,7 @@ export const ProblemAttempts: CollectionConfig = {
           return {
             ...(answer as Record<string, unknown>),
             variantSeed: template.seed,
+            variantSignature: signProblemTemplateVariant(answerProblemId, template.seed),
             variantScope: template.scope,
             generatedVariant: {
               parameters: template.parameters,
@@ -320,6 +340,10 @@ export const ProblemAttempts: CollectionConfig = {
         },
         {
           name: 'variantSeed',
+          type: 'text',
+        },
+        {
+          name: 'variantSignature',
           type: 'text',
         },
         {

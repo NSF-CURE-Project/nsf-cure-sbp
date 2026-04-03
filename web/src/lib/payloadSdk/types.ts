@@ -393,6 +393,7 @@ export type ProblemDoc = {
   tags?: string[];
   variant?: {
     seed: string;
+    signature: string;
     parameters: ProblemVariantValue[];
     derived: ProblemVariantValue[];
   };

@@ -67,6 +67,7 @@ export type SubmittedPartAnswer = {
 export type SubmittedProblemAnswer = {
   problem: string | number
   variantSeed?: string | null
+  variantSignature?: string | null
   variantScope?: Record<string, number> | null
   parts?: SubmittedPartAnswer[]
 }

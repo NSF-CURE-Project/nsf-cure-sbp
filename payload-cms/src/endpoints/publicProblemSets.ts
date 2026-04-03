@@ -1,6 +1,7 @@
 import type { PayloadHandler } from 'payload'
 
 import { buildProblemTemplateVariant } from '@/lib/problemSet/problemTemplate'
+import { signProblemTemplateVariant } from '@/lib/problemSet/problemTemplateSignature'
 import { sanitizeProblemSetForPublic } from '@/lib/problemSet/publicProblemSet'
 
 const STAFF_ROLES = new Set(['admin', 'staff', 'professor'])
@@ -47,7 +48,10 @@ const toPublicDocWithVariants = (doc: unknown, seedBase: string) => {
   const rawProblems = Array.isArray(rawDoc.problems)
     ? (rawDoc.problems as Array<Record<string, unknown>>)
     : []
-  const variantsById = new Map<string, { seed: string; parameters: unknown; derived: unknown }>()
+  const variantsById = new Map<
+    string,
+    { seed: string; signature: string; parameters: unknown; derived: unknown }
+  >()
 
   rawProblems.forEach((problem, index) => {
     const problemId =
@@ -65,6 +69,7 @@ const toPublicDocWithVariants = (doc: unknown, seedBase: string) => {
     if (!variant.parameters.length && !variant.derived.length) return
     variantsById.set(problemId, {
       seed,
+      signature: signProblemTemplateVariant(problemId, seed),
       parameters: variant.parameters,
       derived: variant.derived,
     })

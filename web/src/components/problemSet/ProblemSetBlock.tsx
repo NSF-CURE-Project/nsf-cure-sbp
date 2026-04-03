@@ -377,6 +377,10 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
           typeof problem.variant?.seed === "string"
             ? problem.variant.seed
             : null,
+        variantSignature:
+          typeof problem.variant?.signature === "string"
+            ? problem.variant.signature
+            : null,
         parts: parts.map((_, partIndex) => {
           const part = parts[partIndex];
           const raw = partValues[partIndex];
