@@ -9,6 +9,7 @@ import {
 import { InlineMath } from "@/components/problemSet/InlineMath";
 import { SymbolicInput } from "@/components/problemSet/SymbolicInput";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
+import { buildFbdRubricFeedback } from "@/lib/problemSet/fbdRubricFeedback";
 import type { EngineeringFigureDoc, ProblemPart } from "@/lib/payloadSdk/types";
 import { cn } from "@/lib/utils";
 
@@ -73,9 +74,10 @@ export function PartInputRow({
             : [],
         }
       : { forces: [], moments: [] };
+  const fbdFeedback = buildFbdRubricFeedback(part.fbdRubric, fbdValue);
 
   return (
-    <div className="rounded-lg border border-border/60 bg-background/70 p-4 space-y-3 shadow-sm">
+    <div className="rounded-md border border-border/60 bg-background/70 p-4 space-y-3 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
           Step {partNumber ?? 1}
@@ -171,13 +173,82 @@ export function PartInputRow({
                   </span>
                 </>
               ) : part.partType === "fbd-draw" ? (
-                <>
-                  FBD rubric:{" "}
-                  <span className="font-medium text-foreground">
-                    {(part.fbdRubric?.requiredForces ?? []).length} required
-                    force(s)
-                  </span>
-                </>
+                <div className="space-y-2">
+                  <div>
+                    FBD rubric:{" "}
+                    <span className="font-medium text-foreground">
+                      {fbdFeedback.totalRequired}{" "}
+                      required item(s)
+                    </span>
+                  </div>
+                  {fbdFeedback.requiredForceStatuses.length ? (
+                    <div className="space-y-1">
+                      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                        Required forces
+                      </div>
+                      {fbdFeedback.requiredForceStatuses.map((item, index) => (
+                        <div
+                          key={item.id || `force-${index}`}
+                          className={cn(
+                            "flex items-center justify-between rounded border px-2 py-1 text-[11px]",
+                            item.matched
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                              : "border-red-200 bg-red-50 text-red-700"
+                          )}
+                        >
+                          <span className="font-medium">
+                            {item.label || item.id || `Force ${index + 1}`}
+                          </span>
+                          <span>{item.matched ? "Matched" : "Missing"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  {fbdFeedback.requiredMomentStatuses.length ? (
+                    <div className="space-y-1">
+                      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                        Required moments
+                      </div>
+                      {fbdFeedback.requiredMomentStatuses.map((item, index) => (
+                        <div
+                          key={item.id || `moment-${index}`}
+                          className={cn(
+                            "flex items-center justify-between rounded border px-2 py-1 text-[11px]",
+                            item.matched
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                              : "border-red-200 bg-red-50 text-red-700"
+                          )}
+                        >
+                          <span className="font-medium">
+                            {item.label || item.id || `Moment ${index + 1}`} (
+                            {item.direction.toUpperCase()})
+                          </span>
+                          <span>{item.matched ? "Matched" : "Missing"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  {fbdFeedback.totalRequired > 0 ? (
+                    <div
+                      className={cn(
+                        "rounded border px-2 py-1 text-[11px]",
+                        fbdFeedback.extraForcesCount > 0
+                          ? "border-amber-300 bg-amber-50 text-amber-800"
+                          : "border-border/60 bg-muted/20 text-muted-foreground"
+                      )}
+                    >
+                      Extra forces beyond allowance: {fbdFeedback.extraForcesCount}{" "}
+                      (allowed {fbdFeedback.forbiddenForces})
+                      {fbdFeedback.extraForcesCount > 0 ? (
+                        <>
+                          {" "}
+                          · penalty{" "}
+                          {Math.round(fbdFeedback.extraForcesPenalty * 100)}%
+                        </>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
               ) : (
                 <>
                   Correct answer:{" "}

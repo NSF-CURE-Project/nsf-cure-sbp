@@ -469,7 +469,7 @@ export function EngineeringFigure({ figure }: EngineeringFigureProps) {
     figure.description?.trim() || figure.title || "Engineering figure";
 
   return (
-    <figure className="overflow-hidden rounded-xl border border-border/60 bg-gradient-to-b from-background to-muted/20 shadow-sm">
+    <figure className="overflow-hidden rounded-lg border border-border/60 bg-gradient-to-b from-background to-muted/20 shadow-sm">
       <div className="flex items-center justify-between border-b border-border/50 px-4 py-2.5">
         <div className="text-sm font-semibold text-foreground">
           {figure.title || "Engineering Diagram"}

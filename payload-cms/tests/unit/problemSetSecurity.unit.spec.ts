@@ -4,6 +4,7 @@ import { sanitizeProblemSetForPublic } from '@/lib/problemSet/publicProblemSet'
 import {
   getAttemptLimitContext,
   isProblemAttemptRateLimited,
+  isProblemAttemptRateLimitedDistributed,
 } from '@/lib/problemSet/submissionGuards'
 
 describe('problem set public sanitization', () => {
@@ -29,6 +30,7 @@ describe('problem set public sanitization', () => {
               symbolicVariables: [{ variable: 'x', testMin: 1, testMax: 2 }],
               symbolicTolerance: 0.0001,
               fbdRubric: { requiredForces: [{ id: 'F1', correctAngle: 90 }] },
+              explanation: { root: {} },
               prompt: { root: {} },
               unit: 'N',
             },
@@ -48,6 +50,7 @@ describe('problem set public sanitization', () => {
     expect(part.symbolicVariables).toBeUndefined()
     expect(part.symbolicTolerance).toBeUndefined()
     expect(part.fbdRubric).toBeUndefined()
+    expect(part.explanation).toBeUndefined()
     expect(part.label).toBe('A')
     expect(part.unit).toBe('N')
   })
@@ -101,6 +104,27 @@ describe('problem attempt submission guards', () => {
           problemSet: { equals: 'set-1' },
           lesson: { equals: 'lesson-7' },
         },
+      }),
+    )
+  })
+
+  it('uses persisted attempts to enforce distributed rate limits', async () => {
+    const count = vi.fn(async () => ({ totalDocs: 20 }))
+    const find = vi.fn(async () => ({
+      docs: [{ createdAt: new Date(1_000).toISOString() }],
+    }))
+    const req = {
+      user: { id: 'account-distributed' },
+      headers: {},
+      payload: { count, find },
+    } as never
+
+    const result = await isProblemAttemptRateLimitedDistributed(req, 120_000)
+    expect(result.blocked).toBe(true)
+    expect(result.retryAfterSec).toBeGreaterThan(0)
+    expect(count).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: 'problem-attempts',
       }),
     )
   })

@@ -27,6 +27,7 @@ import * as migration_20260325_120000_add_help_topic_structured_fields from './2
 import * as migration_20260327_070000_add_api_keys_locked_rel_column from './20260327_070000_add_api_keys_locked_rel_column'
 import * as migration_20260327_130000_repair_problem_schema_drift from './20260327_130000_repair_problem_schema_drift'
 import * as migration_20260402_090000_add_problem_templates_runtime from './20260402_090000_add_problem_templates_runtime'
+import * as migration_20260408_120000_add_problem_attempt_scope_key from './20260408_120000_add_problem_attempt_scope_key'
 
 export const migrations = [
   {
@@ -173,5 +174,10 @@ export const migrations = [
     up: migration_20260402_090000_add_problem_templates_runtime.up,
     down: migration_20260402_090000_add_problem_templates_runtime.down,
     name: '20260402_090000_add_problem_templates_runtime',
+  },
+  {
+    up: migration_20260408_120000_add_problem_attempt_scope_key.up,
+    down: migration_20260408_120000_add_problem_attempt_scope_key.down,
+    name: '20260408_120000_add_problem_attempt_scope_key',
   },
 ]

@@ -67,9 +67,11 @@ const toPublicDocWithVariants = (doc: unknown, seedBase: string) => {
     })
 
     if (!variant.parameters.length && !variant.derived.length) return
+    const signature = signProblemTemplateVariant(problemId, seed)
+    if (!signature) return
     variantsById.set(problemId, {
       seed,
-      signature: signProblemTemplateVariant(problemId, seed),
+      signature,
       parameters: variant.parameters,
       derived: variant.derived,
     })

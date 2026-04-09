@@ -1,3 +1,5 @@
+import { evaluate } from 'mathjs'
+
 type SymbolicVariable = {
   variable: string
   testMin: number
@@ -41,7 +43,6 @@ export async function gradeSymbolic(
   const usableVariables = normalizeVariables(variables)
   if (!usableVariables.length) return false
 
-  const { evaluate } = await import('mathjs')
   const random = lcg(hashSeed(seed))
   let validPointCount = 0
 
@@ -68,4 +69,3 @@ export async function gradeSymbolic(
 
   return validPointCount > 0
 }
-

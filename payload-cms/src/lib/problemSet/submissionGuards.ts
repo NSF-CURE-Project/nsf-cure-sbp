@@ -7,6 +7,13 @@ type RateBucket = {
 const RATE_WINDOW_MS = Number(process.env.PROBLEM_ATTEMPT_RATE_WINDOW_MS ?? 60_000)
 const RATE_MAX_SUBMISSIONS = Number(process.env.PROBLEM_ATTEMPT_RATE_MAX ?? 20)
 const rateBuckets = new Map<string, RateBucket>()
+const RATE_LIMIT_COLLECTION = 'problem-attempts'
+const RATE_LIMIT_FALLBACK_RETRY_SEC = Math.max(1, Math.ceil(RATE_WINDOW_MS / 1000))
+
+export type ProblemAttemptRateLimitResult = {
+  blocked: boolean
+  retryAfterSec: number
+}
 
 const normalizeHeaderValue = (value: string | string[] | null | undefined): string => {
   if (Array.isArray(value)) return value[0] ?? ''
@@ -43,10 +50,29 @@ const getRateLimitKey = (req: PayloadRequest): string => {
   return `ip:${extractClientAddress(req)}`
 }
 
+const toIso = (value: number) => new Date(value).toISOString()
+
+const buildWindowWhere = (userId: string, windowStartIso: string) => ({
+  user: { equals: userId },
+  createdAt: { greater_than_equal: windowStartIso },
+})
+
+const getRetryAfterSec = (oldestInWindowMs: number, now: number) => {
+  const retryAfterMs = Math.max(1_000, oldestInWindowMs + RATE_WINDOW_MS - now)
+  return Math.ceil(retryAfterMs / 1_000)
+}
+
 export const isProblemAttemptRateLimited = (
   req: PayloadRequest,
   now = Date.now(),
-): { blocked: boolean; retryAfterSec: number } => {
+): ProblemAttemptRateLimitResult => {
+  if (!Number.isFinite(RATE_WINDOW_MS) || RATE_WINDOW_MS <= 0) {
+    return { blocked: false, retryAfterSec: 0 }
+  }
+  if (!Number.isFinite(RATE_MAX_SUBMISSIONS) || RATE_MAX_SUBMISSIONS <= 0) {
+    return { blocked: false, retryAfterSec: 0 }
+  }
+
   const key = getRateLimitKey(req)
   const bucket = rateBuckets.get(key) ?? { timestamps: [] }
   const minTime = now - RATE_WINDOW_MS
@@ -54,14 +80,61 @@ export const isProblemAttemptRateLimited = (
 
   if (bucket.timestamps.length >= RATE_MAX_SUBMISSIONS) {
     const oldestInWindow = bucket.timestamps[0] ?? now
-    const retryAfterMs = Math.max(1_000, oldestInWindow + RATE_WINDOW_MS - now)
     rateBuckets.set(key, bucket)
-    return { blocked: true, retryAfterSec: Math.ceil(retryAfterMs / 1_000) }
+    return { blocked: true, retryAfterSec: getRetryAfterSec(oldestInWindow, now) }
   }
 
   bucket.timestamps.push(now)
   rateBuckets.set(key, bucket)
   return { blocked: false, retryAfterSec: 0 }
+}
+
+export const isProblemAttemptRateLimitedDistributed = async (
+  req: PayloadRequest,
+  now = Date.now(),
+): Promise<ProblemAttemptRateLimitResult> => {
+  const localResult = isProblemAttemptRateLimited(req, now)
+  if (localResult.blocked) return localResult
+
+  const userId = req.user?.id != null ? String(req.user.id) : ''
+  if (!userId) return localResult
+  if (!req.payload?.count || !req.payload?.find) return localResult
+  if (!Number.isFinite(RATE_WINDOW_MS) || RATE_WINDOW_MS <= 0) return localResult
+  if (!Number.isFinite(RATE_MAX_SUBMISSIONS) || RATE_MAX_SUBMISSIONS <= 0) return localResult
+
+  const windowStartIso = toIso(now - RATE_WINDOW_MS)
+  const where = buildWindowWhere(userId, windowStartIso)
+
+  try {
+    const recentCount = await req.payload.count({
+      collection: RATE_LIMIT_COLLECTION,
+      where,
+      overrideAccess: true,
+    })
+    if (recentCount.totalDocs < RATE_MAX_SUBMISSIONS) return localResult
+
+    const oldest = await req.payload.find({
+      collection: RATE_LIMIT_COLLECTION,
+      where,
+      limit: 1,
+      sort: 'createdAt',
+      depth: 0,
+      overrideAccess: true,
+      pagination: false,
+    })
+    const oldestCreatedAt = oldest.docs?.[0]
+      ? Date.parse(String((oldest.docs[0] as { createdAt?: string }).createdAt ?? ''))
+      : Number.NaN
+    return {
+      blocked: true,
+      retryAfterSec: Number.isFinite(oldestCreatedAt)
+        ? getRetryAfterSec(oldestCreatedAt, now)
+        : RATE_LIMIT_FALLBACK_RETRY_SEC,
+    }
+  } catch {
+    // Fail soft to in-memory guard if persistence checks are unavailable.
+    return localResult
+  }
 }
 
 export const getAttemptLimitContext = async (

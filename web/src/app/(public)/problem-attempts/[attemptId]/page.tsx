@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { ProblemAttemptAnswerCard } from "@/components/problem-review/ProblemAttemptAnswerCard";
 import { ProblemAttemptReviewSummary } from "@/components/problem-review/ProblemAttemptReviewSummary";
+import type { EngineeringFigureDoc } from "@/lib/payloadSdk/types";
 
 type RouteParams = { attemptId: string };
 
@@ -31,11 +32,29 @@ type ProblemAttemptReviewPayload = {
     id: string;
     title: string;
     prompt?: unknown;
+    figure?: EngineeringFigureDoc | null;
     parts: {
       partIndex: number;
       partType: string;
       studentAnswer?: number | null;
       studentExpression?: string | null;
+      placedForces?: {
+        forces?: {
+          id: string;
+          origin: [number, number];
+          angle: number;
+          magnitude: number;
+          label: string;
+        }[];
+        moments?: {
+          id: string;
+          label: string;
+          x: number;
+          y: number;
+          direction: "cw" | "ccw";
+          magnitude: number;
+        }[];
+      } | null;
       isCorrect: boolean;
       score: number;
       correctAnswer?: string | number | null;

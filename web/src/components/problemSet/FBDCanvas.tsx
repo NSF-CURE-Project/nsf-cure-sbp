@@ -33,6 +33,7 @@ type Props = {
   value: FBDPlacedAnswer;
   onChange: (value: FBDPlacedAnswer) => void;
   disabled?: boolean;
+  readOnlyView?: boolean;
 };
 
 const ARROW_BASE = 80;
@@ -93,7 +94,13 @@ const renderMomentArrowHead = (x: number, y: number, direction: "cw" | "ccw") =>
   return `${headX},${headY} ${ax},${ay} ${bx},${by}`;
 };
 
-export function FBDCanvas({ figure, value, onChange, disabled }: Props) {
+export function FBDCanvas({
+  figure,
+  value,
+  onChange,
+  disabled,
+  readOnlyView = false,
+}: Props) {
   const width = figure.width ?? 600;
   const height = figure.height ?? 400;
   const overlayRef = useRef<SVGSVGElement | null>(null);
@@ -146,49 +153,51 @@ export function FBDCanvas({ figure, value, onChange, disabled }: Props) {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-3 text-xs">
-        <button
-          type="button"
-          className={cn(
-            "rounded-md border px-2 py-1",
-            placeMode === "force" ? "border-primary bg-primary/10 text-primary" : "border-border"
-          )}
-          onClick={() => setPlaceMode("force")}
-          disabled={disabled}
-        >
-          Place Force
-        </button>
-        <button
-          type="button"
-          className={cn(
-            "rounded-md border px-2 py-1",
-            placeMode === "moment" ? "border-primary bg-primary/10 text-primary" : "border-border"
-          )}
-          onClick={() => setPlaceMode("moment")}
-          disabled={disabled}
-        >
-          Place Moment
-        </button>
-        {placeMode === "moment" ? (
+      {!readOnlyView ? (
+        <div className="flex flex-wrap items-center gap-3 text-xs">
           <button
             type="button"
-            className="rounded-md border border-border px-2 py-1"
-            onClick={() => setMomentDirection((prev) => (prev === "cw" ? "ccw" : "cw"))}
+            className={cn(
+              "rounded-md border px-2 py-1",
+              placeMode === "force" ? "border-primary bg-primary/10 text-primary" : "border-border"
+            )}
+            onClick={() => setPlaceMode("force")}
             disabled={disabled}
           >
-            Direction: {momentDirection.toUpperCase()}
+            Place Force
           </button>
-        ) : null}
-        <label className="inline-flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={showComponents}
-            onChange={(event) => setShowComponents(event.target.checked)}
+          <button
+            type="button"
+            className={cn(
+              "rounded-md border px-2 py-1",
+              placeMode === "moment" ? "border-primary bg-primary/10 text-primary" : "border-border"
+            )}
+            onClick={() => setPlaceMode("moment")}
             disabled={disabled}
-          />
-          <span>Show x/y components</span>
-        </label>
-      </div>
+          >
+            Place Moment
+          </button>
+          {placeMode === "moment" ? (
+            <button
+              type="button"
+              className="rounded-md border border-border px-2 py-1"
+              onClick={() => setMomentDirection((prev) => (prev === "cw" ? "ccw" : "cw"))}
+              disabled={disabled}
+            >
+              Direction: {momentDirection.toUpperCase()}
+            </button>
+          ) : null}
+          <label className="inline-flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={showComponents}
+              onChange={(event) => setShowComponents(event.target.checked)}
+              disabled={disabled}
+            />
+            <span>Show x/y components</span>
+          </label>
+        </div>
+      ) : null}
 
       <div className="relative">
         <EngineeringFigure figure={figure} />
@@ -461,12 +470,14 @@ export function FBDCanvas({ figure, value, onChange, disabled }: Props) {
         </svg>
       </div>
 
-      <div className="text-xs text-muted-foreground">
-        Click and drag to place a force. Tab cycles forces. Arrow keys rotate by 1°. Shift + arrows snap by 15°.
-        Hold Shift while dragging to snap to 15° increments. + / - adjusts magnitude.
-      </div>
+      {!readOnlyView ? (
+        <div className="text-xs text-muted-foreground">
+          Click and drag to place a force. Tab cycles forces. Arrow keys rotate by 1°. Shift + arrows snap by
+          15°. Hold Shift while dragging to snap to 15° increments. + / - adjusts magnitude.
+        </div>
+      ) : null}
 
-      {selectedForce ? (
+      {!readOnlyView && selectedForce ? (
         <div className="grid gap-2 rounded-md border border-border/60 bg-muted/30 p-3 sm:grid-cols-3">
           <label className="grid gap-1 text-xs">
             <span>Label</span>
@@ -531,7 +542,7 @@ export function FBDCanvas({ figure, value, onChange, disabled }: Props) {
         </div>
       ) : null}
 
-      {selectedMoment ? (
+      {!readOnlyView && selectedMoment ? (
         <div className="grid gap-2 rounded-md border border-border/60 bg-muted/30 p-3 sm:grid-cols-3">
           <label className="grid gap-1 text-xs">
             <span>Moment label</span>

@@ -2,7 +2,7 @@ import type { CollectionConfig, PayloadRequest } from 'payload'
 import { gradeProblemAttemptAnswers } from '../utils/problemGrading'
 import {
   getAttemptLimitContext,
-  isProblemAttemptRateLimited,
+  isProblemAttemptRateLimitedDistributed,
 } from '@/lib/problemSet/submissionGuards'
 import {
   evaluateTemplateExpression,
@@ -38,6 +38,31 @@ const getVariantSignature = (value: unknown): string => {
   return typeof raw === 'string' ? raw.trim() : ''
 }
 
+const getRelationshipIds = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return []
+  const ids: string[] = []
+  const seen = new Set<string>()
+  value.forEach((entry) => {
+    const id = getId(entry)
+    if (!id || seen.has(id)) return
+    seen.add(id)
+    ids.push(id)
+  })
+  return ids
+}
+
+const buildAttemptScopeKey = ({
+  userId,
+  problemSetId,
+  lessonId,
+  attemptNumber,
+}: {
+  userId: string
+  problemSetId: string
+  lessonId: string
+  attemptNumber: number
+}) => `${userId}:${problemSetId}:${lessonId || 'none'}:${attemptNumber}`
+
 export const ProblemAttempts: CollectionConfig = {
   slug: 'problem-attempts',
   admin: {
@@ -67,7 +92,7 @@ export const ProblemAttempts: CollectionConfig = {
         }
 
         if (operation === 'create' && req.user?.collection === 'accounts') {
-          const rateLimit = isProblemAttemptRateLimited(req)
+          const rateLimit = await isProblemAttemptRateLimitedDistributed(req)
           if (rateLimit.blocked) {
             req.payload.logger.warn({
               msg: 'Problem attempt create rate-limited',
@@ -83,6 +108,8 @@ export const ProblemAttempts: CollectionConfig = {
             req,
             data as Record<string, unknown>,
           )
+          const problemSetId = getId((data as Record<string, unknown>).problemSet)
+          const lessonId = getId((data as Record<string, unknown>).lesson)
           if (maxAttempts != null && attemptCount >= maxAttempts) {
             req.payload.logger.warn({
               msg: 'Problem attempt blocked by maxAttempts guard',
@@ -93,12 +120,59 @@ export const ProblemAttempts: CollectionConfig = {
               'Attempt limit reached for this problem set. You cannot submit additional attempts.',
             )
           }
+          if (maxAttempts != null && problemSetId) {
+            const nextAttemptNumber = attemptCount + 1
+            if (nextAttemptNumber <= maxAttempts) {
+              data.attemptNumber = nextAttemptNumber
+              data.attemptScopeKey = buildAttemptScopeKey({
+                userId: String(req.user.id),
+                problemSetId,
+                lessonId: lessonId ?? '',
+                attemptNumber: nextAttemptNumber,
+              })
+            }
+          }
         }
 
-        const answerRows = Array.isArray(data.answers) ? data.answers : []
-        const problemIds = answerRows
-          .map((item) => getId((item as { problem?: unknown }).problem))
-          .filter((id): id is string => Boolean(id))
+        const problemSetId = getId((data as Record<string, unknown>).problemSet)
+        if (!problemSetId) {
+          throw new Error('Problem set is required for grading.')
+        }
+
+        const problemSetDoc = (await req.payload.findByID({
+          collection: 'problem-sets',
+          id: problemSetId,
+          depth: 0,
+          overrideAccess: true,
+        })) as { problems?: unknown }
+        const canonicalProblemIds = getRelationshipIds(problemSetDoc.problems)
+        if (!canonicalProblemIds.length) {
+          throw new Error('Problem set has no configured problems.')
+        }
+
+        const rawAnswerRows = Array.isArray(data.answers) ? data.answers : []
+        const answerRowByProblemId = new Map<string, Record<string, unknown>>()
+        for (const row of rawAnswerRows) {
+          if (!row || typeof row !== 'object') continue
+          const problemId = getId((row as { problem?: unknown }).problem)
+          if (!problemId) continue
+          if (answerRowByProblemId.has(problemId)) {
+            throw new Error(`Duplicate answer rows for problem ${problemId}.`)
+          }
+          answerRowByProblemId.set(problemId, row as Record<string, unknown>)
+        }
+
+        const canonicalProblemIdSet = new Set(canonicalProblemIds)
+        for (const submittedProblemId of answerRowByProblemId.keys()) {
+          if (!canonicalProblemIdSet.has(submittedProblemId)) {
+            throw new Error('Submission includes a problem that is not part of this problem set.')
+          }
+        }
+
+        const answerRows = canonicalProblemIds.map(
+          (problemId) => answerRowByProblemId.get(problemId) ?? { problem: problemId, parts: [] },
+        )
+        const problemIds = [...canonicalProblemIds]
 
         const problems = await Promise.all(
           problemIds.map((id) =>
@@ -197,9 +271,10 @@ export const ProblemAttempts: CollectionConfig = {
                     )
                     const expression = (part as { correctAnswerExpression?: string | null })
                       .correctAnswerExpression
-                    const scope = (
-                      problem as { templateScope?: Record<string, number> | undefined }
-                    ).templateScope
+                    const scope = (() => {
+                      const problemId = String((problem as { id?: string | number }).id ?? '')
+                      return problemTemplateScopeById.get(problemId)?.scope
+                    })()
                     if (!expression || !scope) return staticCorrectAnswer
                     return evaluateTemplateExpression(expression, scope) ?? staticCorrectAnswer
                   })(),
@@ -229,9 +304,10 @@ export const ProblemAttempts: CollectionConfig = {
                           const variableName = String(
                             (variable as { variable?: string }).variable ?? '',
                           )
-                          const scope = (
-                            problem as { templateScope?: Record<string, number> | undefined }
-                          ).templateScope
+                          const scope = (() => {
+                            const problemId = String((problem as { id?: string | number }).id ?? '')
+                            return problemTemplateScopeById.get(problemId)?.scope
+                          })()
                           const scopedValue =
                             scope && variableName in scope ? Number(scope[variableName]) : null
                           if (scopedValue != null && Number.isFinite(scopedValue)) {
@@ -310,6 +386,23 @@ export const ProblemAttempts: CollectionConfig = {
       name: 'lesson',
       type: 'relationship',
       relationTo: 'lessons',
+    },
+    {
+      name: 'attemptNumber',
+      type: 'number',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'attemptScopeKey',
+      type: 'text',
+      unique: true,
+      admin: {
+        readOnly: true,
+        hidden: true,
+      },
     },
     {
       name: 'user',

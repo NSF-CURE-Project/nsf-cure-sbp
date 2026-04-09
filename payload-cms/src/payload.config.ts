@@ -75,6 +75,7 @@ import { classroomListHandler, classroomRosterHandler } from './endpoints/instru
 import { apiKeyValidateHandler } from './endpoints/apiKeyValidate'
 import { gptRpprContextHandler } from './endpoints/gptRpprContext'
 import { generateRpprPdfHandler } from './endpoints/generateRpprPdf'
+import { adminCreateUserHandler } from './endpoints/adminCreateUser'
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
   path: '@/views/StaffDashboardView#default',
@@ -551,6 +552,11 @@ export default buildConfig({
       path: '/accounts/logout-all',
       method: 'post',
       handler: logoutAllSessionsHandler,
+    },
+    {
+      path: '/admin/users/create',
+      method: 'post',
+      handler: adminCreateUserHandler,
     },
     {
       path: '/accounts/email-preview',

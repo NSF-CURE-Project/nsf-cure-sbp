@@ -1,9 +1,19 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
 import { validateProblemTemplate } from '../lib/problemSet/problemTemplate'
+import {
+  validatePlotXMax,
+  validateResultPlotCriticalPoints,
+  validateResultPlotSegments,
+} from '../lib/problemSet/resultPlotValidation'
 
 const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' &&
   ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
+
+const getSiblingPlotType = (siblingData: unknown) =>
+  siblingData && typeof siblingData === 'object'
+    ? (siblingData as { plotType?: unknown }).plotType
+    : undefined
 
 export const Problems: CollectionConfig = {
   slug: 'problems',
@@ -431,6 +441,7 @@ export const Problems: CollectionConfig = {
                 {
                   name: 'xMax',
                   type: 'text',
+                  validate: (value: unknown) => validatePlotXMax(value),
                 },
                 {
                   name: 'plotWizard',
@@ -444,6 +455,11 @@ export const Problems: CollectionConfig = {
                 {
                   name: 'segments',
                   type: 'array',
+                  validate: (value, { siblingData }) =>
+                    validateResultPlotSegments({
+                      plotType: getSiblingPlotType(siblingData),
+                      segments: value,
+                    }),
                   fields: [
                     {
                       name: 'xStart',
@@ -465,6 +481,7 @@ export const Problems: CollectionConfig = {
                 {
                   name: 'criticalPoints',
                   type: 'array',
+                  validate: (value) => validateResultPlotCriticalPoints(value),
                   fields: [
                     {
                       name: 'x',

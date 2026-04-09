@@ -23,8 +23,8 @@ export const verifyProblemTemplateVariantSignature = ({
   signature?: string | null
 }) => {
   const secret = getSigningSecret()
-  // Backward compatible when no secret is configured.
-  if (!secret) return true
+  // Fail closed when no signing secret is configured.
+  if (!secret) return false
 
   const provided = typeof signature === 'string' ? signature.trim() : ''
   if (!provided) return false

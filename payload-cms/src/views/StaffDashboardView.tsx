@@ -2,6 +2,7 @@ import type { AdminViewServerProps } from 'payload'
 import { Gutter } from '@payloadcms/ui'
 import React from 'react'
 import Link from 'next/link'
+import { AdminUserCreatePanel } from '@/views/AdminUserCreatePanel'
 import { getReportingSummary } from '../utils/analyticsSummary'
 import { findAllDocs } from '../reporting/data'
 
@@ -9,7 +10,6 @@ const cppGold = 'var(--cpp-gold)'
 const cppInk = 'var(--cpp-ink)'
 const accentBlue = '#1553cf'
 const accentCyan = '#0a89c2'
-const accentMint = '#11a36f'
 const ratingScoreMap: Record<string, number> = {
   not_helpful: 1,
   somewhat_helpful: 2,
@@ -347,6 +347,7 @@ const StaffDashboardContent = ({
   stats,
   contentHealth,
   reporting,
+  canCreateUsers,
 }: {
   user?: AdminViewServerProps['initPageResult']['req']['user']
   stats: {
@@ -388,6 +389,7 @@ const StaffDashboardContent = ({
     }[]
     weeklyEngagement: { weekStart: string; activeStudents: number; weekOverWeekChange: number | null }[]
   }
+  canCreateUsers: boolean
 }) => (
   <Gutter>
     <style>{`
@@ -994,6 +996,51 @@ const StaffDashboardContent = ({
                 </Link>
               </div>
             </div>
+            <div style={moduleRowStyle}>
+              <div style={moduleMetaStyle}>
+                <ModuleIcon>
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="8.5" cy="7" r="3.2" />
+                  <path d="M18 8h5" />
+                  <path d="M18 12h5" />
+                </ModuleIcon>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cpp-ink)' }}>
+                    Admin Portal Users
+                  </div>
+                  <div className="dashboard-module-description">
+                    Create and manage CMS staff/professor/admin logins from this dashboard.
+                  </div>
+                </div>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 8,
+                  flexWrap: 'wrap',
+                  padding: 3,
+                  borderRadius: 12,
+                  border: '1px solid var(--admin-surface-border)',
+                  background: 'linear-gradient(140deg, #edf6ff 0%, #e1f1ff 100%)',
+                }}
+              >
+                <Link href="/admin/collections/users" className="dashboard-chip-link">
+                  <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
+                    Open Users
+                  </div>
+                </Link>
+                <Link href="/admin/collections/users/create" className="dashboard-chip-link">
+                  <div style={heroSecondaryStyle} className="dashboard-chip dashboard-chip--secondary">
+                    Open Create Form
+                  </div>
+                </Link>
+              </div>
+            </div>
+            <div style={{ ...moduleRowStyle, alignItems: 'stretch' }}>
+              <div style={{ width: '100%' }}>
+                <AdminUserCreatePanel canCreateUsers={canCreateUsers} />
+              </div>
+            </div>
             <div
               style={{
                 borderRadius: 14,
@@ -1229,6 +1276,7 @@ export default async function StaffDashboardView({
   const { req } = initPageResult
   const user = req.user
   const payload = req.payload
+  const canCreateUsers = user?.collection === 'users' && user?.role === 'admin'
 
   let unansweredCount = 0
   let unreadFeedbackCount = 0
@@ -1533,6 +1581,7 @@ export default async function StaffDashboardView({
       stats={stats}
       contentHealth={contentHealth}
       reporting={reporting}
+      canCreateUsers={canCreateUsers}
     />
   )
 }

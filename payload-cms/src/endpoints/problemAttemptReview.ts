@@ -77,7 +77,8 @@ export const problemAttemptReviewHandler: PayloadHandler = async (req) => {
   const attemptUserId = getId(attempt.user)
   const actorId = getId(req.user.id)
   const staffRole = req.user.collection === 'users' && ['admin', 'staff', 'professor'].includes(req.user.role ?? '')
-  if (!staffRole && req.user.collection === 'accounts' && attemptUserId !== actorId) {
+  const accountOwner = req.user.collection === 'accounts' && attemptUserId === actorId
+  if (!staffRole && !accountOwner) {
     return jsonError('Forbidden', 403)
   }
 
@@ -148,7 +149,7 @@ export const problemAttemptReviewHandler: PayloadHandler = async (req) => {
       const fetched = (await req.payload.findByID({
         collection: 'problems',
         id: problemId,
-        depth: 0,
+        depth: 1,
         overrideAccess: true,
       })) as unknown as Record<string, unknown>
       problemById.set(problemId, fetched)
@@ -185,6 +186,10 @@ export const problemAttemptReviewHandler: PayloadHandler = async (req) => {
             : null,
         studentExpression:
           typeof part.studentExpression === 'string' ? part.studentExpression : null,
+        placedForces:
+          typeof part.placedForces === 'object' && part.placedForces !== null
+            ? (part.placedForces as Record<string, unknown>)
+            : null,
         isCorrect: Boolean(part.isCorrect),
         score:
           typeof part.score === 'number' && Number.isFinite(part.score)
@@ -209,6 +214,8 @@ export const problemAttemptReviewHandler: PayloadHandler = async (req) => {
           ? problem.title
           : `Problem ${answerIndex + 1}`,
       prompt: problem.prompt ?? null,
+      figure:
+        typeof problem.figure === 'object' && problem.figure !== null ? problem.figure : null,
       parts,
     }
   })

@@ -16,6 +16,7 @@ const stripPartAnswerKeyFields = (part: UnknownRecord): UnknownRecord => {
   delete next.symbolicVariables
   delete next.symbolicTolerance
   delete next.fbdRubric
+  delete next.explanation
   return next
 }
 

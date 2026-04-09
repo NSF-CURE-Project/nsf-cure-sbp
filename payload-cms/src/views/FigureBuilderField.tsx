@@ -109,7 +109,7 @@ function Arrow({
   )
 }
 
-function SVGCanvas({ value }: { value: FigureData | null }) {
+export function SVGCanvas({ value }: { value: FigureData | null }) {
   const figure = value as FigureData | null
   return (
     <div
