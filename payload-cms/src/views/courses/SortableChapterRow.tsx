@@ -17,6 +17,8 @@ type SortableChapterRowProps = {
   index: number
   lessonDropTargetId: EntityId | null
   chapterDropTargetId: EntityId | null
+  deletingLessonId: EntityId | null
+  onDeleteLesson: (lesson: ChapterNode['lessons'][number]) => void
 }
 
 export default function SortableChapterRow({
@@ -25,6 +27,8 @@ export default function SortableChapterRow({
   index,
   lessonDropTargetId,
   chapterDropTargetId,
+  deletingLessonId,
+  onDeleteLesson,
 }: SortableChapterRowProps) {
   const sortable = useSortable({
     id: `chapter:${chapter.id}`,
@@ -66,7 +70,9 @@ export default function SortableChapterRow({
           attributes={sortable.attributes as unknown as Record<string, unknown>}
         />
         <div className="min-w-0">
-          <div className="truncate text-sm font-semibold text-[var(--cpp-ink)]">{chapter.title}</div>
+          <div className="truncate text-sm font-semibold text-[var(--cpp-ink)]">
+            {chapter.title}
+          </div>
           <div className="text-xs text-[var(--cpp-muted)]">
             {chapter.lessons.length} lesson{chapter.lessons.length === 1 ? '' : 's'}
           </div>
@@ -104,6 +110,8 @@ export default function SortableChapterRow({
                   courseId={courseId}
                   index={lessonIndex}
                   isDropTarget={lessonDropTargetId === lesson.id}
+                  deleting={deletingLessonId === lesson.id}
+                  onDelete={onDeleteLesson}
                 />
               ))
             ) : (

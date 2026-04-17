@@ -18,6 +18,8 @@ type SortableCourseSectionProps = {
   lessonDropTargetId: EntityId | null
   chapterDropTargetId: EntityId | null
   courseDropTargetId: EntityId | null
+  deletingLessonId: EntityId | null
+  onDeleteLesson: (lesson: CourseNode['chapters'][number]['lessons'][number]) => void
 }
 
 export default function SortableCourseSection({
@@ -28,6 +30,8 @@ export default function SortableCourseSection({
   lessonDropTargetId,
   chapterDropTargetId,
   courseDropTargetId,
+  deletingLessonId,
+  onDeleteLesson,
 }: SortableCourseSectionProps) {
   const sortable = useSortable({
     id: `course:${course.id}`,
@@ -81,6 +85,8 @@ export default function SortableCourseSection({
                     index={index}
                     lessonDropTargetId={lessonDropTargetId}
                     chapterDropTargetId={chapterDropTargetId}
+                    deletingLessonId={deletingLessonId}
+                    onDeleteLesson={onDeleteLesson}
                   />
                 ))
               ) : (

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   DndContext,
   DragOverlay,
@@ -13,7 +14,11 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core'
-import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  sortableKeyboardCoordinates,
+} from '@dnd-kit/sortable'
 import type { CourseNode, DragMeta, EntityId, SaveStatus } from './types'
 import CourseReorderHelperBanner from './CourseReorderHelperBanner'
 import SaveStatusIndicator from './SaveStatusIndicator'
@@ -26,6 +31,7 @@ import {
   reorderInArray,
 } from './reorder-utils'
 import {
+  deleteLesson,
   getChangedChapters,
   getChangedCourses,
   getChangedLessons,
@@ -81,6 +87,7 @@ const flattenLessonsByChapter = (courses: CourseNode[], chapterIds: EntityId[]) 
 const operationFailedMessage = 'Error saving order'
 
 export default function CourseBuilderPage({ initialCourses }: CourseBuilderPageProps) {
+  const router = useRouter()
   const [courses, setCourses] = useState<CourseNode[]>(() => normalizeCourseOrders(initialCourses))
   const [expandedIds, setExpandedIds] = useState<Set<EntityId>>(
     () => new Set(initialCourses.map((course) => course.id)),
@@ -90,6 +97,8 @@ export default function CourseBuilderPage({ initialCourses }: CourseBuilderPageP
   const [courseDropTargetId, setCourseDropTargetId] = useState<EntityId | null>(null)
   const [chapterDropTargetId, setChapterDropTargetId] = useState<EntityId | null>(null)
   const [lessonDropTargetId, setLessonDropTargetId] = useState<EntityId | null>(null)
+  const [deletingLessonId, setDeletingLessonId] = useState<EntityId | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const committedRef = useRef<CourseNode[]>(normalizeCourseOrders(initialCourses))
   const saveQueueRef = useRef(Promise.resolve())
@@ -147,7 +156,10 @@ export default function CourseBuilderPage({ initialCourses }: CourseBuilderPageP
             const previousCourse = action.previous.find((course) => course.id === action.courseId)
             const nextCourse = action.next.find((course) => course.id === action.courseId)
             if (previousCourse && nextCourse) {
-              const changedChapters = getChangedChapters(previousCourse.chapters, nextCourse.chapters)
+              const changedChapters = getChangedChapters(
+                previousCourse.chapters,
+                nextCourse.chapters,
+              )
               if (changedChapters.length) {
                 await saveChapterOrder(changedChapters)
               }
@@ -182,6 +194,40 @@ export default function CourseBuilderPage({ initialCourses }: CourseBuilderPageP
       else next.add(courseId)
       return next
     })
+  }
+
+  const handleDeleteLesson = async (lesson: CourseNode['chapters'][number]['lessons'][number]) => {
+    if (deletingLessonId) return
+
+    if (typeof window !== 'undefined') {
+      const confirmed = window.confirm(
+        `Delete "${lesson.title}"? This removes the lesson from the chapter and cannot be undone.`,
+      )
+      if (!confirmed) return
+    }
+
+    setDeleteError(null)
+    setDeletingLessonId(lesson.id)
+
+    try {
+      await deleteLesson(lesson.id)
+      const next = normalizeCourseOrders(
+        courses.map((course) => ({
+          ...course,
+          chapters: course.chapters.map((chapter) => ({
+            ...chapter,
+            lessons: chapter.lessons.filter((item) => item.id !== lesson.id),
+          })),
+        })),
+      )
+      setCourses(next)
+      committedRef.current = next
+      router.refresh()
+    } catch (_error) {
+      setDeleteError(`Unable to delete "${lesson.title}".`)
+    } finally {
+      setDeletingLessonId(null)
+    }
   }
 
   const onDragStart = (event: DragStartEvent) => {
@@ -250,14 +296,22 @@ export default function CourseBuilderPage({ initialCourses }: CourseBuilderPageP
       if (!sourceInfo) return
 
       const sourceChapter = sourceInfo.course.chapters[sourceInfo.chapterIndex]
-      const movingLessonIndex = sourceChapter.lessons.findIndex((lesson) => lesson.id === active.lessonId)
+      const movingLessonIndex = sourceChapter.lessons.findIndex(
+        (lesson) => lesson.id === active.lessonId,
+      )
       if (movingLessonIndex < 0) return
 
       const targetChapterId = over.type === 'lesson' ? over.chapterId : over.chapterId
       if (targetChapterId === source.chapterId && over.type === 'lesson') {
-        const targetLessonIndex = sourceChapter.lessons.findIndex((lesson) => lesson.id === over.lessonId)
+        const targetLessonIndex = sourceChapter.lessons.findIndex(
+          (lesson) => lesson.id === over.lessonId,
+        )
         if (targetLessonIndex < 0 || targetLessonIndex === movingLessonIndex) return
-        sourceChapter.lessons = reorderInArray(sourceChapter.lessons, movingLessonIndex, targetLessonIndex)
+        sourceChapter.lessons = reorderInArray(
+          sourceChapter.lessons,
+          movingLessonIndex,
+          targetLessonIndex,
+        )
         const next = normalizeCourseOrders(nextCourses)
         setCourses(next)
         enqueuePersist({
@@ -341,7 +395,10 @@ export default function CourseBuilderPage({ initialCourses }: CourseBuilderPageP
       </div>
 
       <SaveStatusIndicator status={status} />
-      {status === 'error' ? <div className="text-xs text-red-700">{operationFailedMessage}</div> : null}
+      {status === 'error' ? (
+        <div className="text-xs text-red-700">{operationFailedMessage}</div>
+      ) : null}
+      {deleteError ? <div className="text-xs text-red-700">{deleteError}</div> : null}
 
       <DndContext
         sensors={sensors}
@@ -367,6 +424,8 @@ export default function CourseBuilderPage({ initialCourses }: CourseBuilderPageP
                   lessonDropTargetId={lessonDropTargetId}
                   chapterDropTargetId={chapterDropTargetId}
                   courseDropTargetId={courseDropTargetId}
+                  deletingLessonId={deletingLessonId}
+                  onDeleteLesson={handleDeleteLesson}
                 />
               )
             })}

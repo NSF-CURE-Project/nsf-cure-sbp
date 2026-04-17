@@ -160,6 +160,9 @@ export const Chapters: CollectionConfig = {
       type: 'relationship',
       relationTo: 'lessons', // each chapter can link to many lessons
       hasMany: true,
+      admin: {
+        hidden: true,
+      },
     },
     {
       name: 'class',
@@ -167,6 +170,9 @@ export const Chapters: CollectionConfig = {
       type: 'relationship',
       relationTo: 'classes', // many chapters → one class
       required: true,
+      admin: {
+        description: 'Pre-filled when you add a chapter from Course Workspace.',
+      },
     },
     {
       name: 'slug',

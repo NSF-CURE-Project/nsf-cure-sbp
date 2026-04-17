@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { Gutter } from '@payloadcms/ui'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { AdminHelp as AdminHelpType } from '@/payload-types'
 import { HELP_TOPICS, TOPIC_GLYPHS } from '@/lib/adminHelpDocs'
 
@@ -32,8 +31,7 @@ const defaultFaqs: FaqItem[] = [
   },
 ]
 
-const isRecord = (v: unknown): v is Record<string, unknown> =>
-  typeof v === 'object' && v !== null
+const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null
 
 const parseFaqs = (value: unknown): FaqItem[] => {
   if (!Array.isArray(value)) return defaultFaqs
@@ -48,7 +46,6 @@ const parseFaqs = (value: unknown): FaqItem[] => {
     .filter((e): e is FaqItem => Boolean(e))
   return parsed.length ? parsed : defaultFaqs
 }
-
 
 export default async function AdminHelpPage() {
   const payload = await getPayload({ config: configPromise })
@@ -76,7 +73,6 @@ export default async function AdminHelpPage() {
     '/admin/collections/feedback/create'
 
   const faqs = parseFaqs(helpAny?.faqs)
-  const body = help?.body
 
   return (
     <Gutter>
@@ -311,36 +307,6 @@ export default async function AdminHelpPage() {
                 </details>
               ))}
             </div>
-
-            {body && (
-              <div style={{ marginTop: 16 }}>
-                <div
-                  style={{
-                    fontSize: 11,
-                    letterSpacing: 1.4,
-                    textTransform: 'uppercase',
-                    color: 'var(--cpp-muted)',
-                    fontWeight: 700,
-                    marginBottom: 8,
-                  }}
-                >
-                  Program-specific guidance
-                </div>
-                <div
-                  style={{
-                    border: '1px solid var(--admin-surface-border)',
-                    borderRadius: 10,
-                    padding: 12,
-                    color: 'var(--cpp-muted)',
-                    lineHeight: 1.6,
-                    background: '#fbfcff',
-                    fontSize: 13,
-                  }}
-                >
-                  <RichText data={body} />
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Need Help Now */}

@@ -120,6 +120,9 @@ export const Classes: CollectionConfig = {
       type: 'relationship',
       relationTo: 'chapters', // must match Chapters.slug
       hasMany: true,
+      admin: {
+        hidden: true,
+      },
     },
     {
       name: 'slug',

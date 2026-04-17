@@ -146,9 +146,10 @@ export const Lessons: CollectionConfig = {
               depth: 0,
               overrideAccess: true,
             })
-            classSlug = typeof (classDoc as { slug?: unknown }).slug === 'string'
-              ? (classDoc as { slug?: string }).slug ?? ''
-              : ''
+            classSlug =
+              typeof (classDoc as { slug?: unknown }).slug === 'string'
+                ? ((classDoc as { slug?: string }).slug ?? '')
+                : ''
           }
 
           if (!classSlug) return
@@ -203,7 +204,8 @@ export const Lessons: CollectionConfig = {
               .filter((id) => Number.isFinite(id)),
           )
 
-          const lessonTitle = typeof doc.title === 'string' ? doc.title : 'A new lesson was published.'
+          const lessonTitle =
+            typeof doc.title === 'string' ? doc.title : 'A new lesson was published.'
           const createJobs = recipientIds
             .filter((recipientId) => !existingRecipients.has(recipientId))
             .map(async (recipientId) => {
@@ -434,7 +436,7 @@ export const Lessons: CollectionConfig = {
               relationTo: 'chapters',
               required: true,
               admin: {
-                description: 'Assign this lesson to a chapter.',
+                description: 'Pre-filled when you add a lesson from a chapter row.',
               },
             },
 
@@ -445,7 +447,11 @@ export const Lessons: CollectionConfig = {
               required: true,
               validate: async (
                 value: unknown,
-                options?: { data?: { chapter?: unknown }; req?: PayloadRequest; id?: string | number },
+                options?: {
+                  data?: { chapter?: unknown }
+                  req?: PayloadRequest
+                  id?: string | number
+                },
               ) => {
                 const data = options?.data
                 const req = options?.req
@@ -471,7 +477,8 @@ export const Lessons: CollectionConfig = {
                 return true
               },
               admin: {
-                description: 'Auto-generated from the lesson title. Must be unique within a chapter.',
+                description:
+                  'Auto-generated from the lesson title. Must be unique within a chapter.',
                 hidden: true,
               },
             },

@@ -2,7 +2,6 @@ import type { AdminViewServerProps } from 'payload'
 import { Gutter } from '@payloadcms/ui'
 import React from 'react'
 import Link from 'next/link'
-import { AdminUserCreatePanel } from '@/views/AdminUserCreatePanel'
 import { getReportingSummary } from '../utils/analyticsSummary'
 import { findAllDocs } from '../reporting/data'
 
@@ -34,7 +33,6 @@ const statCardStyle: React.CSSProperties = {
   minWidth: 0,
   textAlign: 'left',
 }
-
 
 const StatCard = ({ label, value }: { label: string; value: string }) => (
   <div style={statCardStyle} className="dashboard-stat-card">
@@ -122,7 +120,6 @@ const analyticsRowStyle: React.CSSProperties = {
   width: '100%',
 }
 
-
 const heroGridStyle: React.CSSProperties = {
   display: 'grid',
   gridTemplateColumns: 'minmax(280px, 1fr)',
@@ -173,7 +170,16 @@ const moduleIconStyle: React.CSSProperties = {
 
 const ModuleIcon = ({ children }: { children: React.ReactNode }) => (
   <div style={moduleIconStyle} aria-hidden="true">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       {children}
     </svg>
   </div>
@@ -347,7 +353,6 @@ const StaffDashboardContent = ({
   stats,
   contentHealth,
   reporting,
-  canCreateUsers,
 }: {
   user?: AdminViewServerProps['initPageResult']['req']['user']
   stats: {
@@ -387,9 +392,12 @@ const StaffDashboardContent = ({
       masteryRate: number
       attempts: number
     }[]
-    weeklyEngagement: { weekStart: string; activeStudents: number; weekOverWeekChange: number | null }[]
+    weeklyEngagement: {
+      weekStart: string
+      activeStudents: number
+      weekOverWeekChange: number | null
+    }[]
   }
-  canCreateUsers: boolean
 }) => (
   <Gutter>
     <style>{`
@@ -752,7 +760,11 @@ const StaffDashboardContent = ({
                 }}
               >
                 <span style={{ display: 'block', marginBottom: 2, color: 'var(--cpp-ink)' }}>
-                  Welcome, {(user as { firstName?: string } | null)?.firstName ?? user?.email ?? 'team member'}.
+                  Welcome,{' '}
+                  {(user as { firstName?: string } | null)?.firstName ??
+                    user?.email ??
+                    'team member'}
+                  .
                 </span>
                 <span>Manage program content, access analytics, and support students.</span>
               </p>
@@ -785,7 +797,9 @@ const StaffDashboardContent = ({
                 <StatCard label="Published lessons" value={`${stats.publishedLessons}`} />
                 <StatCard
                   label="Avg completion rate"
-                  value={stats.avgCompletion != null ? `${Math.round(stats.avgCompletion * 100)}%` : '—'}
+                  value={
+                    stats.avgCompletion != null ? `${Math.round(stats.avgCompletion * 100)}%` : '—'
+                  }
                 />
               </div>
             </div>
@@ -811,13 +825,13 @@ const StaffDashboardContent = ({
                 >
                   <div style={workspaceCardStyle} className="dashboard-panel">
                     <div
-                    style={{
-                      fontSize: 11,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.08em',
-                      color: accentBlue,
-                      lineHeight: 1.1,
-                    }}
+                      style={{
+                        fontSize: 11,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        color: accentBlue,
+                        lineHeight: 1.1,
+                      }}
                     >
                       Questions
                     </div>
@@ -831,7 +845,9 @@ const StaffDashboardContent = ({
                     >
                       {stats.unanswered}
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Unanswered questions</div>
+                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                      Unanswered questions
+                    </div>
                   </div>
                 </Link>
                 <Link
@@ -840,13 +856,13 @@ const StaffDashboardContent = ({
                 >
                   <div style={workspaceCardStyle} className="dashboard-panel">
                     <div
-                    style={{
-                      fontSize: 11,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.08em',
-                      color: accentCyan,
-                      lineHeight: 1.1,
-                    }}
+                      style={{
+                        fontSize: 11,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        color: accentCyan,
+                        lineHeight: 1.1,
+                      }}
                     >
                       Feedback
                     </div>
@@ -927,7 +943,7 @@ const StaffDashboardContent = ({
                     Site Management
                   </div>
                   <div className="dashboard-module-description">
-                    Manage navigation order, global pages, and site settings.
+                    Manage navigation order, global pages, site settings, and users & roles.
                   </div>
                 </div>
               </div>
@@ -971,7 +987,7 @@ const StaffDashboardContent = ({
                 </div>
               </div>
               <div
-              style={{
+                style={{
                   display: 'flex',
                   gap: 8,
                   flexWrap: 'wrap',
@@ -990,55 +1006,13 @@ const StaffDashboardContent = ({
                   href="/admin/collections/classroom-memberships"
                   className="dashboard-chip-link"
                 >
-                  <div style={heroSecondaryStyle} className="dashboard-chip dashboard-chip--secondary">
+                  <div
+                    style={heroSecondaryStyle}
+                    className="dashboard-chip dashboard-chip--secondary"
+                  >
                     View Enrollments
                   </div>
                 </Link>
-              </div>
-            </div>
-            <div style={moduleRowStyle}>
-              <div style={moduleMetaStyle}>
-                <ModuleIcon>
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="8.5" cy="7" r="3.2" />
-                  <path d="M18 8h5" />
-                  <path d="M18 12h5" />
-                </ModuleIcon>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cpp-ink)' }}>
-                    Admin Portal Users
-                  </div>
-                  <div className="dashboard-module-description">
-                    Create and manage CMS staff/professor/admin logins from this dashboard.
-                  </div>
-                </div>
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  gap: 8,
-                  flexWrap: 'wrap',
-                  padding: 3,
-                  borderRadius: 12,
-                  border: '1px solid var(--admin-surface-border)',
-                  background: 'linear-gradient(140deg, #edf6ff 0%, #e1f1ff 100%)',
-                }}
-              >
-                <Link href="/admin/collections/users" className="dashboard-chip-link">
-                  <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
-                    Open Users
-                  </div>
-                </Link>
-                <Link href="/admin/collections/users/create" className="dashboard-chip-link">
-                  <div style={heroSecondaryStyle} className="dashboard-chip dashboard-chip--secondary">
-                    Open Create Form
-                  </div>
-                </Link>
-              </div>
-            </div>
-            <div style={{ ...moduleRowStyle, alignItems: 'stretch' }}>
-              <div style={{ width: '100%' }}>
-                <AdminUserCreatePanel canCreateUsers={canCreateUsers} />
               </div>
             </div>
             <div
@@ -1107,10 +1081,12 @@ const StaffDashboardContent = ({
                     <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
                       {reporting.classCompletion.slice(0, 5).map((item) => (
                         <li key={item.id}>
-                          <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>{item.title}</div>
+                          <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>
+                            {item.title}
+                          </div>
                           <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                            {Math.round(item.completionRate * 100)}% ({item.uniqueLearnersCompleted}/
-                            {item.uniqueLearnersStarted})
+                            {Math.round(item.completionRate * 100)}% ({item.uniqueLearnersCompleted}
+                            /{item.uniqueLearnersStarted})
                           </div>
                         </li>
                       ))}
@@ -1123,10 +1099,12 @@ const StaffDashboardContent = ({
                     <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
                       {reporting.chapterCompletion.slice(0, 5).map((item) => (
                         <li key={item.id}>
-                          <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>{item.title}</div>
+                          <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>
+                            {item.title}
+                          </div>
                           <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                            {Math.round(item.completionRate * 100)}% ({item.uniqueLearnersCompleted}/
-                            {item.uniqueLearnersStarted})
+                            {Math.round(item.completionRate * 100)}% ({item.uniqueLearnersCompleted}
+                            /{item.uniqueLearnersStarted})
                           </div>
                         </li>
                       ))}
@@ -1139,7 +1117,9 @@ const StaffDashboardContent = ({
                     <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
                       {reporting.quizPerformance.slice(0, 5).map((item) => (
                         <li key={item.quizId}>
-                          <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>{item.title}</div>
+                          <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>
+                            {item.title}
+                          </div>
                           <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
                             {item.uniqueLearnersMastered}/{item.uniqueLearnersAttempted} mastered (
                             {Math.round(item.masteryRate * 100)}%)
@@ -1155,7 +1135,9 @@ const StaffDashboardContent = ({
                     <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
                       {reporting.weeklyEngagement.slice(-5).map((item) => (
                         <li key={item.weekStart}>
-                          <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>{item.weekStart}</div>
+                          <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>
+                            {item.weekStart}
+                          </div>
                           <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
                             {item.activeStudents} active students{' '}
                             {item.weekOverWeekChange == null
@@ -1172,7 +1154,10 @@ const StaffDashboardContent = ({
                     href="/api/analytics/reporting-summary?format=csv"
                     style={{ textDecoration: 'none' }}
                   >
-                    <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
+                    <div
+                      style={heroPrimaryStyle}
+                      className="dashboard-chip dashboard-chip--primary"
+                    >
                       Download NSF summary CSV
                     </div>
                   </Link>
@@ -1180,7 +1165,10 @@ const StaffDashboardContent = ({
                     href="/api/analytics/reporting-summary?format=csv&type=class-completion"
                     style={{ textDecoration: 'none' }}
                   >
-                    <div style={heroSecondaryStyle} className="dashboard-chip dashboard-chip--secondary">
+                    <div
+                      style={heroSecondaryStyle}
+                      className="dashboard-chip dashboard-chip--secondary"
+                    >
                       Class completion CSV
                     </div>
                   </Link>
@@ -1188,7 +1176,10 @@ const StaffDashboardContent = ({
                     href="/api/analytics/reporting-summary?format=csv&type=quiz-performance"
                     style={{ textDecoration: 'none' }}
                   >
-                    <div style={heroSecondaryStyle} className="dashboard-chip dashboard-chip--secondary">
+                    <div
+                      style={heroSecondaryStyle}
+                      className="dashboard-chip dashboard-chip--secondary"
+                    >
                       Quiz performance CSV
                     </div>
                   </Link>
@@ -1264,19 +1255,15 @@ const StaffDashboardContent = ({
             />
           </div>
         </div>
-
       </div>
     </div>
   </Gutter>
 )
 
-export default async function StaffDashboardView({
-  initPageResult,
-}: AdminViewServerProps) {
+export default async function StaffDashboardView({ initPageResult }: AdminViewServerProps) {
   const { req } = initPageResult
   const user = req.user
   const payload = req.payload
-  const canCreateUsers = user?.collection === 'users' && user?.role === 'admin'
 
   let unansweredCount = 0
   let unreadFeedbackCount = 0
@@ -1316,7 +1303,11 @@ export default async function StaffDashboardView({
       masteryRate: number
       attempts: number
     }[],
-    weeklyEngagement: [] as { weekStart: string; activeStudents: number; weekOverWeekChange: number | null }[],
+    weeklyEngagement: [] as {
+      weekStart: string
+      activeStudents: number
+      weekOverWeekChange: number | null
+    }[],
   }
 
   try {
@@ -1335,7 +1326,6 @@ export default async function StaffDashboardView({
     unansweredCount = 0
   }
 
-
   try {
     const accounts = await payload.find({
       collection: 'accounts',
@@ -1346,7 +1336,6 @@ export default async function StaffDashboardView({
   } catch {
     accountsCount = 0
   }
-
 
   try {
     const unreadFeedback = await payload.find({
@@ -1391,23 +1380,21 @@ export default async function StaffDashboardView({
     })
     const activeUsers = new Set<string>()
     recentProgress.forEach((doc) => {
-      const userValue = (doc as { user?: string | number | { id?: string | number } | null })
-        .user
+      const userValue = (doc as { user?: string | number | { id?: string | number } | null }).user
       const id =
         typeof userValue === 'string'
           ? userValue
           : typeof userValue === 'number'
             ? String(userValue)
-          : userValue?.id != null
-            ? String(userValue.id)
-            : null
+            : userValue?.id != null
+              ? String(userValue.id)
+              : null
       if (id) activeUsers.add(id)
     })
     activeStudentsCount = activeUsers.size
   } catch {
     activeStudentsCount = 0
   }
-
 
   try {
     const lessons = await findAllDocs(payload, 'lessons')
@@ -1431,9 +1418,7 @@ export default async function StaffDashboardView({
       const lessonId = String(lesson.id ?? '')
       if (!lessonId) return
       const lessonTitle =
-        typeof lesson.title === 'string' && lesson.title.trim()
-          ? lesson.title
-          : 'Untitled lesson'
+        typeof lesson.title === 'string' && lesson.title.trim() ? lesson.title : 'Untitled lesson'
       lessonById.set(lessonId, {
         id: lessonId,
         title: lessonTitle,
@@ -1509,18 +1494,20 @@ export default async function StaffDashboardView({
 
     const feedbackTotals = new Map<string, { sum: number; count: number }>()
     lessonFeedback.forEach((doc) => {
-      const lessonValue = (doc as {
-        lesson?: string | number | { id?: string | number } | null
-        rating?: unknown
-      }).lesson
+      const lessonValue = (
+        doc as {
+          lesson?: string | number | { id?: string | number } | null
+          rating?: unknown
+        }
+      ).lesson
       const id =
         typeof lessonValue === 'string'
           ? lessonValue
           : typeof lessonValue === 'number'
             ? String(lessonValue)
-          : lessonValue?.id != null
-            ? String(lessonValue.id)
-            : null
+            : lessonValue?.id != null
+              ? String(lessonValue.id)
+              : null
       const rating = resolveRatingScore(doc.rating)
       if (!id || rating == null) return
       const current = feedbackTotals.get(id) ?? { sum: 0, count: 0 }
@@ -1544,12 +1531,16 @@ export default async function StaffDashboardView({
     })
 
     helpfulnessAvg = totalCount ? totalRating / totalCount : null
-    const totalProgressCount = Array.from(progressTotals.values()).reduce((sum, value) => sum + value, 0)
-    const totalCompletedCount = Array.from(progressCompleted.values()).reduce((sum, value) => sum + value, 0)
+    const totalProgressCount = Array.from(progressTotals.values()).reduce(
+      (sum, value) => sum + value,
+      0,
+    )
+    const totalCompletedCount = Array.from(progressCompleted.values()).reduce(
+      (sum, value) => sum + value,
+      0,
+    )
     avgCompletionRate = totalProgressCount ? totalCompletedCount / totalProgressCount : null
-    contentHealth.lowHelpfulness = lowHelpfulness
-      .sort((a, b) => a.rating - b.rating)
-      .slice(0, 6)
+    contentHealth.lowHelpfulness = lowHelpfulness.sort((a, b) => a.rating - b.rating).slice(0, 6)
   } catch {
     contentHealth = { lowCompletion: [], highQuestions: [], lowHelpfulness: [] }
   }
@@ -1581,7 +1572,6 @@ export default async function StaffDashboardView({
       stats={stats}
       contentHealth={contentHealth}
       reporting={reporting}
-      canCreateUsers={canCreateUsers}
     />
   )
 }

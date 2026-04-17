@@ -14,6 +14,8 @@ type SortableLessonRowProps = {
   chapterId: string
   index: number
   isDropTarget: boolean
+  deleting: boolean
+  onDelete: (lesson: LessonNode) => void
 }
 
 export default function SortableLessonRow({
@@ -22,6 +24,8 @@ export default function SortableLessonRow({
   chapterId,
   index,
   isDropTarget,
+  deleting,
+  onDelete,
 }: SortableLessonRowProps) {
   const sortable = useSortable({
     id: `lesson:${lesson.id}`,
@@ -76,6 +80,15 @@ export default function SortableLessonRow({
         >
           {actionLabel}
         </Link>
+        <button
+          type="button"
+          onClick={() => onDelete(lesson)}
+          disabled={deleting}
+          className="rounded-md border border-red-300 bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+          aria-label={`Delete lesson ${lesson.title}`}
+        >
+          {deleting ? 'Deleting…' : 'Delete'}
+        </button>
       </div>
     </div>
   )

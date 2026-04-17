@@ -23,6 +23,17 @@ const patch = async (path: string, body: Record<string, unknown>) => {
   }
 }
 
+const remove = async (path: string) => {
+  const response = await fetch(path, {
+    method: 'DELETE',
+    credentials: 'include',
+  })
+
+  if (!response.ok) {
+    throw new Error(`Request failed (${response.status}) for ${path}`)
+  }
+}
+
 export const saveCourseOrder = async (courses: CourseNode[]) => {
   const updates = courses.map((course) =>
     patch(`/api/classes/${course.id}`, {
@@ -51,6 +62,10 @@ export const saveLessonPositions = async (lessons: LessonPositionUpdate[]) => {
   await Promise.all(updates)
 }
 
+export const deleteLesson = async (lessonId: EntityId) => {
+  await remove(`/api/lessons/${lessonId}`)
+}
+
 export const getChangedCourses = (previous: CourseNode[], next: CourseNode[]): CourseNode[] => {
   const prevMap = new Map(previous.map((course) => [course.id, course.order]))
   return next.filter((course) => prevMap.get(course.id) !== course.order)
@@ -61,7 +76,10 @@ export const getChangedChapters = (previous: ChapterNode[], next: ChapterNode[])
   return next.filter((chapter) => prevMap.get(chapter.id) !== chapter.order)
 }
 
-export const getChangedLessons = (previous: LessonNode[], next: LessonNode[]): LessonPositionUpdate[] => {
+export const getChangedLessons = (
+  previous: LessonNode[],
+  next: LessonNode[],
+): LessonPositionUpdate[] => {
   const prevMap = new Map(previous.map((lesson) => [lesson.id, lesson]))
   return next
     .filter((lesson) => {
