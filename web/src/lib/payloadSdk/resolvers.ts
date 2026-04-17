@@ -17,17 +17,21 @@ const populatedChapters = (
 ): ChapterWithLessons[] => {
   const chapters = classDoc.chapters;
   if (!Array.isArray(chapters)) return [];
-  return chapters.filter((entry): entry is ChapterWithLessons =>
-    isObject<ChapterWithLessons>(entry)
-  );
+  const result: ChapterWithLessons[] = [];
+  for (const entry of chapters as unknown[]) {
+    if (isObject<ChapterWithLessons>(entry)) result.push(entry);
+  }
+  return result;
 };
 
 const populatedLessons = (chapter: ChapterWithLessons): LessonDoc[] => {
   const lessons = chapter.lessons;
   if (!Array.isArray(lessons)) return [];
-  return lessons.filter((entry): entry is LessonDoc =>
-    isObject<LessonDoc>(entry)
-  );
+  const result: LessonDoc[] = [];
+  for (const entry of lessons as unknown[]) {
+    if (isObject<LessonDoc>(entry)) result.push(entry);
+  }
+  return result;
 };
 
 const orderedLessons = (chapter: ChapterWithLessons): LessonDoc[] => {
