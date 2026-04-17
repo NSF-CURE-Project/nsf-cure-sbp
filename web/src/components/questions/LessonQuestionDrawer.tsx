@@ -20,6 +20,7 @@ const PAYLOAD_URL = getPayloadBaseUrl();
 type Props = {
   lessonId: string;
   lessonTitle: string;
+  classId?: string;
   onSubmitted?: () => void;
 };
 
@@ -32,6 +33,7 @@ type AccountUser = {
 export function LessonQuestionDrawer({
   lessonId,
   lessonTitle,
+  classId,
   onSubmitted,
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -40,8 +42,60 @@ export function LessonQuestionDrawer({
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [user, setUser] = useState<AccountUser | null>(null);
+  const [canAskQuestion, setCanAskQuestion] = useState<boolean>(false);
+  const [eligibilityLoading, setEligibilityLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user?.id || !classId) {
+      setCanAskQuestion(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const loadEligibility = async () => {
+      setEligibilityLoading(true);
+      try {
+        const res = await fetch(
+          `${PAYLOAD_URL}/api/classroom-memberships?depth=2&limit=100`,
+          {
+            credentials: "include",
+            signal: controller.signal,
+          }
+        );
+        if (!res.ok) {
+          setCanAskQuestion(false);
+          return;
+        }
+        const data = (await res.json()) as {
+          docs?: Array<{
+            classroom?: { class?: { id?: string | number } | string | number } | null;
+          }>;
+        };
+        const hasMembership = (data.docs ?? []).some((membership) => {
+          const classroomClass = membership.classroom?.class;
+          const classroomClassId =
+            typeof classroomClass === "object" && classroomClass !== null
+              ? String(classroomClass.id ?? "")
+              : String(classroomClass ?? "");
+          return classroomClassId === String(classId);
+        });
+        setCanAskQuestion(hasMembership);
+      } catch {
+        if (!controller.signal.aborted) {
+          setCanAskQuestion(false);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setEligibilityLoading(false);
+        }
+      }
+    };
+
+    loadEligibility();
+    return () => controller.abort();
+  }, [user?.id, classId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -68,8 +122,13 @@ export function LessonQuestionDrawer({
   }, []);
 
   const canSubmit = useMemo(() => {
-    return title.trim().length > 0 && body.trim().length > 0 && !submitting;
-  }, [title, body, submitting]);
+    return (
+      title.trim().length > 0 &&
+      body.trim().length > 0 &&
+      !submitting &&
+      canAskQuestion
+    );
+  }, [title, body, submitting, canAskQuestion]);
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -143,7 +202,11 @@ export function LessonQuestionDrawer({
         </div>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button type="button" className="rounded-full" disabled={!lessonId}>
+            <Button
+              type="button"
+              className="rounded-full"
+              disabled={!lessonId || (!!user && (!canAskQuestion || eligibilityLoading))}
+            >
               Ask a Question about this Lesson
             </Button>
           </SheetTrigger>
@@ -173,6 +236,12 @@ export function LessonQuestionDrawer({
                 </div>
               ) : null}
 
+              {user && !eligibilityLoading && !canAskQuestion ? (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                  Join a classroom for this course before asking lesson questions.
+                </div>
+              ) : null}
+
               <div className="space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Title
@@ -182,7 +251,7 @@ export function LessonQuestionDrawer({
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                   className="h-11 rounded-lg border-border/70 bg-background/60 focus-visible:ring-2 focus-visible:ring-primary/40"
-                  disabled={!user || submitting}
+                  disabled={!user || submitting || !canAskQuestion}
                 />
               </div>
 
@@ -196,7 +265,7 @@ export function LessonQuestionDrawer({
                   value={body}
                   onChange={(event) => setBody(event.target.value)}
                   className="rounded-lg border-border/70 bg-background/60 focus-visible:ring-2 focus-visible:ring-primary/40"
-                  disabled={!user || submitting}
+                  disabled={!user || submitting || !canAskQuestion}
                 />
                 <p className="text-xs text-muted-foreground">
                   Tip: Use $...$ for inline math or $$...$$ for display
@@ -216,7 +285,7 @@ export function LessonQuestionDrawer({
                     setFile(nextFile);
                   }}
                   className="h-11 cursor-pointer rounded-lg border-border/70 bg-background/60 file:mr-4 file:h-9 file:rounded-md file:border-0 file:bg-muted/60 file:px-3 file:text-xs file:font-semibold file:text-foreground hover:file:bg-muted"
-                  disabled={!user || submitting}
+                  disabled={!user || submitting || !canAskQuestion}
                 />
                 <p className="text-xs text-muted-foreground">
                   Screenshots of your work help staff answer faster.
@@ -245,7 +314,7 @@ export function LessonQuestionDrawer({
                   <Button
                     type="button"
                     onClick={handleSubmit}
-                    disabled={!user || !canSubmit}
+                    disabled={!user || !canSubmit || eligibilityLoading}
                   >
                     {submitting ? "Submitting..." : "Submit Question"}
                   </Button>

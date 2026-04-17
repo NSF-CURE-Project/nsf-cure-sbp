@@ -43,10 +43,10 @@ export const lessonQuestionsHandler: PayloadHandler = async (req) => {
   const result = await req.payload.find({
     collection: 'questions',
     where: {
+      user: { equals: req.user.id },
       lesson: { equals: lessonId },
     },
     depth: 2,
-    overrideAccess: true,
     sort: '-createdAt',
     limit: 200,
   })
@@ -70,12 +70,18 @@ export const questionDetailHandler: PayloadHandler = async (req) => {
   if (!questionId) return jsonError('Invalid question id', 400)
 
   try {
-    const doc = (await req.payload.findByID({
+    const result = await req.payload.find({
       collection: 'questions',
-      id: questionId,
+      where: {
+        id: { equals: questionId },
+        user: { equals: req.user.id },
+      },
       depth: 2,
-      overrideAccess: true,
-    })) as unknown as Record<string, unknown>
+      limit: 1,
+    })
+
+    const doc = result.docs?.[0] as unknown as Record<string, unknown> | undefined
+    if (!doc) return jsonError('Question not found', 404)
 
     return Response.json({
       doc: sanitizeQuestionDoc(doc),

@@ -1,9 +1,55 @@
-import type { CollectionConfig, PayloadRequest } from 'payload'
+import type { CollectionConfig, PayloadRequest, Where } from 'payload'
 import { canReceiveNotification } from '../utils/notificationPreferences'
 
 const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' &&
   ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
+
+const isAdmin = (req?: PayloadRequest | null) =>
+  req?.user?.collection === 'users' && req?.user?.role === 'admin'
+
+const toId = (value: unknown): string | number | null => {
+  if (typeof value === 'object' && value !== null && 'id' in value) {
+    const id = (value as { id?: string | number }).id
+    return id ?? null
+  }
+  if (typeof value === 'string' || typeof value === 'number') return value
+  return null
+}
+
+const getOwnedClassroomIds = async (req?: PayloadRequest | null) => {
+  if (!req?.payload || req.user?.collection !== 'users' || !req.user?.id) return []
+  if (req.user.role === 'admin') return []
+
+  const classrooms = await req.payload.find({
+    collection: 'classrooms',
+    depth: 0,
+    limit: 500,
+    where: {
+      professor: {
+        equals: req.user.id,
+      },
+    },
+  })
+
+  return (
+    classrooms.docs
+      ?.map((doc) => toId(doc))
+      .filter((id): id is string | number => id != null) ?? []
+  )
+}
+
+const getStaffQuestionAccess = async (req?: PayloadRequest | null): Promise<boolean | Where> => {
+  if (!isStaff(req)) return false
+  if (isAdmin(req)) return true
+  const classroomIds = await getOwnedClassroomIds(req)
+  if (!classroomIds.length) return false
+  return {
+    classroom: {
+      in: classroomIds,
+    },
+  }
+}
 
 export const Questions: CollectionConfig = {
   slug: 'questions',
@@ -11,40 +57,37 @@ export const Questions: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     group: 'Student Support',
-    defaultColumns: ['status', 'lesson', 'user', 'createdAt'],
+    defaultColumns: ['status', 'classroom', 'lesson', 'user', 'createdAt'],
   },
   access: {
-    read: ({ req }) => {
-      if (isStaff(req)) return true
+    read: async ({ req }) => {
+      if (isStaff(req)) return getStaffQuestionAccess(req)
       if (req.user?.collection === 'accounts') {
         return { user: { equals: req.user.id } }
       }
       return false
     },
-    create: ({ req }) => req.user?.collection === 'accounts' || isStaff(req),
-    update: ({ req }) => {
-      if (isStaff(req)) return true
+    create: ({ req }) => req.user?.collection === 'accounts',
+    update: async ({ req }) => {
+      if (isStaff(req)) return getStaffQuestionAccess(req)
       if (req.user?.collection === 'accounts') {
         return { user: { equals: req.user.id } }
       }
       return false
     },
-    delete: ({ req }) => isStaff(req),
+    delete: async ({ req }) => getStaffQuestionAccess(req),
   },
   hooks: {
     beforeChange: [
       async ({ data, req, originalDoc }) => {
         if (!data || !req?.payload) return data
 
-        if (!data.user && req.user?.id) {
+        if (!data.user && req.user?.collection === 'accounts' && req.user?.id) {
           data.user = req.user.id
         }
 
         const lessonValue = data.lesson ?? originalDoc?.lesson
-        const lessonId =
-          typeof lessonValue === 'object' && lessonValue !== null
-            ? (lessonValue as { id?: string }).id
-            : lessonValue
+        const lessonId = toId(lessonValue)
 
         if (lessonId) {
           const lesson = await req.payload.findByID({
@@ -56,10 +99,7 @@ export const Questions: CollectionConfig = {
             data.lesson = lesson.id
             data.chapter =
               (lesson as { chapter?: string | { id?: string } }).chapter ?? data.chapter
-            const chapterId =
-              typeof data.chapter === 'object' && data.chapter !== null
-                ? (data.chapter as { id?: string }).id
-                : data.chapter
+            const chapterId = toId(data.chapter)
             if (chapterId) {
               const chapter = await req.payload.findByID({
                 collection: 'chapters',
@@ -74,7 +114,68 @@ export const Questions: CollectionConfig = {
           }
         }
 
-        if (Array.isArray(data.answers)) {
+        if (req.user?.collection === 'accounts') {
+          data.user = originalDoc?.user ?? data.user
+          data.lesson = originalDoc?.lesson ?? data.lesson
+          data.chapter = originalDoc?.chapter ?? data.chapter
+          data.class = originalDoc?.class ?? data.class
+          data.classroom = originalDoc?.classroom ?? data.classroom
+          data.answers = originalDoc?.answers ?? []
+
+          const classId = toId(data.class ?? originalDoc?.class)
+          const studentId = toId(data.user ?? originalDoc?.user)
+
+          if (!classId || !studentId) {
+            throw new Error('Questions must be tied to a classroom membership.')
+          }
+
+          const classrooms = await req.payload.find({
+            collection: 'classrooms',
+            depth: 0,
+            limit: 100,
+            where: {
+              class: { equals: classId },
+            },
+          })
+
+          const classroomIds =
+            classrooms.docs
+              ?.map((doc) => toId(doc))
+              .filter((id): id is string | number => id != null) ?? []
+
+          if (!classroomIds.length) {
+            throw new Error('Join a classroom for this course before asking lesson questions.')
+          }
+
+          const memberships = await req.payload.find({
+            collection: 'classroom-memberships',
+            depth: 1,
+            limit: 10,
+            sort: '-joinedAt',
+            where: {
+              student: { equals: studentId },
+              classroom: { in: classroomIds },
+            },
+          })
+
+          const matchingMemberships = memberships.docs ?? []
+          if (!matchingMemberships.length) {
+            throw new Error('Join a classroom for this course before asking lesson questions.')
+          }
+
+          const classroomId = toId(
+            (matchingMemberships[0] as { classroom?: unknown }).classroom,
+          )
+
+          if (!classroomId) {
+            throw new Error('Unable to determine the classroom for this question.')
+          }
+
+          data.classroom = classroomId
+          data.status = originalDoc ? (data.status === 'resolved' ? 'resolved' : originalDoc.status) : 'open'
+        }
+
+        if (Array.isArray(data.answers) && req.user?.collection === 'users') {
           const now = new Date().toISOString()
           const staffAuthor = req.user?.collection === 'users' ? req.user.id : undefined
           data.answers = data.answers.map((answer) => ({
@@ -170,6 +271,16 @@ export const Questions: CollectionConfig = {
       admin: {
         readOnly: true,
         position: 'sidebar',
+      },
+    },
+    {
+      name: 'classroom',
+      type: 'relationship',
+      relationTo: 'classrooms',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: 'The classroom membership used when the student asked this question.',
       },
     },
     {

@@ -114,12 +114,94 @@ const getCourseWorkspaceBreadcrumbs = (pathname: string): BreadcrumbItem[] | nul
   ]
 }
 
+const collectionSectionOverrides: Record<
+  string,
+  { sectionLabel: string; sectionHref?: string | null; collectionLabel?: string }
+> = {
+  classrooms: { sectionLabel: 'Classrooms', sectionHref: '/admin/collections/classrooms' },
+  'classroom-memberships': {
+    sectionLabel: 'Classrooms',
+    sectionHref: '/admin/collections/classrooms',
+    collectionLabel: 'Memberships',
+  },
+  pages: { sectionLabel: 'Site Management', sectionHref: '/admin/site-management' },
+  quizzes: { sectionLabel: 'Assessments' },
+  'quiz-questions': { sectionLabel: 'Assessments' },
+  problems: { sectionLabel: 'Assessments' },
+  'problem-sets': { sectionLabel: 'Assessments' },
+  'engineering-figures': { sectionLabel: 'Assessments' },
+  questions: { sectionLabel: 'Student Support' },
+  feedback: { sectionLabel: 'Student Support' },
+  'lesson-feedback': { sectionLabel: 'Student Support' },
+  'lesson-progress': { sectionLabel: 'Student Support' },
+  'lesson-bookmarks': { sectionLabel: 'Student Support' },
+  notifications: { sectionLabel: 'Student Support' },
+  'quiz-attempts': { sectionLabel: 'Student Support' },
+  'problem-attempts': { sectionLabel: 'Student Support' },
+  accounts: { sectionLabel: 'Students' },
+  'reporting-periods': { sectionLabel: 'NSF Reporting', sectionHref: '/admin/reporting' },
+  'rppr-reports': { sectionLabel: 'NSF Reporting', sectionHref: '/admin/reporting' },
+  organizations: { sectionLabel: 'NSF Reporting', sectionHref: '/admin/reporting' },
+  'reporting-snapshots': { sectionLabel: 'NSF Reporting', sectionHref: '/admin/reporting' },
+  'reporting-audit-events': { sectionLabel: 'NSF Reporting', sectionHref: '/admin/reporting' },
+  'reporting-saved-views': { sectionLabel: 'NSF Reporting', sectionHref: '/admin/reporting' },
+  'reporting-evidence-links': { sectionLabel: 'NSF Reporting', sectionHref: '/admin/reporting' },
+  'reporting-product-records': { sectionLabel: 'NSF Reporting', sectionHref: '/admin/reporting' },
+  'api-keys': { sectionLabel: 'Settings', sectionHref: '/admin/site-management' },
+}
+
+const getCollectionSectionBreadcrumbs = (pathname: string): BreadcrumbItem[] | null => {
+  const match = pathname.match(/^\/admin\/collections\/([^/]+)(?:\/([^/]+))?(?:\/([^/]+))?$/)
+  if (!match) return null
+
+  const [, collectionSlug, primarySegment, secondarySegment] = match
+  const config = collectionSectionOverrides[collectionSlug]
+  if (!config) return null
+
+  const breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Dashboard', href: '/admin' },
+    { label: config.sectionLabel, href: config.sectionHref ?? null },
+  ]
+
+  const collectionLabel =
+    config.collectionLabel ?? collectionLabelOverrides[collectionSlug] ?? formatSegmentLabel(collectionSlug)
+
+  if (!primarySegment || collectionSlug !== 'classrooms') {
+    breadcrumbs.push({
+      label: collectionLabel,
+      href: primarySegment ? `/admin/collections/${collectionSlug}` : null,
+    })
+  }
+
+  if (primarySegment) {
+    breadcrumbs.push({
+      label: primarySegment === 'create' ? 'Create' : 'Edit',
+      href: primarySegment === 'create' ? null : `${pathname.split('/').slice(0, 5).join('/')}`,
+    })
+  }
+
+  if (secondarySegment) {
+    breadcrumbs.push({
+      label: isLikelyRecordId(secondarySegment) ? 'Record' : formatSegmentLabel(secondarySegment),
+      href: null,
+    })
+  }
+
+  if (breadcrumbs.length > 0) {
+    breadcrumbs[breadcrumbs.length - 1] = { ...breadcrumbs[breadcrumbs.length - 1], href: null }
+  }
+
+  return breadcrumbs
+}
+
 const getAdminBreadcrumbs = (pathname: string, previousPath?: string | null): BreadcrumbItem[] => {
   if (!pathname.startsWith('/admin')) return []
   if (previousPath === '/admin/courses') {
     const courseWorkspaceBreadcrumbs = getCourseWorkspaceBreadcrumbs(pathname)
     if (courseWorkspaceBreadcrumbs) return courseWorkspaceBreadcrumbs
   }
+  const collectionSectionBreadcrumbs = getCollectionSectionBreadcrumbs(pathname)
+  if (collectionSectionBreadcrumbs) return collectionSectionBreadcrumbs
   const parts = pathname.split('/').filter(Boolean)
   const breadcrumbs: BreadcrumbItem[] = [{ label: 'Dashboard', href: '/admin' }]
 
@@ -2188,6 +2270,25 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           border-radius: 12px;
           padding: 12px;
           box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+        }
+
+        html[data-admin-context='app'] button[aria-label='Toggle block'],
+        html[data-admin-context='app'] button[title='Toggle block'] {
+          font-size: 0;
+          color: transparent;
+          min-width: 38px;
+          min-height: 38px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        html[data-admin-context='app'] button[aria-label='Toggle block'] svg,
+        html[data-admin-context='app'] button[title='Toggle block'] svg,
+        html[data-admin-context='app'] button[aria-label='Toggle block'] .icon,
+        html[data-admin-context='app'] button[title='Toggle block'] .icon {
+          color: var(--cpp-muted);
+          fill: currentColor;
         }
 
         html[data-admin-context='app'] .table [data-field='createdAt'],

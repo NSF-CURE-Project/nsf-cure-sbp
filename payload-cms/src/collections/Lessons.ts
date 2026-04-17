@@ -494,9 +494,7 @@ export const Lessons: CollectionConfig = {
               type: 'number',
               min: 0,
               admin: {
-                position: 'sidebar',
-                description: 'Managed from the Reorder lessons list.',
-                readOnly: true,
+                hidden: true,
               },
             },
             {
