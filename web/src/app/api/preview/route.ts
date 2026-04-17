@@ -3,6 +3,30 @@ import { NextRequest, NextResponse } from "next/server";
 
 const PREVIEW_SECRET = process.env.PREVIEW_SECRET || "";
 
+const resolvePublicOrigin = (req: NextRequest) => {
+  const configuredSiteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.RAILWAY_PUBLIC_DOMAIN
+      ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+      : "");
+
+  if (configuredSiteUrl) {
+    try {
+      return new URL(configuredSiteUrl).origin;
+    } catch {
+      // Fall through to forwarded headers.
+    }
+  }
+
+  const forwardedProto = req.headers.get("x-forwarded-proto") || "https";
+  const forwardedHost =
+    req.headers.get("x-forwarded-host") ||
+    req.headers.get("host") ||
+    req.nextUrl.host;
+
+  return `${forwardedProto}://${forwardedHost}`;
+};
+
 export async function GET(req: NextRequest) {
   const rawPreviewHost =
     process.env.PREVIEW_HOST || process.env.NEXT_PUBLIC_PREVIEW_URL || "";
@@ -75,7 +99,7 @@ export async function GET(req: NextRequest) {
       redirect = "/";
   }
 
-  const target = new URL(redirect, req.url);
+  const target = new URL(redirect, resolvePublicOrigin(req));
   // Keep preview state in draft-mode cookies, not in shareable URLs.
   target.searchParams.set("preview", "1");
   return NextResponse.redirect(target);

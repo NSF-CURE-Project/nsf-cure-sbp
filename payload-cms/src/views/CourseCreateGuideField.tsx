@@ -47,6 +47,21 @@ const chipStyle: React.CSSProperties = {
   border: '1px solid rgba(21, 83, 207, 0.16)',
 }
 
+const backLinkStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 10,
+  padding: '8px 14px',
+  borderRadius: 999,
+  fontSize: 13,
+  fontWeight: 800,
+  color: 'var(--cpp-ink)',
+  background: 'rgba(255, 255, 255, 0.92)',
+  border: '1px solid rgba(21, 83, 207, 0.24)',
+  boxShadow: '0 6px 14px rgba(15, 23, 42, 0.08)',
+  textDecoration: 'none',
+}
+
 const cardStyle: React.CSSProperties = {
   borderRadius: 12,
   border: '1px solid var(--admin-surface-border)',
@@ -156,12 +171,40 @@ export default function CourseCreateGuideField() {
       <div>
         <Link
           href="/admin/courses"
-          style={{
-            ...chipStyle,
-            textDecoration: 'none',
-          }}
+          aria-label="Go back to Course Workspace"
+          style={backLinkStyle}
         >
-          Back to Course Workspace
+          <span
+            aria-hidden="true"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 22,
+              height: 22,
+              borderRadius: 999,
+              background: 'rgba(21, 83, 207, 0.1)',
+              color: '#0b4aaf',
+              flexShrink: 0,
+            }}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6.5 3.5L2 8m0 0l4.5 4.5M2 8h12"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <span>Back to Course Workspace</span>
         </Link>
       </div>
     </section>
