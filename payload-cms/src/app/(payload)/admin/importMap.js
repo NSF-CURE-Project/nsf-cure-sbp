@@ -29,6 +29,7 @@ import { default as default_944838cdb41db1e12687a26697354cee } from '@/views/Les
 import { default as default_d92ed4247662a281e6e3a53a615b206a } from '@/views/LessonQuizPreviewField'
 import { default as default_4b04de482248e5cf6439b466d2c48d43 } from '@/views/PageOrderField'
 import { default as default_5565cf0809d37ddd6682af69dc08c9da } from '@/views/ClassroomJoinCodeField'
+import { default as default_5a37a7701238d9f38d74ff0f281f3650 } from '@/views/CourseCreateGuideField'
 import { default as default_4c635b207a892622d6930c06b05f52ee } from '@/views/ApiKeyDisplay'
 import { default as default_8ecf3705f4486154c43b65ffcba083a4 } from '@/views/QuizQuestionPickerField'
 import { default as default_b228ebeb356b13e416a25a2727293bbc } from '@/views/QuizPreviewField'
@@ -78,6 +79,7 @@ export const importMap = {
   "@/views/LessonQuizPreviewField#default": default_d92ed4247662a281e6e3a53a615b206a,
   "@/views/PageOrderField#default": default_4b04de482248e5cf6439b466d2c48d43,
   "@/views/ClassroomJoinCodeField#default": default_5565cf0809d37ddd6682af69dc08c9da,
+  "@/views/CourseCreateGuideField#default": default_5a37a7701238d9f38d74ff0f281f3650,
   "@/views/ApiKeyDisplay#default": default_4c635b207a892622d6930c06b05f52ee,
   "@/views/QuizQuestionPickerField#default": default_8ecf3705f4486154c43b65ffcba083a4,
   "@/views/QuizPreviewField#default": default_b228ebeb356b13e416a25a2727293bbc,

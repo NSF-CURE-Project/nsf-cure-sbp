@@ -1,5 +1,14 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, PayloadRequest } from 'payload'
 import { ensureUniqueSlug, slugify } from '../utils/slug'
+
+const resolveClassId = (value: unknown): string | number | null => {
+  if (typeof value === 'object' && value !== null && 'id' in value) {
+    const id = (value as { id?: string | number }).id
+    return id ?? null
+  }
+  if (typeof value === 'string' || typeof value === 'number') return value
+  return null
+}
 
 export const Chapters: CollectionConfig = {
   slug: 'chapters',
@@ -116,6 +125,7 @@ export const Chapters: CollectionConfig = {
     beforeValidate: [
       async ({ data, req, originalDoc }) => {
         if (!data) return data
+        const classId = resolveClassId(data.class ?? originalDoc?.class)
         if (!data.slug) {
           const title = data.title ?? originalDoc?.title ?? ''
           const base = slugify(String(title))
@@ -124,9 +134,28 @@ export const Chapters: CollectionConfig = {
             collection: 'chapters',
             req,
             id: originalDoc?.id,
+            where: classId ? { class: { equals: classId } } : undefined,
           })
+        } else if (typeof data.slug === 'string') {
+          data.slug = slugify(data.slug)
         }
         return data
+      },
+    ],
+    beforeDelete: [
+      async ({ id, req }) => {
+        if (!req?.payload || id == null) return
+        const lessons = await req.payload.find({
+          collection: 'lessons',
+          depth: 0,
+          limit: 1,
+          where: { chapter: { equals: id } },
+        })
+        if (lessons.totalDocs > 0) {
+          throw new Error(
+            `Cannot delete chapter: ${lessons.totalDocs} lesson(s) still reference it. Move or delete those lessons first.`,
+          )
+        }
       },
     ],
   },
@@ -166,7 +195,7 @@ export const Chapters: CollectionConfig = {
     },
     {
       name: 'class',
-      label: 'Class',
+      label: 'Course',
       type: 'relationship',
       relationTo: 'classes', // many chapters → one class
       required: true,
@@ -178,7 +207,34 @@ export const Chapters: CollectionConfig = {
       name: 'slug',
       type: 'text',
       required: true,
-      unique: true,
+      validate: async (
+        value: unknown,
+        options?: {
+          data?: { class?: unknown }
+          req?: PayloadRequest
+          id?: string | number
+        },
+      ) => {
+        if (!value || typeof value !== 'string') return 'Slug is required.'
+        const classId = resolveClassId(options?.data?.class)
+        if (!classId) return 'Select a course before setting the slug.'
+        const req = options?.req
+        if (!req?.payload) return true
+        const existing = await req.payload.find({
+          collection: 'chapters',
+          depth: 0,
+          limit: 1,
+          where: {
+            slug: { equals: value },
+            class: { equals: classId },
+            id: { not_equals: options?.id },
+          },
+        })
+        if (existing.totalDocs > 0) {
+          return 'Slug must be unique within this course.'
+        }
+        return true
+      },
       admin: {
         hidden: true,
       },

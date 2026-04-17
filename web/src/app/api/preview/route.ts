@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
   const secret = searchParams.get("secret");
   const type = searchParams.get("type");
   const slug = searchParams.get("slug") || "";
+  const classSlug = searchParams.get("classSlug") || "";
 
   if (!secret || secret !== PREVIEW_SECRET) {
     return NextResponse.json({ message: "Invalid secret" }, { status: 401 });
@@ -49,7 +50,11 @@ export async function GET(req: NextRequest) {
       redirect = "/";
       break;
     case "lesson":
-      redirect = `/preview/lesson/${slug}`;
+      // When the lesson's class is known, route through the canonical
+      // class-scoped page, which enforces tree membership via resolveLessonForClass.
+      redirect = classSlug
+        ? `/classes/${classSlug}/lessons/${slug}`
+        : `/preview/lesson/${slug}`;
       break;
     case "class":
       redirect = `/classes/${slug}`;

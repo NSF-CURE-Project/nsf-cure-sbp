@@ -45,7 +45,7 @@ const baseHandleStyle: React.CSSProperties = {
 }
 
 export default function ClassOrderList({
-  title = 'Reorder Classes',
+  title = 'Reorder Courses',
   showEditLinks = false,
   compact = false,
   showHint = true,

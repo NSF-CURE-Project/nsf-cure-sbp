@@ -392,6 +392,8 @@ export const Lessons: CollectionConfig = {
             id: originalDoc?.id,
             where: chapterId ? { chapter: { equals: chapterId } } : undefined,
           })
+        } else if (typeof data.slug === 'string') {
+          data.slug = slugify(data.slug)
         }
         return data
       },

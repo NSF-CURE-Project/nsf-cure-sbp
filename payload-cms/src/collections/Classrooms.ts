@@ -128,7 +128,7 @@ export const Classrooms: CollectionConfig = {
     },
     {
       name: 'class',
-      label: 'Class',
+      label: 'Course',
       type: 'relationship',
       relationTo: 'classes',
       required: true,

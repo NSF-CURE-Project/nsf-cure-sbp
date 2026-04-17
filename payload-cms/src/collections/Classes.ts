@@ -3,6 +3,10 @@ import { ensureUniqueSlug, slugify } from '../utils/slug'
 
 export const Classes: CollectionConfig = {
   slug: 'classes',
+  labels: {
+    singular: 'Course',
+    plural: 'Courses',
+  },
   defaultSort: 'order',
   admin: {
     useAsTitle: 'title',
@@ -58,8 +62,26 @@ export const Classes: CollectionConfig = {
             req,
             id: originalDoc?.id,
           })
+        } else if (typeof data.slug === 'string') {
+          data.slug = slugify(data.slug)
         }
         return data
+      },
+    ],
+    beforeDelete: [
+      async ({ id, req }) => {
+        if (!req?.payload || id == null) return
+        const chapters = await req.payload.find({
+          collection: 'chapters',
+          depth: 0,
+          limit: 1,
+          where: { class: { equals: id } },
+        })
+        if (chapters.totalDocs > 0) {
+          throw new Error(
+            `Cannot delete course: ${chapters.totalDocs} chapter(s) still reference it. Move or delete those chapters first.`,
+          )
+        }
       },
     ],
     beforeChange: [
@@ -95,13 +117,30 @@ export const Classes: CollectionConfig = {
   },
   fields: [
     {
+      name: 'courseSetupGuide',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '@/views/CourseCreateGuideField#default',
+        },
+      },
+    },
+    {
       name: 'title',
       type: 'text',
       required: true,
+      admin: {
+        description:
+          'Use the staff-facing course name, such as "Statics Fundamentals" or "Mechanics of Materials".',
+      },
     },
     {
       name: 'description',
       type: 'textarea',
+      admin: {
+        description:
+          'Optional short summary for staff context. You can refine it later after the course is created.',
+      },
     },
     // 🔽 NEW: Sidebar ordering
     {

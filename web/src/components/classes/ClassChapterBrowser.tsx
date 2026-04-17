@@ -288,9 +288,9 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
           return (
             <section
               key={chapter.id}
-              className="rounded-2xl border border-border/60 bg-card/70 shadow-sm"
+              className="group/chapter rounded-2xl border border-border/60 bg-card/70 shadow-sm transition-colors duration-200 hover:border-primary/25 hover:bg-muted/35"
             >
-              <header className="rounded-t-2xl border-b border-border/60 bg-background/95 px-4 py-3">
+              <header className="rounded-t-2xl border-b border-border/60 bg-background/95 px-4 py-3 transition-colors duration-200 group-hover/chapter:bg-muted/35">
                 <div className="flex items-start justify-between gap-4">
                   <button
                     type="button"
@@ -300,7 +300,7 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                         [chapter.id]: !prev[chapter.id],
                       }))
                     }
-                    className="flex min-w-0 flex-1 items-start gap-3 text-left"
+                    className="flex min-w-0 flex-1 items-start gap-3 rounded-xl text-left hover:bg-transparent focus-visible:bg-transparent"
                     aria-expanded={chapterOpen}
                   >
                     <ChevronDown
@@ -341,7 +341,7 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                   {chapter.slug ? (
                     <Link
                       href={`/classes/${classSlug}/chapters/${chapter.slug}`}
-                      className="shrink-0 pt-1 text-sm font-medium text-muted-foreground hover:text-foreground"
+                      className="shrink-0 pt-1 text-sm font-medium text-muted-foreground transition-colors group-hover/chapter:text-foreground hover:text-foreground"
                     >
                       View chapter
                     </Link>

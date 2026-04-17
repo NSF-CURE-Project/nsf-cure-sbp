@@ -50,7 +50,9 @@ const buildCourseTree = async () => {
   const payload = await getPayload({ config: configPromise })
   const classes = await payload.find({
     collection: 'classes',
-    depth: 2,
+    // depth=3 so lesson.assessment.quiz is populated as an object (not a bare ID),
+    // otherwise the row misreports "Not assigned" for lessons that do have a quiz.
+    depth: 3,
     limit: 200,
     sort: 'order',
     overrideAccess: true,

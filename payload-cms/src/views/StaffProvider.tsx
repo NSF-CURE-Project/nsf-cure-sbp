@@ -44,7 +44,7 @@ const collectionLabelOverrides: Record<string, string> = {
   accounts: 'Accounts',
   media: 'Media',
   pages: 'Pages',
-  classes: 'Classes',
+  classes: 'Courses',
   chapters: 'Chapters',
   lessons: 'Lessons',
   quizzes: 'Quizzes',
@@ -170,8 +170,11 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
   const getIsAccountPath = (pathname: string) =>
     pathname.startsWith('/admin/account') || /\/admin\/collections\/users\/[^/]+/.test(pathname)
   const serverPathname = (() => {
-    const req = (props as { initPageResult?: { req?: { url?: unknown; path?: unknown; originalUrl?: unknown } } })
-      ?.initPageResult?.req
+    const req = (
+      props as {
+        initPageResult?: { req?: { url?: unknown; path?: unknown; originalUrl?: unknown } }
+      }
+    )?.initPageResult?.req
     const raw = req?.url ?? req?.path ?? req?.originalUrl
     if (typeof raw !== 'string' || !raw.length) return null
     try {
@@ -231,12 +234,12 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       return
     }
 
-    const showAllButtons = Array.from(
-      form.querySelectorAll<HTMLButtonElement>('button, a'),
-    ).filter((btn) => {
-      const label = btn.textContent?.trim().toLowerCase() ?? ''
-      return label === 'show all' || label === 'expand all'
-    })
+    const showAllButtons = Array.from(form.querySelectorAll<HTMLButtonElement>('button, a')).filter(
+      (btn) => {
+        const label = btn.textContent?.trim().toLowerCase() ?? ''
+        return label === 'show all' || label === 'expand all'
+      },
+    )
 
     showAllButtons.forEach((btn) => {
       if (!btn.disabled) {
@@ -293,8 +296,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     if (!status) return false
     const hasRevert = Boolean(
       document.querySelector('.doc-controls__meta a[href*="revert"]') ||
-        document.querySelector('.doc-controls__meta a[href*="revert-to-published"]') ||
-        document.querySelector('.doc-controls__meta button[aria-label*="Revert"]')
+      document.querySelector('.doc-controls__meta a[href*="revert-to-published"]') ||
+      document.querySelector('.doc-controls__meta button[aria-label*="Revert"]'),
     )
     if (hasRevert) {
       return forceStatusChanged()
@@ -407,7 +410,10 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       }
     })
 
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    })
     return () => observer.disconnect()
   }, [theme])
 
@@ -430,7 +436,9 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           stack = stored
             ? stored
                 .split('|')
-                .filter((path) => Boolean(path) && path.startsWith('/admin') && path !== '/admin/login')
+                .filter(
+                  (path) => Boolean(path) && path.startsWith('/admin') && path !== '/admin/login',
+                )
             : []
           const last = stack[stack.length - 1]
           if (last !== pathname) {
@@ -541,14 +549,13 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     const updateEditHeader = () => {
       const path = window.location.pathname
       const isEditView =
-        /\/admin\/collections\/[^/]+\/[^/]+/.test(path) ||
-        /\/admin\/globals\/[^/]+/.test(path)
+        /\/admin\/collections\/[^/]+\/[^/]+/.test(path) || /\/admin\/globals\/[^/]+/.test(path)
       if (!isEditView) return
 
       const header = document.querySelector(
         '.doc-controls, .document-header, .collection-edit__header, .global-edit__header, .edit-view__header',
       ) as HTMLElement | null
-        if (!header) return
+      if (!header) return
 
       header.classList.add('admin-edit-header')
 
@@ -582,9 +589,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       if (actions) actions.classList.add('admin-edit-actions')
 
       if (actions) {
-        const livePreviewButton = actions.querySelector<HTMLButtonElement>(
-          '.live-preview-toggler',
-        )
+        const livePreviewButton = actions.querySelector<HTMLButtonElement>('.live-preview-toggler')
         if (livePreviewButton && !livePreviewButton.querySelector('.admin-live-preview-label')) {
           const label = document.createElement('span')
           label.className = 'admin-live-preview-label'
@@ -593,35 +598,33 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
       }
 
-        const headerTabs = Array.from(
-          header.querySelectorAll<HTMLAnchorElement | HTMLButtonElement>('a, button'),
-        )
-        const globalTabs = Array.from(
-          document.querySelectorAll<HTMLAnchorElement | HTMLButtonElement>('.tabs a, .tabs button'),
-        )
-        const tabCandidates = Array.from(new Set([...headerTabs, ...globalTabs]))
-        const moreLinks: { label: string; href?: string }[] = []
+      const headerTabs = Array.from(
+        header.querySelectorAll<HTMLAnchorElement | HTMLButtonElement>('a, button'),
+      )
+      const globalTabs = Array.from(
+        document.querySelectorAll<HTMLAnchorElement | HTMLButtonElement>('.tabs a, .tabs button'),
+      )
+      const tabCandidates = Array.from(new Set([...headerTabs, ...globalTabs]))
+      const moreLinks: { label: string; href?: string }[] = []
 
-        tabCandidates.forEach((tab) => {
-          const label = tab.textContent?.trim() ?? ''
-          const normalized = label.toLowerCase()
-          if (normalized === 'versions' || normalized === 'api') {
-            tab.classList.add('admin-hidden-tab')
-            const href =
-              tab instanceof HTMLAnchorElement
-                ? tab.href
-                : (tab.getAttribute('href') ?? undefined)
-            if (normalized !== 'api' || role === 'admin') {
-              moreLinks.push({ label, href })
-            }
+      tabCandidates.forEach((tab) => {
+        const label = tab.textContent?.trim() ?? ''
+        const normalized = label.toLowerCase()
+        if (normalized === 'versions' || normalized === 'api') {
+          tab.classList.add('admin-hidden-tab')
+          const href =
+            tab instanceof HTMLAnchorElement ? tab.href : (tab.getAttribute('href') ?? undefined)
+          if (normalized !== 'api' || role === 'admin') {
+            moreLinks.push({ label, href })
           }
-          if (normalized === 'api' && role !== 'admin') {
-            tab.classList.add('admin-hide-api')
-          }
-          if (normalized === 'edit') {
-            tab.textContent = 'Edit mode'
-          }
-        })
+        }
+        if (normalized === 'api' && role !== 'admin') {
+          tab.classList.add('admin-hide-api')
+        }
+        if (normalized === 'edit') {
+          tab.textContent = 'Edit mode'
+        }
+      })
 
       const existingMenu = header.querySelector('.admin-edit-more')
       if (!moreLinks.length) {
@@ -629,47 +632,48 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         return
       }
 
-        const menu = existingMenu ?? document.createElement('details')
-        if (!existingMenu) {
-          menu.className = 'admin-edit-more'
-        }
-        if (!existingMenu) {
-          const summary = document.createElement('summary')
-          summary.textContent = 'More'
-          menu.appendChild(summary)
-          const list = document.createElement('div')
-          list.className = 'admin-edit-more__menu'
-          menu.appendChild(list)
+      const menu = existingMenu ?? document.createElement('details')
+      if (!existingMenu) {
+        menu.className = 'admin-edit-more'
+      }
+      if (!existingMenu) {
+        const summary = document.createElement('summary')
+        summary.textContent = 'More'
+        menu.appendChild(summary)
+        const list = document.createElement('div')
+        list.className = 'admin-edit-more__menu'
+        menu.appendChild(list)
         const target = actions ?? header
         target.appendChild(menu)
       }
 
-        const list = menu.querySelector('.admin-edit-more__menu')
-        if (list) {
-          list.innerHTML = ''
-          moreLinks.forEach((link) => {
-            if (link.href) {
-              const item = document.createElement('a')
-              item.textContent = link.label
-              item.href = link.href
-              list.appendChild(item)
-              return
-            }
-
-            const item = document.createElement('button')
-            item.type = 'button'
+      const list = menu.querySelector('.admin-edit-more__menu')
+      if (list) {
+        list.innerHTML = ''
+        moreLinks.forEach((link) => {
+          if (link.href) {
+            const item = document.createElement('a')
             item.textContent = link.label
-            item.className = 'admin-edit-more__button'
-            item.addEventListener('click', () => {
-              const fallback = tabCandidates.find(
-                (tab) => tab.textContent?.trim() === link.label,
-              ) as HTMLButtonElement | HTMLAnchorElement | undefined
-              fallback?.click()
-            })
+            item.href = link.href
             list.appendChild(item)
+            return
+          }
+
+          const item = document.createElement('button')
+          item.type = 'button'
+          item.textContent = link.label
+          item.className = 'admin-edit-more__button'
+          item.addEventListener('click', () => {
+            const fallback = tabCandidates.find((tab) => tab.textContent?.trim() === link.label) as
+              | HTMLButtonElement
+              | HTMLAnchorElement
+              | undefined
+            fallback?.click()
           })
-        }
+          list.appendChild(item)
+        })
       }
+    }
 
     const scheduleUpdate = () => {
       if (rafId) return
@@ -725,7 +729,9 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     return email && email.length ? email : null
   }, [user])
   const userRoleLabel = useMemo(() => {
-    const rawRole = String(user?.role ?? '').trim().toLowerCase()
+    const rawRole = String(user?.role ?? '')
+      .trim()
+      .toLowerCase()
     if (rawRole === 'admin') return 'SBP Admin'
     if (rawRole === 'professor') return 'Professor'
     if (rawRole === 'staff') return 'Staff'
@@ -737,25 +743,31 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
   const closeUserMenu = useCallback(() => {
     setIsUserMenuOpen(false)
   }, [])
-  const handleAccountClick = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-    if (typeof window === 'undefined') return
-    closeUserMenu()
-    window.location.assign('/admin/account')
-  }, [closeUserMenu])
-  const handleAdminLogout = useCallback(async (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-    if (typeof window === 'undefined') return
-    closeUserMenu()
-    try {
-      await fetch('/api/users/logout', {
-        method: 'POST',
-        credentials: 'include',
-      })
-    } finally {
-      window.location.assign('/admin/login')
-    }
-  }, [closeUserMenu])
+  const handleAccountClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault()
+      if (typeof window === 'undefined') return
+      closeUserMenu()
+      window.location.assign('/admin/account')
+    },
+    [closeUserMenu],
+  )
+  const handleAdminLogout = useCallback(
+    async (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault()
+      if (typeof window === 'undefined') return
+      closeUserMenu()
+      try {
+        await fetch('/api/users/logout', {
+          method: 'POST',
+          credentials: 'include',
+        })
+      } finally {
+        window.location.assign('/admin/login')
+      }
+    },
+    [closeUserMenu],
+  )
 
   useEffect(() => {
     setIsUserMenuOpen(false)
@@ -766,27 +778,33 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     const enablePublishPreviewGate = false
 
     if (!enablePublishPreviewGate) {
-      Array.from(document.querySelectorAll<HTMLButtonElement>('button[data-publish-gate-bound="true"]')).forEach(
-        (button) => {
-          if (button.isConnected) {
-            button.style.display = ''
-            const originalType = button.dataset.publishGateType as
-              | 'submit'
-              | 'button'
-              | 'reset'
-              | undefined
-            if (originalType) button.type = originalType
-          }
-          delete button.dataset.publishGateBound
-        },
-      )
+      Array.from(
+        document.querySelectorAll<HTMLButtonElement>('button[data-publish-gate-bound="true"]'),
+      ).forEach((button) => {
+        if (button.isConnected) {
+          button.style.display = ''
+          const originalType = button.dataset.publishGateType as
+            | 'submit'
+            | 'button'
+            | 'reset'
+            | undefined
+          if (originalType) button.type = originalType
+        }
+        delete button.dataset.publishGateBound
+      })
       Array.from(
         document.querySelectorAll<HTMLButtonElement>('button[data-publish-gate-proxy="true"]'),
       ).forEach((proxy) => proxy.remove())
       return
     }
 
-    const supportedPreviewCollections = new Set(['classes', 'chapters', 'lessons', 'pages', 'quizzes'])
+    const supportedPreviewCollections = new Set([
+      'classes',
+      'chapters',
+      'lessons',
+      'pages',
+      'quizzes',
+    ])
 
     const getPreviewTarget = () => {
       const path = window.location.pathname
@@ -806,20 +824,20 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     }
 
     const resetPublishGateButtons = () => {
-      Array.from(document.querySelectorAll<HTMLButtonElement>('button[data-publish-gate-bound="true"]')).forEach(
-        (button) => {
-          if (button.isConnected) {
-            button.style.display = ''
-            const originalType = button.dataset.publishGateType as
-              | 'submit'
-              | 'button'
-              | 'reset'
-              | undefined
-            if (originalType) button.type = originalType
-          }
-          delete button.dataset.publishGateBound
-        },
-      )
+      Array.from(
+        document.querySelectorAll<HTMLButtonElement>('button[data-publish-gate-bound="true"]'),
+      ).forEach((button) => {
+        if (button.isConnected) {
+          button.style.display = ''
+          const originalType = button.dataset.publishGateType as
+            | 'submit'
+            | 'button'
+            | 'reset'
+            | undefined
+          if (originalType) button.type = originalType
+        }
+        delete button.dataset.publishGateBound
+      })
       Array.from(
         document.querySelectorAll<HTMLButtonElement>('button[data-publish-gate-proxy="true"]'),
       ).forEach((proxy) => proxy.remove())
@@ -885,7 +903,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       publishIntentRef.current = false
       pendingPublishRef.current = null
 
-      const originalType = (button.dataset.publishGateType as 'submit' | 'button' | 'reset' | undefined) ?? 'submit'
+      const originalType =
+        (button.dataset.publishGateType as 'submit' | 'button' | 'reset' | undefined) ?? 'submit'
       button.type = originalType
       const form = button.closest('form')
       const isSubmitButton = originalType === 'submit'
@@ -1046,7 +1065,9 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         return
       }
       const buttons = Array.from(
-        document.querySelectorAll<HTMLButtonElement>('button#action-save, button[data-action="publish"]'),
+        document.querySelectorAll<HTMLButtonElement>(
+          'button#action-save, button[data-action="publish"]',
+        ),
       )
       buttons.forEach((button) => {
         if (!isPublishButton(button)) return
@@ -1121,12 +1142,10 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
       window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
         const url =
-          typeof input === 'string'
-            ? input
-            : input instanceof URL
-              ? input.toString()
-              : input.url
-        const method = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase()
+          typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
+        const method = (
+          init?.method ?? (input instanceof Request ? input.method : 'GET')
+        ).toUpperCase()
 
         const targetInfo = getPreviewTarget()
         const targetPrefix =
@@ -2920,10 +2939,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
             ) : null}
           </div>
           <div className="admin-topbar-actions">
-            <div
-              className={`admin-user-menu${isUserMenuOpen ? ' is-open' : ''}`}
-              ref={userMenuRef}
-            >
+            <div className={`admin-user-menu${isUserMenuOpen ? ' is-open' : ''}`} ref={userMenuRef}>
               <button
                 type="button"
                 className="admin-user-button"
@@ -3079,11 +3095,12 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                     setPreviewGate({ open: false, url: null, loading: false, error: null })
                     if (pendingButton) {
                       allowPublishRef.current = true
-                      const originalType = (pendingButton.dataset.publishGateType as
-                        | 'submit'
-                        | 'button'
-                        | 'reset'
-                        | undefined) ?? 'submit'
+                      const originalType =
+                        (pendingButton.dataset.publishGateType as
+                          | 'submit'
+                          | 'button'
+                          | 'reset'
+                          | undefined) ?? 'submit'
                       pendingButton.type = originalType
                       const form = pendingButton.closest('form')
                       const isSubmitButton = originalType === 'submit'
@@ -3115,17 +3132,13 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
               </div>
             </header>
             {previewGate.loading ? (
-              <div style={{ padding: 16, color: 'var(--cpp-muted)' }}>
-                Loading preview…
-              </div>
+              <div style={{ padding: 16, color: 'var(--cpp-muted)' }}>Loading preview…</div>
             ) : previewGate.error ? (
               <div style={{ padding: 16, color: '#dc2626' }}>{previewGate.error}</div>
             ) : previewGate.url ? (
               <iframe title="Live preview" src={previewGate.url} />
             ) : (
-              <div style={{ padding: 16, color: 'var(--cpp-muted)' }}>
-                Preview unavailable.
-              </div>
+              <div style={{ padding: 16, color: 'var(--cpp-muted)' }}>Preview unavailable.</div>
             )}
           </div>
         </div>
