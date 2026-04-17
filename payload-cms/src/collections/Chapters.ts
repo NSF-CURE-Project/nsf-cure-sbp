@@ -22,6 +22,7 @@ export const Chapters: CollectionConfig = {
     afterChange: [
       async ({ doc, previousDoc, req, operation }) => {
         if (!req?.payload) return
+        const runClassSyncAsync = process.env.PAYLOAD_ASYNC_CHAPTER_CLASS_SYNC !== 'false'
         const nextClass = doc?.class
         const prevClass = previousDoc?.class
 
@@ -81,16 +82,33 @@ export const Chapters: CollectionConfig = {
           })
         }
 
-        if (prevClassId && prevClassId !== nextClassId) {
-          await detachChapter(prevClassId)
+        const syncClassRelations = async () => {
+          if (prevClassId && prevClassId !== nextClassId) {
+            await detachChapter(prevClassId)
+          }
+
+          await attachChapter(nextClassId)
         }
 
-        await attachChapter(nextClassId)
+        if (runClassSyncAsync) {
+          setTimeout(() => {
+            void syncClassRelations().catch((error) => {
+              req.payload.logger.error({
+                err: error,
+                msg: `Failed to sync class chapters for chapter ${String(doc.id)}`,
+              })
+            })
+          }, 0)
+          return
+        }
+
+        await syncClassRelations()
       },
     ],
     afterDelete: [
       async ({ doc, req }) => {
         if (!req?.payload || !doc) return
+        const runClassSyncAsync = process.env.PAYLOAD_ASYNC_CHAPTER_CLASS_SYNC !== 'false'
         const getId = (value: unknown) =>
           typeof value === 'object' && value !== null && 'id' in value
             ? String((value as { id?: string | number }).id ?? '')
@@ -112,14 +130,30 @@ export const Chapters: CollectionConfig = {
         const filtered = existing.filter((item) => getId(item) !== String(doc.id))
         if (filtered.length === existing.length) return
 
-        await req.payload.update({
-          collection: 'classes',
-          id: classId,
-          data: {
-            chapters: filtered as unknown as Array<number | { id?: number }>,
-          },
-          depth: 0,
-        })
+        const removeChapterFromClass = async () => {
+          await req.payload.update({
+            collection: 'classes',
+            id: classId,
+            data: {
+              chapters: filtered as unknown as Array<number | { id?: number }>,
+            },
+            depth: 0,
+          })
+        }
+
+        if (runClassSyncAsync) {
+          setTimeout(() => {
+            void removeChapterFromClass().catch((error) => {
+              req.payload.logger.error({
+                err: error,
+                msg: `Failed to remove chapter ${String(doc.id)} from class ${classId}`,
+              })
+            })
+          }, 0)
+          return
+        }
+
+        await removeChapterFromClass()
       },
     ],
     beforeValidate: [
