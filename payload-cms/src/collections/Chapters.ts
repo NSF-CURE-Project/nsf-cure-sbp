@@ -204,15 +204,6 @@ export const Chapters: CollectionConfig = {
       },
     },
     {
-      name: 'lessonOrderGuide',
-      type: 'ui',
-      admin: {
-        components: {
-          Field: '@/views/ChapterLessonOrderField#default',
-        },
-      },
-    },
-    {
       name: 'title',
       type: 'text',
       required: true,
