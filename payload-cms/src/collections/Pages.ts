@@ -74,6 +74,15 @@ export const Pages: CollectionConfig = {
   },
   fields: [
     {
+      name: 'pageSetupGuide',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '@/views/ContentCreateGuideField#default',
+        },
+      },
+    },
+    {
       name: 'pageOrderGuide',
       type: 'ui',
       admin: {

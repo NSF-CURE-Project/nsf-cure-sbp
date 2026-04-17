@@ -38,6 +38,7 @@ export function LivePreviewLesson({
     : [];
   const assessment = data?.assessment ?? null;
   const assessmentQuiz = assessment?.quiz ?? null;
+  const hasQuizBlock = blocks.some((block) => block.blockType === "quizBlock");
   const assessmentBlock = assessmentQuiz
     ? {
         blockType: "quizBlock" as const,
@@ -108,7 +109,7 @@ export function LivePreviewLesson({
           No content yet. Add blocks to this lesson.
         </p>
       )}
-      {assessmentBlock ? (
+      {!hasQuizBlock && assessmentBlock ? (
         <div className="mt-12">
           <QuizBlockComponent
             block={assessmentBlock}

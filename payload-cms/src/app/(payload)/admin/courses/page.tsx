@@ -41,17 +41,17 @@ type LessonDoc = {
   id?: string | number
   title?: string
   order?: number | null
-  assessment?: {
+  layout?: Array<{
+    blockType?: string
     quiz?: { id?: string | number; title?: string } | string | number | null
-  }
+  }>
 }
 
 const buildCourseTree = async () => {
   const payload = await getPayload({ config: configPromise })
   const classes = await payload.find({
     collection: 'classes',
-    // depth=3 so lesson.assessment.quiz is populated as an object (not a bare ID),
-    // otherwise the row misreports "Not assigned" for lessons that do have a quiz.
+    // depth=3 so lesson.layout quiz relationships are populated as objects.
     depth: 3,
     limit: 200,
     sort: 'order',
@@ -68,7 +68,8 @@ const buildCourseTree = async () => {
           const lessons = lessonDocs
             .map((lesson) => {
               const lessonDoc = lesson as LessonDoc
-              const quizValue = lessonDoc.assessment?.quiz
+              const quizValue =
+                lessonDoc.layout?.find((block) => block.blockType === 'quizBlock')?.quiz ?? null
               const quizTitle =
                 typeof quizValue === 'object' && quizValue !== null
                   ? quizValue.title ?? null

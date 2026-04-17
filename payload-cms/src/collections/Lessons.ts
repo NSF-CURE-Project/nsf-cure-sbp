@@ -44,6 +44,49 @@ const extractSlug = (value: unknown): string => {
   return ''
 }
 
+type LegacyAssessment = {
+  quiz?: unknown
+  showAnswers?: boolean | null
+  maxAttempts?: number | null
+  timeLimitSec?: number | null
+}
+
+type QuizLayoutBlock = {
+  blockType: 'quizBlock'
+  quiz: unknown
+  title?: string
+  showTitle?: boolean
+  showAnswers?: boolean | null
+  maxAttempts?: number | null
+  timeLimitSec?: number | null
+}
+
+const normalizeQuizLayout = (value: unknown): Record<string, unknown>[] => {
+  if (!Array.isArray(value)) return []
+  return value.filter(
+    (entry): entry is Record<string, unknown> => typeof entry === 'object' && entry !== null,
+  )
+}
+
+const hasQuizBlock = (layout: Record<string, unknown>[]) =>
+  layout.some((block) => block.blockType === 'quizBlock')
+
+const buildLegacyAssessmentQuizBlock = (assessment: LegacyAssessment): QuizLayoutBlock | null => {
+  if (!assessment.quiz) return null
+  return {
+    blockType: 'quizBlock',
+    quiz: assessment.quiz,
+    showTitle: true,
+    showAnswers: typeof assessment.showAnswers === 'boolean' ? assessment.showAnswers : true,
+    maxAttempts:
+      typeof assessment.maxAttempts === 'number' ? assessment.maxAttempts : (assessment.maxAttempts ?? null),
+    timeLimitSec:
+      typeof assessment.timeLimitSec === 'number'
+        ? assessment.timeLimitSec
+        : (assessment.timeLimitSec ?? null),
+  }
+}
+
 const problemSetBlock: Block = {
   slug: 'problemSetBlock',
   fields: [
@@ -116,6 +159,27 @@ export const Lessons: CollectionConfig = {
     drafts: true,
   },
   hooks: {
+    beforeChange: [
+      async ({ data, originalDoc }) => {
+        if (!data) return data
+
+        const draftLayout = normalizeQuizLayout(data.layout)
+        if (hasQuizBlock(draftLayout)) return data
+
+        const persistedLayout = normalizeQuizLayout(originalDoc?.layout)
+        if (hasQuizBlock(persistedLayout)) return data
+
+        const nextBlock =
+          buildLegacyAssessmentQuizBlock((data.assessment as LegacyAssessment | undefined) ?? {}) ??
+          buildLegacyAssessmentQuizBlock((originalDoc?.assessment as LegacyAssessment | undefined) ?? {})
+
+        if (!nextBlock) return data
+
+        const baseLayout = draftLayout.length > 0 ? draftLayout : persistedLayout
+        data.layout = [...baseLayout, nextBlock]
+        return data
+      },
+    ],
     afterChange: [
       async ({ doc, previousDoc, req }) => {
         const isNowPublished = doc?._status === 'published'
@@ -407,6 +471,15 @@ export const Lessons: CollectionConfig = {
           label: 'Content',
           fields: [
             {
+              name: 'lessonSetupGuide',
+              type: 'ui',
+              admin: {
+                components: {
+                  Field: '@/views/ContentCreateGuideField#default',
+                },
+              },
+            },
+            {
               name: 'lessonOrderGuide',
               type: 'ui',
               admin: {
@@ -507,61 +580,6 @@ export const Lessons: CollectionConfig = {
                   Field: '@/views/LessonFeedbackPanel#default',
                 },
               },
-            },
-          ],
-        },
-        {
-          label: 'Assessment',
-          fields: [
-            {
-              name: 'assessment',
-              type: 'group',
-              fields: [
-                {
-                  name: 'quiz',
-                  label: 'Attach quiz',
-                  type: 'relationship',
-                  relationTo: 'quizzes',
-                  admin: {
-                    allowCreate: true,
-                    allowEdit: true,
-                    description: 'Attach a quiz to this lesson or create a new one.',
-                  },
-                },
-                {
-                  name: 'showAnswers',
-                  label: 'Show answers after submit',
-                  type: 'checkbox',
-                  defaultValue: true,
-                },
-                {
-                  name: 'maxAttempts',
-                  label: 'Max attempts',
-                  type: 'number',
-                  min: 0,
-                  admin: {
-                    description: 'Leave blank for unlimited attempts.',
-                  },
-                },
-                {
-                  name: 'timeLimitSec',
-                  label: 'Time limit (seconds)',
-                  type: 'number',
-                  min: 0,
-                  admin: {
-                    description: 'Overrides the quiz time limit for this lesson if set.',
-                  },
-                },
-                {
-                  name: 'quizPreview',
-                  type: 'ui',
-                  admin: {
-                    components: {
-                      Field: '@/views/LessonQuizPreviewField#default',
-                    },
-                  },
-                },
-              ],
             },
           ],
         },

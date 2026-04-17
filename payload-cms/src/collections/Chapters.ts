@@ -161,6 +161,15 @@ export const Chapters: CollectionConfig = {
   },
   fields: [
     {
+      name: 'chapterSetupGuide',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '@/views/ContentCreateGuideField#default',
+        },
+      },
+    },
+    {
       name: 'lessonOrderGuide',
       type: 'ui',
       admin: {

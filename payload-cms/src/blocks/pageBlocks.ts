@@ -299,12 +299,41 @@ export const pageBlocks: Block[] = [
         type: 'relationship',
         relationTo: 'quizzes',
         required: true,
+        admin: {
+          allowCreate: true,
+          allowEdit: true,
+          description: 'Attach a quiz to this lesson section or create a new one.',
+        },
       },
       {
         name: 'showTitle',
         label: 'Show quiz title',
         type: 'checkbox',
         defaultValue: true,
+      },
+      {
+        name: 'showAnswers',
+        label: 'Show answers after submit',
+        type: 'checkbox',
+        defaultValue: true,
+      },
+      {
+        name: 'maxAttempts',
+        label: 'Max attempts',
+        type: 'number',
+        min: 0,
+        admin: {
+          description: 'Leave blank for unlimited attempts.',
+        },
+      },
+      {
+        name: 'timeLimitSec',
+        label: 'Time limit (seconds)',
+        type: 'number',
+        min: 0,
+        admin: {
+          description: 'Overrides the quiz time limit for this lesson section if set.',
+        },
       },
     ],
   },

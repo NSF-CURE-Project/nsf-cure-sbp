@@ -90,8 +90,36 @@ const isLikelyRecordId = (segment: string): boolean => {
   return false
 }
 
-const getAdminBreadcrumbs = (pathname: string): BreadcrumbItem[] => {
+const getCourseWorkspaceBreadcrumbs = (pathname: string): BreadcrumbItem[] | null => {
+  const match = pathname.match(/^\/admin\/collections\/([^/]+)\/([^/]+)$/)
+  if (!match) return null
+
+  const [, collectionSlug, docId] = match
+  if (!['classes', 'chapters', 'lessons'].includes(collectionSlug)) return null
+
+  const entityLabel =
+    collectionSlug === 'classes'
+      ? 'Course'
+      : collectionSlug === 'chapters'
+        ? 'Chapter'
+        : 'Lesson'
+
+  return [
+    { label: 'Dashboard', href: '/admin' },
+    { label: 'Manage Courses', href: '/admin/courses' },
+    {
+      label: docId === 'create' ? `Create ${entityLabel}` : `Edit ${entityLabel}`,
+      href: null,
+    },
+  ]
+}
+
+const getAdminBreadcrumbs = (pathname: string, previousPath?: string | null): BreadcrumbItem[] => {
   if (!pathname.startsWith('/admin')) return []
+  if (previousPath === '/admin/courses') {
+    const courseWorkspaceBreadcrumbs = getCourseWorkspaceBreadcrumbs(pathname)
+    if (courseWorkspaceBreadcrumbs) return courseWorkspaceBreadcrumbs
+  }
   const parts = pathname.split('/').filter(Boolean)
   const breadcrumbs: BreadcrumbItem[] = [{ label: 'Dashboard', href: '/admin' }]
 
@@ -218,7 +246,10 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
   const userMenuButtonRef = useRef<HTMLButtonElement | null>(null)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const breadcrumbPath = currentPath || '/admin'
-  const breadcrumbs = useMemo(() => getAdminBreadcrumbs(breadcrumbPath), [breadcrumbPath])
+  const breadcrumbs = useMemo(
+    () => getAdminBreadcrumbs(breadcrumbPath, backHref),
+    [backHref, breadcrumbPath],
+  )
 
   const expandPageLayout = useCallback(() => {
     if (typeof document === 'undefined') return
@@ -775,7 +806,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return
-    const enablePublishPreviewGate = false
+    const enablePublishPreviewGate = true
 
     if (!enablePublishPreviewGate) {
       Array.from(

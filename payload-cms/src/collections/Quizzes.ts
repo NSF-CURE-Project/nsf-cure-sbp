@@ -71,6 +71,15 @@ export const Quizzes: CollectionConfig = {
   },
   fields: [
     {
+      name: 'quizSetupGuide',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '@/views/ContentCreateGuideField#default',
+        },
+      },
+    },
+    {
       name: 'title',
       type: 'text',
       required: true,
