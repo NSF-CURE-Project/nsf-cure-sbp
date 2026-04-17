@@ -17,7 +17,9 @@ type SortableChapterRowProps = {
   index: number
   lessonDropTargetId: EntityId | null
   chapterDropTargetId: EntityId | null
+  deleting: boolean
   deletingLessonId: EntityId | null
+  onDeleteChapter: (chapter: ChapterNode) => void
   onDeleteLesson: (lesson: ChapterNode['lessons'][number]) => void
 }
 
@@ -27,7 +29,9 @@ export default function SortableChapterRow({
   index,
   lessonDropTargetId,
   chapterDropTargetId,
+  deleting,
   deletingLessonId,
+  onDeleteChapter,
   onDeleteLesson,
 }: SortableChapterRowProps) {
   const sortable = useSortable({
@@ -92,6 +96,15 @@ export default function SortableChapterRow({
           >
             Add lesson
           </Link>
+          <button
+            type="button"
+            onClick={() => onDeleteChapter(chapter)}
+            disabled={deleting}
+            className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+            aria-label={`Delete chapter ${chapter.title}`}
+          >
+            {deleting ? 'Deleting…' : 'Delete'}
+          </button>
         </div>
       </div>
 

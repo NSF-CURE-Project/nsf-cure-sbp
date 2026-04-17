@@ -1,5 +1,5 @@
 import type { Block, CollectionConfig, PayloadRequest } from 'payload'
-import { pageBlocks } from '../blocks/pageBlocks'
+import { lessonBlocks } from '../blocks/pageBlocks'
 import { canReceiveNotification } from '../utils/notificationPreferences'
 import { ensureUniqueSlug, slugify } from '../utils/slug'
 
@@ -567,7 +567,7 @@ export const Lessons: CollectionConfig = {
                 singular: 'Section',
                 plural: 'Sections',
               },
-              blocks: [...pageBlocks, problemSetBlock],
+              blocks: [...lessonBlocks, problemSetBlock],
               admin: {
                 description: 'Build the lesson by adding and reordering content blocks.',
               },

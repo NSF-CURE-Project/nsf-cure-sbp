@@ -211,7 +211,13 @@ export interface UserAuthOperations {
  */
 export interface Class {
   id: number;
+  /**
+   * Use the staff-facing course name, such as "Statics Fundamentals" or "Mechanics of Materials".
+   */
   title: string;
+  /**
+   * Optional short summary for staff context. You can refine it later after the course is created.
+   */
   description?: string | null;
   order?: number | null;
   chapters?: (number | Chapter)[] | null;
@@ -231,6 +237,9 @@ export interface Chapter {
    */
   chapterNumber?: number | null;
   lessons?: (number | Lesson)[] | null;
+  /**
+   * Pre-filled when you add a chapter from Course Workspace.
+   */
   class: number | Class;
   slug: string;
   /**
@@ -266,7 +275,7 @@ export interface Lesson {
   order?: number | null;
   title: string;
   /**
-   * Assign this lesson to a chapter.
+   * Pre-filled when you add a lesson from a chapter row.
    */
   chapter: number | Chapter;
   /**
@@ -435,8 +444,20 @@ export interface Lesson {
           }
         | {
             title?: string | null;
+            /**
+             * Attach a quiz to this lesson section or create a new one.
+             */
             quiz: number | Quiz;
             showTitle?: boolean | null;
+            showAnswers?: boolean | null;
+            /**
+             * Leave blank for unlimited attempts.
+             */
+            maxAttempts?: number | null;
+            /**
+             * Overrides the quiz time limit for this lesson section if set.
+             */
+            timeLimitSec?: number | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'quizBlock';
@@ -453,21 +474,6 @@ export interface Lesson {
           }
       )[]
     | null;
-  assessment?: {
-    /**
-     * Attach a quiz to this lesson or create a new one.
-     */
-    quiz?: (number | null) | Quiz;
-    showAnswers?: boolean | null;
-    /**
-     * Leave blank for unlimited attempts.
-     */
-    maxAttempts?: number | null;
-    /**
-     * Overrides the quiz time limit for this lesson if set.
-     */
-    timeLimitSec?: number | null;
-  };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -633,6 +639,10 @@ export interface Problem {
     unit?: string | null;
     partType?: ('numeric' | 'symbolic' | 'fbd-draw') | null;
     correctAnswer?: number | null;
+    /**
+     * Optional formula for template-enabled problems. Example: "w * L / 2". If present, this overrides the static numeric answer during grading.
+     */
+    correctAnswerExpression?: string | null;
     tolerance?: number | null;
     toleranceType?: ('absolute' | 'relative') | null;
     significantFigures?: number | null;
@@ -721,6 +731,42 @@ export interface Problem {
               id?: string | null;
             }[]
           | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Enable deterministic template variables so one authored problem can be previewed across many generated variants.
+   */
+  parameterizationEnabled?: boolean | null;
+  /**
+   * Default seed used by the admin preview to reproduce the same generated variant.
+   */
+  parameterSeed?: string | null;
+  /**
+   * Author independent variables here. The preview will sample values from each defined range using the chosen seed.
+   */
+  parameterDefinitions?:
+    | {
+        name: string;
+        label?: string | null;
+        unit?: string | null;
+        defaultValue?: number | null;
+        min?: number | null;
+        max?: number | null;
+        step?: number | null;
+        precision?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Derived values are evaluated in order and may reference previously defined parameters and derived values.
+   */
+  derivedValues?:
+    | {
+        name: string;
+        label?: string | null;
+        expression: string;
+        unit?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -940,8 +986,20 @@ export interface Page {
           }
         | {
             title?: string | null;
+            /**
+             * Attach a quiz to this lesson section or create a new one.
+             */
             quiz: number | Quiz;
             showTitle?: boolean | null;
+            showAnswers?: boolean | null;
+            /**
+             * Leave blank for unlimited attempts.
+             */
+            maxAttempts?: number | null;
+            /**
+             * Overrides the quiz time limit for this lesson section if set.
+             */
+            timeLimitSec?: number | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'quizBlock';
@@ -1528,6 +1586,8 @@ export interface ProblemAttempt {
   id: number;
   problemSet: number | ProblemSet;
   lesson?: (number | null) | Lesson;
+  attemptNumber?: number | null;
+  attemptScopeKey?: string | null;
   user: number | Account;
   startedAt?: string | null;
   completedAt?: string | null;
@@ -1535,6 +1595,26 @@ export interface ProblemAttempt {
   answers?:
     | {
         problem: number | Problem;
+        variantSeed?: string | null;
+        variantSignature?: string | null;
+        variantScope?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        generatedVariant?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
         parts?:
           | {
               partIndex: number;
@@ -2022,6 +2102,9 @@ export interface LessonsSelect<T extends boolean = true> {
               title?: T;
               quiz?: T;
               showTitle?: T;
+              showAnswers?: T;
+              maxAttempts?: T;
+              timeLimitSec?: T;
               id?: T;
               blockName?: T;
             };
@@ -2036,14 +2119,6 @@ export interface LessonsSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
-      };
-  assessment?:
-    | T
-    | {
-        quiz?: T;
-        showAnswers?: T;
-        maxAttempts?: T;
-        timeLimitSec?: T;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -2190,6 +2265,9 @@ export interface PagesSelect<T extends boolean = true> {
               title?: T;
               quiz?: T;
               showTitle?: T;
+              showAnswers?: T;
+              maxAttempts?: T;
+              timeLimitSec?: T;
               id?: T;
               blockName?: T;
             };
@@ -2646,6 +2724,7 @@ export interface ProblemsSelect<T extends boolean = true> {
         unit?: T;
         partType?: T;
         correctAnswer?: T;
+        correctAnswerExpression?: T;
         tolerance?: T;
         toleranceType?: T;
         significantFigures?: T;
@@ -2722,6 +2801,30 @@ export interface ProblemsSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  parameterizationEnabled?: T;
+  parameterSeed?: T;
+  parameterDefinitions?:
+    | T
+    | {
+        name?: T;
+        label?: T;
+        unit?: T;
+        defaultValue?: T;
+        min?: T;
+        max?: T;
+        step?: T;
+        precision?: T;
+        id?: T;
+      };
+  derivedValues?:
+    | T
+    | {
+        name?: T;
+        label?: T;
+        expression?: T;
+        unit?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -2748,6 +2851,8 @@ export interface ProblemSetsSelect<T extends boolean = true> {
 export interface ProblemAttemptsSelect<T extends boolean = true> {
   problemSet?: T;
   lesson?: T;
+  attemptNumber?: T;
+  attemptScopeKey?: T;
   user?: T;
   startedAt?: T;
   completedAt?: T;
@@ -2756,6 +2861,10 @@ export interface ProblemAttemptsSelect<T extends boolean = true> {
     | T
     | {
         problem?: T;
+        variantSeed?: T;
+        variantSignature?: T;
+        variantScope?: T;
+        generatedVariant?: T;
         parts?:
           | T
           | {

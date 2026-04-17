@@ -18,7 +18,11 @@ type SortableCourseSectionProps = {
   lessonDropTargetId: EntityId | null
   chapterDropTargetId: EntityId | null
   courseDropTargetId: EntityId | null
+  deletingChapterId: EntityId | null
+  deletingCourseId: EntityId | null
   deletingLessonId: EntityId | null
+  onDeleteChapter: (chapter: CourseNode['chapters'][number]) => void
+  onDeleteCourse: (course: CourseNode) => void
   onDeleteLesson: (lesson: CourseNode['chapters'][number]['lessons'][number]) => void
 }
 
@@ -30,7 +34,11 @@ export default function SortableCourseSection({
   lessonDropTargetId,
   chapterDropTargetId,
   courseDropTargetId,
+  deletingChapterId,
+  deletingCourseId,
   deletingLessonId,
+  onDeleteChapter,
+  onDeleteCourse,
   onDeleteLesson,
 }: SortableCourseSectionProps) {
   const sortable = useSortable({
@@ -63,6 +71,8 @@ export default function SortableCourseSection({
         lessonCount={counts.lessonCount}
         expanded={expanded}
         onToggle={() => onToggleExpanded(course.id)}
+        deleting={deletingCourseId === course.id}
+        onDelete={() => onDeleteCourse(course)}
         dragHandle={{
           listeners: sortable.listeners as Record<string, unknown>,
           attributes: sortable.attributes as unknown as Record<string, unknown>,
@@ -85,7 +95,9 @@ export default function SortableCourseSection({
                     index={index}
                     lessonDropTargetId={lessonDropTargetId}
                     chapterDropTargetId={chapterDropTargetId}
+                    deleting={deletingChapterId === chapter.id}
                     deletingLessonId={deletingLessonId}
+                    onDeleteChapter={onDeleteChapter}
                     onDeleteLesson={onDeleteLesson}
                   />
                 ))

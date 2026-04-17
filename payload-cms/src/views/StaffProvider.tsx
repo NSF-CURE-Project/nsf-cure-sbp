@@ -2117,8 +2117,10 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           padding: 18px;
         }
 
-        html[data-admin-context='app'] .tabs,
-        html[data-admin-context='app'] .tabs__list {
+        html[data-admin-context='app'] .document-fields > .tabs,
+        html[data-admin-context='app'] .document-fields__tabs > .tabs,
+        html[data-admin-context='app'] .document-fields > .tabs > .tabs__list,
+        html[data-admin-context='app'] .document-fields__tabs > .tabs > .tabs__list {
           border-radius: 999px;
           padding: 6px;
           background: rgba(15, 23, 42, 0.08);
@@ -2126,15 +2128,18 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
         }
 
-        html[data-admin-context='app'] .tabs__tab {
+        html[data-admin-context='app'] .document-fields > .tabs .tabs__tab,
+        html[data-admin-context='app'] .document-fields__tabs > .tabs .tabs__tab {
           border-radius: 999px;
           padding: 6px 14px;
           font-weight: 700;
           color: var(--cpp-muted);
         }
 
-        html[data-admin-context='app'] .tabs__tab--active,
-        html[data-admin-context='app'] .tabs__tab[aria-selected='true'] {
+        html[data-admin-context='app'] .document-fields > .tabs .tabs__tab--active,
+        html[data-admin-context='app'] .document-fields > .tabs .tabs__tab[aria-selected='true'],
+        html[data-admin-context='app'] .document-fields__tabs > .tabs .tabs__tab--active,
+        html[data-admin-context='app'] .document-fields__tabs > .tabs .tabs__tab[aria-selected='true'] {
           background: var(--admin-chip-primary-bg);
           color: var(--admin-chip-primary-text);
           box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
@@ -2156,6 +2161,25 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           padding-bottom: 8px;
           margin-bottom: 10px;
           border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        html[data-admin-context='app'] .array-field__header > :last-child,
+        html[data-admin-context='app'] .group-field__header > :last-child {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        html[data-admin-context='app'] .array-field__header button + button,
+        html[data-admin-context='app'] .array-field__header a + a,
+        html[data-admin-context='app'] .array-field__header a + button,
+        html[data-admin-context='app'] .array-field__header button + a,
+        html[data-admin-context='app'] .group-field__header button + button,
+        html[data-admin-context='app'] .group-field__header a + a,
+        html[data-admin-context='app'] .group-field__header a + button,
+        html[data-admin-context='app'] .group-field__header button + a {
+          margin-left: 12px;
         }
 
         html[data-admin-context='app'] .array-field__row {

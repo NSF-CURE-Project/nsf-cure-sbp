@@ -1,3 +1,4 @@
+import { default as default_4be52c8f1049bfbca63aac3eb441be62 } from '@/views/CourseCreateGuideField'
 import { default as default_fa7ab94bee91750d936b644860372d8e } from '@/views/ChapterLessonOrderField'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -26,11 +27,8 @@ import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { default as default_ee78413036d735b301af7294bd0c78a0 } from '@/views/LessonOrderField'
 import { default as default_944838cdb41db1e12687a26697354cee } from '@/views/LessonFeedbackPanel'
-import { default as default_d92ed4247662a281e6e3a53a615b206a } from '@/views/LessonQuizPreviewField'
 import { default as default_4b04de482248e5cf6439b466d2c48d43 } from '@/views/PageOrderField'
 import { default as default_5565cf0809d37ddd6682af69dc08c9da } from '@/views/ClassroomJoinCodeField'
-import { default as default_5a37a7701238d9f38d74ff0f281f3650 } from '@/views/CourseCreateGuideField'
-import { default as default_3147ef8f2ef0d2c4f5df1bd98326e4df } from '@/views/ContentCreateGuideField'
 import { default as default_4c635b207a892622d6930c06b05f52ee } from '@/views/ApiKeyDisplay'
 import { default as default_8ecf3705f4486154c43b65ffcba083a4 } from '@/views/QuizQuestionPickerField'
 import { default as default_b228ebeb356b13e416a25a2727293bbc } from '@/views/QuizPreviewField'
@@ -40,7 +38,7 @@ import { default as default_edf03fc31873d58cdebfd253d2bc5043 } from '@/views/For
 import { FbdRubricBuilderField as FbdRubricBuilderField_e970eb0b5f4a807fcabb100596d5fff9 } from '@/views/FbdRubricBuilderField'
 import { FbdSyncValidatorField as FbdSyncValidatorField_2df2862d914337bd2adac086d72d23ca } from '@/views/FbdSyncValidatorField'
 import { default as default_468efbae130dde8cd1b02c5dba12007e } from '@/views/PlotWizardField'
-import { default as default_220cbcd0bd9a8f747153f5d7043b0ab7 } from '@/views/ProblemTemplatePreviewField'
+import { default as default_03e4eb924d785e0e6b165922bb3d1f28 } from '@/views/ProblemTemplatePreviewField'
 import { default as default_83665b2e457b847ee9222917fde5a7ab } from '@/views/ProblemPreviewTab'
 import { default as default_20b4b595011067220e22f7c98e94e4e7 } from '@/views/AdminIcon'
 import { default as default_1c527c7f8e4abfd6959bbf71cc426e00 } from '@/views/AdminLogo'
@@ -49,6 +47,7 @@ import { S3ClientUploadHandler as S3ClientUploadHandler_f97aa6c64367fa259c5bc056
 import { default as default_afe82a4d7d416ef3822c4ceeb7b60fa0 } from '@/views/StaffDashboardView'
 
 export const importMap = {
+  "@/views/CourseCreateGuideField#default": default_4be52c8f1049bfbca63aac3eb441be62,
   "@/views/ChapterLessonOrderField#default": default_fa7ab94bee91750d936b644860372d8e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
@@ -77,11 +76,8 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@/views/LessonOrderField#default": default_ee78413036d735b301af7294bd0c78a0,
   "@/views/LessonFeedbackPanel#default": default_944838cdb41db1e12687a26697354cee,
-  "@/views/LessonQuizPreviewField#default": default_d92ed4247662a281e6e3a53a615b206a,
   "@/views/PageOrderField#default": default_4b04de482248e5cf6439b466d2c48d43,
   "@/views/ClassroomJoinCodeField#default": default_5565cf0809d37ddd6682af69dc08c9da,
-  "@/views/CourseCreateGuideField#default": default_5a37a7701238d9f38d74ff0f281f3650,
-  "@/views/ContentCreateGuideField#default": default_3147ef8f2ef0d2c4f5df1bd98326e4df,
   "@/views/ApiKeyDisplay#default": default_4c635b207a892622d6930c06b05f52ee,
   "@/views/QuizQuestionPickerField#default": default_8ecf3705f4486154c43b65ffcba083a4,
   "@/views/QuizPreviewField#default": default_b228ebeb356b13e416a25a2727293bbc,
@@ -91,7 +87,7 @@ export const importMap = {
   "@/views/FbdRubricBuilderField#FbdRubricBuilderField": FbdRubricBuilderField_e970eb0b5f4a807fcabb100596d5fff9,
   "@/views/FbdSyncValidatorField#FbdSyncValidatorField": FbdSyncValidatorField_2df2862d914337bd2adac086d72d23ca,
   "@/views/PlotWizardField#default": default_468efbae130dde8cd1b02c5dba12007e,
-  "@/views/ProblemTemplatePreviewField#default": default_220cbcd0bd9a8f747153f5d7043b0ab7,
+  "@/views/ProblemTemplatePreviewField#default": default_03e4eb924d785e0e6b165922bb3d1f28,
   "@/views/ProblemPreviewTab#default": default_83665b2e457b847ee9222917fde5a7ab,
   "@/views/AdminIcon#default": default_20b4b595011067220e22f7c98e94e4e7,
   "@/views/AdminLogo#default": default_1c527c7f8e4abfd6959bbf71cc426e00,

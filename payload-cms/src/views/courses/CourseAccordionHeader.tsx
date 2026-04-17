@@ -11,6 +11,8 @@ type CourseAccordionHeaderProps = {
   lessonCount: number
   expanded: boolean
   onToggle: () => void
+  deleting?: boolean
+  onDelete: () => void
   dragHandle: {
     listeners?: Record<string, unknown>
     attributes?: Record<string, unknown>
@@ -25,6 +27,8 @@ export default function CourseAccordionHeader({
   lessonCount,
   expanded,
   onToggle,
+  deleting = false,
+  onDelete,
   dragHandle,
 }: CourseAccordionHeaderProps) {
   return (
@@ -55,6 +59,15 @@ export default function CourseAccordionHeader({
         >
           Edit course
         </Link>
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={deleting}
+          className="rounded-md border border-red-300 px-2.5 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+          aria-label={`Delete course ${title}`}
+        >
+          {deleting ? 'Deleting…' : 'Delete'}
+        </button>
         <button
           type="button"
           onClick={onToggle}

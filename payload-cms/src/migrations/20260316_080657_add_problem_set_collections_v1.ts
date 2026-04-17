@@ -2,17 +2,50 @@ import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
-   CREATE TYPE "public"."enum_engineering_figures_type" AS ENUM('fbd', 'truss', 'beam', 'moment-diagram');
-  CREATE TYPE "public"."enum_problems_parts_tolerance_type" AS ENUM('absolute', 'relative');
-  CREATE TYPE "public"."enum_problems_difficulty" AS ENUM('intro', 'easy', 'medium', 'hard');
-  CREATE TYPE "public"."enum_problems_status" AS ENUM('draft', 'published');
-  CREATE TYPE "public"."enum__problems_v_version_parts_tolerance_type" AS ENUM('absolute', 'relative');
-  CREATE TYPE "public"."enum__problems_v_version_difficulty" AS ENUM('intro', 'easy', 'medium', 'hard');
-  CREATE TYPE "public"."enum__problems_v_version_status" AS ENUM('draft', 'published');
-  CREATE TYPE "public"."enum_problem_sets_status" AS ENUM('draft', 'published');
-  CREATE TYPE "public"."enum__problem_sets_v_version_status" AS ENUM('draft', 'published');
-  CREATE TYPE "public"."enum_site_branding_status" AS ENUM('draft', 'published');
-  CREATE TYPE "public"."enum__site_branding_v_version_status" AS ENUM('draft', 'published');
+   DO $$ BEGIN
+    CREATE TYPE "public"."enum_engineering_figures_type" AS ENUM('fbd', 'truss', 'beam', 'moment-diagram');
+   EXCEPTION WHEN duplicate_object THEN NULL;
+   END $$;
+  DO $$ BEGIN
+    CREATE TYPE "public"."enum_problems_parts_tolerance_type" AS ENUM('absolute', 'relative');
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END $$;
+  DO $$ BEGIN
+    CREATE TYPE "public"."enum_problems_difficulty" AS ENUM('intro', 'easy', 'medium', 'hard');
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END $$;
+  DO $$ BEGIN
+    CREATE TYPE "public"."enum_problems_status" AS ENUM('draft', 'published');
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END $$;
+  DO $$ BEGIN
+    CREATE TYPE "public"."enum__problems_v_version_parts_tolerance_type" AS ENUM('absolute', 'relative');
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END $$;
+  DO $$ BEGIN
+    CREATE TYPE "public"."enum__problems_v_version_difficulty" AS ENUM('intro', 'easy', 'medium', 'hard');
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END $$;
+  DO $$ BEGIN
+    CREATE TYPE "public"."enum__problems_v_version_status" AS ENUM('draft', 'published');
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END $$;
+  DO $$ BEGIN
+    CREATE TYPE "public"."enum_problem_sets_status" AS ENUM('draft', 'published');
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END $$;
+  DO $$ BEGIN
+    CREATE TYPE "public"."enum__problem_sets_v_version_status" AS ENUM('draft', 'published');
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END $$;
+  DO $$ BEGIN
+    CREATE TYPE "public"."enum_site_branding_status" AS ENUM('draft', 'published');
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END $$;
+  DO $$ BEGIN
+    CREATE TYPE "public"."enum__site_branding_v_version_status" AS ENUM('draft', 'published');
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END $$;
   CREATE TABLE "engineering_figures" (
   	"id" serial PRIMARY KEY NOT NULL,
   	"title" varchar NOT NULL,

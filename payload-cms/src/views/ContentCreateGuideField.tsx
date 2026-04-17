@@ -11,6 +11,8 @@ type GuideConfig = {
   cards: { title: string; body: string }[]
   backHref: string
   backLabel: string
+  compactTitle: string
+  compactBody: string
 }
 
 const panelStyle: React.CSSProperties = {
@@ -92,6 +94,9 @@ const guideByCollection: Record<string, GuideConfig> = {
     ],
     backHref: '/admin/courses',
     backLabel: 'Back to Course Workspace',
+    compactTitle: 'Lesson editing reminder',
+    compactBody:
+      'Update the title or chapter if needed, then continue building in Page Layout. Save Draft while working and preview before publishing changes.',
   },
   lessons: {
     eyebrow: 'Create Lesson',
@@ -115,6 +120,9 @@ const guideByCollection: Record<string, GuideConfig> = {
     ],
     backHref: '/admin/courses',
     backLabel: 'Back to Course Workspace',
+    compactTitle: 'Lesson editing reminder',
+    compactBody:
+      'Continue building in Page Layout, keep content organized in blocks, and preview before publishing changes.',
   },
   quizzes: {
     eyebrow: 'Create Quiz',
@@ -138,6 +146,9 @@ const guideByCollection: Record<string, GuideConfig> = {
     ],
     backHref: '/admin/quiz-bank',
     backLabel: 'Back to Quiz Bank',
+    compactTitle: 'Quiz editing reminder',
+    compactBody:
+      'Review question quality, settings, and preview behavior before publishing. Attach the quiz to lessons from a Quiz block.',
   },
   pages: {
     eyebrow: 'Create Page',
@@ -161,6 +172,9 @@ const guideByCollection: Record<string, GuideConfig> = {
     ],
     backHref: '/admin/collections/pages',
     backLabel: 'Back to Pages',
+    compactTitle: 'Page editing reminder',
+    compactBody:
+      'Keep the page organized in reusable layout blocks, save draft while working, and preview the public layout before publishing.',
   },
 }
 
@@ -180,11 +194,36 @@ export default function ContentCreateGuideField() {
 
   const guide = useMemo(() => {
     const { collection, isCreate } = getCollectionFromPath(pathname)
-    if (!collection || !isCreate) return null
-    return guideByCollection[collection] ?? null
+    if (!collection) return null
+    const config = guideByCollection[collection] ?? null
+    if (!config) return null
+    return { ...config, isCreate }
   }, [pathname])
 
   if (!guide) return null
+
+  if (!guide.isCreate) {
+    return (
+      <section
+        style={{
+          margin: '4px 0 20px',
+          borderRadius: 12,
+          border: '1px solid var(--admin-surface-border)',
+          background: 'rgba(255, 255, 255, 0.92)',
+          boxShadow: '0 1px 0 rgba(18, 65, 147, 0.06)',
+          padding: '12px 14px',
+          display: 'grid',
+          gap: 6,
+        }}
+      >
+        <div style={{ fontSize: 12, fontWeight: 800, color: '#0b61b9', textTransform: 'uppercase' }}>
+          {guide.eyebrow}
+        </div>
+        <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--cpp-ink)' }}>{guide.compactTitle}</div>
+        <div style={{ fontSize: 12, color: 'var(--cpp-muted)', lineHeight: 1.55 }}>{guide.compactBody}</div>
+      </section>
+    )
+  }
 
   return (
     <section style={panelStyle}>

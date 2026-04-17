@@ -66,6 +66,14 @@ export const deleteLesson = async (lessonId: EntityId) => {
   await remove(`/api/lessons/${lessonId}`)
 }
 
+export const deleteChapter = async (chapterId: EntityId) => {
+  await remove(`/api/chapters/${chapterId}`)
+}
+
+export const deleteCourse = async (courseId: EntityId) => {
+  await remove(`/api/classes/${courseId}`)
+}
+
 export const getChangedCourses = (previous: CourseNode[], next: CourseNode[]): CourseNode[] => {
   const prevMap = new Map(previous.map((course) => [course.id, course.order]))
   return next.filter((course) => prevMap.get(course.id) !== course.order)

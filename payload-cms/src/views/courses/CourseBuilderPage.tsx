@@ -31,6 +31,8 @@ import {
   reorderInArray,
 } from './reorder-utils'
 import {
+  deleteChapter,
+  deleteCourse,
   deleteLesson,
   getChangedChapters,
   getChangedCourses,
@@ -98,6 +100,8 @@ export default function CourseBuilderPage({ initialCourses }: CourseBuilderPageP
   const [chapterDropTargetId, setChapterDropTargetId] = useState<EntityId | null>(null)
   const [lessonDropTargetId, setLessonDropTargetId] = useState<EntityId | null>(null)
   const [deletingLessonId, setDeletingLessonId] = useState<EntityId | null>(null)
+  const [deletingChapterId, setDeletingChapterId] = useState<EntityId | null>(null)
+  const [deletingCourseId, setDeletingCourseId] = useState<EntityId | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const committedRef = useRef<CourseNode[]>(normalizeCourseOrders(initialCourses))
@@ -230,6 +234,78 @@ export default function CourseBuilderPage({ initialCourses }: CourseBuilderPageP
     }
   }
 
+  const handleDeleteChapter = async (chapter: CourseNode['chapters'][number]) => {
+    if (deletingChapterId) return
+
+    if (chapter.lessons.length > 0) {
+      setDeleteError(
+        `Cannot delete "${chapter.title}" because it still contains ${chapter.lessons.length} lesson${chapter.lessons.length === 1 ? '' : 's'}. Delete or move those lessons first.`,
+      )
+      return
+    }
+
+    if (typeof window !== 'undefined') {
+      const confirmed = window.confirm(
+        `Delete chapter "${chapter.title}"? This cannot be undone.`,
+      )
+      if (!confirmed) return
+    }
+
+    setDeleteError(null)
+    setDeletingChapterId(chapter.id)
+
+    try {
+      await deleteChapter(chapter.id)
+      const next = normalizeCourseOrders(
+        courses.map((course) => ({
+          ...course,
+          chapters: course.chapters.filter((item) => item.id !== chapter.id),
+        })),
+      )
+      setCourses(next)
+      committedRef.current = next
+      router.refresh()
+    } catch (_error) {
+      setDeleteError(`Unable to delete chapter "${chapter.title}".`)
+    } finally {
+      setDeletingChapterId(null)
+    }
+  }
+
+  const handleDeleteCourse = async (course: CourseNode) => {
+    if (deletingCourseId) return
+
+    const chapterCount = course.chapters.length
+    const lessonCount = course.chapters.reduce((sum, chapter) => sum + chapter.lessons.length, 0)
+
+    if (chapterCount > 0 || lessonCount > 0) {
+      setDeleteError(
+        `Cannot delete "${course.title}" because it still contains ${chapterCount} chapter${chapterCount === 1 ? '' : 's'} and ${lessonCount} lesson${lessonCount === 1 ? '' : 's'}. Delete or move that content first.`,
+      )
+      return
+    }
+
+    if (typeof window !== 'undefined') {
+      const confirmed = window.confirm(`Delete course "${course.title}"? This cannot be undone.`)
+      if (!confirmed) return
+    }
+
+    setDeleteError(null)
+    setDeletingCourseId(course.id)
+
+    try {
+      await deleteCourse(course.id)
+      const next = normalizeCourseOrders(courses.filter((item) => item.id !== course.id))
+      setCourses(next)
+      committedRef.current = next
+      router.refresh()
+    } catch (_error) {
+      setDeleteError(`Unable to delete course "${course.title}".`)
+    } finally {
+      setDeletingCourseId(null)
+    }
+  }
+
   const onDragStart = (event: DragStartEvent) => {
     const meta = getDragMeta(event.active.data)
     setActiveMeta(meta)
@@ -265,14 +341,19 @@ export default function CourseBuilderPage({ initialCourses }: CourseBuilderPageP
       return
     }
 
-    if (active.type === 'chapter' && over.type === 'chapter' && active.courseId === over.courseId) {
-      if (active.chapterId === over.chapterId) return
+    if (
+      active.type === 'chapter' &&
+      (over.type === 'chapter' || over.type === 'chapter-lessons') &&
+      active.courseId === over.courseId
+    ) {
+      const targetChapterId = over.chapterId
+      if (active.chapterId === targetChapterId) return
       const previous = cloneCourses(courses)
       const courseIndex = courses.findIndex((course) => course.id === active.courseId)
       if (courseIndex < 0) return
       const chapters = courses[courseIndex].chapters
       const fromIndex = chapters.findIndex((chapter) => chapter.id === active.chapterId)
-      const toIndex = chapters.findIndex((chapter) => chapter.id === over.chapterId)
+      const toIndex = chapters.findIndex((chapter) => chapter.id === targetChapterId)
       const nextChapters = reorderInArray(chapters, fromIndex, toIndex)
       const nextCourses = [...courses]
       nextCourses[courseIndex] = {
@@ -424,7 +505,11 @@ export default function CourseBuilderPage({ initialCourses }: CourseBuilderPageP
                   lessonDropTargetId={lessonDropTargetId}
                   chapterDropTargetId={chapterDropTargetId}
                   courseDropTargetId={courseDropTargetId}
+                  deletingChapterId={deletingChapterId}
+                  deletingCourseId={deletingCourseId}
                   deletingLessonId={deletingLessonId}
+                  onDeleteChapter={handleDeleteChapter}
+                  onDeleteCourse={handleDeleteCourse}
                   onDeleteLesson={handleDeleteLesson}
                 />
               )
