@@ -8,6 +8,7 @@ type CourseTree = {
   id: string | number
   title: string
   order?: number | null
+  classroomCount?: number
   chapters: {
     id: string | number
     title: string
@@ -38,6 +39,10 @@ const toCourseNodes = (courses: CourseTree[]): CourseNode[] => {
         typeof course.order === 'number' && Number.isFinite(course.order)
           ? course.order
           : courseIndex + 1,
+      classroomCount:
+        typeof course.classroomCount === 'number' && Number.isFinite(course.classroomCount)
+          ? course.classroomCount
+          : 0,
       chapters: course.chapters.map((chapter, chapterIndex) => {
         const chapterId = String(chapter.id)
         return {

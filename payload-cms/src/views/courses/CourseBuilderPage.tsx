@@ -277,10 +277,15 @@ export default function CourseBuilderPage({ initialCourses }: CourseBuilderPageP
 
     const chapterCount = course.chapters.length
     const lessonCount = course.chapters.reduce((sum, chapter) => sum + chapter.lessons.length, 0)
+    const classroomCount = course.classroomCount ?? 0
 
-    if (chapterCount > 0 || lessonCount > 0) {
+    if (chapterCount > 0 || lessonCount > 0 || classroomCount > 0) {
+      const classroomMessage =
+        classroomCount > 0
+          ? ` and ${classroomCount} classroom${classroomCount === 1 ? '' : 's'}`
+          : ''
       setDeleteError(
-        `Cannot delete "${course.title}" because it still contains ${chapterCount} chapter${chapterCount === 1 ? '' : 's'} and ${lessonCount} lesson${lessonCount === 1 ? '' : 's'}. Delete or move that content first.`,
+        `Cannot delete "${course.title}" because it still contains ${chapterCount} chapter${chapterCount === 1 ? '' : 's'}, ${lessonCount} lesson${lessonCount === 1 ? '' : 's'}${classroomMessage}. Delete or move that content first.`,
       )
       return
     }

@@ -20,6 +20,7 @@ export type CourseNode = {
   id: EntityId
   title: string
   order: number
+  classroomCount?: number
   chapters: ChapterNode[]
 }
 

@@ -82,6 +82,19 @@ export const Classes: CollectionConfig = {
             `Cannot delete course: ${chapters.totalDocs} chapter(s) still reference it. Move or delete those chapters first.`,
           )
         }
+
+        const classrooms = await req.payload.find({
+          collection: 'classrooms',
+          depth: 0,
+          limit: 1,
+          where: { class: { equals: id } },
+        })
+
+        if (classrooms.totalDocs > 0) {
+          throw new Error(
+            `Cannot delete course: ${classrooms.totalDocs} classroom(s) still reference it. Reassign or delete those classrooms first.`,
+          )
+        }
       },
     ],
     beforeChange: [

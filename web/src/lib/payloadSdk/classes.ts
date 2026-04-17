@@ -17,9 +17,13 @@ export async function getClassesTree(options?: {
     );
     return [...(data.docs ?? [])].sort((a, b) => {
       const orderA =
-        typeof a.order === "number" ? a.order : Number(a.order ?? 0);
+        typeof a.order === "number" && Number.isFinite(a.order)
+          ? a.order
+          : Number.MAX_SAFE_INTEGER;
       const orderB =
-        typeof b.order === "number" ? b.order : Number(b.order ?? 0);
+        typeof b.order === "number" && Number.isFinite(b.order)
+          ? b.order
+          : Number.MAX_SAFE_INTEGER;
 
       if (orderA !== orderB) return orderA - orderB;
 

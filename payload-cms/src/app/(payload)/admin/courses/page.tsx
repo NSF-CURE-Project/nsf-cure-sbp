@@ -8,6 +8,7 @@ type CourseTree = {
   id: string | number
   title: string
   order?: number | null
+  classroomCount?: number
   chapters: {
     id: string | number
     title: string
@@ -57,6 +58,26 @@ const buildCourseTree = async () => {
     sort: 'order',
     overrideAccess: true,
   })
+
+  const classrooms = await payload.find({
+    collection: 'classrooms',
+    depth: 0,
+    limit: 1000,
+    overrideAccess: true,
+  })
+
+  const classroomCountByCourseId = new Map<string, number>()
+  for (const classroom of classrooms.docs ?? []) {
+    const classValue = (classroom as { class?: unknown }).class
+    const classId =
+      typeof classValue === 'object' && classValue !== null && 'id' in classValue
+        ? String((classValue as { id?: string | number }).id ?? '')
+        : classValue != null
+          ? String(classValue)
+          : ''
+    if (!classId) continue
+    classroomCountByCourseId.set(classId, (classroomCountByCourseId.get(classId) ?? 0) + 1)
+  }
 
   return classes.docs.map((course) => {
     const courseDoc = course as CourseDoc
@@ -109,6 +130,7 @@ const buildCourseTree = async () => {
       id: courseDoc.id ?? course,
       title: courseDoc.title ?? 'Untitled class',
       order: typeof courseDoc.order === 'number' ? courseDoc.order : null,
+      classroomCount: classroomCountByCourseId.get(String(courseDoc.id ?? course)) ?? 0,
       chapters,
     }
   }) as CourseTree[]
