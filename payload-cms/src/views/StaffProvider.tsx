@@ -29,6 +29,7 @@ const routeLabelOverrides: Record<string, string> = {
   reporting: 'NSF Reporting',
   help: 'Help',
   settings: 'Settings',
+  'student-performance': 'Student Performance',
   versions: 'Versions',
   upload: 'Upload',
   create: 'Create',
@@ -1358,14 +1359,24 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           --cpp-muted: #516889;
           --admin-surface: #f8fbff;
           --admin-surface-muted: #ebf3ff;
+          --admin-surface-soft: #f3f8ff;
           --admin-surface-border: rgba(23, 78, 177, 0.2);
-          --admin-hero-bg: linear-gradient(140deg, #e6f1ff 0%, #f1edff 48%, #e9fbf3 100%);
+          --admin-surface-border-strong: rgba(23, 78, 177, 0.28);
+          --admin-hero-bg: #f8fbff;
           --admin-hero-border: var(--admin-surface-border);
           --admin-hero-grid: rgba(28, 100, 242, 0.14);
           --admin-chip-bg: rgba(28, 100, 242, 0.1);
-          --admin-chip-primary-bg: linear-gradient(135deg, #1553cf 0%, #0a89c2 100%);
+          --admin-chip-primary-bg: #1553cf;
           --admin-chip-primary-text: #ffffff;
+          --admin-panel-bg: rgba(255, 255, 255, 0.96);
+          --admin-panel-bg-muted: rgba(255, 255, 255, 0.86);
+          --admin-panel-accent-bg: rgba(21, 83, 207, 0.08);
+          --admin-form-card-bg: rgba(255, 255, 255, 0.99);
+          --admin-meta-card-bg: rgba(248, 251, 255, 0.97);
+          --admin-info-card-bg: rgba(241, 247, 255, 0.98);
           --admin-shadow: 0 18px 34px rgba(18, 65, 147, 0.16);
+          --admin-shadow-soft: 0 12px 24px rgba(18, 65, 147, 0.09);
+          --admin-shadow-deep: 0 22px 42px rgba(18, 65, 147, 0.14);
           --theme-bg: #edf4ff;
           --theme-text: #0f2040;
           --theme-input-bg: #ffffff;
@@ -1392,14 +1403,24 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           --cpp-muted: #9aa4b2;
           --admin-surface: #0f1624;
           --admin-surface-muted: #121b2a;
+          --admin-surface-soft: #101b2d;
           --admin-surface-border: rgba(148, 163, 184, 0.18);
+          --admin-surface-border-strong: rgba(148, 163, 184, 0.28);
           --admin-hero-bg: var(--admin-surface);
           --admin-hero-border: var(--admin-surface-border);
+          --admin-panel-bg: var(--admin-surface);
+          --admin-panel-bg-muted: rgba(15, 23, 42, 0.36);
+          --admin-panel-accent-bg: rgba(148, 163, 184, 0.12);
+          --admin-form-card-bg: rgba(15, 22, 36, 0.98);
+          --admin-meta-card-bg: rgba(16, 24, 39, 0.96);
+          --admin-info-card-bg: rgba(19, 32, 52, 0.98);
           --admin-hero-grid: rgba(148, 163, 184, 0.08);
           --admin-chip-bg: rgba(148, 163, 184, 0.14);
           --admin-chip-primary-bg: #e7edf6;
           --admin-chip-primary-text: #070b14;
           --admin-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+          --admin-shadow-soft: 0 14px 28px rgba(0, 0, 0, 0.26);
+          --admin-shadow-deep: 0 24px 48px rgba(0, 0, 0, 0.38);
           --theme-bg: #070b14;
           --theme-text: #e7edf6;
           --theme-input-bg: #0c1220;
@@ -1424,6 +1445,9 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
             --admin-surface-border: rgba(148, 163, 184, 0.18);
             --admin-hero-bg: var(--admin-surface);
             --admin-hero-border: var(--admin-surface-border);
+            --admin-panel-bg: var(--admin-surface);
+            --admin-panel-bg-muted: rgba(15, 23, 42, 0.36);
+            --admin-panel-accent-bg: rgba(148, 163, 184, 0.12);
             --admin-hero-grid: rgba(148, 163, 184, 0.08);
             --admin-chip-bg: rgba(148, 163, 184, 0.14);
             --admin-chip-primary-bg: #e7edf6;
@@ -1911,10 +1935,12 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
 
         html[data-admin-context='app'] .doc-controls__meta {
-          margin: 0;
-          padding: 12px var(--admin-content-gutter, 60px);
-          border-top: none !important;
-          border-bottom: none !important;
+          margin: 2px var(--admin-content-gutter, 60px) 14px;
+          padding: 2px 0;
+          border: none !important;
+          border-radius: 0;
+          background: transparent;
+          box-shadow: none;
           display: grid;
           grid-template-columns: auto 1fr auto;
           align-items: center;
@@ -1976,7 +2002,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           gap: 14px;
           flex-wrap: wrap;
           grid-column: 2;
-          transform: translateX(120px);
+          transform: none;
         }
 
         html[data-admin-context='app'][data-admin-account='true'] .admin-meta-cluster {
@@ -1994,7 +2020,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           font-size: 20px;
           font-weight: 800;
           margin: 0;
-          color: #e2e8f0;
+          color: var(--cpp-ink);
           white-space: nowrap;
         }
 
@@ -2188,15 +2214,15 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         html[data-admin-context='app'] .popup,
         html[data-admin-context='app'] .modal,
         html[data-admin-context='app'] .card {
-          background: var(--admin-surface);
+          background: var(--admin-panel-bg);
           border: 1px solid var(--admin-surface-border);
-          border-radius: 16px;
-          box-shadow: var(--admin-shadow);
+          border-radius: 20px;
+          box-shadow: var(--admin-shadow-soft);
         }
 
         html[data-admin-context='app'] .document-fields,
         html[data-admin-context='app'] .document-fields__tabs {
-          padding: 18px;
+          padding: 20px;
         }
 
         html[data-admin-context='app'] .document-fields > .tabs,
@@ -2231,18 +2257,66 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         html[data-admin-context='app'] .field-type--group,
         html[data-admin-context='app'] .array-field,
         html[data-admin-context='app'] .group-field {
-          background: rgba(15, 23, 42, 0.04);
-          border: 1px solid rgba(148, 163, 184, 0.2);
-          border-radius: 14px;
-          padding: 12px 14px;
-          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+          background: var(--admin-form-card-bg);
+          border: 1px solid rgba(23, 78, 177, 0.14);
+          border-radius: 18px;
+          padding: 16px 18px;
+          box-shadow: 0 12px 24px rgba(18, 65, 147, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+        }
+
+        html[data-admin-context='app'] .field-type--ui {
+          background: transparent;
+          border: none;
+          padding: 0;
+          box-shadow: none;
+        }
+
+        html[data-admin-context='app'] .field-type label,
+        html[data-admin-context='app'] .field-type .field-label {
+          font-size: 12px;
+          line-height: 1.4;
+          letter-spacing: 0.01em;
+          color: var(--cpp-ink);
+          font-weight: 800;
+          margin-bottom: 7px;
+        }
+
+        html[data-admin-context='app'] .field-type .field-description,
+        html[data-admin-context='app'] .field-type .field-description *,
+        html[data-admin-context='app'] .field-type .field-admin-description,
+        html[data-admin-context='app'] .field-type .desc,
+        html[data-admin-context='app'] .field-type .helper-text {
+          font-size: 12px;
+          line-height: 1.6;
+          color: var(--cpp-muted);
+        }
+
+        html[data-admin-context='app'] .field-type .field-type__wrap {
+          display: grid;
+          gap: 10px;
+        }
+
+        html[data-admin-context='app'] .field-type input,
+        html[data-admin-context='app'] .field-type select,
+        html[data-admin-context='app'] .field-type textarea {
+          border-radius: 12px;
+          border-color: rgba(23, 78, 177, 0.18);
+          background: rgba(255, 255, 255, 0.94);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+        }
+
+        html[data-admin-context='app'] .field-type input:focus,
+        html[data-admin-context='app'] .field-type select:focus,
+        html[data-admin-context='app'] .field-type textarea:focus {
+          border-color: rgba(21, 83, 207, 0.4);
+          box-shadow: 0 0 0 3px rgba(21, 83, 207, 0.1);
         }
 
         html[data-admin-context='app'] .array-field__header,
         html[data-admin-context='app'] .group-field__header {
-          padding-bottom: 8px;
-          margin-bottom: 10px;
-          border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+          padding-bottom: 10px;
+          margin-bottom: 12px;
+          border-bottom: 1px solid rgba(23, 78, 177, 0.12);
         }
 
         html[data-admin-context='app'] .array-field__header > :last-child,
@@ -2265,15 +2339,14 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
 
         html[data-admin-context='app'] .array-field__row {
-          background: var(--admin-surface);
+          background: var(--admin-meta-card-bg);
           border: 1px solid var(--admin-surface-border);
-          border-radius: 12px;
-          padding: 12px;
-          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+          border-radius: 14px;
+          padding: 14px;
+          box-shadow: 0 10px 20px rgba(18, 65, 147, 0.08);
         }
 
-        html[data-admin-context='app'] button[aria-label='Toggle block'],
-        html[data-admin-context='app'] button[title='Toggle block'] {
+        html[data-admin-context='app'] .collapsible__toggle {
           font-size: 0;
           color: transparent;
           min-width: 38px;
@@ -2283,10 +2356,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           justify-content: center;
         }
 
-        html[data-admin-context='app'] button[aria-label='Toggle block'] svg,
-        html[data-admin-context='app'] button[title='Toggle block'] svg,
-        html[data-admin-context='app'] button[aria-label='Toggle block'] .icon,
-        html[data-admin-context='app'] button[title='Toggle block'] .icon {
+        html[data-admin-context='app'] .collapsible__toggle svg,
+        html[data-admin-context='app'] .collapsible__toggle .icon {
           color: var(--cpp-muted);
           fill: currentColor;
         }
@@ -2486,6 +2557,78 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
         .collection-edit--pages .collection-edit__main {
           width: 100%;
+        }
+
+        .collection-edit--chapters .document-fields,
+        .collection-edit--chapters .document-fields__tabs {
+          padding: 14px 16px;
+        }
+
+        .collection-edit--chapters .doc-controls__meta {
+          margin-bottom: 10px;
+          padding: 0;
+          border-radius: 0;
+        }
+
+        .collection-edit--chapters .field-type,
+        .collection-edit--chapters .field-type--group,
+        .collection-edit--chapters .array-field,
+        .collection-edit--chapters .group-field {
+          padding: 12px 14px;
+          border-radius: 14px;
+          box-shadow: 0 8px 18px rgba(18, 65, 147, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .collection-edit--chapters .field-type .field-type__wrap {
+          gap: 8px;
+        }
+
+        .collection-edit--chapters .field-type label,
+        .collection-edit--chapters .field-type .field-label {
+          margin-bottom: 5px;
+          font-size: 11px;
+        }
+
+        .collection-edit--chapters .field-type .field-description,
+        .collection-edit--chapters .field-type .field-description *,
+        .collection-edit--chapters .field-type .field-admin-description,
+        .collection-edit--chapters .field-type .desc,
+        .collection-edit--chapters .field-type .helper-text {
+          font-size: 11px;
+          line-height: 1.5;
+        }
+
+        .collection-edit--chapters .field-type input,
+        .collection-edit--chapters .field-type select,
+        .collection-edit--chapters .field-type textarea {
+          min-height: 42px;
+        }
+
+        .collection-edit--chapters .field-type--row,
+        .collection-edit--chapters .row-field {
+          padding: 0 !important;
+          border: none !important;
+          background: transparent !important;
+          box-shadow: none !important;
+        }
+
+        .collection-edit--chapters .field-type--row > .field-type__wrap,
+        .collection-edit--chapters .row-field > .field-type__wrap {
+          gap: 12px;
+        }
+
+        .collection-edit--chapters .field-type--richText {
+          background: rgba(248, 251, 255, 0.72);
+        }
+
+        .collection-edit--chapters .field-type--richText .lexical-editor,
+        .collection-edit--chapters .field-type--richText .lexical-editor-container,
+        .collection-edit--chapters .field-type--richText .rich-text__editor {
+          min-height: 220px;
+        }
+
+        .collection-edit--chapters .field-type--ui {
+          margin-top: 0;
         }
 
         html[data-admin-context='app'] .nav,
