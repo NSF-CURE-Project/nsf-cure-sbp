@@ -45,6 +45,8 @@ ENV NODE_ENV production
 # Uncomment the following line in case you want to disable telemetry during runtime.
 # ENV NEXT_TELEMETRY_DISABLED 1
 
+RUN apk add --no-cache su-exec
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
@@ -60,12 +62,12 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./payload-cms/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./app/.next/static
 
-USER nextjs
-
 EXPOSE 3000
 
 ENV PORT 3000
 
 # server.js is created by next build from the standalone output
+# Container starts as root so it can fix ownership of any mounted volume
+# (Railway volumes default to root:root), then drops privileges to nextjs.
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
-CMD sh -c 'set -e; for d in /app /app/payload-cms /app/app; do if [ -f "$d/server.js" ]; then echo "Starting standalone server from $d"; cd "$d"; exec env HOSTNAME="0.0.0.0" node server.js; fi; done; echo "Unable to locate standalone server.js under /app"; find /app -maxdepth 4 -name server.js -print; exit 1'
+CMD sh -c 'set -e; if [ -n "$MEDIA_STATIC_DIR" ]; then mkdir -p "$MEDIA_STATIC_DIR" && chown -R nextjs:nodejs "$MEDIA_STATIC_DIR" || true; fi; for d in /app /app/payload-cms /app/app; do if [ -f "$d/server.js" ]; then echo "Starting standalone server from $d"; cd "$d"; exec su-exec nextjs:nodejs env HOSTNAME="0.0.0.0" node server.js; fi; done; echo "Unable to locate standalone server.js under /app"; find /app -maxdepth 4 -name server.js -print; exit 1'
