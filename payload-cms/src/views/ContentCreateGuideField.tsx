@@ -2,6 +2,13 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import {
+  AdminCard,
+  AdminCardHeader,
+  AdminChipRow,
+  AdminMiniCard,
+  adminPrimaryActionStyle,
+} from '@/views/admin/AdminCardPrimitives'
 
 type GuideConfig = {
   eyebrow: string
@@ -13,62 +20,6 @@ type GuideConfig = {
   backLabel: string
   compactTitle: string
   compactBody: string
-}
-
-const panelStyle: React.CSSProperties = {
-  margin: '4px 0 20px',
-  borderRadius: 14,
-  border: '1px solid var(--admin-surface-border)',
-  background: 'linear-gradient(160deg, #ffffff 0%, #edf5ff 62%, #e7f7ff 100%)',
-  boxShadow: '0 1px 0 rgba(18, 65, 147, 0.08)',
-  padding: '16px 18px',
-  display: 'grid',
-  gap: 14,
-}
-
-const eyebrowStyle: React.CSSProperties = {
-  fontSize: 11,
-  letterSpacing: 1.2,
-  textTransform: 'uppercase',
-  color: '#0b61b9',
-  fontWeight: 800,
-}
-
-const chipStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 6,
-  padding: '6px 10px',
-  borderRadius: 999,
-  fontSize: 12,
-  fontWeight: 700,
-  color: '#0b4aaf',
-  background: 'rgba(21, 83, 207, 0.1)',
-  border: '1px solid rgba(21, 83, 207, 0.16)',
-}
-
-const backLinkStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 10,
-  padding: '8px 14px',
-  borderRadius: 999,
-  fontSize: 13,
-  fontWeight: 800,
-  color: 'var(--cpp-ink)',
-  background: 'rgba(255, 255, 255, 0.92)',
-  border: '1px solid rgba(21, 83, 207, 0.24)',
-  boxShadow: '0 6px 14px rgba(15, 23, 42, 0.08)',
-  textDecoration: 'none',
-}
-
-const cardStyle: React.CSSProperties = {
-  borderRadius: 12,
-  border: '1px solid var(--admin-surface-border)',
-  background: 'rgba(255, 255, 255, 0.9)',
-  padding: '12px 14px',
-  display: 'grid',
-  gap: 6,
 }
 
 const guideByCollection: Record<string, GuideConfig> = {
@@ -94,9 +45,9 @@ const guideByCollection: Record<string, GuideConfig> = {
     ],
     backHref: '/admin/courses',
     backLabel: 'Back to Course Workspace',
-    compactTitle: 'Lesson editing reminder',
+    compactTitle: 'Chapter editing guidance',
     compactBody:
-      'Update the title or chapter if needed, then continue building in Page Layout. Save Draft while working and preview before publishing changes.',
+      'Update the chapter title, number, or course assignment here. Add and revise lesson content from the related lesson records, then save before leaving the page.',
   },
   lessons: {
     eyebrow: 'Create Lesson',
@@ -203,47 +154,33 @@ export default function ContentCreateGuideField() {
   if (!guide) return null
 
   if (!guide.isCreate) {
+    const isCompactChapterGuide = pathname.includes('/admin/collections/chapters/')
+
     return (
-      <section
+      <AdminCard
+        variant="meta"
         style={{
-          margin: '4px 0 20px',
-          borderRadius: 12,
-          border: '1px solid var(--admin-surface-border)',
-          background: 'rgba(255, 255, 255, 0.92)',
-          boxShadow: '0 1px 0 rgba(18, 65, 147, 0.06)',
-          padding: '12px 14px',
-          display: 'grid',
-          gap: 6,
+          margin: '4px 0 14px',
+          padding: isCompactChapterGuide ? '12px 14px' : '16px 18px',
+          gap: isCompactChapterGuide ? 6 : 8,
+          borderRadius: isCompactChapterGuide ? 14 : 18,
         }}
       >
-        <div style={{ fontSize: 12, fontWeight: 800, color: '#0b61b9', textTransform: 'uppercase' }}>
-          {guide.eyebrow}
-        </div>
-        <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--cpp-ink)' }}>{guide.compactTitle}</div>
-        <div style={{ fontSize: 12, color: 'var(--cpp-muted)', lineHeight: 1.55 }}>{guide.compactBody}</div>
-      </section>
+        <AdminCardHeader
+          compact
+          eyebrow={guide.eyebrow}
+          title={guide.compactTitle}
+          description={guide.compactBody}
+        />
+      </AdminCard>
     )
   }
 
   return (
-    <section style={panelStyle}>
-      <div style={eyebrowStyle}>{guide.eyebrow}</div>
-      <div style={{ display: 'grid', gap: 8 }}>
-        <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--cpp-ink)' }}>
-          {guide.heading}
-        </div>
-        <div style={{ fontSize: 13, color: 'var(--cpp-muted)', lineHeight: 1.6, maxWidth: 860 }}>
-          {guide.description}
-        </div>
-      </div>
+    <AdminCard variant="info" style={{ margin: '4px 0 20px' }}>
+      <AdminCardHeader eyebrow={guide.eyebrow} title={guide.heading} description={guide.description} />
 
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {guide.chips.map((chip) => (
-          <span key={chip} style={chipStyle}>
-            {chip}
-          </span>
-        ))}
-      </div>
+      <AdminChipRow items={guide.chips} />
 
       <div
         style={{
@@ -253,19 +190,12 @@ export default function ContentCreateGuideField() {
         }}
       >
         {guide.cards.map((card) => (
-          <div key={card.title} style={cardStyle}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--cpp-ink)' }}>
-              {card.title}
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--cpp-muted)', lineHeight: 1.55 }}>
-              {card.body}
-            </div>
-          </div>
+          <AdminMiniCard key={card.title} title={card.title} body={card.body} />
         ))}
       </div>
 
       <div>
-        <Link href={guide.backHref} aria-label={guide.backLabel} style={backLinkStyle}>
+        <Link href={guide.backHref} aria-label={guide.backLabel} style={adminPrimaryActionStyle}>
           <span
             aria-hidden="true"
             style={{
@@ -299,6 +229,6 @@ export default function ContentCreateGuideField() {
           <span>{guide.backLabel}</span>
         </Link>
       </div>
-    </section>
+    </AdminCard>
   )
 }

@@ -3,10 +3,27 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useField } from '@payloadcms/ui'
 import type { QuizQuestion } from '@/payload-types'
+import { getQuestionIssues, getQuestionType, parseStringArray } from '@/lib/quiz'
+import { AdminSectionSwitcher } from '@/views/admin/AdminSectionSwitcher'
 
 type QuestionDoc = Pick<
   QuizQuestion,
-  'id' | 'title' | 'options' | 'difficulty' | 'topic' | 'tags' | 'prompt' | 'explanation' | 'attachments'
+  | 'id'
+  | 'title'
+  | 'questionType'
+  | 'options'
+  | 'trueFalseAnswer'
+  | 'acceptedAnswers'
+  | 'textMatchMode'
+  | 'numericCorrectValue'
+  | 'numericTolerance'
+  | 'numericUnit'
+  | 'difficulty'
+  | 'topic'
+  | 'tags'
+  | 'prompt'
+  | 'explanation'
+  | 'attachments'
 >
 
 type OptionDraft = {
@@ -20,6 +37,24 @@ type ImportSummary = {
   failed: number
   errors: { row: number; message: string }[]
 }
+
+const questionBuilderTabs = [
+  {
+    id: 'bank',
+    label: 'Question Bank',
+    description: 'Browse existing questions and reuse them.',
+  },
+  {
+    id: 'create',
+    label: 'Create',
+    description: 'Write a new question inside this modal.',
+  },
+  {
+    id: 'import',
+    label: 'Import CSV',
+    description: 'Bulk-create questions from a spreadsheet.',
+  },
+] as const
 
 const toId = (value: unknown): string | null => {
   if (typeof value === 'string' || typeof value === 'number') return String(value)
@@ -56,16 +91,6 @@ const createLexicalText = (text: string) => ({
     version: 1,
   },
 })
-
-const getQuestionIssues = (question?: QuestionDoc | null) => {
-  const options = Array.isArray(question?.options) ? question?.options ?? [] : []
-  const optionCount = options.filter((option) => option?.label?.trim()).length
-  const correctCount = options.filter((option) => option?.isCorrect).length
-  const issues: string[] = []
-  if (optionCount < 3) issues.push('needs 3+ options')
-  if (correctCount < 1) issues.push('needs a correct answer')
-  return issues
-}
 
 const normalizeHeader = (header: string) => {
   const trimmed = header.trim().toLowerCase().replace(/\s+/g, '_')
@@ -225,19 +250,33 @@ export default function QuizQuestionPickerField() {
   const [importFilename, setImportFilename] = useState('')
   const [newQuestion, setNewQuestion] = useState<{
     title: string
+    questionType: 'single-select' | 'multi-select' | 'true-false' | 'short-text' | 'numeric'
     prompt: string
     explanation: string
     topic: string
     tags: string
     difficulty: string
+    trueFalseAnswer: boolean
+    acceptedAnswers: string
+    textMatchMode: 'exact' | 'normalized'
+    numericCorrectValue: string
+    numericTolerance: string
+    numericUnit: string
     options: OptionDraft[]
   }>({
     title: '',
+    questionType: 'single-select',
     prompt: '',
     explanation: '',
     topic: '',
     tags: '',
     difficulty: '',
+    trueFalseAnswer: true,
+    acceptedAnswers: '',
+    textMatchMode: 'normalized',
+    numericCorrectValue: '',
+    numericTolerance: '',
+    numericUnit: '',
     options: [
       { label: '', isCorrect: true },
       { label: '', isCorrect: false },
@@ -338,9 +377,16 @@ export default function QuizQuestionPickerField() {
       try {
         const payload = {
           title: question.title ? `${question.title} (Copy)` : 'Untitled question (Copy)',
+          questionType: question.questionType ?? getQuestionType(question),
           prompt: question.prompt ?? createLexicalText(''),
           explanation: question.explanation ?? undefined,
           options: question.options ?? [],
+          trueFalseAnswer: question.trueFalseAnswer ?? undefined,
+          acceptedAnswers: question.acceptedAnswers ?? undefined,
+          textMatchMode: question.textMatchMode ?? undefined,
+          numericCorrectValue: question.numericCorrectValue ?? undefined,
+          numericTolerance: question.numericTolerance ?? undefined,
+          numericUnit: question.numericUnit ?? undefined,
           topic: question.topic ?? undefined,
           tags: question.tags ?? [],
           difficulty: question.difficulty ?? undefined,
@@ -370,11 +416,18 @@ export default function QuizQuestionPickerField() {
   const resetCreateForm = () => {
     setNewQuestion({
       title: '',
+      questionType: 'single-select',
       prompt: '',
       explanation: '',
       topic: '',
       tags: '',
       difficulty: '',
+      trueFalseAnswer: true,
+      acceptedAnswers: '',
+      textMatchMode: 'normalized',
+      numericCorrectValue: '',
+      numericTolerance: '',
+      numericUnit: '',
       options: [
         { label: '', isCorrect: true },
         { label: '', isCorrect: false },
@@ -400,38 +453,75 @@ export default function QuizQuestionPickerField() {
       setCreateError('Add a prompt for the question.')
       return
     }
-    if (validOptions.length < 3) {
-      setCreateError('Add at least 3 answer choices.')
+    if (newQuestion.questionType === 'single-select') {
+      if (validOptions.length < 2) {
+        setCreateError('Add at least 2 answer choices.')
+        return
+      }
+      if (correctCount !== 1) {
+        setCreateError('Mark exactly 1 correct answer.')
+        return
+      }
+    }
+    if (newQuestion.questionType === 'multi-select') {
+      if (validOptions.length < 3) {
+        setCreateError('Add at least 3 answer choices.')
+        return
+      }
+      if (correctCount < 1) {
+        setCreateError('Mark at least 1 correct answer.')
+        return
+      }
+    }
+    if (newQuestion.questionType === 'short-text' && parseStringArray(newQuestion.acceptedAnswers).length < 1) {
+      setCreateError('Add at least 1 accepted answer.')
       return
     }
-    if (correctCount < 1) {
-      setCreateError('Mark at least 1 correct answer.')
+    if (newQuestion.questionType === 'numeric' && !newQuestion.numericCorrectValue.trim()) {
+      setCreateError('Add a numeric correct value.')
       return
     }
     setCreateStatus('saving')
     try {
+      const payload: Record<string, unknown> = {
+        title: trimmedTitle,
+        questionType: newQuestion.questionType,
+        prompt: createLexicalText(trimmedPrompt),
+        explanation: newQuestion.explanation.trim()
+          ? createLexicalText(newQuestion.explanation.trim())
+          : undefined,
+        topic: newQuestion.topic.trim() || undefined,
+        tags: newQuestion.tags
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean),
+        difficulty: newQuestion.difficulty || undefined,
+        _status: 'draft',
+      }
+
+      if (newQuestion.questionType === 'single-select' || newQuestion.questionType === 'multi-select') {
+        payload.options = validOptions.map((opt) => ({
+          label: opt.label.trim(),
+          isCorrect: opt.isCorrect,
+        }))
+      } else if (newQuestion.questionType === 'true-false') {
+        payload.trueFalseAnswer = newQuestion.trueFalseAnswer
+      } else if (newQuestion.questionType === 'short-text') {
+        payload.acceptedAnswers = parseStringArray(newQuestion.acceptedAnswers)
+        payload.textMatchMode = newQuestion.textMatchMode
+      } else if (newQuestion.questionType === 'numeric') {
+        payload.numericCorrectValue = Number(newQuestion.numericCorrectValue)
+        payload.numericTolerance = newQuestion.numericTolerance.trim()
+          ? Number(newQuestion.numericTolerance)
+          : 0
+        payload.numericUnit = newQuestion.numericUnit.trim() || undefined
+      }
+
       const res = await fetch('/api/quiz-questions', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: trimmedTitle,
-          prompt: createLexicalText(trimmedPrompt),
-          explanation: newQuestion.explanation.trim()
-            ? createLexicalText(newQuestion.explanation.trim())
-            : undefined,
-          options: validOptions.map((opt) => ({
-            label: opt.label.trim(),
-            isCorrect: opt.isCorrect,
-          })),
-          topic: newQuestion.topic.trim() || undefined,
-          tags: newQuestion.tags
-            .split(',')
-            .map((item) => item.trim())
-            .filter(Boolean),
-          difficulty: newQuestion.difficulty || undefined,
-          _status: 'draft',
-        }),
+        body: JSON.stringify(payload),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => null)
@@ -515,14 +605,14 @@ export default function QuizQuestionPickerField() {
           })
           .filter(Boolean) as OptionDraft[]
 
-        if (options.length < 3) {
-          errors.push({ row: rowNumber, message: 'Needs at least 3 options.' })
-          continue
-        }
-        if (!options.some((opt) => opt.isCorrect)) {
-          errors.push({ row: rowNumber, message: 'No correct option marked.' })
-          continue
-        }
+        const questionTypeValue = row.question_type?.trim().toLowerCase()
+        const questionType =
+          questionTypeValue &&
+          ['single-select', 'multi-select', 'true-false', 'short-text', 'numeric'].includes(questionTypeValue)
+            ? questionTypeValue
+            : correctIndices.length > 1
+              ? 'multi-select'
+              : 'single-select'
 
         const tags = row.tags
           ? row.tags
@@ -538,22 +628,60 @@ export default function QuizQuestionPickerField() {
             : undefined
 
         try {
+          const payload: Record<string, unknown> = {
+            title,
+            questionType,
+            prompt: createLexicalText(prompt),
+            explanation: row.explanation?.trim()
+              ? createLexicalText(row.explanation.trim())
+              : undefined,
+            topic: row.topic?.trim() || undefined,
+            tags,
+            difficulty,
+            _status: 'draft',
+          }
+
+          if (questionType === 'single-select' || questionType === 'multi-select') {
+            if (questionType === 'single-select' && options.filter((opt) => opt.isCorrect).length !== 1) {
+              errors.push({ row: rowNumber, message: 'Single-select rows need exactly one correct option.' })
+              continue
+            }
+            if (questionType === 'multi-select' && options.length < 3) {
+              errors.push({ row: rowNumber, message: 'Multi-select rows need at least 3 options.' })
+              continue
+            }
+            if (options.length < 2 || !options.some((opt) => opt.isCorrect)) {
+              errors.push({ row: rowNumber, message: 'Choice rows need valid options and a correct answer.' })
+              continue
+            }
+            payload.options = options
+          } else if (questionType === 'true-false') {
+            payload.trueFalseAnswer = parseBoolean(row.true_false_answer || row.correct_answer || 'true')
+          } else if (questionType === 'short-text') {
+            const acceptedAnswers = parseStringArray(row.accepted_answers ?? row.correct_answer ?? '')
+            if (!acceptedAnswers.length) {
+              errors.push({ row: rowNumber, message: 'Short-text rows need accepted_answers.' })
+              continue
+            }
+            payload.acceptedAnswers = acceptedAnswers
+            payload.textMatchMode = row.match_mode?.trim().toLowerCase() === 'exact' ? 'exact' : 'normalized'
+          } else if (questionType === 'numeric') {
+            const numericCorrectValue = Number(row.numeric_value ?? row.correct_answer ?? '')
+            if (!Number.isFinite(numericCorrectValue)) {
+              errors.push({ row: rowNumber, message: 'Numeric rows need numeric_value.' })
+              continue
+            }
+            payload.numericCorrectValue = numericCorrectValue
+            const tolerance = Number(row.numeric_tolerance ?? '0')
+            payload.numericTolerance = Number.isFinite(tolerance) && tolerance >= 0 ? tolerance : 0
+            payload.numericUnit = row.numeric_unit?.trim() || undefined
+          }
+
           const res = await fetch('/api/quiz-questions', {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              title,
-              prompt: createLexicalText(prompt),
-              explanation: row.explanation?.trim()
-                ? createLexicalText(row.explanation.trim())
-                : undefined,
-              options,
-              topic: row.topic?.trim() || undefined,
-              tags,
-              difficulty,
-              _status: 'draft',
-            }),
+            body: JSON.stringify(payload),
           })
           if (!res.ok) {
             const errorData = await res.json().catch(() => null)
@@ -670,6 +798,7 @@ export default function QuizQuestionPickerField() {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, ...metaTextStyle }}>
                   {question.topic ? <span>Topic: {question.topic}</span> : null}
                   {question.difficulty ? <span>Difficulty: {question.difficulty}</span> : null}
+                  <span>Format: {getQuestionType(question)}</span>
                   {question.options ? <span>Options: {question.options.length}</span> : null}
                 </div>
                 {issues.length > 0 ? (
@@ -696,33 +825,15 @@ export default function QuizQuestionPickerField() {
                 <div style={{ fontSize: 18, fontWeight: 700 }}>Build your quiz</div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  type="button"
-                  className={`btn btn--size-small ${
-                    activeTab === 'bank' ? 'btn--style-primary' : 'btn--style-secondary'
-                  }`}
-                  onClick={() => setActiveTab('bank')}
-                >
-                  Question bank
-                </button>
-                <button
-                  type="button"
-                  className={`btn btn--size-small ${
-                    activeTab === 'create' ? 'btn--style-primary' : 'btn--style-secondary'
-                  }`}
-                  onClick={() => setActiveTab('create')}
-                >
-                  Create question
-                </button>
-                <button
-                  type="button"
-                  className={`btn btn--size-small ${
-                    activeTab === 'import' ? 'btn--style-primary' : 'btn--style-secondary'
-                  }`}
-                  onClick={() => setActiveTab('import')}
-                >
-                  Import CSV
-                </button>
+                <div style={{ minWidth: 420, maxWidth: 640, flex: '1 1 460px' }}>
+                  <AdminSectionSwitcher
+                    ariaLabel="Quiz question builder sections"
+                    items={questionBuilderTabs}
+                    activeId={activeTab}
+                    onChange={setActiveTab}
+                    compact
+                  />
+                </div>
                 <button type="button" className="btn btn--style-secondary" onClick={closeModal}>
                   Close
                 </button>
@@ -809,6 +920,7 @@ export default function QuizQuestionPickerField() {
                               <div style={{ ...metaTextStyle, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                                 {question.topic ? <span>Topic: {question.topic}</span> : null}
                                 {question.difficulty ? <span>Difficulty: {question.difficulty}</span> : null}
+                                <span>Format: {getQuestionType(question)}</span>
                                 {question.options ? <span>Options: {question.options.length}</span> : null}
                               </div>
                               {issues.length > 0 ? (
@@ -861,6 +973,25 @@ export default function QuizQuestionPickerField() {
                     />
                   </label>
                   <label style={{ display: 'grid', gap: 6 }}>
+                    <span style={metaTextStyle}>Format</span>
+                    <select
+                      value={newQuestion.questionType}
+                      onChange={(event) =>
+                        setNewQuestion((prev) => ({
+                          ...prev,
+                          questionType: event.target.value as typeof prev.questionType,
+                        }))
+                      }
+                      className="input"
+                    >
+                      <option value="single-select">Single select</option>
+                      <option value="multi-select">Multi-select</option>
+                      <option value="true-false">True / False</option>
+                      <option value="short-text">Short text</option>
+                      <option value="numeric">Numeric</option>
+                    </select>
+                  </label>
+                  <label style={{ display: 'grid', gap: 6 }}>
                     <span style={metaTextStyle}>Prompt</span>
                     <textarea
                       value={newQuestion.prompt}
@@ -882,71 +1013,159 @@ export default function QuizQuestionPickerField() {
                       className="input"
                     />
                   </label>
-                  <div style={{ display: 'grid', gap: 8 }}>
-                    <div style={labelStyle}>Answer choices</div>
-                    {newQuestion.options.map((option, index) => (
-                      <div
-                        key={index}
-                        style={{
-                          display: 'grid',
-                          gap: 8,
-                          gridTemplateColumns: 'auto 1fr auto',
-                          alignItems: 'center',
-                        }}
+                  {(newQuestion.questionType === 'single-select' || newQuestion.questionType === 'multi-select') ? (
+                    <div style={{ display: 'grid', gap: 8 }}>
+                      <div style={labelStyle}>Answer choices</div>
+                      {newQuestion.options.map((option, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            display: 'grid',
+                            gap: 8,
+                            gridTemplateColumns: 'auto 1fr auto',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={option.isCorrect}
+                            onChange={(event) =>
+                              setNewQuestion((prev) => ({
+                                ...prev,
+                                options: prev.options.map((item, idx) =>
+                                  idx === index ? { ...item, isCorrect: event.target.checked } : item,
+                                ),
+                              }))
+                            }
+                          />
+                          <input
+                            type="text"
+                            value={option.label}
+                            onChange={(event) =>
+                              setNewQuestion((prev) => ({
+                                ...prev,
+                                options: prev.options.map((item, idx) =>
+                                  idx === index ? { ...item, label: event.target.value } : item,
+                                ),
+                              }))
+                            }
+                            className="input"
+                          />
+                          <button
+                            type="button"
+                            className="btn btn--style-secondary btn--size-small"
+                            onClick={() =>
+                              setNewQuestion((prev) => ({
+                                ...prev,
+                                options: prev.options.filter((_, idx) => idx !== index),
+                              }))
+                            }
+                            disabled={newQuestion.options.length <= 2}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        className="btn btn--style-secondary btn--size-small"
+                        onClick={() =>
+                          setNewQuestion((prev) => ({
+                            ...prev,
+                            options: [...prev.options, { label: '', isCorrect: false }],
+                          }))
+                        }
                       >
-                        <input
-                          type="checkbox"
-                          checked={option.isCorrect}
+                        Add option
+                      </button>
+                    </div>
+                  ) : null}
+                  {newQuestion.questionType === 'true-false' ? (
+                    <label style={{ display: 'grid', gap: 6 }}>
+                      <span style={metaTextStyle}>Correct answer</span>
+                      <select
+                        value={newQuestion.trueFalseAnswer ? 'true' : 'false'}
+                        onChange={(event) =>
+                          setNewQuestion((prev) => ({
+                            ...prev,
+                            trueFalseAnswer: event.target.value === 'true',
+                          }))
+                        }
+                        className="input"
+                      >
+                        <option value="true">True</option>
+                        <option value="false">False</option>
+                      </select>
+                    </label>
+                  ) : null}
+                  {newQuestion.questionType === 'short-text' ? (
+                    <>
+                      <label style={{ display: 'grid', gap: 6 }}>
+                        <span style={metaTextStyle}>Accepted answers</span>
+                        <textarea
+                          value={newQuestion.acceptedAnswers}
                           onChange={(event) =>
-                            setNewQuestion((prev) => ({
-                              ...prev,
-                              options: prev.options.map((item, idx) =>
-                                idx === index ? { ...item, isCorrect: event.target.checked } : item,
-                              ),
-                            }))
+                            setNewQuestion((prev) => ({ ...prev, acceptedAnswers: event.target.value }))
                           }
+                          rows={3}
+                          className="input"
                         />
-                        <input
-                          type="text"
-                          value={option.label}
+                      </label>
+                      <label style={{ display: 'grid', gap: 6 }}>
+                        <span style={metaTextStyle}>Match mode</span>
+                        <select
+                          value={newQuestion.textMatchMode}
                           onChange={(event) =>
                             setNewQuestion((prev) => ({
                               ...prev,
-                              options: prev.options.map((item, idx) =>
-                                idx === index ? { ...item, label: event.target.value } : item,
-                              ),
+                              textMatchMode: event.target.value as 'exact' | 'normalized',
                             }))
                           }
                           className="input"
-                        />
-                        <button
-                          type="button"
-                          className="btn btn--style-secondary btn--size-small"
-                          onClick={() =>
-                            setNewQuestion((prev) => ({
-                              ...prev,
-                              options: prev.options.filter((_, idx) => idx !== index),
-                            }))
-                          }
-                          disabled={newQuestion.options.length <= 3}
                         >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      className="btn btn--style-secondary btn--size-small"
-                      onClick={() =>
-                        setNewQuestion((prev) => ({
-                          ...prev,
-                          options: [...prev.options, { label: '', isCorrect: false }],
-                        }))
-                      }
-                    >
-                      Add option
-                    </button>
-                  </div>
+                          <option value="normalized">Normalized</option>
+                          <option value="exact">Exact</option>
+                        </select>
+                      </label>
+                    </>
+                  ) : null}
+                  {newQuestion.questionType === 'numeric' ? (
+                    <div style={{ display: 'grid', gap: 6, gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
+                      <label style={{ display: 'grid', gap: 6 }}>
+                        <span style={metaTextStyle}>Correct value</span>
+                        <input
+                          type="number"
+                          value={newQuestion.numericCorrectValue}
+                          onChange={(event) =>
+                            setNewQuestion((prev) => ({ ...prev, numericCorrectValue: event.target.value }))
+                          }
+                          className="input"
+                        />
+                      </label>
+                      <label style={{ display: 'grid', gap: 6 }}>
+                        <span style={metaTextStyle}>Tolerance</span>
+                        <input
+                          type="number"
+                          value={newQuestion.numericTolerance}
+                          onChange={(event) =>
+                            setNewQuestion((prev) => ({ ...prev, numericTolerance: event.target.value }))
+                          }
+                          className="input"
+                        />
+                      </label>
+                      <label style={{ display: 'grid', gap: 6 }}>
+                        <span style={metaTextStyle}>Unit</span>
+                        <input
+                          type="text"
+                          value={newQuestion.numericUnit}
+                          onChange={(event) =>
+                            setNewQuestion((prev) => ({ ...prev, numericUnit: event.target.value }))
+                          }
+                          className="input"
+                        />
+                      </label>
+                    </div>
+                  ) : null}
                   <div style={{ display: 'grid', gap: 6, gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
                     <label style={{ display: 'grid', gap: 6 }}>
                       <span style={metaTextStyle}>Topic</span>
@@ -1016,10 +1235,11 @@ export default function QuizQuestionPickerField() {
                   <div style={metaTextStyle}>
                     CSV headers supported: <strong>title</strong>, <strong>prompt</strong>,{' '}
                     <strong>explanation</strong>, <strong>topic</strong>, <strong>tags</strong>,{' '}
-                    <strong>difficulty</strong>, <strong>option_1</strong>,{' '}
+                    <strong>difficulty</strong>, <strong>question_type</strong>, <strong>option_1</strong>,{' '}
                     <strong>option_1_correct</strong> (repeat option_2, option_3...). You can also
-                    include <strong>correct_options</strong> (comma-separated option numbers) to
-                    mark correct answers.
+                    include <strong>correct_options</strong>, <strong>true_false_answer</strong>,{' '}
+                    <strong>accepted_answers</strong>, <strong>match_mode</strong>, <strong>numeric_value</strong>,{' '}
+                    <strong>numeric_tolerance</strong>, and <strong>numeric_unit</strong>.
                   </div>
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                     <input

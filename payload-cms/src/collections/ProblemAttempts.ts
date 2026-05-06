@@ -214,11 +214,6 @@ export const ProblemAttempts: CollectionConfig = {
                     typeof (part as { studentExpression?: unknown }).studentExpression === 'string'
                       ? ((part as { studentExpression?: string }).studentExpression ?? '')
                       : null,
-                  placedForces:
-                    typeof (part as { placedForces?: unknown }).placedForces === 'object' &&
-                    (part as { placedForces?: unknown }).placedForces !== null
-                      ? ((part as { placedForces?: Record<string, unknown> }).placedForces ?? null)
-                      : null,
                 }))
               : [],
           })),
@@ -261,10 +256,9 @@ export const ProblemAttempts: CollectionConfig = {
             })(),
             parts: Array.isArray((problem as { parts?: unknown[] }).parts)
               ? ((problem as { parts?: unknown[] }).parts ?? []).map((part) => ({
-                  partType: ((part as { partType?: string }).partType ?? 'numeric') as
+                partType: ((part as { partType?: string }).partType ?? 'numeric') as
                     | 'numeric'
-                    | 'symbolic'
-                    | 'fbd-draw',
+                    | 'symbolic',
                   correctAnswer: (() => {
                     const staticCorrectAnswer = Number(
                       (part as { correctAnswer?: number }).correctAnswer ?? 0,
@@ -328,8 +322,6 @@ export const ProblemAttempts: CollectionConfig = {
                   symbolicTolerance: Number(
                     (part as { symbolicTolerance?: number }).symbolicTolerance ?? 0.000001,
                   ),
-                  fbdRubric:
-                    (part as { fbdRubric?: Record<string, unknown> | null }).fbdRubric ?? null,
                   unit: (part as { unit?: string | null }).unit,
                 }))
               : [],
@@ -465,10 +457,6 @@ export const ProblemAttempts: CollectionConfig = {
             {
               name: 'studentExpression',
               type: 'text',
-            },
-            {
-              name: 'placedForces',
-              type: 'json',
             },
             {
               name: 'isCorrect',

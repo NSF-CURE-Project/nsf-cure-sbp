@@ -1,24 +1,14 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
+import { QUIZ_QUESTION_TYPES, getQuestionIssues, parseStringArray } from '../lib/quiz'
 
 const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' &&
   ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
 
-const validateOptions = (value: unknown) => {
-  if (!Array.isArray(value)) {
-    return 'Add at least 3 answer choices.'
-  }
-  const options = value as { label?: string; isCorrect?: boolean | null }[]
-  const optionCount = options.filter((option) => option?.label?.trim()).length
-  if (optionCount < 3) {
-    return 'Add at least 3 answer choices.'
-  }
-  const correctCount = options.filter((option) => option?.isCorrect).length
-  if (correctCount < 1) {
-    return 'Mark at least 1 correct answer.'
-  }
-  return true
-}
+const validateQuestionType = (value: unknown) =>
+  typeof value === 'string' && QUIZ_QUESTION_TYPES.includes(value as (typeof QUIZ_QUESTION_TYPES)[number])
+    ? true
+    : 'Choose a supported question format.'
 
 export const QuizQuestions: CollectionConfig = {
   slug: 'quiz-questions',
@@ -43,6 +33,16 @@ export const QuizQuestions: CollectionConfig = {
       required: true,
     },
     {
+      name: 'questionType',
+      type: 'text',
+      required: true,
+      defaultValue: 'single-select',
+      validate: validateQuestionType,
+      admin: {
+        description: 'Supported values: single-select, multi-select, true-false, short-text, numeric.',
+      },
+    },
+    {
       name: 'prompt',
       type: 'richText',
       required: true,
@@ -50,9 +50,19 @@ export const QuizQuestions: CollectionConfig = {
     {
       name: 'options',
       type: 'array',
-      required: true,
-      minRows: 3,
-      validate: validateOptions,
+      validate: (value, { data }) => {
+        const issues = getQuestionIssues({
+          ...(typeof data === 'object' && data ? data : {}),
+          options: value as unknown[] | null,
+        })
+        return issues.length > 0 ? `Fix question format: ${issues.join(', ')}` : true
+      },
+      admin: {
+        condition: (_, siblingData) =>
+          (typeof siblingData?.questionType === 'string' ? siblingData.questionType : 'single-select') ===
+            'single-select' ||
+          siblingData?.questionType === 'multi-select',
+      },
       fields: [
         {
           name: 'label',
@@ -66,6 +76,72 @@ export const QuizQuestions: CollectionConfig = {
           defaultValue: false,
         },
       ],
+    },
+    {
+      name: 'trueFalseAnswer',
+      label: 'Correct answer is True',
+      type: 'checkbox',
+      defaultValue: true,
+      admin: {
+        condition: (_, siblingData) => siblingData?.questionType === 'true-false',
+      },
+    },
+    {
+      name: 'acceptedAnswers',
+      type: 'json',
+      validate: (value, { data }) => {
+        const questionType =
+          typeof (data as { questionType?: unknown })?.questionType === 'string'
+            ? (data as { questionType?: string }).questionType
+            : 'single-select'
+        if (questionType !== 'short-text') return true
+        return parseStringArray(value).length > 0 ? true : 'Add at least 1 accepted answer.'
+      },
+      admin: {
+        condition: (_, siblingData) => siblingData?.questionType === 'short-text',
+        description: 'Provide a JSON array or newline/comma-separated answers, e.g. ["stress","normal stress"].',
+      },
+    },
+    {
+      name: 'textMatchMode',
+      type: 'text',
+      defaultValue: 'normalized',
+      validate: (value: unknown, { data }: { data?: unknown }) => {
+        const questionType =
+          typeof (data as { questionType?: unknown })?.questionType === 'string'
+            ? (data as { questionType?: string }).questionType
+            : 'single-select'
+        if (questionType !== 'short-text') return true
+        return value === 'exact' || value === 'normalized'
+          ? true
+          : 'Use "exact" or "normalized" for short-text questions.'
+      },
+      admin: {
+        condition: (_, siblingData) => siblingData?.questionType === 'short-text',
+        description: 'Use "normalized" to ignore case and extra spacing, or "exact" for strict matching.',
+      },
+    },
+    {
+      name: 'numericCorrectValue',
+      type: 'number',
+      admin: {
+        condition: (_, siblingData) => siblingData?.questionType === 'numeric',
+      },
+    },
+    {
+      name: 'numericTolerance',
+      type: 'number',
+      min: 0,
+      admin: {
+        condition: (_, siblingData) => siblingData?.questionType === 'numeric',
+      },
+    },
+    {
+      name: 'numericUnit',
+      type: 'text',
+      admin: {
+        condition: (_, siblingData) => siblingData?.questionType === 'numeric',
+      },
     },
     {
       name: 'explanation',

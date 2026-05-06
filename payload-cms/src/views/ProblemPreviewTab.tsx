@@ -10,11 +10,9 @@ import {
   buildPreviewCanonicalParts,
   buildPreviewSubmittedParts,
   normalizePreviewPartType,
-  type PreviewFbdInput,
   type PreviewPartInput,
 } from '@/lib/problemSet/problemPreviewGrading'
 import { gradeProblemAttemptAnswers } from '@/utils/problemGrading'
-import { SVGCanvas, type FigureData } from '@/views/FigureBuilderField'
 
 type Part = PreviewPartInput & {
   label?: string
@@ -58,23 +56,10 @@ const isLexicalRichText = (value: unknown): value is LexicalRichText => {
 
 const toParts = (value: unknown): Part[] => (Array.isArray(value) ? (value as Part[]) : [])
 
-const toNumeric = (value: unknown, fallback: number) => {
-  const num = typeof value === 'number' ? value : Number(value)
-  return Number.isFinite(num) ? num : fallback
-}
-
 const scoreClass = (score: number) => {
   if (score === 1) return { label: 'Correct', color: '#16a34a' }
   if (score > 0) return { label: `Partial (${Math.round(score * 100)}%)`, color: '#d97706' }
   return { label: 'Incorrect', color: '#dc2626' }
-}
-
-const toFigureData = (value: unknown): FigureData | null => {
-  if (!value || typeof value !== 'object') return null
-  const record = value as { figureData?: unknown }
-  if (!record.figureData || typeof record.figureData !== 'object') return null
-  if (!('type' in (record.figureData as Record<string, unknown>))) return null
-  return record.figureData as FigureData
 }
 
 export default function ProblemPreviewTab() {
@@ -83,7 +68,6 @@ export default function ProblemPreviewTab() {
   const title = (values as { title?: string }).title ?? 'Untitled problem'
   const prompt = (values as { prompt?: unknown }).prompt
   const parts = toParts((values as { parts?: unknown }).parts)
-  const figureData = toFigureData((values as { figure?: unknown }).figure)
 
   const seedFromForm =
     typeof (values as { parameterSeed?: unknown }).parameterSeed === 'string'
@@ -103,41 +87,19 @@ export default function ProblemPreviewTab() {
   const templateScope = templateVariant.scope
 
   const [studentInputs, setStudentInputs] = useState<Record<number, string>>({})
-  const [fbdInputs, setFbdInputs] = useState<Record<number, PreviewFbdInput>>({})
   const [gradeResult, setGradeResult] = useState<PreviewGradeResult | null>(null)
   const [isGrading, setIsGrading] = useState(false)
 
-  const partShapeKey = useMemo(
-    () => parts.map((part, index) => `${index}:${normalizePreviewPartType(part.partType)}`).join('|'),
-    [parts],
-  )
   const partTypes = useMemo(
-    () =>
-      partShapeKey
-        .split('|')
-        .filter(Boolean)
-        .map((token) => {
-          const delimiterIndex = token.indexOf(':')
-          const rawPartType = delimiterIndex >= 0 ? token.slice(delimiterIndex + 1) : token
-          return normalizePreviewPartType(rawPartType)
-        }),
-    [partShapeKey],
+    () => parts.map((part) => normalizePreviewPartType(part.partType)),
+    [parts],
   )
 
   useEffect(() => {
     setStudentInputs((current) => {
       const next: Record<number, string> = {}
-      partTypes.forEach((partType, index) => {
-        if (partType === 'fbd-draw') return
+      partTypes.forEach((_, index) => {
         next[index] = current[index] ?? ''
-      })
-      return next
-    })
-    setFbdInputs((current) => {
-      const next: Record<number, PreviewFbdInput> = {}
-      partTypes.forEach((partType, index) => {
-        if (partType !== 'fbd-draw') return
-        next[index] = current[index] ?? { forces: [], moments: [] }
       })
       return next
     })
@@ -160,53 +122,10 @@ export default function ProblemPreviewTab() {
       [partIndex]: next,
     }))
 
-  const patchFbd = (partIndex: number, updater: (current: PreviewFbdInput) => PreviewFbdInput) =>
-    setFbdInputs((current) => {
-      const existing = current[partIndex] ?? { forces: [], moments: [] }
-      return {
-        ...current,
-        [partIndex]: updater(existing),
-      }
-    })
-
-  const addFbdForce = (partIndex: number) =>
-    patchFbd(partIndex, (current) => {
-      const nextIndex = current.forces.length + 1
-      return {
-        ...current,
-        forces: [
-          ...current.forces,
-          {
-            id: `F-${Date.now()}-${nextIndex}`,
-            label: `F${nextIndex}`,
-            angle: 0,
-            magnitude: 1,
-          },
-        ],
-      }
-    })
-
-  const addFbdMoment = (partIndex: number) =>
-    patchFbd(partIndex, (current) => {
-      const nextIndex = current.moments.length + 1
-      return {
-        ...current,
-        moments: [
-          ...current.moments,
-          {
-            id: `M-${Date.now()}-${nextIndex}`,
-            label: `M${nextIndex}`,
-            direction: 'cw',
-            magnitude: 1,
-          },
-        ],
-      }
-    })
-
   const runPreviewGrade = async () => {
     setIsGrading(true)
     try {
-      const submittedParts = buildPreviewSubmittedParts({ parts, studentInputs, fbdInputs })
+      const submittedParts = buildPreviewSubmittedParts({ parts, studentInputs })
 
       const graded = await gradeProblemAttemptAnswers(
         [{ problem: 'preview-problem', parts: submittedParts }],
@@ -231,7 +150,7 @@ export default function ProblemPreviewTab() {
   return (
     <div style={{ marginTop: 12, display: 'grid', gap: 14 }}>
       <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.8, fontWeight: 700 }}>
-        Interactive Author Preview
+        Author Preview
       </div>
       <section
         style={{
@@ -247,12 +166,6 @@ export default function ProblemPreviewTab() {
         {isLexicalRichText(prompt) ? (
           <div>
             <RichText data={prompt as never} />
-          </div>
-        ) : null}
-        {figureData ? (
-          <div style={{ display: 'grid', gap: 6 }}>
-            <div style={{ fontSize: 12, fontWeight: 600 }}>Figure Preview</div>
-            <SVGCanvas value={figureData} />
           </div>
         ) : null}
         {templateVariant.errors.length ? (
@@ -297,7 +210,6 @@ export default function ProblemPreviewTab() {
         <div style={{ display: 'grid', gap: 8 }}>
           {parts.map((part, index) => {
             const partType = normalizePreviewPartType(part.partType)
-            const fbdValue = fbdInputs[index] ?? { forces: [], moments: [] }
             return (
               <div
                 key={index}
@@ -323,141 +235,6 @@ export default function ProblemPreviewTab() {
                     value={studentInputs[index] ?? ''}
                     onChange={(event) => setPartInput(index, event.target.value)}
                   />
-                ) : partType === 'fbd-draw' ? (
-                  <div style={{ display: 'grid', gap: 8 }}>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button type="button" onClick={() => addFbdForce(index)}>
-                        Add force
-                      </button>
-                      <button type="button" onClick={() => addFbdMoment(index)}>
-                        Add moment
-                      </button>
-                    </div>
-                    {(fbdValue.forces.length || fbdValue.moments.length) ? (
-                      <>
-                        {fbdValue.forces.map((force, forceIndex) => (
-                          <div
-                            key={force.id}
-                            style={{ display: 'grid', gap: 6, gridTemplateColumns: '2fr 1fr 1fr auto' }}
-                          >
-                            <input
-                              value={force.label}
-                              onChange={(event) =>
-                                patchFbd(index, (current) => ({
-                                  ...current,
-                                  forces: current.forces.map((entry, idx) =>
-                                    idx === forceIndex ? { ...entry, label: event.target.value } : entry,
-                                  ),
-                                }))
-                              }
-                            />
-                            <input
-                              type="number"
-                              value={force.angle}
-                              onChange={(event) =>
-                                patchFbd(index, (current) => ({
-                                  ...current,
-                                  forces: current.forces.map((entry, idx) =>
-                                    idx === forceIndex
-                                      ? { ...entry, angle: toNumeric(event.target.value, 0) }
-                                      : entry,
-                                  ),
-                                }))
-                              }
-                            />
-                            <input
-                              type="number"
-                              value={force.magnitude}
-                              onChange={(event) =>
-                                patchFbd(index, (current) => ({
-                                  ...current,
-                                  forces: current.forces.map((entry, idx) =>
-                                    idx === forceIndex
-                                      ? { ...entry, magnitude: Math.max(0, toNumeric(event.target.value, 0)) }
-                                      : entry,
-                                  ),
-                                }))
-                              }
-                            />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                patchFbd(index, (current) => ({
-                                  ...current,
-                                  forces: current.forces.filter((_, idx) => idx !== forceIndex),
-                                }))
-                              }
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        ))}
-                        {fbdValue.moments.map((moment, momentIndex) => (
-                          <div
-                            key={moment.id}
-                            style={{ display: 'grid', gap: 6, gridTemplateColumns: '2fr 1fr 1fr auto' }}
-                          >
-                            <input
-                              value={moment.label}
-                              onChange={(event) =>
-                                patchFbd(index, (current) => ({
-                                  ...current,
-                                  moments: current.moments.map((entry, idx) =>
-                                    idx === momentIndex ? { ...entry, label: event.target.value } : entry,
-                                  ),
-                                }))
-                              }
-                            />
-                            <select
-                              value={moment.direction}
-                              onChange={(event) =>
-                                patchFbd(index, (current) => ({
-                                  ...current,
-                                  moments: current.moments.map((entry, idx) =>
-                                    idx === momentIndex
-                                      ? { ...entry, direction: event.target.value === 'ccw' ? 'ccw' : 'cw' }
-                                      : entry,
-                                  ),
-                                }))
-                              }
-                            >
-                              <option value="cw">cw</option>
-                              <option value="ccw">ccw</option>
-                            </select>
-                            <input
-                              type="number"
-                              value={moment.magnitude}
-                              onChange={(event) =>
-                                patchFbd(index, (current) => ({
-                                  ...current,
-                                  moments: current.moments.map((entry, idx) =>
-                                    idx === momentIndex
-                                      ? { ...entry, magnitude: Math.max(0, toNumeric(event.target.value, 0)) }
-                                      : entry,
-                                  ),
-                                }))
-                              }
-                            />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                patchFbd(index, (current) => ({
-                                  ...current,
-                                  moments: current.moments.filter((_, idx) => idx !== momentIndex),
-                                }))
-                              }
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        ))}
-                      </>
-                    ) : (
-                      <div style={{ fontSize: 12, color: 'var(--theme-elevation-700)' }}>
-                        Add forces/moments to run rubric grading in preview.
-                      </div>
-                    )}
-                  </div>
                 ) : (
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <input
@@ -514,7 +291,6 @@ export default function ProblemPreviewTab() {
           const status = scoreClass(score)
           const partType = normalizePreviewPartType(part.partType)
           const numericCorrect = canonicalParts[index]?.correctAnswer
-          const fbdValue = fbdInputs[index] ?? { forces: [], moments: [] }
           return (
             <div
               key={`result-${index}`}
@@ -527,9 +303,7 @@ export default function ProblemPreviewTab() {
               <div style={{ marginTop: 6, fontSize: 12 }}>
                 {partType === 'symbolic'
                   ? `Correct expression: ${part.symbolicAnswer ?? '—'}`
-                  : partType === 'fbd-draw'
-                    ? `Submitted forces: ${fbdValue.forces.length}, moments: ${fbdValue.moments.length}`
-                    : `Correct answer: ${numericCorrect ?? '—'} ${part.unit ?? ''}`}
+                  : `Correct answer: ${numericCorrect ?? '—'} ${part.unit ?? ''}`}
               </div>
               {isLexicalRichText(part.explanation) ? (
                 <div style={{ marginTop: 8 }}>

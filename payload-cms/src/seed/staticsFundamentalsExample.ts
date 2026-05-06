@@ -2,6 +2,8 @@ import { getPayload, type Payload } from "payload";
 import configPromise from "@payload-config";
 import type { EngineeringFigure, Problem, ProblemSet } from "../payload-types";
 
+type LegacyProblemSeedData = Record<string, unknown>;
+
 const EXAMPLE_FIGURE_TITLE = "Statics Fundamentals — Simply Supported Beam FBD";
 const EXAMPLE_PROBLEM_TITLE = "Statics Fundamentals — Reactions of a Simply Supported Beam";
 const CANTILEVER_FIGURE_TITLE = "Statics Fundamentals — Cantilever Beam Tip Load";
@@ -126,7 +128,7 @@ async function upsertProblem(payload: Payload, figureId: number) {
     overrideAccess: true,
   });
 
-  const data: Partial<Problem> = {
+  const data: LegacyProblemSeedData = {
     title: EXAMPLE_PROBLEM_TITLE,
     prompt: richText(
       "A simply supported beam has span L = 8 m and a downward point load P = 12 kN at midspan. Compute support reactions and identify the fundamental shear diagram shape."
@@ -388,7 +390,7 @@ async function upsertCantileverProblem(payload: Payload, figureId: number) {
     overrideAccess: true,
   });
 
-  const data: Partial<Problem> = {
+  const data: LegacyProblemSeedData = {
     title: CANTILEVER_PROBLEM_TITLE,
     prompt: richText(
       "A cantilever beam of length L = 5 m carries a downward tip load P = 18 kN. Determine the vertical reaction and fixed-end moment at support A."
@@ -444,7 +446,7 @@ async function upsertCantileverProblem(payload: Payload, figureId: number) {
             { id: "MA", label: "M_A", direction: "ccw", magnitudeRequired: false },
           ],
           forbiddenForces: 1,
-        } as unknown as NonNullable<Problem["parts"]>[number]["fbdRubric"],
+        } as never,
         explanation: richText("A correct sketch includes the downward tip load and counteracting support moment."),
       },
     ],
@@ -497,7 +499,7 @@ async function upsertResultantProblem(payload: Payload, figureId: number) {
     overrideAccess: true,
   });
 
-  const data: Partial<Problem> = {
+  const data: LegacyProblemSeedData = {
     title: RESULTANT_PROBLEM_TITLE,
     prompt: richText(
       "Two forces act at a ring: F1 = 10 kN at 30° and F2 = 8 kN at 150° measured from +x. Compute the resultant components."
@@ -571,7 +573,7 @@ async function upsertTrussProblem(payload: Payload, figureId: number) {
     overrideAccess: true,
   });
 
-  const data: Partial<Problem> = {
+  const data: LegacyProblemSeedData = {
     title: TRUSS_PROBLEM_TITLE,
     prompt: richText(
       "For the symmetric triangular truss with apex load P = 12 kN, estimate support reactions and determine force in member AC using joint equilibrium."

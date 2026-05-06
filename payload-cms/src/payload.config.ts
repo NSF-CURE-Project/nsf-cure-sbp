@@ -71,6 +71,8 @@ import { problemAttemptReviewHandler } from './endpoints/problemAttemptReview'
 import { publicProblemSetByIdHandler, publicProblemSetListHandler } from './endpoints/publicProblemSets'
 import { lessonQuestionsHandler, questionDetailHandler } from './endpoints/questionsEndpoints'
 import { studentAnalyticsHandler } from './endpoints/studentAnalytics'
+import { studentPerformanceHandler } from './endpoints/studentPerformance'
+import { demoQuizFormatsHandler } from './endpoints/demoQuizFormats'
 import { classroomListHandler, classroomRosterHandler } from './endpoints/instructorEndpoints'
 import { apiKeyValidateHandler } from './endpoints/apiKeyValidate'
 import { gptRpprContextHandler } from './endpoints/gptRpprContext'
@@ -539,6 +541,16 @@ export default buildConfig({
       path: '/accounts/me/data-summary',
       method: 'get',
       handler: accountDataSummaryHandler,
+    },
+    {
+      path: '/staff/student-performance',
+      method: 'get',
+      handler: studentPerformanceHandler,
+    },
+    {
+      path: '/demo/quiz-formats',
+      method: 'get',
+      handler: demoQuizFormatsHandler,
     },
     {
       path: '/accounts/request-email-confirmation',

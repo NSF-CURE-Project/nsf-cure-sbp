@@ -3,6 +3,14 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useField } from '@payloadcms/ui'
+import {
+  AdminCard,
+  AdminCardHeader,
+  AdminChipRow,
+  AdminMiniCard,
+  adminChipStyle,
+  adminPrimaryActionStyle,
+} from '@/views/admin/AdminCardPrimitives'
 
 type IdValue = string | number | null | undefined
 
@@ -13,62 +21,6 @@ const resolveId = (value: IdValue): string | null => {
     return trimmed.length > 0 ? trimmed : null
   }
   return null
-}
-
-const panelStyle: React.CSSProperties = {
-  margin: '4px 0 20px',
-  borderRadius: 14,
-  border: '1px solid var(--admin-surface-border)',
-  background: 'linear-gradient(160deg, #ffffff 0%, #edf5ff 62%, #e7f7ff 100%)',
-  boxShadow: '0 1px 0 rgba(18, 65, 147, 0.08)',
-  padding: '16px 18px',
-  display: 'grid',
-  gap: 14,
-}
-
-const eyebrowStyle: React.CSSProperties = {
-  fontSize: 11,
-  letterSpacing: 1.2,
-  textTransform: 'uppercase',
-  color: '#0b61b9',
-  fontWeight: 800,
-}
-
-const chipStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 6,
-  padding: '6px 10px',
-  borderRadius: 999,
-  fontSize: 12,
-  fontWeight: 700,
-  color: '#0b4aaf',
-  background: 'rgba(21, 83, 207, 0.1)',
-  border: '1px solid rgba(21, 83, 207, 0.16)',
-}
-
-const backLinkStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 10,
-  padding: '8px 14px',
-  borderRadius: 999,
-  fontSize: 13,
-  fontWeight: 800,
-  color: 'var(--cpp-ink)',
-  background: 'rgba(255, 255, 255, 0.92)',
-  border: '1px solid rgba(21, 83, 207, 0.24)',
-  boxShadow: '0 6px 14px rgba(15, 23, 42, 0.08)',
-  textDecoration: 'none',
-}
-
-const cardStyle: React.CSSProperties = {
-  borderRadius: 12,
-  border: '1px solid var(--admin-surface-border)',
-  background: 'rgba(255, 255, 255, 0.9)',
-  padding: '12px 14px',
-  display: 'grid',
-  gap: 6,
 }
 
 export default function CourseCreateGuideField() {
@@ -89,50 +41,37 @@ export default function CourseCreateGuideField() {
 
   if (!isCreate) {
     return (
-      <section style={panelStyle}>
-        <div style={eyebrowStyle}>Course Setup</div>
-        <div style={{ display: 'grid', gap: 6 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--cpp-ink)' }}>
-            Edit the core course details here.
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--cpp-muted)', lineHeight: 1.55 }}>
-            Add chapters and lessons from Course Workspace so the curriculum structure stays clear
-            and ordered.
-          </div>
-        </div>
+      <AdminCard variant="info" style={{ margin: '4px 0 20px' }}>
+        <AdminCardHeader
+          compact
+          eyebrow="Course Setup"
+          title="Course editing guidance"
+          description="Edit the core course details here, then manage chapters and lessons from Course Workspace so the curriculum structure stays clear and ordered."
+        />
         <div>
           <Link
             href="/admin/courses"
             style={{
-              ...chipStyle,
+              ...adminChipStyle,
               textDecoration: 'none',
             }}
           >
             Open Course Workspace
           </Link>
         </div>
-      </section>
+      </AdminCard>
     )
   }
 
   return (
-    <section style={panelStyle}>
-      <div style={eyebrowStyle}>Create Course</div>
-      <div style={{ display: 'grid', gap: 8 }}>
-        <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--cpp-ink)' }}>
-          Start the top-level course container here.
-        </div>
-        <div style={{ fontSize: 13, color: 'var(--cpp-muted)', lineHeight: 1.6, maxWidth: 760 }}>
-          Use this page to create a course such as Statics Fundamentals or Mechanics of Materials.
-          After you save, return to Course Workspace to add chapters, lessons, and ordering.
-        </div>
-      </div>
+    <AdminCard variant="info" style={{ margin: '4px 0 20px' }}>
+      <AdminCardHeader
+        eyebrow="Create Course"
+        title="Start the top-level course container here."
+        description="Use this page to create a course such as Statics Fundamentals or Mechanics of Materials. After you save, return to Course Workspace to add chapters, lessons, and ordering."
+      />
 
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <span style={chipStyle}>Title required</span>
-        <span style={chipStyle}>Description optional</span>
-        <span style={chipStyle}>Chapters added after save</span>
-      </div>
+      <AdminChipRow items={['Title required', 'Description optional', 'Chapters added after save']} />
 
       <div
         style={{
@@ -141,38 +80,25 @@ export default function CourseCreateGuideField() {
           gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
         }}
       >
-        <div style={cardStyle}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--cpp-ink)' }}>Fill in now</div>
-          <div style={{ fontSize: 12, color: 'var(--cpp-muted)', lineHeight: 1.55 }}>
-            Give the course a clear title and, if helpful, a short description staff will recognize
-            later in Course Workspace.
-          </div>
-        </div>
-        <div style={cardStyle}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--cpp-ink)' }}>
-            Not on this page
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--cpp-muted)', lineHeight: 1.55 }}>
-            You do not need to add chapters or lessons yet. Those are created after the course is
-            saved.
-          </div>
-        </div>
-        <div style={cardStyle}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--cpp-ink)' }}>
-            What happens next
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--cpp-muted)', lineHeight: 1.55 }}>
-            Save the course, then open Course Workspace to build out the chapter structure and add
-            lessons in context.
-          </div>
-        </div>
+        <AdminMiniCard
+          title="Fill in now"
+          body="Give the course a clear title and, if helpful, a short description staff will recognize later in Course Workspace."
+        />
+        <AdminMiniCard
+          title="Not on this page"
+          body="You do not need to add chapters or lessons yet. Those are created after the course is saved."
+        />
+        <AdminMiniCard
+          title="What happens next"
+          body="Save the course, then open Course Workspace to build out the chapter structure and add lessons in context."
+        />
       </div>
 
       <div>
         <Link
           href="/admin/courses"
           aria-label="Go back to Course Workspace"
-          style={backLinkStyle}
+          style={adminPrimaryActionStyle}
         >
           <span
             aria-hidden="true"
@@ -207,6 +133,6 @@ export default function CourseCreateGuideField() {
           <span>Back to Course Workspace</span>
         </Link>
       </div>
-    </section>
+    </AdminCard>
   )
 }

@@ -3,6 +3,8 @@ import configPromise from '@payload-config'
 import type { EngineeringFigure, Problem, ProblemSet } from '../payload-types'
 import seedStaticsFundamentalsExample from './staticsFundamentalsExample'
 
+type LegacyProblemSeedData = Record<string, unknown>
+
 const LIBRARY_SET_1 = 'Engineering Problem Library — Common Statics I'
 const LIBRARY_SET_2 = 'Engineering Problem Library — Common Statics II'
 const LIBRARY_SET_3 = 'Engineering Problem Library — Common Statics III'
@@ -121,7 +123,7 @@ async function upsertFigure(payload: Payload, title: string, data: Partial<Engin
   } as never)
 }
 
-async function upsertProblem(payload: Payload, title: string, data: Partial<Problem>) {
+async function upsertProblem(payload: Payload, title: string, data: LegacyProblemSeedData) {
   const existing = await payload.find({
     collection: 'problems',
     where: { title: { equals: title } },
@@ -565,7 +567,7 @@ export default async function seedEngineeringInteractiveLibrary(payload: Payload
           requiredForces: [{ id: 'w', label: 'w', correctAngle: 270, angleTolerance: 15 }],
           requiredMoments: [{ id: 'MA', label: 'M_A', direction: 'ccw', magnitudeRequired: false }],
           forbiddenForces: 1,
-        } as unknown as NonNullable<Problem['parts']>[number]['fbdRubric'],
+        } as never,
       },
     ],
   })

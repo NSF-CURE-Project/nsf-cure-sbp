@@ -7,33 +7,20 @@ import { Button } from "@/components/ui/button";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
 import { cn } from "@/lib/utils";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
-import type {
-  QuizBlock as QuizBlockType,
-  QuizDoc,
-  QuizQuestionDoc,
-  QuizQuestionOption,
-} from "@/lib/payloadSdk/types";
+import type { QuizBlock as QuizBlockType, QuizDoc, QuizQuestionDoc } from "@/lib/payloadSdk/types";
+import {
+  gradeQuestionResponse,
+  isQuestionAnswered,
+  normalizeQuestion,
+  type NormalizedQuestion,
+  type QuizResponseValue,
+} from "@/lib/quiz";
 
 const PAYLOAD_URL = getPayloadBaseUrl();
 
 type Props = {
   block: QuizBlockType;
   lessonId?: string | number;
-};
-
-type NormalizedOption = {
-  id: string;
-  label: string;
-  isCorrect?: boolean;
-};
-
-type NormalizedQuestion = {
-  id: string;
-  title?: string;
-  prompt?: unknown;
-  options: NormalizedOption[];
-  explanation?: unknown;
-  attachments?: unknown;
 };
 
 const resolveMediaUrl = (media?: unknown): string | null => {
@@ -67,58 +54,10 @@ const shuffle = <T,>(items: T[]) => {
   return next;
 };
 
-const scoreQuestion = (
-  scoring: NonNullable<QuizDoc["scoring"]>,
-  correctIds: string[],
-  selectedIds: string[]
-) => {
-  const correctSet = new Set(correctIds);
-  const selectedSet = new Set(selectedIds);
-  const exactMatch =
-    correctIds.length > 0 &&
-    correctIds.length === selectedSet.size &&
-    correctIds.every((id) => selectedSet.has(id));
-
-  if (scoring !== "partial") {
-    return { score: exactMatch ? 1 : 0, isCorrect: exactMatch };
-  }
-
-  if (correctIds.length === 0) {
-    return { score: 0, isCorrect: false };
-  }
-
-  const correctSelected = selectedIds.filter((id) => correctSet.has(id)).length;
-  const incorrectSelected = selectedIds.filter(
-    (id) => !correctSet.has(id)
-  ).length;
-  const raw = (correctSelected - incorrectSelected) / correctIds.length;
-  const score = Math.max(0, Math.min(1, raw));
-  return { score, isCorrect: score === 1 };
-};
-
-const normalizeQuestion = (question: QuizQuestionDoc): NormalizedQuestion => {
-  const options = Array.isArray(question.options) ? question.options : [];
-  return {
-    id: String(question.id),
-    title: question.title,
-    prompt: question.prompt,
-    explanation: question.explanation,
-    attachments: question.attachments,
-    options: options
-      .map((opt, index) => {
-        const option = opt as QuizQuestionOption;
-        const id = option.id ? String(option.id) : `${question.id}-${index}`;
-        return {
-          id,
-          label:
-            typeof option.label === "string" && option.label.trim()
-              ? option.label
-              : "Untitled option",
-          isCorrect: option.isCorrect,
-        };
-      })
-      .filter((opt) => opt.id),
-  };
+const EMPTY_RESPONSE: QuizResponseValue = {
+  selectedOptionIds: [],
+  textAnswer: "",
+  numericAnswer: "",
 };
 
 export function QuizBlock({ block, lessonId }: Props) {
@@ -127,7 +66,7 @@ export function QuizBlock({ block, lessonId }: Props) {
   const [loading, setLoading] = useState(false);
   const [questionOrder, setQuestionOrder] = useState<string[]>([]);
   const [optionOrder, setOptionOrder] = useState<Record<string, string[]>>({});
-  const [answers, setAnswers] = useState<Record<string, string[]>>({});
+  const [answers, setAnswers] = useState<Record<string, QuizResponseValue>>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [attemptCount, setAttemptCount] = useState<number | null>(null);
@@ -135,9 +74,7 @@ export function QuizBlock({ block, lessonId }: Props) {
   const [started, setStarted] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [pageIndex, setPageIndex] = useState(0);
-  const [expandedExplanations, setExpandedExplanations] = useState<
-    Record<string, boolean>
-  >({});
+  const [expandedExplanations, setExpandedExplanations] = useState<Record<string, boolean>>({});
   const [focusMode, setFocusMode] = useState(false);
   const startedAtRef = useRef<number | null>(null);
   const quizKeyRef = useRef<string | number | null>(null);
@@ -154,12 +91,9 @@ export function QuizBlock({ block, lessonId }: Props) {
     const loadQuiz = async () => {
       setLoading(true);
       try {
-        const res = await fetch(
-          `${PAYLOAD_URL}/api/quizzes/${quizId}?depth=2`,
-          {
-            signal: controller.signal,
-          }
-        );
+        const res = await fetch(`${PAYLOAD_URL}/api/quizzes/${quizId}?depth=2`, {
+          signal: controller.signal,
+        });
         if (!res.ok) return;
         const data = (await res.json()) as { doc?: QuizDoc };
         setQuiz(data.doc ?? null);
@@ -189,15 +123,12 @@ export function QuizBlock({ block, lessonId }: Props) {
     if (quizKeyRef.current === quiz.id) return;
     quizKeyRef.current = quiz.id;
     const questionIds = normalizedQuestions.map((q) => q.id);
-    const orderedQuestions = quiz.shuffleQuestions
-      ? shuffle(questionIds)
-      : questionIds;
+    const orderedQuestions = quiz.shuffleQuestions ? shuffle(questionIds) : questionIds;
     const nextOptionOrder: Record<string, string[]> = {};
     normalizedQuestions.forEach((question) => {
       const optionIds = question.options.map((opt) => opt.id);
-      nextOptionOrder[question.id] = quiz.shuffleOptions
-        ? shuffle(optionIds)
-        : optionIds;
+      nextOptionOrder[question.id] =
+        quiz.shuffleOptions && optionIds.length > 1 ? shuffle(optionIds) : optionIds;
     });
     setQuestionOrder(orderedQuestions);
     setOptionOrder(nextOptionOrder);
@@ -214,38 +145,28 @@ export function QuizBlock({ block, lessonId }: Props) {
   const orderedQuestions = useMemo(() => {
     if (!normalizedQuestions.length) return [];
     const map = new Map(normalizedQuestions.map((q) => [q.id, q]));
-    const ids = questionOrder.length
-      ? questionOrder
-      : normalizedQuestions.map((q) => q.id);
+    const ids = questionOrder.length ? questionOrder : normalizedQuestions.map((q) => q.id);
     return ids.map((id) => map.get(id)).filter(Boolean) as NormalizedQuestion[];
   }, [normalizedQuestions, questionOrder]);
 
   const scoring = quiz?.scoring ?? "per-question";
-  const quizTitle =
-    block.title ||
-    (block.showTitle === false ? undefined : (quiz?.title ?? "Quiz"));
+  const quizTitle = block.title || (block.showTitle === false ? undefined : quiz?.title ?? "Quiz");
   const quizDescription = quiz?.description ?? null;
   const showAnswers = block.showAnswers !== false;
-  const maxAttempts =
-    typeof block.maxAttempts === "number" ? block.maxAttempts : null;
+  const maxAttempts = typeof block.maxAttempts === "number" ? block.maxAttempts : null;
   const effectiveTimeLimit =
-    typeof block.timeLimitSec === "number"
-      ? block.timeLimitSec
-      : (quiz?.timeLimitSec ?? null);
+    typeof block.timeLimitSec === "number" ? block.timeLimitSec : quiz?.timeLimitSec ?? null;
   const questionsPerPage = 3;
   const totalQuestions = orderedQuestions.length;
   const pageCount = Math.max(1, Math.ceil(totalQuestions / questionsPerPage));
   const pageStart = pageIndex * questionsPerPage;
-  const pageQuestions = orderedQuestions.slice(
-    pageStart,
-    pageStart + questionsPerPage
-  );
+  const pageQuestions = orderedQuestions.slice(pageStart, pageStart + questionsPerPage);
   const isFirstPage = pageIndex === 0;
   const isLastPage = pageIndex >= pageCount - 1;
   const answeredQuestionCount = useMemo(
     () =>
-      orderedQuestions.filter(
-        (question) => (answers[question.id] ?? []).length > 0
+      orderedQuestions.filter((question) =>
+        isQuestionAnswered(question, answers[question.id] ?? EMPTY_RESPONSE)
       ).length,
     [answers, orderedQuestions]
   );
@@ -253,7 +174,7 @@ export function QuizBlock({ block, lessonId }: Props) {
     ? Math.round((answeredQuestionCount / totalQuestions) * 100)
     : 0;
   const nextUnansweredQuestionIndex = orderedQuestions.findIndex(
-    (question) => (answers[question.id] ?? []).length === 0
+    (question) => !isQuestionAnswered(question, answers[question.id] ?? EMPTY_RESPONSE)
   );
 
   useEffect(() => {
@@ -307,21 +228,16 @@ export function QuizBlock({ block, lessonId }: Props) {
         if (lessonId != null) {
           params.set("where[lesson][equals]", String(lessonId));
         }
-        const res = await fetch(
-          `${PAYLOAD_URL}/api/quiz-attempts?${params.toString()}`,
-          {
-            credentials: "include",
-            signal: controller.signal,
-          }
-        );
+        const res = await fetch(`${PAYLOAD_URL}/api/quiz-attempts?${params.toString()}`, {
+          credentials: "include",
+          signal: controller.signal,
+        });
         if (!res.ok) {
           setAttemptCount(null);
           return;
         }
         const data = (await res.json()) as { totalDocs?: number };
-        setAttemptCount(
-          typeof data.totalDocs === "number" ? data.totalDocs : null
-        );
+        setAttemptCount(typeof data.totalDocs === "number" ? data.totalDocs : null);
       } finally {
         if (!controller.signal.aborted) {
           setAttemptLoading(false);
@@ -335,19 +251,12 @@ export function QuizBlock({ block, lessonId }: Props) {
   const evaluation = useMemo(() => {
     if (!submitted) return null;
     let totalScore = 0;
-    const perQuestion = orderedQuestions.reduce<Record<string, number>>(
-      (acc, question) => {
-        const selected = answers[question.id] ?? [];
-        const correctIds = question.options
-          .filter((opt) => opt.isCorrect)
-          .map((opt) => opt.id);
-        const { score } = scoreQuestion(scoring, correctIds, selected);
-        acc[question.id] = score;
-        totalScore += score;
-        return acc;
-      },
-      {}
-    );
+    const perQuestion = orderedQuestions.reduce<Record<string, number>>((acc, question) => {
+      const { score } = gradeQuestionResponse(scoring, question, answers[question.id]);
+      acc[question.id] = score;
+      totalScore += score;
+      return acc;
+    }, {});
     return {
       perQuestion,
       totalScore,
@@ -355,50 +264,51 @@ export function QuizBlock({ block, lessonId }: Props) {
     };
   }, [answers, orderedQuestions, scoring, submitted]);
 
-  const handleSelect = (
-    questionId: string,
-    optionId: string,
-    multi: boolean
-  ) => {
+  const updateResponse = (questionId: string, updater: (current: QuizResponseValue) => QuizResponseValue) => {
     setAnswers((prev) => {
-      const existing = prev[questionId] ?? [];
-      if (multi) {
-        const next = existing.includes(optionId)
-          ? existing.filter((id) => id !== optionId)
-          : [...existing, optionId];
-        return { ...prev, [questionId]: next };
+      const current = prev[questionId] ?? EMPTY_RESPONSE;
+      return { ...prev, [questionId]: updater(current) };
+    });
+  };
+
+  const handleChoiceSelect = (question: NormalizedQuestion, optionId: string) => {
+    updateResponse(question.id, (current) => {
+      if (question.questionType === "multi-select") {
+        const next = current.selectedOptionIds.includes(optionId)
+          ? current.selectedOptionIds.filter((id) => id !== optionId)
+          : [...current.selectedOptionIds, optionId];
+        return { ...current, selectedOptionIds: next };
       }
-      return { ...prev, [questionId]: [optionId] };
+      return { ...current, selectedOptionIds: [optionId] };
     });
   };
 
   const handleSubmit = async () => {
     if (!quiz || submitting) return;
     const attemptLimitReached =
-      maxAttempts != null &&
-      attemptCount != null &&
-      attemptCount >= maxAttempts;
+      maxAttempts != null && attemptCount != null && attemptCount >= maxAttempts;
     if (attemptLimitReached) return;
     setSubmitting(true);
     const startedAt = startedAtRef.current ?? Date.now();
     const completedAt = Date.now();
-    const durationSec = Math.max(
-      0,
-      Math.round((completedAt - startedAt) / 1000)
-    );
+    const durationSec = Math.max(0, Math.round((completedAt - startedAt) / 1000));
 
     const questionOrderPayload = orderedQuestions.map((question) => ({
       question: question.id,
     }));
-    const answersPayload = orderedQuestions.map((question) => ({
-      question: question.id,
-      selectedOptionIds: (answers[question.id] ?? []).map((id) => ({
-        optionId: id,
-      })),
-      optionOrder: (optionOrder[question.id] ?? []).map((id) => ({
-        optionId: id,
-      })),
-    }));
+    const answersPayload = orderedQuestions.map((question) => {
+      const response = answers[question.id] ?? EMPTY_RESPONSE;
+      return {
+        question: question.id,
+        selectedOptionIds: response.selectedOptionIds.map((id) => ({ optionId: id })),
+        textAnswer: response.textAnswer.trim() || undefined,
+        numericAnswer:
+          response.numericAnswer.trim().length > 0
+            ? Number(response.numericAnswer)
+            : undefined,
+        optionOrder: (optionOrder[question.id] ?? []).map((id) => ({ optionId: id })),
+      };
+    });
 
     let redirectedToReview = false;
     try {
@@ -420,9 +330,7 @@ export function QuizBlock({ block, lessonId }: Props) {
       });
 
       if (response.ok) {
-        const attempt = (await response.json().catch(() => null)) as {
-          id?: string | number;
-        } | null;
+        const attempt = (await response.json().catch(() => null)) as { id?: string | number } | null;
         if (attempt?.id != null) {
           redirectedToReview = true;
           router.push(`/quiz-attempts/${attempt.id}`);
@@ -455,46 +363,31 @@ export function QuizBlock({ block, lessonId }: Props) {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
             <h2 className="text-2xl font-semibold">{quizTitle}</h2>
-            {quizDescription ? (
-              <p className="text-sm text-muted-foreground">{quizDescription}</p>
-            ) : null}
+            {quizDescription ? <p className="text-sm text-muted-foreground">{quizDescription}</p> : null}
             {effectiveTimeLimit ? (
               <p className="text-xs text-muted-foreground">
                 Time limit: {effectiveTimeLimit} seconds
-                {started && timeRemaining != null
-                  ? ` • ${timeRemaining}s remaining`
-                  : ""}
+                {started && timeRemaining != null ? ` • ${timeRemaining}s remaining` : ""}
               </p>
             ) : null}
             {maxAttempts != null ? (
               <p className="text-xs text-muted-foreground">
                 {attemptLoading
                   ? "Checking attempts..."
-                  : `Attempts remaining: ${Math.max(
-                      0,
-                      maxAttempts - (attemptCount ?? 0)
-                    )}`}
+                  : `Attempts remaining: ${Math.max(0, maxAttempts - (attemptCount ?? 0))}`}
               </p>
             ) : null}
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setFocusMode((prev) => !prev)}
-          >
+          <Button type="button" variant="outline" onClick={() => setFocusMode((prev) => !prev)}>
             {focusMode ? "Exit Focus (Esc)" : "Focus Mode"}
           </Button>
         </div>
       ) : null}
 
-      {loading ? (
-        <div className="text-sm text-muted-foreground">Loading quiz…</div>
-      ) : null}
+      {loading ? <div className="text-sm text-muted-foreground">Loading quiz…</div> : null}
 
       {!loading && orderedQuestions.length === 0 ? (
-        <div className="text-sm text-muted-foreground">
-          No questions available yet.
-        </div>
+        <div className="text-sm text-muted-foreground">No questions available yet.</div>
       ) : null}
 
       {!started ? (
@@ -504,9 +397,7 @@ export function QuizBlock({ block, lessonId }: Props) {
               <p className="text-sm font-semibold">Quiz Overview</p>
               <p className="text-xs text-muted-foreground">
                 {totalQuestions} question{totalQuestions === 1 ? "" : "s"}
-                {effectiveTimeLimit
-                  ? ` • ${effectiveTimeLimit}s time limit`
-                  : ""}
+                {effectiveTimeLimit ? ` • ${effectiveTimeLimit}s time limit` : ""}
                 {maxAttempts != null
                   ? ` • ${maxAttempts} attempt${maxAttempts === 1 ? "" : "s"}`
                   : ""}
@@ -516,9 +407,7 @@ export function QuizBlock({ block, lessonId }: Props) {
               type="button"
               disabled={
                 orderedQuestions.length === 0 ||
-                (maxAttempts != null &&
-                  attemptCount != null &&
-                  attemptCount >= maxAttempts)
+                (maxAttempts != null && attemptCount != null && attemptCount >= maxAttempts)
               }
               onClick={() => {
                 setStarted(true);
@@ -539,9 +428,7 @@ export function QuizBlock({ block, lessonId }: Props) {
           <div className="sticky top-0 z-20 rounded-xl border border-primary/20 bg-background/95 px-4 py-3 backdrop-blur space-y-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Completion
-                </p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Completion</p>
                 <p className="text-sm font-semibold">
                   {answeredQuestionCount}/{totalQuestions} questions answered
                 </p>
@@ -551,11 +438,7 @@ export function QuizBlock({ block, lessonId }: Props) {
                   type="button"
                   variant="outline"
                   disabled={nextUnansweredQuestionIndex < 0 || submitted}
-                  onClick={() =>
-                    setPageIndex(
-                      Math.floor(nextUnansweredQuestionIndex / questionsPerPage)
-                    )
-                  }
+                  onClick={() => setPageIndex(Math.floor(nextUnansweredQuestionIndex / questionsPerPage))}
                 >
                   Next Unanswered
                 </Button>
@@ -570,43 +453,29 @@ export function QuizBlock({ block, lessonId }: Props) {
           </div>
           <div className="sticky top-[5.5rem] z-10 rounded-lg border border-border/60 bg-background/90 px-4 py-2 text-xs text-muted-foreground backdrop-blur">
             {totalQuestions > 0
-              ? `Questions ${pageStart + 1}–${Math.min(
-                  pageStart + pageQuestions.length,
-                  totalQuestions
-                )} of ${totalQuestions}`
+              ? `Questions ${pageStart + 1}–${Math.min(pageStart + pageQuestions.length, totalQuestions)} of ${totalQuestions}`
               : "No questions yet"}
-            {effectiveTimeLimit && timeRemaining != null
-              ? ` • ${timeRemaining}s remaining`
-              : ""}
+            {effectiveTimeLimit && timeRemaining != null ? ` • ${timeRemaining}s remaining` : ""}
           </div>
           {pageQuestions.map((question, index) => {
-            const optionIds = optionOrder[question.id] ?? [];
-            const orderedOptions = optionIds.length
-              ? optionIds
+            const selected = answers[question.id] ?? EMPTY_RESPONSE;
+            const orderedOptions = question.options.length
+              ? (optionOrder[question.id] ?? question.options.map((option) => option.id))
                   .map((id) => question.options.find((opt) => opt.id === id))
                   .filter(Boolean)
-              : question.options;
-            const selected = answers[question.id] ?? [];
-            const correctIds = question.options
-              .filter((opt) => opt.isCorrect)
-              .map((opt) => opt.id);
-            const multi = correctIds.length > 1;
+              : [];
             const questionScore = evaluation?.perQuestion[question.id] ?? 0;
-            const isCorrect =
-              submitted && showAnswers ? questionScore === 1 : null;
+            const isCorrect = submitted && showAnswers ? questionScore === 1 : null;
             const explanationOpen = Boolean(expandedExplanations[question.id]);
             const showExplanation =
-              submitted &&
-              showAnswers &&
-              question.explanation &&
-              explanationOpen;
+              submitted && showAnswers && question.explanation && explanationOpen;
             const questionNumber = pageStart + index + 1;
-
             const attachments = Array.isArray(question.attachments)
               ? question.attachments
               : question.attachments
                 ? [question.attachments]
                 : [];
+            const isAnswered = isQuestionAnswered(question, selected);
 
             return (
               <fieldset
@@ -615,37 +484,34 @@ export function QuizBlock({ block, lessonId }: Props) {
               >
                 <legend className="flex items-center gap-2 text-base font-semibold text-foreground">
                   <span>{`${questionNumber}.`}</span>
-                  {(() => {
-                    const isAnswered = selected.length > 0;
-                    if (submitted && showAnswers) {
-                      return isCorrect ? (
-                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] uppercase tracking-wide text-emerald-700">
-                          Correct
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] uppercase tracking-wide text-amber-700">
-                          Review
-                        </span>
-                      );
-                    }
-                    return isAnswered ? (
-                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] uppercase tracking-wide text-blue-700">
-                        Answered
+                  {submitted && showAnswers ? (
+                    isCorrect ? (
+                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] uppercase tracking-wide text-emerald-700">
+                        Correct
                       </span>
                     ) : (
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                        Not Answered
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] uppercase tracking-wide text-amber-700">
+                        Review
                       </span>
-                    );
-                  })()}
+                    )
+                  ) : isAnswered ? (
+                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] uppercase tracking-wide text-blue-700">
+                      Answered
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                      Not Answered
+                    </span>
+                  )}
+                  <span className="rounded-full bg-background/80 px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                    {question.questionType}
+                  </span>
                 </legend>
 
                 {question.prompt ? (
                   <PayloadRichText
                     content={
-                      question.prompt as unknown as Parameters<
-                        typeof PayloadRichText
-                      >[0]["content"]
+                      question.prompt as unknown as Parameters<typeof PayloadRichText>[0]["content"]
                     }
                     className="prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
                   />
@@ -661,59 +527,104 @@ export function QuizBlock({ block, lessonId }: Props) {
                           key={`${question.id}-media-${attachmentIndex}`}
                           className="relative aspect-video w-full overflow-hidden rounded-lg border border-border/60"
                         >
-                          <Image
-                            src={url}
-                            alt="Question attachment"
-                            fill
-                            className="object-cover"
-                          />
+                          <Image src={url} alt="Question attachment" fill className="object-cover" />
                         </div>
                       );
                     })}
                   </div>
                 ) : null}
 
-                <div className="space-y-2">
-                  {orderedOptions.map((option) => {
-                    if (!option) return null;
-                    const isSelected = selected.includes(option.id);
-                    const showResult =
-                      submitted && showAnswers && option.isCorrect;
-                    const isIncorrectSelected =
-                      submitted &&
-                      showAnswers &&
-                      isSelected &&
-                      !option.isCorrect;
-                    return (
-                      <label
-                        key={option.id}
-                        className={cn(
-                          "flex items-start gap-3 rounded-lg border border-border/50 px-4 py-3 text-sm transition",
-                          isSelected
-                            ? "border-primary/60 bg-primary/10"
-                            : "bg-background/60",
-                          showResult &&
-                            "border-emerald-500/70 bg-emerald-500/10",
-                          isIncorrectSelected &&
-                            "border-red-400/70 bg-red-500/10"
-                        )}
-                      >
-                        <input
-                          type={multi ? "checkbox" : "radio"}
-                          name={`question-${question.id}`}
-                          value={option.id}
-                          checked={isSelected}
-                          onChange={() =>
-                            handleSelect(question.id, option.id, multi)
-                          }
-                          className="mt-1"
-                          disabled={submitted}
-                        />
-                        <span>{option.label}</span>
-                      </label>
-                    );
-                  })}
-                </div>
+                {(question.questionType === "single-select" ||
+                  question.questionType === "multi-select" ||
+                  question.questionType === "true-false") && (
+                  <div className="space-y-2">
+                    {orderedOptions.map((option) => {
+                      if (!option) return null;
+                      const isSelected = selected.selectedOptionIds.includes(option.id);
+                      const showResult = submitted && showAnswers && option.isCorrect;
+                      const isIncorrectSelected =
+                        submitted && showAnswers && isSelected && !option.isCorrect;
+                      return (
+                        <label
+                          key={option.id}
+                          className={cn(
+                            "flex items-start gap-3 rounded-lg border border-border/50 px-4 py-3 text-sm transition",
+                            isSelected ? "border-primary/60 bg-primary/10" : "bg-background/60",
+                            showResult && "border-emerald-500/70 bg-emerald-500/10",
+                            isIncorrectSelected && "border-red-400/70 bg-red-500/10"
+                          )}
+                        >
+                          <input
+                            type={question.questionType === "multi-select" ? "checkbox" : "radio"}
+                            name={`question-${question.id}`}
+                            value={option.id}
+                            checked={isSelected}
+                            onChange={() => handleChoiceSelect(question, option.id)}
+                            className="mt-1"
+                            disabled={submitted}
+                          />
+                          <span>{option.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {question.questionType === "short-text" ? (
+                  <div className="space-y-2">
+                    <textarea
+                      value={selected.textAnswer}
+                      onChange={(event) =>
+                        updateResponse(question.id, (current) => ({
+                          ...current,
+                          textAnswer: event.target.value,
+                        }))
+                      }
+                      disabled={submitted}
+                      rows={3}
+                      className="w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm"
+                      placeholder="Type your answer"
+                    />
+                    {submitted && showAnswers ? (
+                      <div className="text-xs text-muted-foreground">
+                        Accepted answers: {question.acceptedAnswers.join(", ") || "Not available"}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {question.questionType === "numeric" ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        value={selected.numericAnswer}
+                        onChange={(event) =>
+                          updateResponse(question.id, (current) => ({
+                            ...current,
+                            numericAnswer: event.target.value,
+                          }))
+                        }
+                        disabled={submitted}
+                        className="w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm"
+                        placeholder="Enter a numeric answer"
+                      />
+                      {question.numericUnit ? (
+                        <span className="text-sm text-muted-foreground">{question.numericUnit}</span>
+                      ) : null}
+                    </div>
+                    {submitted && showAnswers && question.numericCorrectValue != null ? (
+                      <div className="text-xs text-muted-foreground">
+                        Correct value: {question.numericCorrectValue}
+                        {question.numericUnit ? ` ${question.numericUnit}` : ""}
+                        {question.numericTolerance != null
+                          ? ` (tolerance ±${question.numericTolerance})`
+                          : ""}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 {submitted && showAnswers ? (
                   <div className="flex flex-wrap items-center gap-3 text-sm font-semibold">
@@ -733,9 +644,7 @@ export function QuizBlock({ block, lessonId }: Props) {
                           }))
                         }
                       >
-                        {explanationOpen
-                          ? "Hide explanation"
-                          : "Show explanation"}
+                        {explanationOpen ? "Hide explanation" : "Show explanation"}
                       </button>
                     ) : null}
                   </div>
@@ -748,9 +657,7 @@ export function QuizBlock({ block, lessonId }: Props) {
                     </div>
                     <PayloadRichText
                       content={
-                        question.explanation as unknown as Parameters<
-                          typeof PayloadRichText
-                        >[0]["content"]
+                        question.explanation as unknown as Parameters<typeof PayloadRichText>[0]["content"]
                       }
                       className="prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
                     />
@@ -777,9 +684,7 @@ export function QuizBlock({ block, lessonId }: Props) {
               {!isLastPage ? (
                 <Button
                   type="button"
-                  onClick={() =>
-                    setPageIndex((prev) => Math.min(pageCount - 1, prev + 1))
-                  }
+                  onClick={() => setPageIndex((prev) => Math.min(pageCount - 1, prev + 1))}
                 >
                   Next
                 </Button>
@@ -794,16 +699,10 @@ export function QuizBlock({ block, lessonId }: Props) {
                 submitting ||
                 submitted ||
                 orderedQuestions.length === 0 ||
-                (maxAttempts != null &&
-                  attemptCount != null &&
-                  attemptCount >= maxAttempts)
+                (maxAttempts != null && attemptCount != null && attemptCount >= maxAttempts)
               }
             >
-              {submitting
-                ? "Submitting..."
-                : submitted
-                  ? "Submitted"
-                  : "Submit"}
+              {submitting ? "Submitting..." : submitted ? "Submitted" : "Submit"}
             </Button>
           )}
           {submitted && evaluation && showAnswers ? (
@@ -814,12 +713,8 @@ export function QuizBlock({ block, lessonId }: Props) {
           {submitted && !showAnswers ? (
             <span className="text-sm text-muted-foreground">Submitted.</span>
           ) : null}
-          {maxAttempts != null &&
-          attemptCount != null &&
-          attemptCount >= maxAttempts ? (
-            <span className="text-sm text-muted-foreground">
-              Attempt limit reached.
-            </span>
+          {maxAttempts != null && attemptCount != null && attemptCount >= maxAttempts ? (
+            <span className="text-sm text-muted-foreground">Attempt limit reached.</span>
           ) : null}
         </div>
       ) : null}

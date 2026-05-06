@@ -1,37 +1,29 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
-
-const panelStyle: React.CSSProperties = {
-  border: '1px solid var(--admin-surface-border)',
-  borderRadius: 14,
-  background: 'linear-gradient(170deg, #ffffff 0%, #eef6ff 100%)',
-  padding: 14,
-  boxShadow: '0 1px 0 rgba(15, 23, 42, 0.08)',
-  display: 'grid',
-  gap: 10,
-}
+import {
+  AdminCard,
+  AdminCardHeader,
+  adminInputShellStyle,
+} from '@/views/admin/AdminCardPrimitives'
 
 const labelStyle: React.CSSProperties = {
   display: 'grid',
-  gap: 4,
+  gap: 6,
   fontSize: 12,
   color: 'var(--cpp-muted)',
+  fontWeight: 700,
 }
 
 const inputStyle: React.CSSProperties = {
-  border: '1px solid var(--admin-surface-border)',
-  borderRadius: 10,
-  padding: '9px 10px',
-  background: '#ffffff',
-  color: 'var(--cpp-ink)',
-  fontSize: 13,
+  ...adminInputShellStyle,
+  minHeight: 42,
 }
 
 const buttonStyle: React.CSSProperties = {
   borderRadius: 10,
   border: '1px solid #0b61b9',
-  background: 'linear-gradient(140deg, #0b61b9 0%, #0c74d6 100%)',
+  background: '#0b61b9',
   color: '#ffffff',
   fontWeight: 700,
   fontSize: 13,
@@ -111,16 +103,15 @@ export function AdminUserCreatePanel({ canCreateUsers }: Props) {
   }
 
   return (
-    <section style={panelStyle}>
-      <div style={{ display: 'grid', gap: 3 }}>
-        <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--cpp-ink)' }}>Create Admin Portal User</div>
-        <div style={{ fontSize: 12, color: 'var(--cpp-muted)', lineHeight: 1.45 }}>
-          Add a new staff, professor, or admin login directly from this dashboard.
-        </div>
-      </div>
+    <AdminCard variant="info" style={{ padding: '16px 18px' }}>
+      <AdminCardHeader
+        compact
+        title="Create Admin Portal User"
+        description="Add a new staff, professor, or admin login directly from this dashboard."
+      />
 
       {!canCreateUsers ? (
-        <div style={{ fontSize: 12, color: '#b91c1c' }}>
+        <div style={{ fontSize: 12, color: '#b91c1c', fontWeight: 700 }}>
           Only admins can create admin-portal users.
         </div>
       ) : null}
@@ -202,7 +193,7 @@ export function AdminUserCreatePanel({ canCreateUsers }: Props) {
           {error ? <span style={{ fontSize: 12, color: '#b91c1c', fontWeight: 700 }}>{error}</span> : null}
         </div>
       </form>
-    </section>
+    </AdminCard>
   )
 }
 

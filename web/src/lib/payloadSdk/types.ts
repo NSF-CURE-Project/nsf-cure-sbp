@@ -182,7 +182,14 @@ export type QuizQuestionDoc = {
   id: string | number;
   title?: string;
   prompt?: unknown;
+  questionType?: "single-select" | "multi-select" | "true-false" | "short-text" | "numeric" | string;
   options?: QuizQuestionOption[];
+  trueFalseAnswer?: boolean;
+  acceptedAnswers?: unknown;
+  textMatchMode?: "exact" | "normalized" | string;
+  numericCorrectValue?: number | null;
+  numericTolerance?: number | null;
+  numericUnit?: string | null;
   explanation?: unknown;
   attachments?: unknown;
   topic?: string;
@@ -321,7 +328,7 @@ export type ProblemPart = {
   label: string;
   prompt?: unknown;
   unit?: string;
-  partType?: "numeric" | "symbolic" | "fbd-draw";
+  partType?: "numeric" | "symbolic";
   correctAnswer?: number;
   correctAnswerExpression?: string;
   tolerance?: number;
@@ -337,26 +344,6 @@ export type ProblemPart = {
     testMax?: number;
   }[];
   symbolicTolerance?: number;
-  fbdRubric?: {
-    requiredForces?: {
-      id: string;
-      label?: string;
-      correctAngle?: number;
-      angleTolerance?: number;
-      magnitudeRequired?: boolean;
-      correctMagnitude?: number;
-      magnitudeTolerance?: number;
-    }[];
-    requiredMoments?: {
-      id: string;
-      label?: string;
-      direction: "cw" | "ccw";
-      magnitudeRequired?: boolean;
-      correctMagnitude?: number;
-      magnitudeTolerance?: number;
-    }[];
-    forbiddenForces?: number;
-  };
   explanation?: unknown;
 };
 
@@ -396,7 +383,6 @@ export type ProblemDoc = {
   id: string | number;
   title?: string;
   prompt?: unknown;
-  figure?: EngineeringFigureDoc | string | number;
   difficulty?: "intro" | "easy" | "medium" | "hard" | string;
   topic?: string;
   tags?: string[];
@@ -407,7 +393,6 @@ export type ProblemDoc = {
     derived: ProblemVariantValue[];
   };
   parts?: ProblemPart[];
-  resultPlots?: ProblemResultPlot[];
 };
 
 export type ProblemSetDoc = {
@@ -425,15 +410,6 @@ export type ProblemAttemptPartAnswer = {
   partIndex: number;
   studentAnswer?: number | null;
   studentExpression?: string | null;
-  placedForces?: {
-    forces: {
-      id: string;
-      origin: [number, number];
-      angle: number;
-      magnitude: number;
-      label: string;
-    }[];
-  } | null;
   isCorrect?: boolean;
   score?: number;
 };

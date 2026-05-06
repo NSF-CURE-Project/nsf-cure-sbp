@@ -33,8 +33,16 @@ type QuizReviewPayload = {
     title: string;
     prompt?: unknown;
     explanation?: unknown;
+    questionType: string;
+    responseKind?: string;
     selectedLabels: string[];
     correctLabels: string[];
+    textAnswer?: string | null;
+    numericAnswer?: number | null;
+    acceptedAnswers?: string[];
+    numericCorrectValue?: number | null;
+    numericTolerance?: number | null;
+    numericUnit?: string | null;
     isCorrect: boolean;
     remediationLink?: string | null;
   }[];

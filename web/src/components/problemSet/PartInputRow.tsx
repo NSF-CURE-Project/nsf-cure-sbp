@@ -1,16 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import {
-  FBDCanvas,
-  type FBDPlacedAnswer,
-  type PlacedForce,
-} from "@/components/problemSet/FBDCanvas";
 import { InlineMath } from "@/components/problemSet/InlineMath";
 import { SymbolicInput } from "@/components/problemSet/SymbolicInput";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
-import { buildFbdRubricFeedback } from "@/lib/problemSet/fbdRubricFeedback";
-import type { EngineeringFigureDoc, ProblemPart } from "@/lib/payloadSdk/types";
+import type { ProblemPart } from "@/lib/payloadSdk/types";
 import { cn } from "@/lib/utils";
 
 type PartEvaluation = {
@@ -23,9 +17,8 @@ type PartEvaluation = {
 type PartInputRowProps = {
   part: ProblemPart;
   partNumber?: number;
-  figure?: EngineeringFigureDoc | null;
-  value?: string | FBDPlacedAnswer | PlacedForce[];
-  onChange: (value: string | FBDPlacedAnswer) => void;
+  value?: string;
+  onChange: (value: string) => void;
   submitted: boolean;
   partEval?: PartEvaluation;
   showAnswers: boolean;
@@ -35,10 +28,12 @@ type PartInputRowProps = {
 const isRichTextValue = (value: unknown): value is Record<string, unknown> =>
   Boolean(value && typeof value === "object");
 
+const isSupportedPartType = (value: string | undefined) =>
+  value === "numeric" || value === "symbolic" || value == null;
+
 export function PartInputRow({
   part,
   partNumber,
-  figure,
   value,
   onChange,
   submitted,
@@ -56,25 +51,10 @@ export function PartInputRow({
   const hasRevealableAnswer =
     part.partType === "symbolic"
       ? Boolean(part.symbolicAnswer)
-      : part.partType === "fbd-draw"
-        ? Array.isArray(part.fbdRubric?.requiredForces) ||
-          Array.isArray(part.fbdRubric?.requiredMoments)
-        : Number.isFinite(part.correctAnswer);
+      : Number.isFinite(part.correctAnswer);
   const isPartial = submitted && score != null && score > 0 && score < 1;
   const numericOrSymbolicValue = typeof value === "string" ? value : "";
-  const fbdValue: FBDPlacedAnswer = Array.isArray(value)
-    ? { forces: value, moments: [] }
-    : value && typeof value === "object"
-      ? {
-          forces: Array.isArray((value as FBDPlacedAnswer).forces)
-            ? (value as FBDPlacedAnswer).forces
-            : [],
-          moments: Array.isArray((value as FBDPlacedAnswer).moments)
-            ? (value as FBDPlacedAnswer).moments
-            : [],
-        }
-      : { forces: [], moments: [] };
-  const fbdFeedback = buildFbdRubricFeedback(part.fbdRubric, fbdValue);
+  const isUnsupportedPartType = !isSupportedPartType(part.partType);
 
   return (
     <div className="rounded-md border border-border/60 bg-background/70 p-4 space-y-3 shadow-sm">
@@ -98,7 +78,11 @@ export function PartInputRow({
         />
       ) : null}
 
-      {part.partType === "symbolic" ? (
+      {isUnsupportedPartType ? (
+        <div className="rounded-md border border-amber-300/60 bg-amber-500/10 p-3 text-xs text-amber-100">
+          This problem uses a legacy interactive part type that is no longer supported in the learner UI.
+        </div>
+      ) : part.partType === "symbolic" ? (
         <SymbolicInput
           value={numericOrSymbolicValue}
           onChange={(nextValue) => onChange(nextValue)}
@@ -109,17 +93,6 @@ export function PartInputRow({
             testMax: item.testMax,
           }))}
         />
-      ) : part.partType === "fbd-draw" && figure ? (
-        <FBDCanvas
-          figure={figure}
-          value={fbdValue}
-          onChange={(nextForces) => onChange(nextForces)}
-          disabled={disabled || submitted}
-        />
-      ) : part.partType === "fbd-draw" ? (
-        <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
-          This FBD part needs a linked figure before students can place forces.
-        </div>
       ) : (
         <label className="flex items-center gap-3">
           <input
@@ -163,7 +136,11 @@ export function PartInputRow({
               Partial credit: {Math.round(score * 100)}%
             </div>
           ) : null}
-          {showAnswers && hasRevealableAnswer ? (
+          {isUnsupportedPartType ? (
+            <div className="text-xs text-amber-200">
+              This legacy interactive part cannot be answered or reviewed from the current frontend.
+            </div>
+          ) : showAnswers && hasRevealableAnswer ? (
             <div className="text-xs text-muted-foreground">
               {part.partType === "symbolic" ? (
                 <>
@@ -172,83 +149,6 @@ export function PartInputRow({
                     {part.symbolicAnswer || "N/A"}
                   </span>
                 </>
-              ) : part.partType === "fbd-draw" ? (
-                <div className="space-y-2">
-                  <div>
-                    FBD rubric:{" "}
-                    <span className="font-medium text-foreground">
-                      {fbdFeedback.totalRequired}{" "}
-                      required item(s)
-                    </span>
-                  </div>
-                  {fbdFeedback.requiredForceStatuses.length ? (
-                    <div className="space-y-1">
-                      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                        Required forces
-                      </div>
-                      {fbdFeedback.requiredForceStatuses.map((item, index) => (
-                        <div
-                          key={item.id || `force-${index}`}
-                          className={cn(
-                            "flex items-center justify-between rounded border px-2 py-1 text-[11px]",
-                            item.matched
-                              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                              : "border-red-200 bg-red-50 text-red-700"
-                          )}
-                        >
-                          <span className="font-medium">
-                            {item.label || item.id || `Force ${index + 1}`}
-                          </span>
-                          <span>{item.matched ? "Matched" : "Missing"}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                  {fbdFeedback.requiredMomentStatuses.length ? (
-                    <div className="space-y-1">
-                      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                        Required moments
-                      </div>
-                      {fbdFeedback.requiredMomentStatuses.map((item, index) => (
-                        <div
-                          key={item.id || `moment-${index}`}
-                          className={cn(
-                            "flex items-center justify-between rounded border px-2 py-1 text-[11px]",
-                            item.matched
-                              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                              : "border-red-200 bg-red-50 text-red-700"
-                          )}
-                        >
-                          <span className="font-medium">
-                            {item.label || item.id || `Moment ${index + 1}`} (
-                            {item.direction.toUpperCase()})
-                          </span>
-                          <span>{item.matched ? "Matched" : "Missing"}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                  {fbdFeedback.totalRequired > 0 ? (
-                    <div
-                      className={cn(
-                        "rounded border px-2 py-1 text-[11px]",
-                        fbdFeedback.extraForcesCount > 0
-                          ? "border-amber-300 bg-amber-50 text-amber-800"
-                          : "border-border/60 bg-muted/20 text-muted-foreground"
-                      )}
-                    >
-                      Extra forces beyond allowance: {fbdFeedback.extraForcesCount}{" "}
-                      (allowed {fbdFeedback.forbiddenForces})
-                      {fbdFeedback.extraForcesCount > 0 ? (
-                        <>
-                          {" "}
-                          · penalty{" "}
-                          {Math.round(fbdFeedback.extraForcesPenalty * 100)}%
-                        </>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
               ) : (
                 <>
                   Correct answer:{" "}
@@ -263,30 +163,28 @@ export function PartInputRow({
             </div>
           ) : null}
           {hasExplanation ? (
-            <button
-              type="button"
-              className="text-xs font-medium text-muted-foreground underline-offset-2 hover:underline"
-              onClick={() => setShowExplanation((prev) => !prev)}
-            >
-              {showExplanation ? "Hide explanation" : "Show explanation"}
-            </button>
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => setShowExplanation((current) => !current)}
+                className="text-xs font-semibold uppercase tracking-wide text-primary hover:underline"
+              >
+                {showExplanation ? "Hide explanation" : "Show explanation"}
+              </button>
+              {showExplanation ? (
+                <div className="mt-3 rounded-md border border-border/60 bg-muted/25 p-3">
+                  <PayloadRichText
+                    content={
+                      part.explanation as unknown as Parameters<
+                        typeof PayloadRichText
+                      >[0]["content"]
+                    }
+                    className="prose dark:prose-invert prose-invert max-w-none text-sm text-muted-foreground"
+                  />
+                </div>
+              ) : null}
+            </div>
           ) : null}
-        </div>
-      ) : null}
-
-      {submitted && showExplanation && hasExplanation ? (
-        <div className="rounded-md border border-border/60 bg-muted/40 p-3">
-          <div className="mb-2 text-[11px] uppercase tracking-wide text-muted-foreground">
-            Explanation
-          </div>
-          <PayloadRichText
-            content={
-              part.explanation as unknown as Parameters<
-                typeof PayloadRichText
-              >[0]["content"]
-            }
-            className="prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
-          />
         </div>
       ) : null}
     </div>

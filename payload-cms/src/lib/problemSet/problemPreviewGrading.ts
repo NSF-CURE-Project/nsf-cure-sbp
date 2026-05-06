@@ -1,7 +1,7 @@
 import { evaluateTemplateExpression } from '@/lib/problemSet/problemTemplate'
 import type { ProblemPartForGrading, SubmittedPartAnswer } from '@/utils/problemGrading'
 
-export type PreviewPartType = 'numeric' | 'symbolic' | 'fbd-draw'
+export type PreviewPartType = 'numeric' | 'symbolic'
 
 export type PreviewScoringStep = {
   errorBound?: number
@@ -26,26 +26,6 @@ export type PreviewPartInput = {
   symbolicAnswer?: string
   symbolicVariables?: PreviewSymbolicVariable[]
   symbolicTolerance?: number
-  fbdRubric?: ProblemPartForGrading['fbdRubric']
-}
-
-export type PreviewForceInput = {
-  id: string
-  label: string
-  angle: number
-  magnitude: number
-}
-
-export type PreviewMomentInput = {
-  id: string
-  label: string
-  direction: 'cw' | 'ccw'
-  magnitude: number
-}
-
-export type PreviewFbdInput = {
-  forces: PreviewForceInput[]
-  moments: PreviewMomentInput[]
 }
 
 const toNumeric = (value: unknown, fallback: number) => {
@@ -54,7 +34,7 @@ const toNumeric = (value: unknown, fallback: number) => {
 }
 
 export const normalizePreviewPartType = (value: unknown): PreviewPartType =>
-  value === 'symbolic' || value === 'fbd-draw' ? value : 'numeric'
+  value === 'symbolic' ? value : 'numeric'
 
 export const buildPreviewCanonicalParts = ({
   parts,
@@ -126,18 +106,15 @@ export const buildPreviewCanonicalParts = ({
             )
         : [],
       symbolicTolerance: Math.abs(toNumeric(part.symbolicTolerance, 0.000001)),
-      fbdRubric: part.fbdRubric ?? null,
     }
   })
 
 export const buildPreviewSubmittedParts = ({
   parts,
   studentInputs,
-  fbdInputs,
 }: {
   parts: PreviewPartInput[]
   studentInputs: Record<number, string>
-  fbdInputs: Record<number, PreviewFbdInput>
 }): SubmittedPartAnswer[] =>
   parts.map((part, partIndex) => {
     const partType = normalizePreviewPartType(part.partType)
@@ -146,33 +123,6 @@ export const buildPreviewSubmittedParts = ({
         partIndex,
         studentAnswer: null,
         studentExpression: (studentInputs[partIndex] ?? '').trim(),
-        placedForces: null,
-      }
-    }
-
-    if (partType === 'fbd-draw') {
-      const fbd = fbdInputs[partIndex] ?? { forces: [], moments: [] }
-      return {
-        partIndex,
-        studentAnswer: null,
-        studentExpression: null,
-        placedForces: {
-          forces: fbd.forces.map((force) => ({
-            id: force.id,
-            label: force.label,
-            origin: [0, 0] as [number, number],
-            angle: toNumeric(force.angle, 0),
-            magnitude: Math.max(0, toNumeric(force.magnitude, 0)),
-          })),
-          moments: fbd.moments.map((moment) => ({
-            id: moment.id,
-            label: moment.label,
-            direction: moment.direction === 'ccw' ? 'ccw' : 'cw',
-            x: 0,
-            y: 0,
-            magnitude: Math.max(0, toNumeric(moment.magnitude, 0)),
-          })),
-        },
       }
     }
 
@@ -182,6 +132,5 @@ export const buildPreviewSubmittedParts = ({
       partIndex,
       studentAnswer: Number.isFinite(parsed) ? parsed : null,
       studentExpression: null,
-      placedForces: null,
     }
   })

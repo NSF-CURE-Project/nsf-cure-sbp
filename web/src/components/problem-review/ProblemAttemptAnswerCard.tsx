@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 
-import { FBDCanvas, type FBDPlacedAnswer } from "@/components/problemSet/FBDCanvas";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
-import type { EngineeringFigureDoc } from "@/lib/payloadSdk/types";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -14,16 +12,12 @@ type ProblemAttemptAnswerCardProps = {
     id: string;
     title: string;
     prompt?: unknown;
-    figure?: EngineeringFigureDoc | null;
     parts: {
       partIndex: number;
       partType: string;
       studentAnswer?: number | null;
       studentExpression?: string | null;
-      placedForces?: {
-        forces?: FBDPlacedAnswer["forces"];
-        moments?: FBDPlacedAnswer["moments"];
-      } | null;
+      legacyInteractiveSubmission?: boolean;
       isCorrect: boolean;
       score: number;
       correctAnswer?: string | number | null;
@@ -61,16 +55,16 @@ export function ProblemAttemptAnswerCard({
       <div className="mt-4 space-y-3">
         {problem.parts.map((part) => {
           const isPartial = part.score > 0 && part.score < 1;
-          const placedForces = part.placedForces
-            ? {
-                forces: Array.isArray(part.placedForces.forces)
-                  ? part.placedForces.forces
-                  : [],
-                moments: Array.isArray(part.placedForces.moments)
-                  ? part.placedForces.moments
-                  : [],
-              }
-            : null;
+          const studentAnswerLabel = part.legacyInteractiveSubmission
+            ? "Legacy interactive submission recorded"
+            : part.studentExpression?.trim()
+              ? part.studentExpression
+              : part.studentAnswer != null
+                ? `${part.studentAnswer}`
+                : "No answer";
+          const correctAnswerLabel = part.legacyInteractiveSubmission
+            ? "Detailed interactive review is no longer supported in this UI."
+            : `${part.correctAnswer ?? "Not available"} ${part.unit ?? ""}`.trim();
           return (
             <div
               key={`${problem.id}-${part.partIndex}`}
@@ -100,44 +94,17 @@ export function ProblemAttemptAnswerCard({
 
               <div className="mt-2 grid gap-1 text-sm text-muted-foreground">
                 <p>
-                  <span className="font-semibold text-foreground">Your answer:</span>{" "}
-                  {part.partType === "fbd-draw"
-                    ? placedForces?.forces.length || placedForces?.moments.length
-                      ? "FBD drawing submitted"
-                      : "No FBD drawing submitted"
-                    : part.studentExpression?.trim()
-                      ? part.studentExpression
-                      : part.studentAnswer != null
-                        ? `${part.studentAnswer}`
-                        : "No answer"}
+                  <span className="font-semibold text-foreground">Your answer:</span> {studentAnswerLabel}
                 </p>
                 <p>
                   <span className="font-semibold text-foreground">Correct answer:</span>{" "}
-                  {part.partType === "fbd-draw"
-                    ? "See rubric-based feedback (drawing-based answer)"
-                    : part.correctAnswer ?? "Not available"}{" "}
-                  {part.unit ?? ""}
+                  {correctAnswerLabel}
                 </p>
                 <p>
                   <span className="font-semibold text-foreground">Score:</span>{" "}
                   {part.score.toFixed(2)} ({Math.round(part.score * 100)}%)
                 </p>
               </div>
-
-              {part.partType === "fbd-draw" && problem.figure && placedForces ? (
-                <div className="mt-3 rounded-lg border border-border/60 bg-background/40 p-3">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Submitted Diagram
-                  </p>
-                  <FBDCanvas
-                    figure={problem.figure}
-                    value={placedForces}
-                    onChange={() => undefined}
-                    disabled
-                    readOnlyView
-                  />
-                </div>
-              ) : null}
 
               {!part.isCorrect && part.explanation ? (
                 <div className="mt-3 rounded-lg border border-border/60 bg-muted/35 p-3">

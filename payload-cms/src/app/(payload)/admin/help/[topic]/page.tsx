@@ -375,8 +375,8 @@ function QuizzesContent() {
           items={[
             <>Create a problem at <InlineLink href="/admin/collections/problems/create">Create Problem</InlineLink>.</>,
             'In the Problem tab, add title, prompt, topic/tags, and one or more parts.',
-            <>For each part, choose a <Code>partType</Code>: <Code>numeric</Code>, <Code>symbolic</Code>, or <Code>fbd-draw</Code>.</>,
-            <>Configure grading fields for that part type (e.g., tolerance/scoring mode for numeric, symbolic expression for symbolic, rubric fields for FBD draw).</>,
+            <>For each part, choose a supported <Code>partType</Code>: <Code>numeric</Code> or <Code>symbolic</Code>.</>,
+            <>Configure grading fields for that part type (for example, tolerance/scoring mode for numeric or the expected expression for symbolic).</>,
             <>Publish the problem when ready (or keep as draft while iterating).</>,
             <>Create a set at <InlineLink href="/admin/collections/problem-sets/create">Create Problem Set</InlineLink> and select one or more problems in the <Code>problems</Code> relationship field.</>,
             <>Configure set behavior: <Code>showAnswers</Code>, <Code>maxAttempts</Code>, and <Code>shuffleProblems</Code>.</>,

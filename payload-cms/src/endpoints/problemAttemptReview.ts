@@ -180,16 +180,15 @@ export const problemAttemptReviewHandler: PayloadHandler = async (req) => {
         partIndex,
         partType:
           typeof problemPart.partType === 'string' ? problemPart.partType : 'numeric',
+        legacyInteractiveSubmission:
+          (typeof part.placedForces === 'object' && part.placedForces !== null) ||
+          problemPart.partType === 'fbd-draw',
         studentAnswer:
           typeof part.studentAnswer === 'number' && Number.isFinite(part.studentAnswer)
             ? part.studentAnswer
             : null,
         studentExpression:
           typeof part.studentExpression === 'string' ? part.studentExpression : null,
-        placedForces:
-          typeof part.placedForces === 'object' && part.placedForces !== null
-            ? (part.placedForces as Record<string, unknown>)
-            : null,
         isCorrect: Boolean(part.isCorrect),
         score:
           typeof part.score === 'number' && Number.isFinite(part.score)
@@ -214,8 +213,6 @@ export const problemAttemptReviewHandler: PayloadHandler = async (req) => {
           ? problem.title
           : `Problem ${answerIndex + 1}`,
       prompt: problem.prompt ?? null,
-      figure:
-        typeof problem.figure === 'object' && problem.figure !== null ? problem.figure : null,
       parts,
     }
   })

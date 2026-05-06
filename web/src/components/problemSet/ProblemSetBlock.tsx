@@ -2,11 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { parse } from "mathjs";
-import {
-  type FBDPlacedAnswer,
-  type PlacedForce,
-  type PlacedMoment,
-} from "@/components/problemSet/FBDCanvas";
 import { ProblemCard } from "@/components/problemSet/ProblemCard";
 import { Button } from "@/components/ui/button";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
@@ -28,7 +23,6 @@ type ProblemPartEval = {
   partIndex: number;
   studentAnswer?: number | null;
   studentExpression?: string | null;
-  placedForces?: { forces?: PlacedForce[]; moments?: PlacedMoment[] } | null;
   isCorrect?: boolean | null;
   score?: number | null;
 };
@@ -79,6 +73,9 @@ const resolveProblemSet = (value: unknown): ProblemSetDoc | null => {
   return value as ProblemSetDoc;
 };
 
+const isSupportedPartType = (value: string | undefined) =>
+  value === "numeric" || value === "symbolic" || value == null;
+
 export function ProblemSetBlock({ block, lessonId }: Props) {
   const [problemSet, setProblemSet] = useState<ProblemSetDoc | null>(null);
   const [loading, setLoading] = useState(false);
@@ -87,9 +84,7 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [attemptLoading, setAttemptLoading] = useState(false);
   const [attemptCount, setAttemptCount] = useState<number | null>(null);
-  const [answers, setAnswers] = useState<
-    Record<string, Record<number, string | FBDPlacedAnswer>>
-  >({});
+  const [answers, setAnswers] = useState<Record<string, Record<number, string>>>({});
   const [orderedProblemIds, setOrderedProblemIds] = useState<string[]>([]);
   const [evaluation, setEvaluation] = useState<{
     answers: ProblemEval[];
@@ -243,6 +238,15 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
 
   const attemptLimitReached =
     maxAttempts != null && attemptCount != null && attemptCount >= maxAttempts;
+  const hasLegacyInteractiveParts = useMemo(
+    () =>
+      orderedProblems.some((problem) =>
+        (Array.isArray(problem.parts) ? problem.parts : []).some(
+          (part) => !isSupportedPartType(part.partType)
+        )
+      ),
+    [orderedProblems]
+  );
 
   const evaluationByProblem = useMemo(
     () =>
@@ -251,33 +255,23 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
       ),
     [evaluation]
   );
-  const isAnswerFilled = (value: string | FBDPlacedAnswer | undefined) => {
-    if (typeof value === "string") return value.trim().length > 0;
-    if (value && typeof value === "object") {
-      return (
-        (Array.isArray(value.forces) && value.forces.length > 0) ||
-        (Array.isArray(value.moments) && value.moments.length > 0)
-      );
-    }
-    return false;
-  };
+
+  const isAnswerFilled = (value: string | undefined) =>
+    typeof value === "string" && value.trim().length > 0;
+
   const partProgressByProblem = useMemo(() => {
     return new Map(
       orderedProblems.map((problem) => {
         const problemId = String(problem.id);
         const total = Array.isArray(problem.parts) ? problem.parts.length : 0;
         const answered = Array.from({ length: total }).filter((_, partIndex) =>
-          isAnswerFilled(
-            answers[problemId]?.[partIndex] as
-              | string
-              | FBDPlacedAnswer
-              | undefined
-          )
+          isAnswerFilled(answers[problemId]?.[partIndex])
         ).length;
         return [problemId, { answered, total }] as const;
       })
     );
   }, [answers, orderedProblems]);
+
   const getProblemStatus = (problemId: string) => {
     const parts = evaluationByProblem.get(problemId)?.parts ?? [];
     if (submitted && parts.length) {
@@ -293,6 +287,7 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
     if (isReady) return "ready";
     return hasInput ? "progress" : "pending";
   };
+
   const completedCount = orderedProblems.filter((problem) =>
     ["correct", "review", "ready"].includes(
       getProblemStatus(String(problem.id))
@@ -317,6 +312,7 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
     node.scrollIntoView({ behavior: "smooth", block: "start" });
     setActiveProblemId(problemId);
   };
+
   const hasInvalidSymbolicInput = useMemo(() => {
     for (const problem of orderedProblems) {
       const problemId = String(problem.id);
@@ -341,7 +337,7 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
   const handleAnswerChange = (
     problemId: string,
     partIndex: number,
-    value: string | FBDPlacedAnswer
+    value: string
   ) => {
     setAnswers((prev) => ({
       ...prev,
@@ -354,6 +350,12 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
 
   const handleSubmit = async () => {
     if (!problemSet || submitting || attemptLimitReached || !started) return;
+    if (hasLegacyInteractiveParts) {
+      setSubmitError(
+        "This problem set contains legacy interactive parts that are no longer supported in the frontend."
+      );
+      return;
+    }
     if (hasInvalidSymbolicInput) {
       setSubmitError("Fix invalid symbolic expressions before submitting.");
       return;
@@ -389,32 +391,6 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
               partIndex,
               studentExpression: typeof raw === "string" ? raw : "",
               studentAnswer: null,
-              placedForces: null,
-            };
-          }
-          if (part?.partType === "fbd-draw") {
-            const fbdValue: FBDPlacedAnswer =
-              raw && typeof raw === "object" && !Array.isArray(raw)
-                ? ({
-                    forces: Array.isArray((raw as FBDPlacedAnswer).forces)
-                      ? (raw as FBDPlacedAnswer).forces
-                      : [],
-                    moments: Array.isArray((raw as FBDPlacedAnswer).moments)
-                      ? (raw as FBDPlacedAnswer).moments
-                      : [],
-                  } as FBDPlacedAnswer)
-                : {
-                    forces: Array.isArray(raw) ? raw : [],
-                    moments: [],
-                  };
-            return {
-              partIndex,
-              studentAnswer: null,
-              studentExpression: null,
-              placedForces: {
-                forces: fbdValue.forces,
-                moments: fbdValue.moments,
-              },
             };
           }
           if (raw == null || raw === "") {
@@ -422,7 +398,6 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
               partIndex,
               studentAnswer: null,
               studentExpression: null,
-              placedForces: null,
             };
           }
           const parsed = Number.parseFloat(typeof raw === "string" ? raw : "");
@@ -430,7 +405,6 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
             partIndex,
             studentAnswer: Number.isFinite(parsed) ? parsed : null,
             studentExpression: null,
-            placedForces: null,
           };
         }),
       };
@@ -527,9 +501,18 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
                 ? ` • ${maxAttempts} attempt${maxAttempts === 1 ? "" : "s"}`
                 : ""}
             </p>
+            {hasLegacyInteractiveParts ? (
+              <p className="w-full text-sm text-amber-200">
+                This set contains legacy interactive problems and cannot be attempted in the current frontend.
+              </p>
+            ) : null}
             <Button
               type="button"
-              disabled={orderedProblems.length === 0 || attemptLimitReached}
+              disabled={
+                orderedProblems.length === 0 ||
+                attemptLimitReached ||
+                hasLegacyInteractiveParts
+              }
               onClick={() => {
                 setStarted(true);
                 startedAtRef.current = Date.now();
@@ -559,101 +542,21 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
                   </p>
                 ) : null}
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={activeProblemIndex <= 0}
-                  onClick={() => {
-                    const previousId =
-                      orderedProblems[activeProblemIndex - 1]?.id;
-                    if (previousId != null) scrollToProblem(String(previousId));
-                  }}
-                >
-                  Previous
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={
-                    activeProblemIndex < 0 ||
-                    activeProblemIndex >= orderedProblems.length - 1
-                  }
-                  onClick={() => {
-                    const nextId = orderedProblems[activeProblemIndex + 1]?.id;
-                    if (nextId != null) scrollToProblem(String(nextId));
-                  }}
-                >
-                  Next
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!nextIncompleteProblemId}
-                  onClick={() => {
-                    if (nextIncompleteProblemId != null) {
-                      scrollToProblem(String(nextIncompleteProblemId));
-                    }
-                  }}
-                >
-                  Next Incomplete
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={
-                    submitting ||
-                    submitted ||
-                    orderedProblems.length === 0 ||
-                    attemptLimitReached ||
-                    hasInvalidSymbolicInput
-                  }
-                >
-                  {submitting
-                    ? "Submitting..."
-                    : submitted
-                      ? "Submitted"
-                      : "Submit"}
-                </Button>
-                {submitted && showAnswers && evaluation ? (
-                  <span className="text-sm text-muted-foreground">
-                    Score: {evaluation.score} / {evaluation.maxScore}
-                  </span>
-                ) : null}
+              <div className="flex items-center gap-3">
+                <div className="hidden h-2 w-44 overflow-hidden rounded-full bg-muted/50 sm:block">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+                <span className="text-xs font-semibold text-primary">
+                  {progressPercent}%
+                </span>
               </div>
             </div>
-            <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
-              <div
-                className="h-full bg-primary transition-all"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-            <div className="mt-2 flex flex-wrap gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
-              <span className="rounded-full bg-muted px-2 py-0.5">
-                Not Started
-              </span>
-              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-blue-700">
-                In Progress
-              </span>
-              <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-cyan-700">
-                Ready
-              </span>
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-700">
-                Correct
-              </span>
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">
-                Review
-              </span>
-            </div>
-          </div>
-
-          <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)]">
-            <aside className="rounded-lg border border-border/60 bg-background/70 p-3 h-fit lg:sticky lg:top-24">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
-                Problem Navigator
-              </p>
-              <div className="space-y-2">
-                {orderedProblems.map((problem, index) => {
+            {orderedProblems.length ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {orderedProblems.map((problem, idx) => {
                   const problemId = String(problem.id);
                   const status = getProblemStatus(problemId);
                   return (
@@ -662,97 +565,107 @@ export function ProblemSetBlock({ block, lessonId }: Props) {
                       type="button"
                       onClick={() => scrollToProblem(problemId)}
                       className={cn(
-                        "w-full text-left rounded-md border px-3 py-2 transition-colors",
-                        activeProblemId === problemId
-                          ? "border-primary/50 bg-primary/10"
-                          : "border-border/60 hover:bg-accent/40"
+                        "rounded-full border px-3 py-1 text-xs font-semibold transition",
+                        problemId === activeProblemId
+                          ? "border-primary bg-primary/10 text-primary"
+                          : status === "correct"
+                            ? "border-emerald-300 bg-emerald-500/10 text-emerald-500"
+                            : status === "review"
+                              ? "border-amber-300 bg-amber-500/10 text-amber-500"
+                              : status === "ready"
+                                ? "border-primary/30 bg-primary/5 text-foreground"
+                                : status === "progress"
+                                  ? "border-primary/25 bg-background text-foreground"
+                                  : "border-border/60 bg-background/70 text-muted-foreground"
                       )}
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-medium text-foreground">
-                          Problem {index + 1}
-                        </span>
-                        <span
-                          className={cn(
-                            "rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide",
-                            status === "correct" &&
-                              "bg-emerald-100 text-emerald-700",
-                            status === "review" &&
-                              "bg-amber-100 text-amber-700",
-                            status === "progress" &&
-                              "bg-blue-100 text-blue-700",
-                            status === "ready" && "bg-cyan-100 text-cyan-700",
-                            (status === "pending" || status === "locked") &&
-                              "bg-muted text-muted-foreground"
-                          )}
-                        >
-                          {status === "correct"
-                            ? "Correct"
-                            : status === "review"
-                              ? "Review"
-                              : status === "progress"
-                                ? "In Progress"
-                                : status === "ready"
-                                  ? "Ready"
-                                  : "Not Started"}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {(() => {
-                          const progress = partProgressByProblem.get(problemId);
-                          if (!progress || progress.total === 0)
-                            return "No parts";
-                          return `${progress.answered}/${progress.total} parts complete`;
-                        })()}
-                      </p>
+                      {idx + 1}
                     </button>
                   );
                 })}
               </div>
-            </aside>
+            ) : null}
+          </div>
 
-            <div className="space-y-4">
-              {orderedProblems.map((problem, index) => {
-                const problemId = String(problem.id);
-                return (
-                  <section
-                    key={problemId}
-                    ref={(node) => {
-                      problemRefs.current[problemId] = node;
-                    }}
-                  >
-                    <ProblemCard
-                      problem={problem}
-                      index={index}
-                      partAnswers={answers[problemId] ?? {}}
-                      onChange={(partIndex, value) =>
-                        handleAnswerChange(problemId, partIndex, value)
-                      }
-                      submitted={submitted}
-                      evaluation={evaluationByProblem.get(problemId)}
-                      showAnswers={showAnswers}
-                      isActive={activeProblemId === problemId}
-                      onFocus={() => setActiveProblemId(problemId)}
-                    />
-                  </section>
-                );
-              })}
+          <div className="space-y-4">
+            {orderedProblems.map((problem) => {
+              const problemId = String(problem.id);
+              return (
+                <div
+                  key={problemId}
+                  ref={(node) => {
+                    problemRefs.current[problemId] = node;
+                  }}
+                >
+                  <ProblemCard
+                    problem={problem}
+                    index={orderedProblems.findIndex(
+                      (item) => String(item.id) === problemId
+                    )}
+                    partAnswers={answers[problemId] ?? {}}
+                    onChange={(partIndex, value) =>
+                      handleAnswerChange(problemId, partIndex, value)
+                    }
+                    submitted={submitted}
+                    evaluation={evaluationByProblem.get(problemId)}
+                    showAnswers={showAnswers}
+                    isActive={problemId === activeProblemId}
+                    onFocus={() => setActiveProblemId(problemId)}
+                  />
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 bg-background/70 p-4">
+            <div className="space-y-1">
+              {submitError ? (
+                <p className="text-sm font-medium text-red-500">{submitError}</p>
+              ) : submitted && evaluation ? (
+                <p className="text-sm font-medium text-foreground">
+                  Final score: {evaluation.score.toFixed(2)} /{" "}
+                  {evaluation.maxScore.toFixed(2)}
+                </p>
+              ) : nextIncompleteProblemId ? (
+                <p className="text-sm text-muted-foreground">
+                  Next incomplete problem:{" "}
+                  {orderedProblems.findIndex(
+                    (problem) => problem.id === nextIncompleteProblemId
+                  ) + 1}
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  All current parts are filled. Submit when ready.
+                </p>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {nextIncompleteProblemId && !submitted ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => scrollToProblem(String(nextIncompleteProblemId))}
+                >
+                  Jump to next incomplete
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                onClick={() => void handleSubmit()}
+                disabled={
+                  submitting ||
+                  submitted ||
+                  attemptLimitReached ||
+                  orderedProblems.length === 0 ||
+                  hasLegacyInteractiveParts
+                }
+              >
+                {submitting ? "Submitting..." : submitted ? "Submitted" : "Submit Problem Set"}
+              </Button>
             </div>
           </div>
         </div>
       )}
-
-      {started && submitted && !showAnswers ? (
-        <span className="text-sm text-muted-foreground">Submitted.</span>
-      ) : null}
-      {started && attemptLimitReached ? (
-        <span className="text-sm text-muted-foreground">
-          Attempt limit reached.
-        </span>
-      ) : null}
-      {submitError ? (
-        <p className="text-sm text-red-500">{submitError}</p>
-      ) : null}
     </section>
   );
 }

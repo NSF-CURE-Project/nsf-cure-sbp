@@ -236,9 +236,8 @@ export interface Chapter {
    * Shown as Ch {number} in the sidebar.
    */
   chapterNumber?: number | null;
-  lessons?: (number | Lesson)[] | null;
   /**
-   * Pre-filled when you add a chapter from Course Workspace.
+   * Pre-filled from Course Workspace. Change only if this chapter belongs in a different course.
    */
   class: number | Class;
   slug: string;
@@ -260,6 +259,7 @@ export interface Chapter {
     };
     [k: string]: unknown;
   } | null;
+  lessons?: (number | Lesson)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -269,9 +269,6 @@ export interface Chapter {
  */
 export interface Lesson {
   id: number;
-  /**
-   * Managed from the Reorder lessons list.
-   */
   order?: number | null;
   title: string;
   /**
@@ -288,25 +285,10 @@ export interface Lesson {
   layout?:
     | (
         | {
-            title: string;
-            subtitle?: string | null;
-            buttonLabel?: string | null;
-            buttonHref?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'heroBlock';
-          }
-        | {
-            title: string;
+            title?: string | null;
             subtitle?: string | null;
             size?: ('sm' | 'md' | 'lg') | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'sectionTitle';
-          }
-        | {
-            title: string;
-            text?: {
+            body?: {
               root: {
                 type: string;
                 children: {
@@ -321,10 +303,17 @@ export interface Lesson {
               };
               [k: string]: unknown;
             } | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'textSection';
+          }
+        | {
+            title: string;
+            subtitle?: string | null;
             size?: ('sm' | 'md' | 'lg') | null;
             id?: string | null;
             blockName?: string | null;
-            blockType: 'sectionBlock';
+            blockType: 'sectionTitle';
           }
         | {
             body: {
@@ -345,12 +334,6 @@ export interface Lesson {
             id?: string | null;
             blockName?: string | null;
             blockType: 'richTextBlock';
-          }
-        | {
-            text?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'textBlock';
           }
         | {
             video?: (number | null) | Media;
@@ -406,41 +389,6 @@ export interface Lesson {
             id?: string | null;
             blockName?: string | null;
             blockType: 'buttonBlock';
-          }
-        | {
-            title?: string | null;
-            description?: string | null;
-            resources?:
-              | {
-                  title: string;
-                  description?: string | null;
-                  url: string;
-                  type?: ('link' | 'video' | 'download' | 'other') | null;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'resourcesList';
-          }
-        | {
-            title?: string | null;
-            description?: string | null;
-            groupByCategory?: boolean | null;
-            contacts?:
-              | {
-                  name: string;
-                  title?: string | null;
-                  category?: ('staff' | 'technical') | null;
-                  phone?: string | null;
-                  email?: string | null;
-                  photo?: (number | null) | Media;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'contactsList';
           }
         | {
             title?: string | null;
@@ -534,6 +482,10 @@ export interface Quiz {
 export interface QuizQuestion {
   id: number;
   title: string;
+  /**
+   * Supported values: single-select, multi-select, true-false, short-text, numeric.
+   */
+  questionType: string;
   prompt: {
     root: {
       type: string;
@@ -549,11 +501,33 @@ export interface QuizQuestion {
     };
     [k: string]: unknown;
   };
-  options: {
-    label: string;
-    isCorrect?: boolean | null;
-    id?: string | null;
-  }[];
+  options?:
+    | {
+        label: string;
+        isCorrect?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  trueFalseAnswer?: boolean | null;
+  /**
+   * Provide a JSON array or newline/comma-separated answers, e.g. ["stress","normal stress"].
+   */
+  acceptedAnswers?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Use "normalized" to ignore case and extra spacing, or "exact" for strict matching.
+   */
+  textMatchMode?: string | null;
+  numericCorrectValue?: number | null;
+  numericTolerance?: number | null;
+  numericUnit?: string | null;
   explanation?: {
     root: {
       type: string;
@@ -615,7 +589,6 @@ export interface Problem {
     };
     [k: string]: unknown;
   };
-  figure?: (number | null) | EngineeringFigure;
   difficulty?: ('intro' | 'easy' | 'medium' | 'hard') | null;
   topic?: string | null;
   tags?: string[] | null;
@@ -637,7 +610,7 @@ export interface Problem {
       [k: string]: unknown;
     } | null;
     unit?: string | null;
-    partType?: ('numeric' | 'symbolic' | 'fbd-draw') | null;
+    partType?: ('numeric' | 'symbolic') | null;
     correctAnswer?: number | null;
     /**
      * Optional formula for template-enabled problems. Example: "w * L / 2". If present, this overrides the static numeric answer during grading.
@@ -667,30 +640,6 @@ export interface Problem {
         }[]
       | null;
     symbolicTolerance?: number | null;
-    fbdRubric?: {
-      requiredForces?:
-        | {
-            id: string;
-            label?: string | null;
-            correctAngle: number;
-            angleTolerance?: number | null;
-            magnitudeRequired?: boolean | null;
-            correctMagnitude?: number | null;
-            magnitudeTolerance?: number | null;
-          }[]
-        | null;
-      requiredMoments?:
-        | {
-            id: string;
-            label?: string | null;
-            direction: 'cw' | 'ccw';
-            magnitudeRequired?: boolean | null;
-            correctMagnitude?: number | null;
-            magnitudeTolerance?: number | null;
-          }[]
-        | null;
-      forbiddenForces?: number | null;
-    };
     explanation?: {
       root: {
         type: string;
@@ -708,32 +657,6 @@ export interface Problem {
     } | null;
     id?: string | null;
   }[];
-  resultPlots?:
-    | {
-        plotType: 'shear' | 'moment' | 'deflection' | 'custom';
-        title?: string | null;
-        xLabel?: string | null;
-        yLabel?: string | null;
-        xMin?: number | null;
-        xMax?: string | null;
-        segments?:
-          | {
-              xStart: string;
-              xEnd: string;
-              formula: string;
-              id?: string | null;
-            }[]
-          | null;
-        criticalPoints?:
-          | {
-              x: string;
-              label?: string | null;
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-      }[]
-    | null;
   /**
    * Enable deterministic template variables so one authored problem can be previewed across many generated variants.
    */
@@ -776,41 +699,6 @@ export interface Problem {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "engineering-figures".
- */
-export interface EngineeringFigure {
-  id: number;
-  title: string;
-  type: 'fbd' | 'truss' | 'beam' | 'moment-diagram';
-  description?: string | null;
-  figureData:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  width?: number | null;
-  height?: number | null;
-  axes?: {
-    show?: boolean | null;
-    x?: number | null;
-    y?: number | null;
-    length?: number | null;
-    xLabel?: string | null;
-    yLabel?: string | null;
-  };
-  /**
-   * Mark as a reusable template. Templates appear in the template picker.
-   */
-  isTemplate?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
 export interface Page {
@@ -839,16 +727,10 @@ export interface Page {
             blockType: 'heroBlock';
           }
         | {
-            title: string;
+            title?: string | null;
             subtitle?: string | null;
             size?: ('sm' | 'md' | 'lg') | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'sectionTitle';
-          }
-        | {
-            title: string;
-            text?: {
+            body?: {
               root: {
                 type: string;
                 children: {
@@ -863,10 +745,17 @@ export interface Page {
               };
               [k: string]: unknown;
             } | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'textSection';
+          }
+        | {
+            title: string;
+            subtitle?: string | null;
             size?: ('sm' | 'md' | 'lg') | null;
             id?: string | null;
             blockName?: string | null;
-            blockType: 'sectionBlock';
+            blockType: 'sectionTitle';
           }
         | {
             body: {
@@ -887,12 +776,6 @@ export interface Page {
             id?: string | null;
             blockName?: string | null;
             blockType: 'richTextBlock';
-          }
-        | {
-            text?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'textBlock';
           }
         | {
             video?: (number | null) | Media;
@@ -983,26 +866,6 @@ export interface Page {
             id?: string | null;
             blockName?: string | null;
             blockType: 'contactsList';
-          }
-        | {
-            title?: string | null;
-            /**
-             * Attach a quiz to this lesson section or create a new one.
-             */
-            quiz: number | Quiz;
-            showTitle?: boolean | null;
-            showAnswers?: boolean | null;
-            /**
-             * Leave blank for unlimited attempts.
-             */
-            maxAttempts?: number | null;
-            /**
-             * Overrides the quiz time limit for this lesson section if set.
-             */
-            timeLimitSec?: number | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'quizBlock';
           }
       )[]
     | null;
@@ -1498,6 +1361,10 @@ export interface Question {
   lesson: number | Lesson;
   chapter?: (number | null) | Chapter;
   class?: (number | null) | Class;
+  /**
+   * The classroom membership used when the student asked this question.
+   */
+  classroom?: (number | null) | Classroom;
   status: 'open' | 'answered' | 'resolved';
   title: string;
   /**
@@ -1560,6 +1427,10 @@ export interface QuizAttempt {
               id?: string | null;
             }[]
           | null;
+        responseKind?: string | null;
+        textAnswer?: string | null;
+        numericAnswer?: number | null;
+        normalizedAnswer?: string | null;
         optionOrder?:
           | {
               optionId?: string | null;
@@ -1575,6 +1446,41 @@ export interface QuizAttempt {
   maxScore?: number | null;
   correctCount?: number | null;
   questionCount?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "engineering-figures".
+ */
+export interface EngineeringFigure {
+  id: number;
+  title: string;
+  type: 'fbd' | 'truss' | 'beam' | 'moment-diagram';
+  description?: string | null;
+  figureData:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  width?: number | null;
+  height?: number | null;
+  axes?: {
+    show?: boolean | null;
+    x?: number | null;
+    y?: number | null;
+    length?: number | null;
+    xLabel?: string | null;
+    yLabel?: string | null;
+  };
+  /**
+   * Mark as a reusable template. Templates appear in the template picker.
+   */
+  isTemplate?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1620,15 +1526,6 @@ export interface ProblemAttempt {
               partIndex: number;
               studentAnswer?: number | null;
               studentExpression?: string | null;
-              placedForces?:
-                | {
-                    [k: string]: unknown;
-                  }
-                | unknown[]
-                | string
-                | number
-                | boolean
-                | null;
               isCorrect?: boolean | null;
               score?: number | null;
               id?: string | null;
@@ -1953,10 +1850,10 @@ export interface ClassesSelect<T extends boolean = true> {
 export interface ChaptersSelect<T extends boolean = true> {
   title?: T;
   chapterNumber?: T;
-  lessons?: T;
   class?: T;
   slug?: T;
   objective?: T;
+  lessons?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1972,13 +1869,13 @@ export interface LessonsSelect<T extends boolean = true> {
   layout?:
     | T
     | {
-        heroBlock?:
+        textSection?:
           | T
           | {
               title?: T;
               subtitle?: T;
-              buttonLabel?: T;
-              buttonHref?: T;
+              size?: T;
+              body?: T;
               id?: T;
               blockName?: T;
             };
@@ -1991,26 +1888,10 @@ export interface LessonsSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
-        sectionBlock?:
-          | T
-          | {
-              title?: T;
-              text?: T;
-              size?: T;
-              id?: T;
-              blockName?: T;
-            };
         richTextBlock?:
           | T
           | {
               body?: T;
-              id?: T;
-              blockName?: T;
-            };
-        textBlock?:
-          | T
-          | {
-              text?: T;
               id?: T;
               blockName?: T;
             };
@@ -2056,43 +1937,6 @@ export interface LessonsSelect<T extends boolean = true> {
           | {
               label?: T;
               href?: T;
-              id?: T;
-              blockName?: T;
-            };
-        resourcesList?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              resources?:
-                | T
-                | {
-                    title?: T;
-                    description?: T;
-                    url?: T;
-                    type?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        contactsList?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              groupByCategory?: T;
-              contacts?:
-                | T
-                | {
-                    name?: T;
-                    title?: T;
-                    category?: T;
-                    phone?: T;
-                    email?: T;
-                    photo?: T;
-                    id?: T;
-                  };
               id?: T;
               blockName?: T;
             };
@@ -2145,6 +1989,16 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        textSection?:
+          | T
+          | {
+              title?: T;
+              subtitle?: T;
+              size?: T;
+              body?: T;
+              id?: T;
+              blockName?: T;
+            };
         sectionTitle?:
           | T
           | {
@@ -2154,26 +2008,10 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
-        sectionBlock?:
-          | T
-          | {
-              title?: T;
-              text?: T;
-              size?: T;
-              id?: T;
-              blockName?: T;
-            };
         richTextBlock?:
           | T
           | {
               body?: T;
-              id?: T;
-              blockName?: T;
-            };
-        textBlock?:
-          | T
-          | {
-              text?: T;
               id?: T;
               blockName?: T;
             };
@@ -2256,18 +2094,6 @@ export interface PagesSelect<T extends boolean = true> {
                     photo?: T;
                     id?: T;
                   };
-              id?: T;
-              blockName?: T;
-            };
-        quizBlock?:
-          | T
-          | {
-              title?: T;
-              quiz?: T;
-              showTitle?: T;
-              showAnswers?: T;
-              maxAttempts?: T;
-              timeLimitSec?: T;
               id?: T;
               blockName?: T;
             };
@@ -2578,6 +2404,7 @@ export interface QuestionsSelect<T extends boolean = true> {
   lesson?: T;
   chapter?: T;
   class?: T;
+  classroom?: T;
   status?: T;
   title?: T;
   body?: T;
@@ -2599,6 +2426,7 @@ export interface QuestionsSelect<T extends boolean = true> {
  */
 export interface QuizQuestionsSelect<T extends boolean = true> {
   title?: T;
+  questionType?: T;
   prompt?: T;
   options?:
     | T
@@ -2607,6 +2435,12 @@ export interface QuizQuestionsSelect<T extends boolean = true> {
         isCorrect?: T;
         id?: T;
       };
+  trueFalseAnswer?: T;
+  acceptedAnswers?: T;
+  textMatchMode?: T;
+  numericCorrectValue?: T;
+  numericTolerance?: T;
+  numericUnit?: T;
   explanation?: T;
   attachments?: T;
   topic?: T;
@@ -2663,6 +2497,10 @@ export interface QuizAttemptsSelect<T extends boolean = true> {
               optionId?: T;
               id?: T;
             };
+        responseKind?: T;
+        textAnswer?: T;
+        numericAnswer?: T;
+        normalizedAnswer?: T;
         optionOrder?:
           | T
           | {
@@ -2712,7 +2550,6 @@ export interface EngineeringFiguresSelect<T extends boolean = true> {
 export interface ProblemsSelect<T extends boolean = true> {
   title?: T;
   prompt?: T;
-  figure?: T;
   difficulty?: T;
   topic?: T;
   tags?: T;
@@ -2746,59 +2583,7 @@ export interface ProblemsSelect<T extends boolean = true> {
               id?: T;
             };
         symbolicTolerance?: T;
-        fbdRubric?:
-          | T
-          | {
-              requiredForces?:
-                | T
-                | {
-                    id?: T;
-                    label?: T;
-                    correctAngle?: T;
-                    angleTolerance?: T;
-                    magnitudeRequired?: T;
-                    correctMagnitude?: T;
-                    magnitudeTolerance?: T;
-                  };
-              requiredMoments?:
-                | T
-                | {
-                    id?: T;
-                    label?: T;
-                    direction?: T;
-                    magnitudeRequired?: T;
-                    correctMagnitude?: T;
-                    magnitudeTolerance?: T;
-                  };
-              forbiddenForces?: T;
-            };
         explanation?: T;
-        id?: T;
-      };
-  resultPlots?:
-    | T
-    | {
-        plotType?: T;
-        title?: T;
-        xLabel?: T;
-        yLabel?: T;
-        xMin?: T;
-        xMax?: T;
-        segments?:
-          | T
-          | {
-              xStart?: T;
-              xEnd?: T;
-              formula?: T;
-              id?: T;
-            };
-        criticalPoints?:
-          | T
-          | {
-              x?: T;
-              label?: T;
-              id?: T;
-            };
         id?: T;
       };
   parameterizationEnabled?: T;
@@ -2871,7 +2656,6 @@ export interface ProblemAttemptsSelect<T extends boolean = true> {
               partIndex?: T;
               studentAnswer?: T;
               studentExpression?: T;
-              placedForces?: T;
               isCorrect?: T;
               score?: T;
               id?: T;

@@ -1,19 +1,9 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
 import { validateProblemTemplate } from '../lib/problemSet/problemTemplate'
-import {
-  validatePlotXMax,
-  validateResultPlotCriticalPoints,
-  validateResultPlotSegments,
-} from '../lib/problemSet/resultPlotValidation'
 
 const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' &&
   ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
-
-const getSiblingPlotType = (siblingData: unknown) =>
-  siblingData && typeof siblingData === 'object'
-    ? (siblingData as { plotType?: unknown }).plotType
-    : undefined
 
 export const Problems: CollectionConfig = {
   slug: 'problems',
@@ -91,11 +81,6 @@ export const Problems: CollectionConfig = {
               required: true,
             },
             {
-              name: 'figure',
-              type: 'relationship',
-              relationTo: 'engineering-figures',
-            },
-            {
               name: 'difficulty',
               type: 'select',
               options: [
@@ -140,7 +125,6 @@ export const Problems: CollectionConfig = {
                   options: [
                     { label: 'Numeric', value: 'numeric' },
                     { label: 'Symbolic', value: 'symbolic' },
-                    { label: 'Free-Body Diagram (Draw)', value: 'fbd-draw' },
                   ],
                 },
                 {
@@ -285,214 +269,8 @@ export const Problems: CollectionConfig = {
                   },
                 },
                 {
-                  name: 'fbdRubric',
-                  type: 'group',
-                  admin: {
-                    condition: (_, siblingData) => siblingData?.partType === 'fbd-draw',
-                    components: {
-                      Field: '@/views/FbdRubricBuilderField#FbdRubricBuilderField',
-                    },
-                  },
-                  fields: [
-                    {
-                      name: 'requiredForces',
-                      dbName: 'req_f',
-                      type: 'array',
-                      fields: [
-                        {
-                          name: 'id',
-                          type: 'text',
-                          required: true,
-                        },
-                        {
-                          name: 'label',
-                          type: 'text',
-                        },
-                        {
-                          name: 'correctAngle',
-                          type: 'number',
-                          required: true,
-                          defaultValue: 0,
-                        },
-                        {
-                          name: 'angleTolerance',
-                          type: 'number',
-                          defaultValue: 5,
-                        },
-                        {
-                          name: 'magnitudeRequired',
-                          type: 'checkbox',
-                          defaultValue: false,
-                        },
-                        {
-                          name: 'correctMagnitude',
-                          type: 'number',
-                        },
-                        {
-                          name: 'magnitudeTolerance',
-                          type: 'number',
-                          defaultValue: 0.05,
-                        },
-                      ],
-                    },
-                    {
-                      name: 'requiredMoments',
-                      dbName: 'req_m',
-                      type: 'array',
-                      label: 'Required Moment Arrows',
-                      fields: [
-                        {
-                          name: 'id',
-                          type: 'text',
-                          required: true,
-                        },
-                        {
-                          name: 'label',
-                          type: 'text',
-                        },
-                        {
-                          name: 'direction',
-                          dbName: 'dir',
-                          type: 'select',
-                          required: true,
-                          options: [
-                            { label: 'Clockwise', value: 'cw' },
-                            { label: 'Counter-clockwise', value: 'ccw' },
-                          ],
-                        },
-                        {
-                          name: 'magnitudeRequired',
-                          type: 'checkbox',
-                          defaultValue: false,
-                        },
-                        {
-                          name: 'correctMagnitude',
-                          type: 'number',
-                          admin: {
-                            condition: (_, siblingData) => Boolean(siblingData?.magnitudeRequired),
-                          },
-                        },
-                        {
-                          name: 'magnitudeTolerance',
-                          type: 'number',
-                          admin: {
-                            condition: (_, siblingData) => Boolean(siblingData?.magnitudeRequired),
-                          },
-                        },
-                      ],
-                    },
-                    {
-                      name: 'forbiddenForces',
-                      type: 'number',
-                      defaultValue: 0,
-                    },
-                  ],
-                },
-                {
-                  name: 'fbdSyncValidator',
-                  type: 'ui',
-                  admin: {
-                    condition: (_, siblingData) => siblingData?.partType === 'fbd-draw',
-                    components: {
-                      Field: '@/views/FbdSyncValidatorField#FbdSyncValidatorField',
-                    },
-                  },
-                },
-                {
                   name: 'explanation',
                   type: 'richText',
-                },
-              ],
-            },
-            {
-              name: 'resultPlots',
-              type: 'array',
-              fields: [
-                {
-                  name: 'plotType',
-                  type: 'select',
-                  required: true,
-                  defaultValue: 'shear',
-                  options: [
-                    { label: 'Shear', value: 'shear' },
-                    { label: 'Moment', value: 'moment' },
-                    { label: 'Deflection', value: 'deflection' },
-                    { label: 'Custom', value: 'custom' },
-                  ],
-                },
-                {
-                  name: 'title',
-                  type: 'text',
-                },
-                {
-                  name: 'xLabel',
-                  type: 'text',
-                  defaultValue: 'x (m)',
-                },
-                {
-                  name: 'yLabel',
-                  type: 'text',
-                },
-                {
-                  name: 'xMin',
-                  type: 'number',
-                  defaultValue: 0,
-                },
-                {
-                  name: 'xMax',
-                  type: 'text',
-                  validate: (value: unknown) => validatePlotXMax(value),
-                },
-                {
-                  name: 'plotWizard',
-                  type: 'ui',
-                  admin: {
-                    components: {
-                      Field: '@/views/PlotWizardField#default',
-                    },
-                  },
-                },
-                {
-                  name: 'segments',
-                  type: 'array',
-                  validate: (value, { siblingData }) =>
-                    validateResultPlotSegments({
-                      plotType: getSiblingPlotType(siblingData),
-                      segments: value,
-                    }),
-                  fields: [
-                    {
-                      name: 'xStart',
-                      type: 'text',
-                      required: true,
-                    },
-                    {
-                      name: 'xEnd',
-                      type: 'text',
-                      required: true,
-                    },
-                    {
-                      name: 'formula',
-                      type: 'text',
-                      required: true,
-                    },
-                  ],
-                },
-                {
-                  name: 'criticalPoints',
-                  type: 'array',
-                  validate: (value) => validateResultPlotCriticalPoints(value),
-                  fields: [
-                    {
-                      name: 'x',
-                      type: 'text',
-                      required: true,
-                    },
-                    {
-                      name: 'label',
-                      type: 'text',
-                    },
-                  ],
                 },
               ],
             },

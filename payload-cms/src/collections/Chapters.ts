@@ -204,38 +204,39 @@ export const Chapters: CollectionConfig = {
       },
     },
     {
-      name: 'title',
-      type: 'text',
-      required: true,
-    },
-    {
-      name: 'chapterNumber',
-      label: 'Chapter number',
-      type: 'number',
-      min: 1,
-      admin: {
-        description: 'Shown as Ch {number} in the sidebar.',
-      },
-    },
-    {
-      name: 'lessons',
-      label: 'Lessons',
-      type: 'relationship',
-      relationTo: 'lessons', // each chapter can link to many lessons
-      hasMany: true,
-      admin: {
-        hidden: true,
-      },
-    },
-    {
-      name: 'class',
-      label: 'Course',
-      type: 'relationship',
-      relationTo: 'classes', // many chapters → one class
-      required: true,
-      admin: {
-        description: 'Pre-filled when you add a chapter from Course Workspace.',
-      },
+      type: 'row',
+      fields: [
+        {
+          name: 'title',
+          type: 'text',
+          required: true,
+          admin: {
+            width: '50%',
+          },
+        },
+        {
+          name: 'chapterNumber',
+          label: 'Chapter number',
+          type: 'number',
+          min: 1,
+          admin: {
+            width: '16%',
+            description: 'Shown as Ch {number} in the sidebar.',
+          },
+        },
+        {
+          name: 'class',
+          label: 'Course',
+          type: 'relationship',
+          relationTo: 'classes', // many chapters → one class
+          required: true,
+          admin: {
+            width: '34%',
+            description:
+              'Pre-filled from Course Workspace. Change only if this chapter belongs in a different course.',
+          },
+        },
+      ],
     },
     {
       name: 'slug',
@@ -278,6 +279,25 @@ export const Chapters: CollectionConfig = {
       type: 'richText', // same as before, just now “chapter objective”
       admin: {
         description: 'Use $...$ for inline math and $$...$$ for display math.',
+      },
+    },
+    {
+      name: 'lessons',
+      label: 'Lessons',
+      type: 'relationship',
+      relationTo: 'lessons', // each chapter can link to many lessons
+      hasMany: true,
+      admin: {
+        hidden: true,
+      },
+    },
+    {
+      name: 'chapterWorkspace',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '@/views/ChapterWorkspaceField#default',
+        },
       },
     },
   ],

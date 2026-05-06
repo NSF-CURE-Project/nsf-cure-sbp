@@ -1,16 +1,9 @@
 "use client";
 
-import { EngineeringFigure } from "@/components/problemSet/EngineeringFigure";
-import { type FBDPlacedAnswer } from "@/components/problemSet/FBDCanvas";
 import { PartInputRow } from "@/components/problemSet/PartInputRow";
-import { ResultPlot } from "@/components/problemSet/ResultPlot";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
 import { cn } from "@/lib/utils";
-import type {
-  EngineeringFigureDoc,
-  ProblemDoc,
-  ProblemPart,
-} from "@/lib/payloadSdk/types";
+import type { ProblemDoc, ProblemPart } from "@/lib/payloadSdk/types";
 
 type ProblemPartEvaluation = {
   partIndex: number;
@@ -28,8 +21,8 @@ type ProblemEvaluation = {
 type ProblemCardProps = {
   problem: ProblemDoc;
   index: number;
-  partAnswers: Record<number, string | FBDPlacedAnswer>;
-  onChange: (partIndex: number, value: string | FBDPlacedAnswer) => void;
+  partAnswers: Record<number, string>;
+  onChange: (partIndex: number, value: string) => void;
   submitted: boolean;
   evaluation?: ProblemEvaluation;
   showAnswers: boolean;
@@ -40,57 +33,19 @@ type ProblemCardProps = {
 const isRichTextValue = (value: unknown): value is Record<string, unknown> =>
   Boolean(value && typeof value === "object");
 
-const toVariableName = (value: string) =>
-  value
-    .trim()
-    .replace(/\s+/g, "_")
-    .replace(/[^a-zA-Z0-9_]/g, "");
-
-const resolveFigure = (value: unknown): EngineeringFigureDoc | null => {
-  if (!value || typeof value !== "object") return null;
-  if (!("figureData" in value)) return null;
-  return value as EngineeringFigureDoc;
-};
-
 const normalizeDifficulty = (difficulty?: string) => {
   if (!difficulty) return null;
   if (difficulty.toLowerCase() === "intro") return "Intro";
   return difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
 };
 
-const buildGivenFacts = (
-  problem: ProblemDoc,
-  figure: EngineeringFigureDoc | null
-) => {
+const buildGivenFacts = (problem: ProblemDoc) => {
   const facts: string[] = [];
   if (problem.topic) facts.push(`Topic: ${problem.topic}`);
   const difficulty = normalizeDifficulty(problem.difficulty);
   if (difficulty) facts.push(`Difficulty: ${difficulty}`);
   if (Array.isArray(problem.tags) && problem.tags.length > 0) {
     facts.push(`Tags: ${problem.tags.slice(0, 2).join(", ")}`);
-  }
-
-  if (figure?.figureData?.type === "beam") {
-    const beam = figure.figureData;
-    facts.push(`Span: ${beam.length} m`);
-    facts.push(`Supports: ${beam.supports.length}`);
-    if (Array.isArray(beam.pointLoads) && beam.pointLoads.length > 0) {
-      facts.push(`Point loads: ${beam.pointLoads.length}`);
-    }
-    if (
-      Array.isArray(beam.distributedLoads) &&
-      beam.distributedLoads.length > 0
-    ) {
-      facts.push(`Distributed loads: ${beam.distributedLoads.length}`);
-    }
-  }
-  if (figure?.figureData?.type === "truss") {
-    const truss = figure.figureData;
-    facts.push(`Nodes: ${truss.nodes.length}`);
-    facts.push(`Members: ${truss.members.length}`);
-  }
-  if (figure?.figureData?.type === "fbd") {
-    facts.push(`Forces: ${figure.figureData.forces.length}`);
   }
   if (problem.variant?.parameters?.length) {
     facts.push(`Variant seed: ${problem.variant.seed}`);
@@ -112,35 +67,10 @@ export function ProblemCard({
   const parts: ProblemPart[] = Array.isArray(problem.parts)
     ? problem.parts
     : [];
-  const figure = resolveFigure(problem.figure);
   const evaluationByPart = new Map(
     (evaluation?.parts ?? []).map((part) => [part.partIndex, part])
   );
-  const plotScope = parts.reduce<Record<string, number>>(
-    (scope, part, partIndex) => {
-      const partLabel = (part.label ?? "").trim();
-      if (!partLabel) return scope;
-      const rawInput = partAnswers[partIndex];
-      const fromInput =
-        typeof rawInput === "string" ? Number.parseFloat(rawInput) : Number.NaN;
-      const fromEvaluation = evaluationByPart.get(partIndex)?.studentAnswer;
-      const value = Number.isFinite(fromInput)
-        ? fromInput
-        : typeof fromEvaluation === "number" && Number.isFinite(fromEvaluation)
-          ? fromEvaluation
-          : null;
-      if (value == null) return scope;
-      scope[partLabel] = value;
-      const sanitized = toVariableName(partLabel);
-      if (sanitized) scope[sanitized] = value;
-      return scope;
-    },
-    {}
-  );
-  const resultPlots = Array.isArray(problem.resultPlots)
-    ? problem.resultPlots
-    : [];
-  const givenFacts = buildGivenFacts(problem, figure);
+  const givenFacts = buildGivenFacts(problem);
   const variantValues = [
     ...(Array.isArray(problem.variant?.parameters)
       ? problem.variant.parameters
@@ -173,8 +103,6 @@ export function ProblemCard({
           </p>
         ) : null}
       </header>
-
-      {figure ? <EngineeringFigure figure={figure} /> : null}
 
       {givenFacts.length ? (
         <section className="rounded-md border border-border/60 bg-background/60 p-3">
@@ -237,28 +165,12 @@ export function ProblemCard({
             partNumber={partIndex + 1}
             value={partAnswers[partIndex] ?? ""}
             onChange={(nextValue) => onChange(partIndex, nextValue)}
-            figure={figure}
             submitted={submitted}
             partEval={evaluationByPart.get(partIndex)}
             showAnswers={showAnswers}
           />
         ))}
       </div>
-
-      {submitted && resultPlots.length ? (
-        <section className="space-y-3">
-          <h4 className="text-sm font-semibold text-foreground">
-            Result Plots
-          </h4>
-          {resultPlots.map((plot, plotIndex) => (
-            <ResultPlot
-              key={plot.id ?? `${problem.id}-plot-${plotIndex}`}
-              plot={plot}
-              scope={plotScope}
-            />
-          ))}
-        </section>
-      ) : null}
     </article>
   );
 }

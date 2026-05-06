@@ -10,7 +10,6 @@ describe('problemPreviewGrading', () => {
   it('normalizes preview part types', () => {
     expect(normalizePreviewPartType('numeric')).toBe('numeric')
     expect(normalizePreviewPartType('symbolic')).toBe('symbolic')
-    expect(normalizePreviewPartType('fbd-draw')).toBe('fbd-draw')
     expect(normalizePreviewPartType('other')).toBe('numeric')
     expect(normalizePreviewPartType(undefined)).toBe('numeric')
   })
@@ -47,22 +46,15 @@ describe('problemPreviewGrading', () => {
     ])
   })
 
-  it('builds submitted parts for numeric, symbolic, and fbd-draw paths', () => {
+  it('builds submitted parts for numeric and symbolic paths', () => {
     const submitted = buildPreviewSubmittedParts({
       parts: [
         { partType: 'numeric' },
         { partType: 'symbolic' },
-        { partType: 'fbd-draw' },
       ],
       studentInputs: {
         0: ' 12.5 ',
         1: ' x + y ',
-      },
-      fbdInputs: {
-        2: {
-          forces: [{ id: 'F1', label: 'F1', angle: 30, magnitude: 1.2 }],
-          moments: [{ id: 'M1', label: 'M1', direction: 'ccw', magnitude: 0.8 }],
-        },
       },
     })
 
@@ -70,39 +62,11 @@ describe('problemPreviewGrading', () => {
       partIndex: 0,
       studentAnswer: 12.5,
       studentExpression: null,
-      placedForces: null,
     })
     expect(submitted[1]).toEqual({
       partIndex: 1,
       studentAnswer: null,
       studentExpression: 'x + y',
-      placedForces: null,
-    })
-    expect(submitted[2]).toEqual({
-      partIndex: 2,
-      studentAnswer: null,
-      studentExpression: null,
-      placedForces: {
-        forces: [
-          {
-            id: 'F1',
-            label: 'F1',
-            origin: [0, 0],
-            angle: 30,
-            magnitude: 1.2,
-          },
-        ],
-        moments: [
-          {
-            id: 'M1',
-            label: 'M1',
-            direction: 'ccw',
-            x: 0,
-            y: 0,
-            magnitude: 0.8,
-          },
-        ],
-      },
     })
   })
 
@@ -110,7 +74,6 @@ describe('problemPreviewGrading', () => {
     const submitted = buildPreviewSubmittedParts({
       parts: [{ partType: 'numeric' }],
       studentInputs: { 0: 'not-a-number' },
-      fbdInputs: {},
     })
 
     expect(submitted[0]?.studentAnswer).toBeNull()

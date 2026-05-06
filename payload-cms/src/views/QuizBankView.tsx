@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { parseStringArray } from '@/lib/quiz'
 
 type CourseOption = {
   id: string
@@ -504,12 +505,6 @@ export default function QuizBankView({ initialQuizzes, courses, chapters }: Quiz
         .filter((value) => Number.isFinite(value))
         .sort((a, b) => a - b)
 
-      if (optionHeaders.length < 3) {
-        setImportError('CSV must include at least option_1, option_2, option_3 columns.')
-        setImportStatus('done')
-        return
-      }
-
       const errors: { row: number; message: string }[] = []
       let successCount = 0
 
@@ -540,14 +535,14 @@ export default function QuizBankView({ initialQuizzes, courses, chapters }: Quiz
           })
           .filter(Boolean) as OptionDraft[]
 
-        if (options.length < 3) {
-          errors.push({ row: rowNumber, message: 'Needs at least 3 options.' })
-          continue
-        }
-        if (!options.some((opt) => opt.isCorrect)) {
-          errors.push({ row: rowNumber, message: 'No correct option marked.' })
-          continue
-        }
+        const questionTypeValue = row.question_type?.trim().toLowerCase()
+        const questionType =
+          questionTypeValue &&
+          ['single-select', 'multi-select', 'true-false', 'short-text', 'numeric'].includes(questionTypeValue)
+            ? questionTypeValue
+            : correctIndices.length > 1
+              ? 'multi-select'
+              : 'single-select'
 
         const tags = row.tags
           ? row.tags
@@ -563,22 +558,60 @@ export default function QuizBankView({ initialQuizzes, courses, chapters }: Quiz
             : undefined
 
         try {
+          const payload: Record<string, unknown> = {
+            title,
+            questionType,
+            prompt: createLexicalText(prompt),
+            explanation: row.explanation?.trim()
+              ? createLexicalText(row.explanation.trim())
+              : undefined,
+            topic: row.topic?.trim() || undefined,
+            tags,
+            difficulty,
+            _status: 'draft',
+          }
+
+          if (questionType === 'single-select' || questionType === 'multi-select') {
+            if (questionType === 'single-select' && options.filter((opt) => opt.isCorrect).length !== 1) {
+              errors.push({ row: rowNumber, message: 'Single-select rows need exactly one correct option.' })
+              continue
+            }
+            if (questionType === 'multi-select' && options.length < 3) {
+              errors.push({ row: rowNumber, message: 'Multi-select rows need at least 3 options.' })
+              continue
+            }
+            if (options.length < 2 || !options.some((opt) => opt.isCorrect)) {
+              errors.push({ row: rowNumber, message: 'Choice rows need valid options and a correct answer.' })
+              continue
+            }
+            payload.options = options
+          } else if (questionType === 'true-false') {
+            payload.trueFalseAnswer = parseBoolean(row.true_false_answer || row.correct_answer || 'true')
+          } else if (questionType === 'short-text') {
+            const acceptedAnswers = parseStringArray(row.accepted_answers ?? row.correct_answer ?? '')
+            if (!acceptedAnswers.length) {
+              errors.push({ row: rowNumber, message: 'Short-text rows need accepted_answers.' })
+              continue
+            }
+            payload.acceptedAnswers = acceptedAnswers
+            payload.textMatchMode = row.match_mode?.trim().toLowerCase() === 'exact' ? 'exact' : 'normalized'
+          } else if (questionType === 'numeric') {
+            const numericCorrectValue = Number(row.numeric_value ?? row.correct_answer ?? '')
+            if (!Number.isFinite(numericCorrectValue)) {
+              errors.push({ row: rowNumber, message: 'Numeric rows need numeric_value.' })
+              continue
+            }
+            payload.numericCorrectValue = numericCorrectValue
+            const tolerance = Number(row.numeric_tolerance ?? '0')
+            payload.numericTolerance = Number.isFinite(tolerance) && tolerance >= 0 ? tolerance : 0
+            payload.numericUnit = row.numeric_unit?.trim() || undefined
+          }
+
           const res = await fetch('/api/quiz-questions', {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              title,
-              prompt: createLexicalText(prompt),
-              explanation: row.explanation?.trim()
-                ? createLexicalText(row.explanation.trim())
-                : undefined,
-              options,
-              topic: row.topic?.trim() || undefined,
-              tags,
-              difficulty,
-              _status: 'draft',
-            }),
+            body: JSON.stringify(payload),
           })
           if (!res.ok) {
             const errorData = await res.json().catch(() => null)
@@ -1129,9 +1162,11 @@ export default function QuizBankView({ initialQuizzes, courses, chapters }: Quiz
                 <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
                   CSV headers supported: <strong>title</strong>, <strong>prompt</strong>,{' '}
                   <strong>explanation</strong>, <strong>topic</strong>, <strong>tags</strong>,{' '}
-                  <strong>difficulty</strong>, <strong>option_1</strong>…<strong>option_n</strong>{' '}
+                  <strong>difficulty</strong>, <strong>question_type</strong>, <strong>option_1</strong>…<strong>option_n</strong>{' '}
                   and <strong>option_1_correct</strong>. Optionally include{' '}
-                  <strong>correct_options</strong> with comma-separated indices.
+                  <strong>correct_options</strong>, <strong>true_false_answer</strong>,{' '}
+                  <strong>accepted_answers</strong>, <strong>match_mode</strong>, <strong>numeric_value</strong>,{' '}
+                  <strong>numeric_tolerance</strong>, and <strong>numeric_unit</strong>.
                 </div>
               </div>
               <input

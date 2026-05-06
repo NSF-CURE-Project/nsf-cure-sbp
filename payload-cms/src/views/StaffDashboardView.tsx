@@ -5,10 +5,7 @@ import Link from 'next/link'
 import { getReportingSummary } from '../utils/analyticsSummary'
 import { findAllDocs } from '../reporting/data'
 
-const cppGold = 'var(--cpp-gold)'
 const cppInk = 'var(--cpp-ink)'
-const accentBlue = '#1553cf'
-const accentCyan = '#0a89c2'
 const ratingScoreMap: Record<string, number> = {
   not_helpful: 1,
   somewhat_helpful: 2,
@@ -25,11 +22,11 @@ const resolveRatingScore = (value: unknown) => {
 }
 
 const statCardStyle: React.CSSProperties = {
-  border: '1px solid var(--admin-surface-border)',
-  borderRadius: 12,
-  padding: '12px 14px',
-  background: 'linear-gradient(165deg, #ffffff 0%, #ecf4ff 55%, #e2f6ff 100%)',
-  boxShadow: '0 1px 0 rgba(18, 65, 147, 0.1)',
+  border: '1px solid rgba(15, 23, 42, 0.07)',
+  borderRadius: 16,
+  padding: '14px 16px',
+  background: 'rgba(255, 255, 255, 0.92)',
+  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.72)',
   minWidth: 0,
   textAlign: 'left',
 }
@@ -62,10 +59,10 @@ const containerStyle: React.CSSProperties = {
   maxWidth: 1200,
   width: '100%',
   margin: '0 auto',
-  padding: '24px 16px 48px',
+  padding: '28px 18px 56px',
   display: 'flex',
   flexDirection: 'column',
-  gap: 16,
+  gap: 20,
   alignItems: 'center',
 }
 const contentBoxStyle: React.CSSProperties = {
@@ -76,11 +73,10 @@ const contentBoxStyle: React.CSSProperties = {
 }
 
 const sectionLabelStyle: React.CSSProperties = {
-  fontSize: 12,
-  letterSpacing: 0.8,
-  textTransform: 'uppercase',
-  color: '#0b61b9',
-  marginTop: 12,
+  fontSize: 13,
+  letterSpacing: '-0.01em',
+  color: 'var(--cpp-ink)',
+  marginTop: 8,
   fontWeight: 800,
   alignSelf: 'center',
   textAlign: 'left',
@@ -89,18 +85,18 @@ const sectionLabelStyle: React.CSSProperties = {
 }
 
 const contentHealthCardStyle: React.CSSProperties = {
-  borderRadius: 0,
-  border: '1px solid transparent',
-  background: 'linear-gradient(140deg, #ffffff 0%, #eef6ff 100%)',
-  padding: '12px 14px',
+  borderRadius: 14,
+  border: '1px solid rgba(15, 23, 42, 0.06)',
+  background: 'rgba(255, 255, 255, 0.9)',
+  padding: '14px 16px',
   boxShadow: 'none',
 }
 
 const workspaceCardStyle: React.CSSProperties = {
-  borderRadius: 12,
-  border: '1px solid var(--admin-surface-border)',
-  background: 'linear-gradient(165deg, #ffffff 0%, #ecf4ff 55%, #e2f6ff 100%)',
-  padding: '12px',
+  borderRadius: 16,
+  border: '1px solid rgba(15, 23, 42, 0.06)',
+  background: 'rgba(255, 255, 255, 0.94)',
+  padding: '16px',
   boxShadow: 'none',
   width: '100%',
   minWidth: 0,
@@ -111,6 +107,13 @@ const workspaceCardStyle: React.CSSProperties = {
   alignItems: 'flex-start',
   gap: 8,
   textAlign: 'left',
+}
+
+const quickActionCardStyle: React.CSSProperties = {
+  ...workspaceCardStyle,
+  minHeight: 86,
+  padding: '12px 14px',
+  gap: 4,
 }
 
 const analyticsRowStyle: React.CSSProperties = {
@@ -129,19 +132,19 @@ const heroGridStyle: React.CSSProperties = {
 }
 
 const summaryPanelStyle: React.CSSProperties = {
-  borderRadius: 14,
-  border: '1px solid var(--admin-surface-border)',
-  background: 'linear-gradient(160deg, #ffffff 0%, #edf5ff 62%, #e7f7ff 100%)',
-  boxShadow: '0 1px 0 rgba(18, 65, 147, 0.1)',
-  padding: '14px 16px',
+  borderRadius: 20,
+  border: '1px solid rgba(15, 23, 42, 0.06)',
+  background: 'rgba(255, 255, 255, 0.97)',
+  boxShadow: '0 12px 30px rgba(15, 23, 42, 0.05)',
+  padding: '18px 20px',
 }
 
 const moduleRowStyle: React.CSSProperties = {
-  borderRadius: 14,
-  border: '1px solid var(--admin-surface-border)',
-  background: 'linear-gradient(160deg, #ffffff 0%, #edf5ff 62%, #e7f7ff 100%)',
+  borderRadius: 16,
+  border: '1px solid rgba(15, 23, 42, 0.06)',
+  background: 'rgba(255, 255, 255, 0.92)',
   padding: '14px 16px',
-  boxShadow: '0 1px 0 rgba(18, 65, 147, 0.1)',
+  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.78)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -159,12 +162,12 @@ const moduleIconStyle: React.CSSProperties = {
   width: 34,
   height: 34,
   borderRadius: 10,
-  border: '1px solid var(--admin-surface-border)',
-  background: 'linear-gradient(160deg, #ecf4ff 0%, #d3e7ff 100%)',
+  border: '1px solid rgba(15, 23, 42, 0.08)',
+  background: 'rgba(15, 23, 42, 0.04)',
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  color: 'var(--cpp-ink)',
+  color: '#38506b',
   flexShrink: 0,
 }
 
@@ -193,15 +196,15 @@ const mockHeaderStyle: React.CSSProperties = {
 }
 
 const mockChipStyle: React.CSSProperties = {
-  borderRadius: 8,
-  padding: '8px 14px',
-  fontSize: 13,
+  borderRadius: 999,
+  padding: '7px 12px',
+  fontSize: 12,
   fontWeight: 700,
-  letterSpacing: 0.1,
-  background: 'var(--admin-surface)',
+  letterSpacing: 0.02,
+  background: 'rgba(15, 23, 42, 0.04)',
   color: cppInk,
-  border: '1px solid var(--admin-surface-border)',
-  boxShadow: '0 4px 10px rgba(15, 23, 42, 0.12)',
+  border: '1px solid rgba(15, 23, 42, 0.08)',
+  boxShadow: 'none',
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -210,17 +213,17 @@ const mockChipStyle: React.CSSProperties = {
 
 const heroPrimaryStyle: React.CSSProperties = {
   ...mockChipStyle,
-  background: 'var(--admin-chip-primary-bg)',
+  background: '#1f4578',
   color: 'var(--admin-chip-primary-text)',
-  borderColor: 'rgba(24, 92, 208, 0.45)',
-  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
+  borderColor: 'rgba(31, 69, 120, 0.4)',
+  boxShadow: 'none',
 }
 
 const heroSecondaryStyle: React.CSSProperties = {
   ...mockChipStyle,
-  background: 'linear-gradient(135deg, rgba(21, 83, 207, 0.14) 0%, rgba(10, 137, 194, 0.16) 100%)',
-  borderColor: 'rgba(25, 96, 216, 0.42)',
-  color: '#0b4aaf',
+  background: 'rgba(15, 23, 42, 0.04)',
+  borderColor: 'rgba(15, 23, 42, 0.08)',
+  color: 'var(--cpp-ink)',
   boxShadow: 'none',
 }
 
@@ -359,6 +362,7 @@ const StaffDashboardContent = ({
     accounts: number
     unanswered: number
     unreadFeedback: number
+    awaitingLessonFeedback: number
     helpfulnessAvg: number | null
     activeStudents: number
     publishedLessons: number
@@ -405,9 +409,9 @@ const StaffDashboardContent = ({
         transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
       }
       .quick-action-card:hover > div {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 26px rgba(15, 23, 42, 0.14);
-        border-color: rgba(15, 23, 42, 0.28);
+        transform: translateY(-1px);
+        box-shadow: 0 16px 28px rgba(15, 23, 42, 0.06);
+        border-color: rgba(15, 23, 42, 0.1);
       }
       .quick-action-card:active > div {
         transform: translateY(0);
@@ -417,9 +421,9 @@ const StaffDashboardContent = ({
         transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
       }
       .dashboard-card-link:hover .dashboard-card {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
-        border-color: rgba(15, 23, 42, 0.22);
+        transform: translateY(-1px);
+        box-shadow: 0 16px 28px rgba(15, 23, 42, 0.06);
+        border-color: rgba(15, 23, 42, 0.1);
       }
       .dashboard-card-link:active .dashboard-card {
         transform: translateY(0);
@@ -429,7 +433,7 @@ const StaffDashboardContent = ({
         transition: box-shadow 150ms ease, border-color 150ms ease;
       }
       .dashboard-chip:hover {
-        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
       }
       .dashboard-chip-link {
         display: inline-flex;
@@ -449,17 +453,17 @@ const StaffDashboardContent = ({
         transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
       }
       .dashboard-stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
-        border-color: rgba(15, 23, 42, 0.22);
+        transform: translateY(-1px);
+        box-shadow: 0 16px 28px rgba(15, 23, 42, 0.06);
+        border-color: rgba(15, 23, 42, 0.1);
       }
       .dashboard-panel {
         transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
       }
       .dashboard-panel:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
-        border-color: rgba(15, 23, 42, 0.22);
+        transform: translateY(-1px);
+        box-shadow: 0 18px 32px rgba(15, 23, 42, 0.06);
+        border-color: rgba(15, 23, 42, 0.1);
       }
       .dashboard-top-grid {
         display: grid;
@@ -488,11 +492,10 @@ const StaffDashboardContent = ({
         margin-bottom: 12px;
       }
       .content-health-heading-title {
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 800;
-        letter-spacing: 0.9px;
-        text-transform: uppercase;
-        color: var(--cpp-muted);
+        letter-spacing: -0.01em;
+        color: var(--cpp-ink);
       }
       .content-health-heading-subtitle {
         margin: 6px 0 0;
@@ -507,11 +510,11 @@ const StaffDashboardContent = ({
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
       .content-health-card {
-        border-radius: 14px;
-        border: 1px solid var(--admin-surface-border);
-        background: linear-gradient(160deg, #ffffff 0%, #eef6ff 100%);
-        padding: 12px;
-        box-shadow: 0 1px 0 rgba(15, 23, 42, 0.06);
+        border-radius: 16px;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        background: rgba(255, 255, 255, 0.96);
+        padding: 14px;
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -568,9 +571,9 @@ const StaffDashboardContent = ({
         gap: 8px;
       }
       .content-health-item {
-        border: 1px solid var(--admin-surface-border);
+        border: 1px solid rgba(15, 23, 42, 0.06);
         border-radius: 10px;
-        background: linear-gradient(140deg, #f2f8ff 0%, #e5f2ff 100%);
+        background: rgba(255, 255, 255, 0.72);
         padding: 10px 10px;
         display: flex;
         align-items: center;
@@ -602,9 +605,9 @@ const StaffDashboardContent = ({
         font-size: 12px;
         font-weight: 700;
         color: var(--cpp-ink);
-        border: 1px solid var(--admin-surface-border);
+        border: 1px solid rgba(15, 23, 42, 0.08);
         border-radius: 999px;
-        background: var(--admin-surface);
+        background: rgba(15, 23, 42, 0.04);
         padding: 4px 9px;
         flex-shrink: 0;
         transition: background 140ms ease, border-color 140ms ease;
@@ -623,9 +626,9 @@ const StaffDashboardContent = ({
         padding: 2px 2px 0;
       }
       .content-health-empty {
-        border: 1px dashed var(--admin-surface-border);
+        border: 1px dashed rgba(15, 23, 42, 0.12);
         border-radius: 10px;
-        background: linear-gradient(140deg, #f2f8ff 0%, #e5f2ff 100%);
+        background: rgba(255, 255, 255, 0.68);
         padding: 12px;
       }
       .content-health-empty-title {
@@ -705,25 +708,25 @@ const StaffDashboardContent = ({
             width: '100%',
             maxWidth: 1120,
             margin: '0 auto',
-            borderRadius: 14,
-            padding: '12px 18px 14px',
-            background: 'var(--admin-hero-bg)',
-            border: '1px solid var(--admin-surface-border)',
+            borderRadius: 22,
+            padding: '18px 22px 20px',
+            background: 'rgba(255, 255, 255, 0.97)',
+            border: '1px solid rgba(15, 23, 42, 0.06)',
             position: 'relative',
             overflow: 'hidden',
-            boxShadow: '0 8px 24px rgba(19, 80, 191, 0.14)',
+            boxShadow: '0 18px 40px rgba(15, 23, 42, 0.06)',
           }}
           className="admin-dashboard-hero"
         >
           <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundImage:
-                'linear-gradient(to right, var(--admin-hero-grid) 1px, transparent 1px), linear-gradient(to bottom, var(--admin-hero-grid) 1px, transparent 1px)',
-              backgroundSize: '120px 120px',
-              opacity: 0.1,
-              pointerEvents: 'none',
+              style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundImage:
+                  'linear-gradient(to right, var(--admin-hero-grid) 1px, transparent 1px), linear-gradient(to bottom, var(--admin-hero-grid) 1px, transparent 1px)',
+                backgroundSize: '120px 120px',
+                opacity: 0.1,
+                pointerEvents: 'none',
             }}
           />
           <div style={heroGridStyle}>
@@ -733,8 +736,8 @@ const StaffDashboardContent = ({
                   fontSize: 12,
                   letterSpacing: 1.2,
                   textTransform: 'uppercase',
-                  color: cppGold,
-                  fontWeight: 800,
+                  color: 'var(--cpp-muted)',
+                  fontWeight: 700,
                 }}
               >
                 Admin Dashboard
@@ -744,7 +747,7 @@ const StaffDashboardContent = ({
                   fontSize: 28,
                   fontWeight: 900,
                   margin: '6px 0 10px',
-                  color: accentBlue,
+                  color: 'var(--cpp-ink)',
                   lineHeight: 1.15,
                   letterSpacing: -0.1,
                 }}
@@ -779,10 +782,10 @@ const StaffDashboardContent = ({
                   <div
                     style={{
                       fontSize: 11,
-                      fontWeight: 800,
+                      fontWeight: 700,
                       textTransform: 'uppercase',
                       letterSpacing: 0.8,
-                      color: accentBlue,
+                      color: 'var(--cpp-muted)',
                     }}
                   >
                     Analytics
@@ -807,10 +810,10 @@ const StaffDashboardContent = ({
               <div
                 style={{
                   fontSize: 11,
-                  fontWeight: 800,
+                  fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: 0.8,
-                  color: accentCyan,
+                  color: 'var(--cpp-muted)',
                 }}
               >
                 Quick Actions
@@ -823,13 +826,13 @@ const StaffDashboardContent = ({
                   href="/admin/collections/questions?where[status][equals]=open"
                   style={{ textDecoration: 'none' }}
                 >
-                  <div style={workspaceCardStyle} className="dashboard-panel">
+                  <div style={quickActionCardStyle} className="dashboard-panel">
                     <div
                       style={{
-                        fontSize: 11,
+                        fontSize: 10,
                         textTransform: 'uppercase',
                         letterSpacing: '0.08em',
-                        color: accentBlue,
+                        color: 'var(--cpp-muted)',
                         lineHeight: 1.1,
                       }}
                     >
@@ -837,7 +840,7 @@ const StaffDashboardContent = ({
                     </div>
                     <div
                       style={{
-                        fontSize: 30,
+                        fontSize: 24,
                         fontWeight: 900,
                         color: 'var(--cpp-ink)',
                         lineHeight: 1,
@@ -845,7 +848,7 @@ const StaffDashboardContent = ({
                     >
                       {stats.unanswered}
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                    <div style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>
                       Unanswered questions
                     </div>
                   </div>
@@ -854,21 +857,21 @@ const StaffDashboardContent = ({
                   href="/admin/collections/feedback?where[read][equals]=false"
                   style={{ textDecoration: 'none' }}
                 >
-                  <div style={workspaceCardStyle} className="dashboard-panel">
+                  <div style={quickActionCardStyle} className="dashboard-panel">
                     <div
                       style={{
-                        fontSize: 11,
+                        fontSize: 10,
                         textTransform: 'uppercase',
                         letterSpacing: '0.08em',
-                        color: accentCyan,
+                        color: 'var(--cpp-muted)',
                         lineHeight: 1.1,
                       }}
                     >
-                      Feedback
+                      Sitewide Feedback
                     </div>
                     <div
                       style={{
-                        fontSize: 30,
+                        fontSize: 24,
                         fontWeight: 900,
                         color: 'var(--cpp-ink)',
                         lineHeight: 1,
@@ -876,7 +879,65 @@ const StaffDashboardContent = ({
                     >
                       {stats.unreadFeedback}
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Unread feedback</div>
+                    <div style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>
+                      Unread platform feedback
+                    </div>
+                  </div>
+                </Link>
+                <Link href="/admin/collections/lesson-feedback" style={{ textDecoration: 'none' }}>
+                  <div style={quickActionCardStyle} className="dashboard-panel">
+                    <div
+                      style={{
+                        fontSize: 10,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        color: 'var(--cpp-muted)',
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      Lesson Feedback
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 24,
+                        fontWeight: 900,
+                        color: 'var(--cpp-ink)',
+                        lineHeight: 1,
+                      }}
+                    >
+                      {stats.awaitingLessonFeedback}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>
+                      Awaiting staff reply
+                    </div>
+                  </div>
+                </Link>
+                <Link href="/admin/student-performance" style={{ textDecoration: 'none' }}>
+                  <div style={quickActionCardStyle} className="dashboard-panel">
+                    <div
+                      style={{
+                        fontSize: 10,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        color: 'var(--cpp-muted)',
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      Student Performance
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 18,
+                        fontWeight: 800,
+                        color: 'var(--cpp-ink)',
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      Open
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>
+                      View student stats
+                    </div>
                   </div>
                 </Link>
               </div>
@@ -994,7 +1055,7 @@ const StaffDashboardContent = ({
                   padding: 3,
                   borderRadius: 12,
                   border: '1px solid var(--admin-surface-border)',
-                  background: 'linear-gradient(140deg, #edf6ff 0%, #e1f1ff 100%)',
+                  background: 'rgba(237, 246, 255, 0.9)',
                 }}
               >
                 <Link href="/admin/collections/classrooms" className="dashboard-chip-link">
@@ -1267,6 +1328,7 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
 
   let unansweredCount = 0
   let unreadFeedbackCount = 0
+  let awaitingLessonFeedbackCount = 0
   let accountsCount = 0
   let activeStudentsCount = 0
   let publishedLessonsCount = 0
@@ -1400,6 +1462,10 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     const lessons = await findAllDocs(payload, 'lessons')
 
     const lessonFeedback = await findAllDocs(payload, 'lesson-feedback')
+    awaitingLessonFeedbackCount = lessonFeedback.filter((doc) => {
+      const reply = (doc as { reply?: unknown }).reply
+      return !(typeof reply === 'string' && reply.trim())
+    }).length
 
     const progress = await findAllDocs(payload, 'lesson-progress')
 
@@ -1543,6 +1609,7 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     contentHealth.lowHelpfulness = lowHelpfulness.sort((a, b) => a.rating - b.rating).slice(0, 6)
   } catch {
     contentHealth = { lowCompletion: [], highQuestions: [], lowHelpfulness: [] }
+    awaitingLessonFeedbackCount = 0
   }
 
   try {
@@ -1560,6 +1627,7 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     accounts: accountsCount,
     unanswered: unansweredCount,
     unreadFeedback: unreadFeedbackCount,
+    awaitingLessonFeedback: awaitingLessonFeedbackCount,
     helpfulnessAvg,
     activeStudents: activeStudentsCount,
     publishedLessons: publishedLessonsCount,

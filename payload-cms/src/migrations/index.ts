@@ -30,6 +30,7 @@ import * as migration_20260402_090000_add_problem_templates_runtime from './2026
 import * as migration_20260408_120000_add_problem_attempt_scope_key from './20260408_120000_add_problem_attempt_scope_key'
 import * as migration_20260417_173500_add_lesson_quiz_block_fields from './20260417_173500_add_lesson_quiz_block_fields'
 import * as migration_20260417_190000_add_questions_classroom_scope from './20260417_190000_add_questions_classroom_scope'
+import * as migration_20260421_120000_add_multi_format_quiz_support from './20260421_120000_add_multi_format_quiz_support'
 import * as migration_20260506_120000_add_text_section_block from './20260506_120000_add_text_section_block'
 
 export const migrations = [
@@ -192,6 +193,11 @@ export const migrations = [
     up: migration_20260417_190000_add_questions_classroom_scope.up,
     down: migration_20260417_190000_add_questions_classroom_scope.down,
     name: '20260417_190000_add_questions_classroom_scope',
+  },
+  {
+    up: migration_20260421_120000_add_multi_format_quiz_support.up,
+    down: migration_20260421_120000_add_multi_format_quiz_support.down,
+    name: '20260421_120000_add_multi_format_quiz_support',
   },
   {
     up: migration_20260506_120000_add_text_section_block.up,
