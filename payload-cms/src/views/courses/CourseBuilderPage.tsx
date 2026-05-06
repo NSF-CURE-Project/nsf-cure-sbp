@@ -238,9 +238,9 @@ export default function CourseBuilderPage({ initialCourses }: CourseBuilderPageP
     if (deletingChapterId) return
 
     if (chapter.lessons.length > 0) {
-      setDeleteError(
-        `Cannot delete "${chapter.title}" because it still contains ${chapter.lessons.length} lesson${chapter.lessons.length === 1 ? '' : 's'}. Delete or move those lessons first.`,
-      )
+      const message = `Cannot delete "${chapter.title}" because it still contains ${chapter.lessons.length} lesson${chapter.lessons.length === 1 ? '' : 's'}. Delete or move those lessons first.`
+      setDeleteError(message)
+      if (typeof window !== 'undefined') window.alert(message)
       return
     }
 
@@ -280,13 +280,20 @@ export default function CourseBuilderPage({ initialCourses }: CourseBuilderPageP
     const classroomCount = course.classroomCount ?? 0
 
     if (chapterCount > 0 || lessonCount > 0 || classroomCount > 0) {
-      const classroomMessage =
-        classroomCount > 0
-          ? ` and ${classroomCount} classroom${classroomCount === 1 ? '' : 's'}`
-          : ''
-      setDeleteError(
-        `Cannot delete "${course.title}" because it still contains ${chapterCount} chapter${chapterCount === 1 ? '' : 's'}, ${lessonCount} lesson${lessonCount === 1 ? '' : 's'}${classroomMessage}. Delete or move that content first.`,
-      )
+      const parts: string[] = []
+      if (chapterCount > 0) parts.push(`${chapterCount} chapter${chapterCount === 1 ? '' : 's'}`)
+      if (lessonCount > 0) parts.push(`${lessonCount} lesson${lessonCount === 1 ? '' : 's'}`)
+      if (classroomCount > 0)
+        parts.push(`${classroomCount} classroom${classroomCount === 1 ? '' : 's'}`)
+      const joined =
+        parts.length === 1
+          ? parts[0]
+          : parts.length === 2
+            ? `${parts[0]} and ${parts[1]}`
+            : `${parts.slice(0, -1).join(', ')}, and ${parts[parts.length - 1]}`
+      const message = `Cannot delete "${course.title}" because it still contains ${joined}. Delete or move that content first.`
+      setDeleteError(message)
+      if (typeof window !== 'undefined') window.alert(message)
       return
     }
 
