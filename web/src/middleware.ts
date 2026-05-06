@@ -14,6 +14,9 @@ export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
   url.host = CANONICAL_HOST;
   url.protocol = "https:";
+  // Clear the internal Next runtime port so the Location header points
+  // to the public origin, not https://www.cppsbp.org:8080/.
+  url.port = "";
   return NextResponse.redirect(url, 301);
 }
 
