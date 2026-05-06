@@ -78,6 +78,7 @@ import {
   userAnalyticsListHandler,
   userAnalyticsDetailHandler,
 } from './endpoints/userAnalytics'
+import { quizStatsHandler } from './endpoints/quizStats'
 import { classroomListHandler, classroomRosterHandler } from './endpoints/instructorEndpoints'
 import { apiKeyValidateHandler } from './endpoints/apiKeyValidate'
 import { gptRpprContextHandler } from './endpoints/gptRpprContext'
@@ -566,6 +567,11 @@ export default buildConfig({
       path: '/staff/user-analytics',
       method: 'get',
       handler: userAnalyticsDetailHandler,
+    },
+    {
+      path: '/staff/quiz-stats',
+      method: 'get',
+      handler: quizStatsHandler,
     },
     {
       path: '/demo/quiz-formats',

@@ -905,6 +905,24 @@ export default function QuizBankView({ initialQuizzes, courses, chapters }: Quiz
                       Edit quiz
                     </div>
                   </Link>
+                  <Link
+                    href={`/admin/quiz-stats/${quiz.id}`}
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <div
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: 8,
+                        border: '1px solid var(--admin-surface-border)',
+                        background: 'var(--admin-chip-bg)',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: 'var(--cpp-ink)',
+                      }}
+                    >
+                      Attempt data
+                    </div>
+                  </Link>
                   <button
                     type="button"
                     onClick={() => duplicateQuiz(quiz.id)}
