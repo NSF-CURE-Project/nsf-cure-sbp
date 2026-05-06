@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import SavedViewsBar from './SavedViewsBar'
 import Link from 'next/link'
 import { parseStringArray } from '@/lib/quiz'
 
@@ -808,6 +809,22 @@ export default function QuizBankView({ initialQuizzes, courses, chapters }: Quiz
             Clear filters
           </button>
         </div>
+      </div>
+
+      <div style={{ marginTop: -4 }}>
+        <SavedViewsBar
+          scope="quiz-bank"
+          currentState={filters}
+          onApply={(state) =>
+            setFilters({
+              search: state.search ?? '',
+              courseId: state.courseId ?? '',
+              chapterId: state.chapterId ?? '',
+              tag: state.tag ?? '',
+              difficulty: state.difficulty ?? '',
+            })
+          }
+        />
       </div>
 
       <div

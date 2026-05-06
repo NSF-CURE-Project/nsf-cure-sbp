@@ -19,6 +19,8 @@ import { Lessons } from './collections/Lessons'
 import { Pages } from './collections/Pages'
 import { Accounts } from './collections/Accounts'
 import { QuizQuestions } from './collections/QuizQuestions'
+import { Concepts } from './collections/Concepts'
+import { PrePostAssessments } from './collections/PrePostAssessments'
 import { Quizzes } from './collections/Quizzes'
 import { QuizAttempts } from './collections/QuizAttempts'
 import { EngineeringFigures } from './collections/EngineeringFigures'
@@ -79,6 +81,10 @@ import {
   userAnalyticsDetailHandler,
 } from './endpoints/userAnalytics'
 import { quizStatsHandler } from './endpoints/quizStats'
+import { questionStatsHandler } from './endpoints/questionStats'
+import { conceptListHandler, conceptDetailHandler } from './endpoints/conceptStats'
+import { questionBankHandler } from './endpoints/questionBank'
+import { prePostListHandler, prePostDetailHandler } from './endpoints/prePostAssessment'
 import { classroomListHandler, classroomRosterHandler } from './endpoints/instructorEndpoints'
 import { apiKeyValidateHandler } from './endpoints/apiKeyValidate'
 import { gptRpprContextHandler } from './endpoints/gptRpprContext'
@@ -401,6 +407,8 @@ export default buildConfig({
     Accounts,
     Users,
     Media,
+    Concepts,
+    PrePostAssessments,
     Questions,
     QuizQuestions,
     Quizzes,
@@ -572,6 +580,36 @@ export default buildConfig({
       path: '/staff/quiz-stats',
       method: 'get',
       handler: quizStatsHandler,
+    },
+    {
+      path: '/staff/question-stats',
+      method: 'get',
+      handler: questionStatsHandler,
+    },
+    {
+      path: '/staff/concept-list',
+      method: 'get',
+      handler: conceptListHandler,
+    },
+    {
+      path: '/staff/concept-detail',
+      method: 'get',
+      handler: conceptDetailHandler,
+    },
+    {
+      path: '/staff/question-bank',
+      method: 'get',
+      handler: questionBankHandler,
+    },
+    {
+      path: '/staff/pre-post/list',
+      method: 'get',
+      handler: prePostListHandler,
+    },
+    {
+      path: '/staff/pre-post/detail',
+      method: 'get',
+      handler: prePostDetailHandler,
     },
     {
       path: '/demo/quiz-formats',

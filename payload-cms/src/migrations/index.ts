@@ -33,6 +33,8 @@ import * as migration_20260417_190000_add_questions_classroom_scope from './2026
 import * as migration_20260421_120000_add_multi_format_quiz_support from './20260421_120000_add_multi_format_quiz_support'
 import * as migration_20260506_120000_add_text_section_block from './20260506_120000_add_text_section_block'
 import * as migration_20260506_140000_add_account_session_tracking from './20260506_140000_add_account_session_tracking'
+import * as migration_20260506_160000_add_concepts from './20260506_160000_add_concepts'
+import * as migration_20260506_180000_add_pre_post_assessments from './20260506_180000_add_pre_post_assessments'
 
 export const migrations = [
   {
@@ -209,5 +211,15 @@ export const migrations = [
     up: migration_20260506_140000_add_account_session_tracking.up,
     down: migration_20260506_140000_add_account_session_tracking.down,
     name: '20260506_140000_add_account_session_tracking',
+  },
+  {
+    up: migration_20260506_160000_add_concepts.up,
+    down: migration_20260506_160000_add_concepts.down,
+    name: '20260506_160000_add_concepts',
+  },
+  {
+    up: migration_20260506_180000_add_pre_post_assessments.up,
+    down: migration_20260506_180000_add_pre_post_assessments.down,
+    name: '20260506_180000_add_pre_post_assessments',
   },
 ]

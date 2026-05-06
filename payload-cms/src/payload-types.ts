@@ -86,6 +86,8 @@ export interface Config {
     accounts: Account;
     users: User;
     media: Media;
+    concepts: Concept;
+    'pre-post-assessments': PrePostAssessment;
     questions: Question;
     'quiz-questions': QuizQuestion;
     quizzes: Quiz;
@@ -124,6 +126,8 @@ export interface Config {
     accounts: AccountsSelect<false> | AccountsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    concepts: ConceptsSelect<false> | ConceptsSelect<true>;
+    'pre-post-assessments': PrePostAssessmentsSelect<false> | PrePostAssessmentsSelect<true>;
     questions: QuestionsSelect<false> | QuestionsSelect<true>;
     'quiz-questions': QuizQuestionsSelect<false> | QuizQuestionsSelect<true>;
     quizzes: QuizzesSelect<false> | QuizzesSelect<true>;
@@ -547,9 +551,46 @@ export interface QuizQuestion {
   topic?: string | null;
   tags?: string[] | null;
   difficulty?: ('intro' | 'easy' | 'medium' | 'hard') | null;
+  /**
+   * Concepts this question primarily assesses. Drives mastery, remediation, and concept-level analytics.
+   */
+  concepts?: (number | Concept)[] | null;
+  /**
+   * Cognitive level the question targets (Bloom’s taxonomy).
+   */
+  bloomLevel?: ('remember' | 'understand' | 'apply' | 'analyze' | 'evaluate' | 'create') | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * Atomic learning concepts. Tag questions, lessons, and problems by concept so analytics, mastery, and remediation can hang off a single ontology.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "concepts".
+ */
+export interface Concept {
+  id: number;
+  name: string;
+  /**
+   * Auto-generated from the name; edit to customize.
+   */
+  slug: string;
+  subject?: ('statics' | 'mechanics' | 'math' | 'physics' | 'general') | null;
+  /**
+   * Cognitive level the concept primarily targets.
+   */
+  bloomLevel?: ('remember' | 'understand' | 'apply' | 'analyze' | 'evaluate' | 'create') | null;
+  /**
+   * Short, plain-language description of the concept for staff.
+   */
+  description?: string | null;
+  /**
+   * Other concepts that should be mastered before this one.
+   */
+  prerequisiteConcepts?: (number | Concept)[] | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1365,6 +1406,38 @@ export interface ApiKey {
   createdAt: string;
 }
 /**
+ * Pair a pre-assessment quiz with a post-assessment quiz for the same construct. Drives normalized-gain analysis and pre/post research outputs.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pre-post-assessments".
+ */
+export interface PrePostAssessment {
+  id: number;
+  title: string;
+  /**
+   * Optional notes on what this pre/post pair measures.
+   */
+  description?: string | null;
+  /**
+   * Quiz administered before instruction.
+   */
+  preQuiz: number | Quiz;
+  /**
+   * Quiz administered after instruction. Should target the same concepts as the pre-quiz.
+   */
+  postQuiz: number | Quiz;
+  /**
+   * Optional: scope the analysis to one classroom. Leave blank to aggregate across all attempts.
+   */
+  classroom?: (number | null) | Classroom;
+  /**
+   * Concepts the assessment targets (used for downstream concept-level reporting).
+   */
+  concepts?: (number | Concept)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "questions".
  */
@@ -1741,6 +1814,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'concepts';
+        value: number | Concept;
+      } | null)
+    | ({
+        relationTo: 'pre-post-assessments';
+        value: number | PrePostAssessment;
       } | null)
     | ({
         relationTo: 'questions';
@@ -2417,6 +2498,34 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "concepts_select".
+ */
+export interface ConceptsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  subject?: T;
+  bloomLevel?: T;
+  description?: T;
+  prerequisiteConcepts?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pre-post-assessments_select".
+ */
+export interface PrePostAssessmentsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  preQuiz?: T;
+  postQuiz?: T;
+  classroom?: T;
+  concepts?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "questions_select".
  */
 export interface QuestionsSelect<T extends boolean = true> {
@@ -2466,6 +2575,8 @@ export interface QuizQuestionsSelect<T extends boolean = true> {
   topic?: T;
   tags?: T;
   difficulty?: T;
+  concepts?: T;
+  bloomLevel?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;

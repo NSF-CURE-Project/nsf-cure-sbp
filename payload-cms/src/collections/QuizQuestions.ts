@@ -172,5 +172,29 @@ export const QuizQuestions: CollectionConfig = {
         { label: 'Hard', value: 'hard' },
       ],
     },
+    {
+      name: 'concepts',
+      type: 'relationship',
+      relationTo: 'concepts',
+      hasMany: true,
+      admin: {
+        description: 'Concepts this question primarily assesses. Drives mastery, remediation, and concept-level analytics.',
+      },
+    },
+    {
+      name: 'bloomLevel',
+      type: 'select',
+      admin: {
+        description: 'Cognitive level the question targets (Bloom’s taxonomy).',
+      },
+      options: [
+        { label: 'Remember', value: 'remember' },
+        { label: 'Understand', value: 'understand' },
+        { label: 'Apply', value: 'apply' },
+        { label: 'Analyze', value: 'analyze' },
+        { label: 'Evaluate', value: 'evaluate' },
+        { label: 'Create', value: 'create' },
+      ],
+    },
   ],
 }
