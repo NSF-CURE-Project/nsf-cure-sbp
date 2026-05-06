@@ -38,6 +38,35 @@ const richTextBlock: Block = {
   ],
 }
 
+const textSectionBlock: Block = {
+  slug: 'textSection',
+  labels: { singular: 'Text Section', plural: 'Text Sections' },
+  fields: [
+    {
+      name: 'title',
+      type: 'text',
+    },
+    {
+      name: 'subtitle',
+      type: 'textarea',
+    },
+    {
+      name: 'size',
+      type: 'select',
+      options: [
+        { label: 'Small', value: 'sm' },
+        { label: 'Medium', value: 'md' },
+        { label: 'Large', value: 'lg' },
+      ],
+      defaultValue: 'md',
+    },
+    {
+      name: 'body',
+      type: 'richText',
+    },
+  ],
+}
+
 const videoBlock: Block = {
   slug: 'videoBlock',
   labels: { singular: 'Video', plural: 'Videos' },
@@ -312,6 +341,7 @@ const contactsListBlock: Block = {
 }
 
 export const lessonBlocks: Block[] = [
+  textSectionBlock,
   sectionTitleBlock,
   richTextBlock,
   videoBlock,
@@ -323,6 +353,7 @@ export const lessonBlocks: Block[] = [
 
 export const pageBlocks: Block[] = [
   heroBlock,
+  textSectionBlock,
   sectionTitleBlock,
   richTextBlock,
   videoBlock,

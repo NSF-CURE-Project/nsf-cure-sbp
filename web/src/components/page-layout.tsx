@@ -363,6 +363,29 @@ export function PageLayout({
           );
         }
 
+        if (block.blockType === "textSection") {
+          const TitleTag = getTitleTag(block.size);
+          const titleClass = getTitleClass(block.size);
+          return (
+            <section key={block.id ?? idx} className="space-y-3">
+              {block.title && (
+                <TitleTag className={`${titleClass} font-semibold`}>
+                  {block.title}
+                </TitleTag>
+              )}
+              {block.subtitle && (
+                <p className="text-muted-foreground leading-7">
+                  {block.subtitle}
+                </p>
+              )}
+              {renderRichTextOrText(
+                block.body,
+                "prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
+              )}
+            </section>
+          );
+        }
+
         if (block.blockType === "sectionBlock") {
           const TitleTag = getTitleTag(block.size);
           const titleClass = getTitleClass(block.size);

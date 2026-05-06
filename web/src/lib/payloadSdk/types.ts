@@ -81,6 +81,15 @@ export type RichTextBlock = {
   body?: unknown;
 };
 
+export type TextSectionBlock = {
+  id?: string;
+  blockType: "textSection";
+  title?: string;
+  subtitle?: string;
+  size?: "sm" | "md" | "lg";
+  body?: unknown;
+};
+
 export type TextBlock = {
   id?: string;
   blockType: "textBlock";
@@ -464,6 +473,7 @@ export type PageLayoutBlock =
   | SectionTitleBlock
   | SectionBlock
   | RichTextBlock
+  | TextSectionBlock
   | TextBlock
   | VideoBlock
   | ListBlock
