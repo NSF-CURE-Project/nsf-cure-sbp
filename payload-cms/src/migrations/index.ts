@@ -32,6 +32,7 @@ import * as migration_20260417_173500_add_lesson_quiz_block_fields from './20260
 import * as migration_20260417_190000_add_questions_classroom_scope from './20260417_190000_add_questions_classroom_scope'
 import * as migration_20260421_120000_add_multi_format_quiz_support from './20260421_120000_add_multi_format_quiz_support'
 import * as migration_20260506_120000_add_text_section_block from './20260506_120000_add_text_section_block'
+import * as migration_20260506_140000_add_account_session_tracking from './20260506_140000_add_account_session_tracking'
 
 export const migrations = [
   {
@@ -203,5 +204,10 @@ export const migrations = [
     up: migration_20260506_120000_add_text_section_block.up,
     down: migration_20260506_120000_add_text_section_block.down,
     name: '20260506_120000_add_text_section_block',
+  },
+  {
+    up: migration_20260506_140000_add_account_session_tracking.up,
+    down: migration_20260506_140000_add_account_session_tracking.down,
+    name: '20260506_140000_add_account_session_tracking',
   },
 ]

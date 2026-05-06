@@ -968,6 +968,22 @@ export interface Account {
    */
   role: 'student';
   fullName?: string | null;
+  /**
+   * Total number of successful sign-ins.
+   */
+  loginCount?: number | null;
+  /**
+   * Timestamp of the most recent successful sign-in.
+   */
+  lastLoginAt?: string | null;
+  /**
+   * Updated by the client heartbeat while the user has the app open.
+   */
+  lastSeenAt?: string | null;
+  /**
+   * Cumulative active time in the app, accumulated from heartbeats.
+   */
+  totalActiveSeconds?: number | null;
   currentStreak?: number | null;
   longestStreak?: number | null;
   lastStreakDate?: string | null;
@@ -2311,6 +2327,10 @@ export interface AccountsSelect<T extends boolean = true> {
   emailVerificationExpiresAt?: T;
   role?: T;
   fullName?: T;
+  loginCount?: T;
+  lastLoginAt?: T;
+  lastSeenAt?: T;
+  totalActiveSeconds?: T;
   currentStreak?: T;
   longestStreak?: T;
   lastStreakDate?: T;

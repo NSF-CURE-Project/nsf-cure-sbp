@@ -776,36 +776,48 @@ const StaffDashboardContent = ({
         </div>
         <div style={{ ...contentBoxStyle, marginTop: 2 }}>
           <div className="dashboard-top-grid">
-            <div style={summaryPanelStyle} className="dashboard-panel">
-              <div style={{ ...mockHeaderStyle, marginBottom: 8 }}>
-                <div>
-                  <div
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.8,
-                      color: 'var(--cpp-muted)',
-                    }}
-                  >
-                    Analytics
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 3 }}>
-                    Snapshot of student activity, content status, and progress.
+            <Link
+              href="/admin/user-analytics"
+              style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+              aria-label="Open per-user analytics"
+            >
+              <div
+                style={{ ...summaryPanelStyle, cursor: 'pointer', height: '100%' }}
+                className="dashboard-panel"
+              >
+                <div style={{ ...mockHeaderStyle, marginBottom: 8 }}>
+                  <div>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        letterSpacing: 0.8,
+                        color: 'var(--cpp-muted)',
+                      }}
+                    >
+                      Analytics
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 3 }}>
+                      Snapshot of student activity, content status, and progress. Click to drill
+                      into a specific student.
+                    </div>
                   </div>
                 </div>
+                <div className="dashboard-kpi-grid" style={analyticsRowStyle}>
+                  <StatCard label="Active students (7d)" value={`${stats.activeStudents}`} />
+                  <StatCard label="Published lessons" value={`${stats.publishedLessons}`} />
+                  <StatCard
+                    label="Avg completion rate"
+                    value={
+                      stats.avgCompletion != null
+                        ? `${Math.round(stats.avgCompletion * 100)}%`
+                        : '—'
+                    }
+                  />
+                </div>
               </div>
-              <div className="dashboard-kpi-grid" style={analyticsRowStyle}>
-                <StatCard label="Active students (7d)" value={`${stats.activeStudents}`} />
-                <StatCard label="Published lessons" value={`${stats.publishedLessons}`} />
-                <StatCard
-                  label="Avg completion rate"
-                  value={
-                    stats.avgCompletion != null ? `${Math.round(stats.avgCompletion * 100)}%` : '—'
-                  }
-                />
-              </div>
-            </div>
+            </Link>
             <div style={summaryPanelStyle} className="dashboard-panel">
               <div
                 style={{

@@ -55,6 +55,7 @@ import { previewUrlHandler } from './endpoints/previewUrl'
 import { confirmEmailHandler, requestEmailConfirmationHandler } from './endpoints/emailConfirmation'
 import { logoutAllSessionsHandler } from './endpoints/logoutAll'
 import { accountsMeHandler } from './endpoints/accountsMe'
+import { accountsHeartbeatHandler } from './endpoints/accountsHeartbeat'
 import {
   accountDataSummaryHandler,
   updateMyDemographicsHandler,
@@ -73,6 +74,10 @@ import { lessonQuestionsHandler, questionDetailHandler } from './endpoints/quest
 import { studentAnalyticsHandler } from './endpoints/studentAnalytics'
 import { studentPerformanceHandler } from './endpoints/studentPerformance'
 import { demoQuizFormatsHandler } from './endpoints/demoQuizFormats'
+import {
+  userAnalyticsListHandler,
+  userAnalyticsDetailHandler,
+} from './endpoints/userAnalytics'
 import { classroomListHandler, classroomRosterHandler } from './endpoints/instructorEndpoints'
 import { apiKeyValidateHandler } from './endpoints/apiKeyValidate'
 import { gptRpprContextHandler } from './endpoints/gptRpprContext'
@@ -523,6 +528,11 @@ export default buildConfig({
       handler: accountsMeHandler,
     },
     {
+      path: '/accounts/heartbeat',
+      method: 'post',
+      handler: accountsHeartbeatHandler,
+    },
+    {
       path: '/auth/api-key-info',
       method: 'get',
       handler: apiKeyValidateHandler,
@@ -546,6 +556,16 @@ export default buildConfig({
       path: '/staff/student-performance',
       method: 'get',
       handler: studentPerformanceHandler,
+    },
+    {
+      path: '/staff/user-analytics/list',
+      method: 'get',
+      handler: userAnalyticsListHandler,
+    },
+    {
+      path: '/staff/user-analytics',
+      method: 'get',
+      handler: userAnalyticsDetailHandler,
     },
     {
       path: '/demo/quiz-formats',

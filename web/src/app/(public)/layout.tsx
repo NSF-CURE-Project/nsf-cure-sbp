@@ -2,6 +2,7 @@
 import React, { Suspense } from "react";
 import { cookies, draftMode } from "next/headers";
 
+import AccountHeartbeat from "@/components/AccountHeartbeat";
 import PublicLayoutShell from "@/components/layout/PublicLayoutShell";
 import SidebarData from "@/components/layout/SidebarData";
 import {
@@ -38,6 +39,7 @@ export default async function RootLayout({
       }
     >
       {children}
+      <AccountHeartbeat />
     </PublicLayoutShell>
   );
 }
