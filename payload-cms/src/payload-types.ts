@@ -88,6 +88,7 @@ export interface Config {
     media: Media;
     concepts: Concept;
     'pre-post-assessments': PrePostAssessment;
+    'saved-views': SavedView;
     questions: Question;
     'quiz-questions': QuizQuestion;
     quizzes: Quiz;
@@ -128,6 +129,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     concepts: ConceptsSelect<false> | ConceptsSelect<true>;
     'pre-post-assessments': PrePostAssessmentsSelect<false> | PrePostAssessmentsSelect<true>;
+    'saved-views': SavedViewsSelect<false> | SavedViewsSelect<true>;
     questions: QuestionsSelect<false> | QuestionsSelect<true>;
     'quiz-questions': QuizQuestionsSelect<false> | QuizQuestionsSelect<true>;
     quizzes: QuizzesSelect<false> | QuizzesSelect<true>;
@@ -1438,6 +1440,39 @@ export interface PrePostAssessment {
   createdAt: string;
 }
 /**
+ * Saved filter/sort presets for the staff dashboard, sharable across the team.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "saved-views".
+ */
+export interface SavedView {
+  id: number;
+  name: string;
+  /**
+   * Identifier for which dashboard the view applies to (e.g. quiz-bank).
+   */
+  scope: string;
+  /**
+   * Serialized filter/sort state. Schema is dictated by the dashboard.
+   */
+  state:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * When true, all staff users see this view.
+   */
+  shared?: boolean | null;
+  owner: number | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "questions".
  */
@@ -1822,6 +1857,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'pre-post-assessments';
         value: number | PrePostAssessment;
+      } | null)
+    | ({
+        relationTo: 'saved-views';
+        value: number | SavedView;
       } | null)
     | ({
         relationTo: 'questions';
@@ -2521,6 +2560,19 @@ export interface PrePostAssessmentsSelect<T extends boolean = true> {
   postQuiz?: T;
   classroom?: T;
   concepts?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "saved-views_select".
+ */
+export interface SavedViewsSelect<T extends boolean = true> {
+  name?: T;
+  scope?: T;
+  state?: T;
+  shared?: T;
+  owner?: T;
   updatedAt?: T;
   createdAt?: T;
 }

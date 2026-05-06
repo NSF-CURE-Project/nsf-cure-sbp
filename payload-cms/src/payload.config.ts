@@ -21,6 +21,7 @@ import { Accounts } from './collections/Accounts'
 import { QuizQuestions } from './collections/QuizQuestions'
 import { Concepts } from './collections/Concepts'
 import { PrePostAssessments } from './collections/PrePostAssessments'
+import { SavedViews } from './collections/SavedViews'
 import { Quizzes } from './collections/Quizzes'
 import { QuizAttempts } from './collections/QuizAttempts'
 import { EngineeringFigures } from './collections/EngineeringFigures'
@@ -409,6 +410,7 @@ export default buildConfig({
     Media,
     Concepts,
     PrePostAssessments,
+    SavedViews,
     Questions,
     QuizQuestions,
     Quizzes,
