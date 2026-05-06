@@ -9,7 +9,15 @@ const workspaceRoot = path.resolve(projectRoot, '..')
 const nextConfig = {
   output: 'standalone',
   outputFileTracingRoot: workspaceRoot,
-  // Your Next.js config here
+  // The Payload admin UI lives at /admin; redirect the bare admin host
+  // root so visiting https://admin.cppsbp.org/ lands on the login page.
+  redirects: async () => [
+    {
+      source: '/',
+      destination: '/admin',
+      permanent: false,
+    },
+  ],
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {
       '.cjs': ['.cts', '.cjs'],
