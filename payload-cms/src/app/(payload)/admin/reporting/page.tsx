@@ -7,6 +7,7 @@ import { resolveReportingPeriod } from '@/reporting/period'
 import { getReportingCenterPayload } from '@/reporting/reportingCenter'
 import type { ReportingCohortFilters } from '@/reporting/types'
 import { isSchemaMismatchError, schemaRepairHint } from '@/reporting/schema'
+import { HBar, Donut, Sparkline, ReportingPanel } from '@/views/reporting/charts'
 
 type ReportingPeriodDoc = {
   id: string | number
@@ -248,572 +249,1468 @@ export default async function AdminReportingPage({ searchParams }: Props) {
 
   const selectedMetric = typeof params.metricKey === 'string' ? params.metricKey : ''
 
+  const activePeriod = (periods.docs as ReportingPeriodDoc[]).find(
+    (p) => String(p.id) === selectedPeriodId,
+  )
+  const hasScope = Boolean(selectedPeriodId || (selectedStartDate && selectedEndDate))
+
   return (
     <Gutter>
-      <div style={{ maxWidth: 1220, margin: '24px auto 80px' }}>
-        <div
-          style={{
-            fontSize: 12,
-            letterSpacing: 1.2,
-            textTransform: 'uppercase',
-            color: 'var(--cpp-muted)',
-            fontWeight: 700,
-          }}
-        >
-          Reporting Center
-        </div>
-        <h1 style={{ fontSize: 30, margin: '8px 0 10px', color: 'var(--cpp-ink)' }}>
-          NSF Reporting Center
-        </h1>
-        <p style={{ color: 'var(--cpp-muted)', lineHeight: 1.6, maxWidth: 820 }}>
-          Period-specific reporting workspace for official exports, drilldowns, data quality checks,
-          narrative drafts, and provenance history. Operational dashboard metrics remain separate.
-        </p>
+      <style>{`
+        .rs-shell {
+          max-width: 1240px;
+          margin: 24px auto 96px;
+          padding: 0 4px;
+          display: flex;
+          flex-direction: column;
+          gap: 22px;
+        }
+        .rs-hero {
+          position: relative;
+          overflow: hidden;
+          border-radius: 20px;
+          border: 1px solid rgba(21, 83, 207, 0.18);
+          background:
+            radial-gradient(80% 100% at 0% 0%, rgba(21, 83, 207, 0.10) 0%, rgba(21, 83, 207, 0) 60%),
+            radial-gradient(80% 100% at 100% 100%, rgba(168, 85, 247, 0.10) 0%, rgba(168, 85, 247, 0) 60%),
+            linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 250, 255, 0.95) 100%);
+          padding: 24px 28px;
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 18px 38px rgba(15, 23, 42, 0.05);
+        }
+        .rs-eyebrow {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 11px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          color: #1553cf;
+          background: rgba(21, 83, 207, 0.08);
+          border: 1px solid rgba(21, 83, 207, 0.16);
+          padding: 4px 10px;
+          border-radius: 999px;
+        }
+        .rs-title {
+          font-size: 30px;
+          font-weight: 800;
+          color: var(--cpp-ink);
+          letter-spacing: -0.015em;
+          margin: 12px 0 6px;
+          line-height: 1.15;
+        }
+        .rs-sub {
+          color: var(--cpp-muted);
+          line-height: 1.55;
+          max-width: 720px;
+          font-size: 14px;
+        }
+        .rs-meta-strip {
+          margin-top: 18px;
+          display: flex;
+          gap: 14px;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+        .rs-meta-chip {
+          display: inline-flex;
+          flex-direction: column;
+          gap: 2px;
+          padding: 9px 14px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.85);
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          min-width: 140px;
+        }
+        .rs-meta-chip-label {
+          font-size: 10.5px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.7px;
+          color: var(--cpp-muted);
+        }
+        .rs-meta-chip-value {
+          font-size: 14.5px;
+          font-weight: 700;
+          color: var(--cpp-ink);
+          font-variant-numeric: tabular-nums;
+          line-height: 1.2;
+        }
+        .rs-meta-chip-meta {
+          font-size: 11px;
+          color: var(--cpp-muted);
+        }
+        .rs-section {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .rs-section-head {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          padding: 0 2px;
+        }
+        .rs-section-eyebrow {
+          font-size: 11px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.9px;
+          color: #1553cf;
+        }
+        .rs-section-title {
+          font-size: 18px;
+          font-weight: 800;
+          color: var(--cpp-ink);
+          letter-spacing: -0.01em;
+        }
+        .rs-section-sub {
+          font-size: 13px;
+          color: var(--cpp-muted);
+        }
+        .rs-card {
+          border-radius: 14px;
+          border: 1px solid rgba(15, 23, 42, 0.07);
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(248, 250, 255, 0.92) 100%);
+          padding: 16px 18px;
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 6px 14px rgba(15, 23, 42, 0.03);
+        }
+        .rs-card-title {
+          font-size: 14px;
+          font-weight: 800;
+          color: var(--cpp-ink);
+          letter-spacing: -0.005em;
+        }
+        .rs-card-sub {
+          font-size: 12px;
+          color: var(--cpp-muted);
+          margin-top: 3px;
+        }
+        .rs-grid-2 {
+          display: grid;
+          gap: 12px;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .rs-grid-3 {
+          display: grid;
+          gap: 12px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .rs-grid-4 {
+          display: grid;
+          gap: 12px;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+        @media (max-width: 920px) {
+          .rs-grid-3, .rs-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 600px) {
+          .rs-grid-2, .rs-grid-3, .rs-grid-4 { grid-template-columns: 1fr; }
+        }
+        .rs-controls {
+          display: grid;
+          grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+          gap: 12px;
+        }
+        @media (max-width: 920px) { .rs-controls { grid-template-columns: 1fr; } }
+        .rs-period-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          border: 1px solid rgba(15, 23, 42, 0.07);
+          border-radius: 10px;
+          padding: 10px 12px;
+          color: var(--cpp-ink);
+          text-decoration: none;
+          background: rgba(255, 255, 255, 0.7);
+          transition: border-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+        }
+        .rs-period-row:hover {
+          border-color: rgba(21, 83, 207, 0.32);
+          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+          transform: translateY(-1px);
+        }
+        .rs-period-row.is-active {
+          border-color: #1553cf;
+          box-shadow: 0 0 0 3px rgba(21, 83, 207, 0.12);
+          background: rgba(21, 83, 207, 0.04);
+        }
+        .rs-status-badge {
+          padding: 3px 9px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 800;
+        }
+        .rs-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 7px 12px;
+          border-radius: 9px;
+          font-size: 12.5px;
+          font-weight: 600;
+          color: var(--cpp-ink);
+          text-decoration: none;
+          background: rgba(15, 23, 42, 0.04);
+          border: 1px solid rgba(15, 23, 42, 0.06);
+          transition: background 140ms ease, border-color 140ms ease;
+        }
+        .rs-pill:hover {
+          background: rgba(15, 23, 42, 0.07);
+          border-color: rgba(15, 23, 42, 0.14);
+        }
+        .rs-pill.is-active {
+          background: rgba(21, 83, 207, 0.10);
+          border-color: rgba(21, 83, 207, 0.36);
+          color: #1553cf;
+        }
+        .rs-cta-primary {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 9px 14px;
+          border-radius: 10px;
+          font-size: 13px;
+          font-weight: 700;
+          color: #ffffff;
+          text-decoration: none;
+          background: linear-gradient(180deg, #1d63e3 0%, #1553cf 100%);
+          box-shadow: 0 6px 14px rgba(21, 83, 207, 0.24), 0 1px 0 rgba(255, 255, 255, 0.18) inset;
+          transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+        }
+        .rs-cta-primary:hover {
+          transform: translateY(-1px);
+          filter: brightness(1.04);
+          box-shadow: 0 10px 22px rgba(21, 83, 207, 0.28), 0 1px 0 rgba(255, 255, 255, 0.18) inset;
+        }
+        .rs-kpi {
+          border-radius: 12px;
+          border: 1px solid rgba(15, 23, 42, 0.07);
+          background: rgba(255, 255, 255, 0.92);
+          padding: 14px 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          text-decoration: none;
+          color: var(--cpp-ink);
+          transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+        }
+        .rs-kpi:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+          border-color: rgba(21, 83, 207, 0.30);
+        }
+        .rs-kpi-label {
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.8px;
+          color: var(--cpp-muted);
+        }
+        .rs-kpi-value {
+          font-size: 24px;
+          font-weight: 800;
+          color: var(--cpp-ink);
+          font-variant-numeric: tabular-nums;
+          line-height: 1.1;
+        }
+        .rs-kpi-meta {
+          font-size: 11.5px;
+          color: var(--cpp-muted);
+        }
+        .rs-issue {
+          border-left: 3px solid rgba(15, 23, 42, 0.12);
+          background: rgba(15, 23, 42, 0.02);
+          border-radius: 10px;
+          padding: 10px 12px;
+        }
+        .rs-issue.is-high { border-left-color: #b91c1c; background: rgba(185, 28, 28, 0.04); }
+        .rs-issue.is-warning { border-left-color: #b45309; background: rgba(180, 83, 9, 0.04); }
+        .rs-issue.is-positive { border-left-color: #127455; background: rgba(20, 131, 92, 0.04); }
+        .rs-issue-title { font-size: 13px; font-weight: 700; color: var(--cpp-ink); }
+        .rs-issue-detail { font-size: 12px; color: var(--cpp-muted); margin-top: 3px; line-height: 1.5; }
+        .rs-empty {
+          padding: 12px 14px;
+          border-radius: 10px;
+          background: rgba(15, 23, 42, 0.03);
+          color: var(--cpp-muted);
+          font-size: 12.5px;
+          font-style: italic;
+        }
+        .rs-trend {
+          border-radius: 10px;
+          border: 1px solid rgba(15, 23, 42, 0.07);
+          padding: 10px 12px;
+          background: rgba(255, 255, 255, 0.85);
+        }
+        .rs-trend-label { font-size: 11px; color: var(--cpp-muted); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; }
+        .rs-trend-value { font-weight: 800; color: var(--cpp-ink); font-size: 18px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+        .rs-trend-delta { font-size: 11px; margin-top: 4px; font-weight: 700; }
+        .rs-trend-delta.is-up { color: #127455; }
+        .rs-trend-delta.is-down { color: #b91c1c; }
+        .rs-trend-delta.is-flat { color: var(--cpp-muted); }
+        .rs-cohort-grid {
+          display: grid;
+          gap: 12px;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+        .rs-checklist-row {
+          display: grid;
+          grid-template-columns: 24px minmax(0, 1fr);
+          gap: 10px;
+          align-items: start;
+          padding: 10px 12px;
+          border-radius: 10px;
+          background: rgba(15, 23, 42, 0.02);
+        }
+        .rs-checklist-icon {
+          width: 22px;
+          height: 22px;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          font-weight: 800;
+        }
+      `}</style>
+      <div className="rs-shell">
+        <header className="rs-hero">
+          <span className="rs-eyebrow">
+            <svg
+              aria-hidden="true"
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 3v18h18" />
+              <path d="M7 14l3-3 3 3 5-5" />
+            </svg>
+            Reporting Suite
+          </span>
+          <h1 className="rs-title">NSF institutional analytics &amp; RPPR workspace</h1>
+          <p className="rs-sub">
+            Period-scoped cohort analytics, snapshot-backed RPPR drafts, and audit-grade exports —
+            purpose-built for federal reporting and program review at Cal Poly Pomona.
+          </p>
+          <div className="rs-meta-strip">
+            <div className="rs-meta-chip">
+              <span className="rs-meta-chip-label">Active period</span>
+              <span className="rs-meta-chip-value">
+                {activePeriod?.label ?? (hasScope ? 'Custom range' : 'Not selected')}
+              </span>
+              <span className="rs-meta-chip-meta">
+                {activePeriod
+                  ? `${(activePeriod.startDate ?? '').slice(0, 10)} – ${(activePeriod.endDate ?? '').slice(0, 10)}`
+                  : selectedStartDate && selectedEndDate
+                    ? `${selectedStartDate} – ${selectedEndDate}`
+                    : 'Choose a reporting period below'}
+              </span>
+            </div>
+            <div className="rs-meta-chip">
+              <span className="rs-meta-chip-label">Periods on file</span>
+              <span className="rs-meta-chip-value">{periods.docs.length}</span>
+              <span className="rs-meta-chip-meta">{savedViews.docs.length} saved views</span>
+            </div>
+            <div className="rs-meta-chip">
+              <span className="rs-meta-chip-label">Snapshots</span>
+              <span className="rs-meta-chip-value">
+                {centerPayload?.latestSnapshots?.length ?? '—'}
+              </span>
+              <span className="rs-meta-chip-meta">
+                {centerPayload?.latestSnapshots?.[0]
+                  ? `Latest ${String(
+                      (centerPayload.latestSnapshots[0] as { createdAt?: string }).createdAt ?? '',
+                    ).slice(0, 10)}`
+                  : 'Capture one once a period is loaded'}
+              </span>
+            </div>
+            <div className="rs-meta-chip">
+              <span className="rs-meta-chip-label">Readiness</span>
+              <span className="rs-meta-chip-value">
+                {centerPayload?.rppr?.completeness?.readinessScore ?? '—'}
+                {centerPayload?.rppr?.completeness?.readinessScore != null ? '%' : ''}
+              </span>
+              <span className="rs-meta-chip-meta">
+                {centerPayload?.rppr?.completeness?.overallStatus ?? 'Load a period to assess'}
+              </span>
+            </div>
+          </div>
+          <div style={{ marginTop: 18, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <Link href="/admin/collections/reporting-periods" className="rs-pill">
+              Reporting periods
+            </Link>
+            <Link href="/admin/collections/reporting-saved-views" className="rs-pill">
+              Saved views
+            </Link>
+            <Link href="/admin/collections/rppr-reports" className="rs-pill">
+              RPPR narratives
+            </Link>
+            <Link href="/admin/collections/reporting-snapshots" className="rs-pill">
+              Snapshots
+            </Link>
+            <Link href="/admin/collections/reporting-evidence-links" className="rs-pill">
+              Evidence links
+            </Link>
+            <Link href="/admin/collections/reporting-product-records" className="rs-pill">
+              Product records
+            </Link>
+          </div>
+        </header>
+
         {setupError ? (
           <div
             style={{
-              marginTop: 12,
-              borderRadius: 8,
+              borderRadius: 12,
               border: '1px solid #fbbf24',
               background: '#fffbeb',
               color: '#92400e',
-              padding: '10px 12px',
-              fontSize: 14,
+              padding: '12px 14px',
+              fontSize: 13.5,
             }}
           >
             {setupError}
           </div>
         ) : null}
 
-        <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <Link href="/admin/collections/reporting-periods" style={{ textDecoration: 'none' }}>
-            <div style={{ borderRadius: 8, border: '1px solid var(--admin-surface-border)', padding: '8px 12px', color: 'var(--cpp-ink)' }}>
-              Reporting periods
-            </div>
-          </Link>
-          <Link href="/admin/collections/reporting-saved-views" style={{ textDecoration: 'none' }}>
-            <div style={{ borderRadius: 8, border: '1px solid var(--admin-surface-border)', padding: '8px 12px', color: 'var(--cpp-ink)' }}>
-              Saved views
-            </div>
-          </Link>
-          <Link href="/admin/collections/rppr-reports" style={{ textDecoration: 'none' }}>
-            <div style={{ borderRadius: 8, border: '1px solid var(--admin-surface-border)', padding: '8px 12px', color: 'var(--cpp-ink)' }}>
-              RPPR narratives
-            </div>
-          </Link>
-          <Link href="/admin/collections/reporting-snapshots" style={{ textDecoration: 'none' }}>
-            <div style={{ borderRadius: 8, border: '1px solid var(--admin-surface-border)', padding: '8px 12px', color: 'var(--cpp-ink)' }}>
-              Snapshots
-            </div>
-          </Link>
-          <Link href="/admin/collections/reporting-evidence-links" style={{ textDecoration: 'none' }}>
-            <div style={{ borderRadius: 8, border: '1px solid var(--admin-surface-border)', padding: '8px 12px', color: 'var(--cpp-ink)' }}>
-              Evidence links
-            </div>
-          </Link>
-          <Link href="/admin/collections/reporting-product-records" style={{ textDecoration: 'none' }}>
-            <div style={{ borderRadius: 8, border: '1px solid var(--admin-surface-border)', padding: '8px 12px', color: 'var(--cpp-ink)' }}>
-              Product records
-            </div>
-          </Link>
-        </div>
-
-        <div
-          style={{
-            marginTop: 16,
-            border: '1px solid var(--admin-surface-border)',
-            borderRadius: 10,
-            padding: 14,
-            background: 'var(--admin-surface)',
-          }}
-        >
-          <div style={{ fontWeight: 700, color: 'var(--cpp-ink)' }}>Date range selector</div>
-          <div style={{ marginTop: 8, fontSize: 12, color: 'var(--cpp-muted)' }}>
-            Current custom range: {selectedStartDate || 'n/a'} to {selectedEndDate || 'n/a'}
+        <section className="rs-section">
+          <div className="rs-section-head">
+            <span className="rs-section-eyebrow">Controls</span>
+            <h2 className="rs-section-title">Period &amp; cohort scope</h2>
+            <p className="rs-section-sub">
+              Pick the reporting period or a saved view; cohort filters apply once a scope is loaded.
+            </p>
           </div>
-          <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <Link
-              href={`/admin/reporting?${buildScopedQuery(
-                { startDate: '2026-01-01', endDate: '2026-03-31' },
-                ['periodId'],
-              )}`}
-              style={{ textDecoration: 'none' }}
-            >
-              <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '6px 10px', color: 'var(--cpp-ink)', fontSize: 12 }}>
-                Q1 2026
+          <div className="rs-controls">
+            <div className="rs-card">
+              <div className="rs-card-title">Reporting period</div>
+              <div className="rs-card-sub">
+                {periods.docs.length === 0
+                  ? 'No periods configured yet — add one from the collection.'
+                  : `${periods.docs.length} period${periods.docs.length === 1 ? '' : 's'} on file`}
               </div>
-            </Link>
-            <Link
-              href={`/admin/reporting?${buildScopedQuery(
-                { startDate: '2026-01-01', endDate: '2026-12-31' },
-                ['periodId'],
-              )}`}
-              style={{ textDecoration: 'none' }}
-            >
-              <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '6px 10px', color: 'var(--cpp-ink)', fontSize: 12 }}>
-                2026 YTD
+              <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                {(periods.docs as ReportingPeriodDoc[]).map((period) => {
+                  const badge = statusBadge(period.status)
+                  const isActive = selectedPeriodId === String(period.id)
+                  return (
+                    <Link
+                      key={String(period.id)}
+                      href={`/admin/reporting?${buildScopedQuery({ periodId: period.id }, ['startDate', 'endDate'])}`}
+                      className={`rs-period-row${isActive ? ' is-active' : ''}`}
+                    >
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontWeight: 700 }}>{period.label ?? `Period ${period.id}`}</div>
+                        <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                          {(period.startDate ?? '').slice(0, 10)} → {(period.endDate ?? '').slice(0, 10)}
+                          {period.budgetPeriodName ? ` · ${period.budgetPeriodName}` : ''}
+                        </div>
+                      </div>
+                      <span
+                        className="rs-status-badge"
+                        style={{ background: badge.bg, color: badge.color }}
+                      >
+                        {badge.label}
+                      </span>
+                    </Link>
+                  )
+                })}
               </div>
-            </Link>
-          </div>
-        </div>
-
-        <div
-          style={{
-            marginTop: 16,
-            border: '1px solid var(--admin-surface-border)',
-            borderRadius: 10,
-            padding: 14,
-            background: 'var(--admin-surface)',
-          }}
-        >
-          <div style={{ fontWeight: 700, color: 'var(--cpp-ink)' }}>Saved views</div>
-          <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>
-            {(savedViews.docs as SavedViewDoc[]).slice(0, 8).map((view) => {
-              const periodId = toId(view.reportingPeriod)
-              const viewStart =
-                typeof view.startDate === 'string' ? view.startDate.slice(0, 10) : null
-              const viewEnd = typeof view.endDate === 'string' ? view.endDate.slice(0, 10) : null
-              const href = periodId
-                ? `/admin/reporting?viewId=${view.id}&periodId=${periodId}`
-                : viewStart && viewEnd
-                  ? `/admin/reporting?viewId=${view.id}&startDate=${encodeURIComponent(viewStart)}&endDate=${encodeURIComponent(viewEnd)}`
-                  : `/admin/reporting?viewId=${view.id}`
-              return (
-                <Link
-                  key={String(view.id)}
-                  href={href}
+              <div
+                style={{
+                  marginTop: 12,
+                  paddingTop: 12,
+                  borderTop: '1px dashed rgba(15, 23, 42, 0.1)',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                  alignItems: 'center',
+                }}
+              >
+                <span
                   style={{
-                    textDecoration: 'none',
-                    border: selectedViewId === String(view.id) ? '1px solid #334155' : '1px solid var(--admin-surface-border)',
-                    borderRadius: 8,
-                    padding: '8px 10px',
-                    color: 'var(--cpp-ink)',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.6,
+                    color: 'var(--cpp-muted)',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                    <span>{view.label ?? `Saved view ${view.id}`}</span>
-                    {view.isShared ? (
-                      <span style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>shared</span>
-                    ) : null}
-                  </div>
+                  Custom range
+                </span>
+                <span style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                  {selectedStartDate || '—'} → {selectedEndDate || '—'}
+                </span>
+                <Link
+                  href={`/admin/reporting?${buildScopedQuery(
+                    { startDate: '2026-01-01', endDate: '2026-03-31' },
+                    ['periodId'],
+                  )}`}
+                  className="rs-pill"
+                >
+                  Q1 2026
                 </Link>
-              )
-            })}
-          </div>
-        </div>
-
-        <div
-          style={{
-            marginTop: 16,
-            border: '1px solid var(--admin-surface-border)',
-            borderRadius: 10,
-            padding: 14,
-            background: 'var(--admin-surface)',
-          }}
-        >
-          <div style={{ fontWeight: 700, color: 'var(--cpp-ink)' }}>Select reporting period</div>
-          <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
-            {(periods.docs as ReportingPeriodDoc[]).map((period) => {
-              const badge = statusBadge(period.status)
-              return (
                 <Link
-                  key={String(period.id)}
-                  href={`/admin/reporting?${buildScopedQuery({ periodId: period.id }, ['startDate', 'endDate'])}`}
-                  style={{
-                    textDecoration: 'none',
-                    border:
-                      selectedPeriodId === String(period.id)
-                        ? '1px solid #334155'
-                        : '1px solid var(--admin-surface-border)',
-                    borderRadius: 8,
-                    padding: '10px 12px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    color: 'var(--cpp-ink)',
-                  }}
+                  href={`/admin/reporting?${buildScopedQuery(
+                    { startDate: '2026-01-01', endDate: '2026-12-31' },
+                    ['periodId'],
+                  )}`}
+                  className="rs-pill"
                 >
-                  <div>
-                    <div style={{ fontWeight: 700 }}>{period.label ?? `Period ${period.id}`}</div>
-                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                      {(period.startDate ?? '').slice(0, 10)} to {(period.endDate ?? '').slice(0, 10)}
-                      {period.budgetPeriodName ? ` | ${period.budgetPeriodName}` : ''}
-                    </div>
-                  </div>
+                  2026 YTD
+                </Link>
+              </div>
+            </div>
+            <div className="rs-card">
+              <div className="rs-card-title">Saved views</div>
+              <div className="rs-card-sub">
+                {savedViews.docs.length === 0
+                  ? 'No saved views yet — save a scope after loading a period.'
+                  : `${savedViews.docs.length} view${savedViews.docs.length === 1 ? '' : 's'} on file`}
+              </div>
+              <div style={{ marginTop: 10, display: 'grid', gap: 6 }}>
+                {(savedViews.docs as SavedViewDoc[]).slice(0, 8).map((view) => {
+                  const periodId = toId(view.reportingPeriod)
+                  const viewStart =
+                    typeof view.startDate === 'string' ? view.startDate.slice(0, 10) : null
+                  const viewEnd =
+                    typeof view.endDate === 'string' ? view.endDate.slice(0, 10) : null
+                  const href = periodId
+                    ? `/admin/reporting?viewId=${view.id}&periodId=${periodId}`
+                    : viewStart && viewEnd
+                      ? `/admin/reporting?viewId=${view.id}&startDate=${encodeURIComponent(viewStart)}&endDate=${encodeURIComponent(viewEnd)}`
+                      : `/admin/reporting?viewId=${view.id}`
+                  const isActive = selectedViewId === String(view.id)
+                  return (
+                    <Link
+                      key={String(view.id)}
+                      href={href}
+                      className={`rs-period-row${isActive ? ' is-active' : ''}`}
+                    >
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>
+                        {view.label ?? `Saved view ${view.id}`}
+                      </span>
+                      {view.isShared ? (
+                        <span style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>shared</span>
+                      ) : null}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+          {hasScope ? (
+            <div className="rs-card">
+              <div className="rs-card-title">Cohort filters</div>
+              <div className="rs-card-sub">Drilldowns and exports will respect these filters.</div>
+              <div className="rs-cohort-grid" style={{ marginTop: 12 }}>
+                <div>
                   <div
                     style={{
-                      borderRadius: 999,
-                      padding: '4px 10px',
-                      fontSize: 12,
+                      fontSize: 11,
+                      color: 'var(--cpp-muted)',
                       fontWeight: 700,
-                      background: badge.bg,
-                      color: badge.color,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.6,
                     }}
                   >
-                    {badge.label}
+                    Class
                   </div>
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-
-        {selectedPeriodId || (selectedStartDate && selectedEndDate) ? (
-          <div
-            style={{
-              marginTop: 16,
-              border: '1px solid var(--admin-surface-border)',
-              borderRadius: 10,
-              padding: 14,
-              background: 'var(--admin-surface)',
-            }}
-          >
-            <div style={{ fontWeight: 700, color: 'var(--cpp-ink)' }}>Cohort filters</div>
-            <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
-              <div>
-                <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Class</div>
-                <div style={{ marginTop: 4, display: 'grid', gap: 4 }}>
-                  <Link href={`/admin/reporting?${buildScopedQuery({}, ['classId'])}`} style={{ textDecoration: 'none', color: 'var(--cpp-ink)' }}>All</Link>
-                  {(classes.docs as OptionDoc[]).slice(0, 8).map((item) => (
-                    <Link key={String(item.id)} href={`/admin/reporting?${buildScopedQuery({ classId: item.id })}`} style={{ textDecoration: 'none', color: cohortFilters.classId === String(item.id) ? 'var(--cpp-ink)' : 'var(--cpp-muted)', fontWeight: cohortFilters.classId === String(item.id) ? 700 : 400 }}>
-                      {item.title ?? `Class ${item.id}`}
+                  <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    <Link
+                      href={`/admin/reporting?${buildScopedQuery({}, ['classId'])}`}
+                      className={`rs-pill${cohortFilters.classId == null ? ' is-active' : ''}`}
+                    >
+                      All
                     </Link>
-                  ))}
+                    {(classes.docs as OptionDoc[]).slice(0, 8).map((item) => (
+                      <Link
+                        key={String(item.id)}
+                        href={`/admin/reporting?${buildScopedQuery({ classId: item.id })}`}
+                        className={`rs-pill${
+                          cohortFilters.classId === String(item.id) ? ' is-active' : ''
+                        }`}
+                      >
+                        {item.title ?? `Class ${item.id}`}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Professor</div>
-                <div style={{ marginTop: 4, display: 'grid', gap: 4 }}>
-                  <Link href={`/admin/reporting?${buildScopedQuery({}, ['professorId'])}`} style={{ textDecoration: 'none', color: 'var(--cpp-ink)' }}>All</Link>
-                  {(professors.docs as OptionDoc[]).slice(0, 8).map((item) => (
-                    <Link key={String(item.id)} href={`/admin/reporting?${buildScopedQuery({ professorId: item.id })}`} style={{ textDecoration: 'none', color: cohortFilters.professorId === String(item.id) ? 'var(--cpp-ink)' : 'var(--cpp-muted)', fontWeight: cohortFilters.professorId === String(item.id) ? 700 : 400 }}>
-                      {`${item.firstName ?? ''} ${item.lastName ?? ''}`.trim() || item.email || `Professor ${item.id}`}
+                <div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--cpp-muted)',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.6,
+                    }}
+                  >
+                    Professor
+                  </div>
+                  <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    <Link
+                      href={`/admin/reporting?${buildScopedQuery({}, ['professorId'])}`}
+                      className={`rs-pill${cohortFilters.professorId == null ? ' is-active' : ''}`}
+                    >
+                      All
                     </Link>
-                  ))}
+                    {(professors.docs as OptionDoc[]).slice(0, 8).map((item) => (
+                      <Link
+                        key={String(item.id)}
+                        href={`/admin/reporting?${buildScopedQuery({ professorId: item.id })}`}
+                        className={`rs-pill${
+                          cohortFilters.professorId === String(item.id) ? ' is-active' : ''
+                        }`}
+                      >
+                        {`${item.firstName ?? ''} ${item.lastName ?? ''}`.trim() ||
+                          item.email ||
+                          `Professor ${item.id}`}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Classroom</div>
-                <div style={{ marginTop: 4, display: 'grid', gap: 4 }}>
-                  <Link href={`/admin/reporting?${buildScopedQuery({}, ['classroomId'])}`} style={{ textDecoration: 'none', color: 'var(--cpp-ink)' }}>All</Link>
-                  {(classrooms.docs as OptionDoc[]).slice(0, 8).map((item) => (
-                    <Link key={String(item.id)} href={`/admin/reporting?${buildScopedQuery({ classroomId: item.id })}`} style={{ textDecoration: 'none', color: cohortFilters.classroomId === String(item.id) ? 'var(--cpp-ink)' : 'var(--cpp-muted)', fontWeight: cohortFilters.classroomId === String(item.id) ? 700 : 400 }}>
-                      {item.title ?? `Classroom ${item.id}`}
+                <div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--cpp-muted)',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.6,
+                    }}
+                  >
+                    Classroom
+                  </div>
+                  <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    <Link
+                      href={`/admin/reporting?${buildScopedQuery({}, ['classroomId'])}`}
+                      className={`rs-pill${cohortFilters.classroomId == null ? ' is-active' : ''}`}
+                    >
+                      All
                     </Link>
-                  ))}
+                    {(classrooms.docs as OptionDoc[]).slice(0, 8).map((item) => (
+                      <Link
+                        key={String(item.id)}
+                        href={`/admin/reporting?${buildScopedQuery({ classroomId: item.id })}`}
+                        className={`rs-pill${
+                          cohortFilters.classroomId === String(item.id) ? ' is-active' : ''
+                        }`}
+                      >
+                        {item.title ?? `Classroom ${item.id}`}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>First-gen / Transfer</div>
-                <div style={{ marginTop: 4, display: 'grid', gap: 4 }}>
-                  <Link href={`/admin/reporting?${buildScopedQuery({ firstGen: true })}`} style={{ textDecoration: 'none', color: cohortFilters.firstGen === true ? 'var(--cpp-ink)' : 'var(--cpp-muted)', fontWeight: cohortFilters.firstGen === true ? 700 : 400 }}>First-gen only</Link>
-                  <Link href={`/admin/reporting?${buildScopedQuery({ transfer: true })}`} style={{ textDecoration: 'none', color: cohortFilters.transfer === true ? 'var(--cpp-ink)' : 'var(--cpp-muted)', fontWeight: cohortFilters.transfer === true ? 700 : 400 }}>Transfer only</Link>
-                  <Link href={`/admin/reporting?${buildScopedQuery({}, ['firstGen', 'transfer'])}`} style={{ textDecoration: 'none', color: cohortFilters.firstGen == null && cohortFilters.transfer == null ? 'var(--cpp-ink)' : 'var(--cpp-muted)', fontWeight: cohortFilters.firstGen == null && cohortFilters.transfer == null ? 700 : 400 }}>Clear cohort flags</Link>
+                <div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--cpp-muted)',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.6,
+                    }}
+                  >
+                    Cohort flags
+                  </div>
+                  <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    <Link
+                      href={`/admin/reporting?${buildScopedQuery({ firstGen: true })}`}
+                      className={`rs-pill${cohortFilters.firstGen === true ? ' is-active' : ''}`}
+                    >
+                      First-gen only
+                    </Link>
+                    <Link
+                      href={`/admin/reporting?${buildScopedQuery({ transfer: true })}`}
+                      className={`rs-pill${cohortFilters.transfer === true ? ' is-active' : ''}`}
+                    >
+                      Transfer only
+                    </Link>
+                    <Link
+                      href={`/admin/reporting?${buildScopedQuery({}, ['firstGen', 'transfer'])}`}
+                      className={`rs-pill${
+                        cohortFilters.firstGen == null && cohortFilters.transfer == null
+                          ? ' is-active'
+                          : ''
+                      }`}
+                    >
+                      Clear flags
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
+          ) : null}
+        </section>
+
+        {periodError ? (
+          <div
+            style={{
+              borderRadius: 12,
+              border: '1px solid rgba(185, 28, 28, 0.4)',
+              background: 'rgba(185, 28, 28, 0.06)',
+              color: '#b91c1c',
+              padding: '12px 14px',
+              fontSize: 13.5,
+              fontWeight: 600,
+            }}
+          >
+            {periodError}
           </div>
         ) : null}
 
-        {periodError ? (
-          <div style={{ marginTop: 16, color: '#b91c1c', fontWeight: 600 }}>{periodError}</div>
+        {!hasScope ? (
+          <section className="rs-section">
+            <div className="rs-card">
+              <div className="rs-card-title">Pick a reporting period to begin</div>
+              <div className="rs-card-sub">
+                Cohort analytics, RPPR exports, and snapshot-based trend comparisons unlock once a
+                scope is loaded above. Most users start with the active annual period.
+              </div>
+            </div>
+          </section>
         ) : null}
 
         {centerPayload ? (
-          <div style={{ marginTop: 18, display: 'grid', gap: 12 }}>
-            <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 10, padding: 14, background: 'var(--admin-surface)' }}>
-              <div style={{ fontWeight: 700, color: 'var(--cpp-ink)' }}>Official reporting summary</div>
-              <div style={{ marginTop: 8, fontSize: 13, color: 'var(--cpp-muted)' }}>
-                Completeness: {centerPayload.rppr?.completeness.overallStatus ?? 'n/a'} ({centerPayload.rppr?.completeness.readinessScore ?? 0}%)
+          <>
+            <section className="rs-section">
+              <div className="rs-section-head">
+                <span className="rs-section-eyebrow">Reporting Overview</span>
+                <h2 className="rs-section-title">KPIs for the loaded scope</h2>
+                <p className="rs-section-sub">
+                  Counts and rates are computed live for the selected period and cohort filters.
+                </p>
               </div>
-              <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
-                <Link href={`/admin/reporting?${buildScopedQuery({ metricKey: 'class_completion_rate' })}`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px', color: 'var(--cpp-ink)' }}>
-                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Unique active learners</div>
-                    <div style={{ fontWeight: 800, fontSize: 22 }}>{centerPayload.summary.participation.uniqueLearnersActive}</div>
-                  </div>
+              <div className="rs-grid-4">
+                <Link
+                  href={`/admin/reporting?${buildScopedQuery({ metricKey: 'class_completion_rate' })}`}
+                  className="rs-kpi"
+                >
+                  <span className="rs-kpi-label">Active learners</span>
+                  <span className="rs-kpi-value">
+                    {centerPayload.summary.participation.uniqueLearnersActive}
+                  </span>
+                  <span className="rs-kpi-meta">unique learners in scope</span>
                 </Link>
-                <Link href={`/admin/reporting?${buildScopedQuery({ metricKey: 'class_completion_rate' })}`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px', color: 'var(--cpp-ink)' }}>
-                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Classes tracked</div>
-                    <div style={{ fontWeight: 800, fontSize: 22 }}>{centerPayload.summary.classCompletion.length}</div>
-                  </div>
+                <Link
+                  href={`/admin/reporting?${buildScopedQuery({ metricKey: 'class_completion_rate' })}`}
+                  className="rs-kpi"
+                >
+                  <span className="rs-kpi-label">Classes tracked</span>
+                  <span className="rs-kpi-value">
+                    {centerPayload.summary.classCompletion.length}
+                  </span>
+                  <span className="rs-kpi-meta">with completion data</span>
                 </Link>
-                <Link href={`/admin/reporting?${buildScopedQuery({ metricKey: 'quiz_mastery_rate' })}`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px', color: 'var(--cpp-ink)' }}>
-                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Quizzes tracked</div>
-                    <div style={{ fontWeight: 800, fontSize: 22 }}>{centerPayload.summary.quizPerformance.length}</div>
-                  </div>
+                <Link
+                  href={`/admin/reporting?${buildScopedQuery({ metricKey: 'quiz_mastery_rate' })}`}
+                  className="rs-kpi"
+                >
+                  <span className="rs-kpi-label">Quizzes tracked</span>
+                  <span className="rs-kpi-value">
+                    {centerPayload.summary.quizPerformance.length}
+                  </span>
+                  <span className="rs-kpi-meta">attempted in scope</span>
                 </Link>
-                <Link href={`/admin/reporting?${buildScopedQuery({ metricKey: 'weekly_active_learners' })}`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px', color: 'var(--cpp-ink)' }}>
-                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Product artifacts</div>
-                    <div style={{ fontWeight: 800, fontSize: 22 }}>{centerPayload.summary.productsInPeriod.total}</div>
-                  </div>
+                <Link
+                  href={`/admin/reporting?${buildScopedQuery({ metricKey: 'weekly_active_learners' })}`}
+                  className="rs-kpi"
+                >
+                  <span className="rs-kpi-label">Product artifacts</span>
+                  <span className="rs-kpi-value">
+                    {centerPayload.summary.productsInPeriod.total}
+                  </span>
+                  <span className="rs-kpi-meta">publications, talks, datasets…</span>
                 </Link>
               </div>
+            </section>
 
-              <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <Link href={`/api/analytics/reporting-center?${scopedQuery}&format=json`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 12px', color: 'var(--cpp-ink)' }}>Reporting Center JSON</div>
-                </Link>
-                <Link href={`/api/analytics/reporting-center?${scopedQuery}&format=csv&type=summary`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 12px', color: 'var(--cpp-ink)' }}>Summary CSV</div>
-                </Link>
-                <Link href={`/api/analytics/reporting-center?${scopedQuery}&format=csv&type=participants`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 12px', color: 'var(--cpp-ink)' }}>Participants CSV</div>
-                </Link>
-                <Link href={`/api/analytics/reporting-center?${scopedQuery}&format=csv&type=organizations`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 12px', color: 'var(--cpp-ink)' }}>Organizations CSV</div>
-                </Link>
-                <Link href={`/api/analytics/reporting-center?${scopedQuery}&format=csv&type=products`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 12px', color: 'var(--cpp-ink)' }}>Products CSV</div>
-                </Link>
-                <Link href={`/api/analytics/reporting-center?${scopedQuery}&format=csv&type=evidence`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 12px', color: 'var(--cpp-ink)' }}>Evidence CSV</div>
-                </Link>
-                <Link href={`/api/analytics/reporting-center?${scopedQuery}&format=csv&type=data-quality`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 12px', color: 'var(--cpp-ink)' }}>Data quality CSV</div>
-                </Link>
-                <Link href={`/api/analytics/reporting-center?${scopedQuery}&format=csv&type=compliance`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 12px', color: 'var(--cpp-ink)' }}>Compliance CSV</div>
-                </Link>
-                <Link href={`/api/analytics/reporting-center?${scopedQuery}&action=save-view&label=Reporting%20Center%20View&shared=false`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 12px', color: 'var(--cpp-ink)' }}>Save private view</div>
-                </Link>
-                <Link href={`/api/analytics/reporting-center?${scopedQuery}&action=save-view&label=Reporting%20Center%20Shared%20View&shared=true`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 12px', color: 'var(--cpp-ink)' }}>Save shared view</div>
-                </Link>
-                <Link href={`/api/analytics/reporting-center?${scopedQuery}&action=create-snapshot&reuseIfUnchanged=true`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 12px', color: 'var(--cpp-ink)' }}>Create immutable snapshot</div>
-                </Link>
-                <Link href={`/api/analytics/reporting-center?${scopedQuery}&format=pdf`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 12px', color: 'var(--cpp-muted)' }}>PDF export scaffold</div>
-                </Link>
+            <section className="rs-section">
+              <div className="rs-section-head">
+                <span className="rs-section-eyebrow">Cohort Analytics</span>
+                <h2 className="rs-section-title">Completion &amp; mastery</h2>
+                <p className="rs-section-sub">
+                  Top performers and engagement signals across the cohort scope.
+                </p>
               </div>
-            </div>
-
-            <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 10, padding: 14, background: 'var(--admin-surface)' }}>
-              <div style={{ fontWeight: 700 }}>KPI trend vs previous snapshot</div>
-              <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
-                {centerPayload.trendComparisons.map((trend) => (
-                  <div key={trend.metricKey} style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px' }}>
-                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>{trend.label}</div>
-                    <div style={{ marginTop: 4, fontWeight: 800, color: 'var(--cpp-ink)' }}>
-                      {formatTrendValue(trend.metricKey, trend.currentValue)}
-                    </div>
-                    <div style={{ marginTop: 4, fontSize: 12, color: 'var(--cpp-muted)' }}>
-                      {trend.previousValue == null
-                        ? 'No previous comparable snapshot'
-                        : `Prev: ${formatTrendValue(trend.metricKey, trend.previousValue)} | Delta: ${trend.deltaPercent == null ? 'n/a' : `${Math.round(trend.deltaPercent * 1000) / 10}%`}`}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 10, padding: 14, background: 'var(--admin-surface)' }}>
-              <div style={{ fontWeight: 700 }}>Evidence linking</div>
-              <div style={{ marginTop: 6, fontSize: 13, color: 'var(--cpp-muted)' }}>
-                Linked evidence items in period: {centerPayload.rppr?.evidence.totalEvidenceLinks ?? 0}
-              </div>
-              <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
-                {(centerPayload.rppr?.evidence.bySection ?? []).map((entry) => (
-                  <div key={entry.section} style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px' }}>
-                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>{entry.section}</div>
-                    <div style={{ marginTop: 2, fontWeight: 800 }}>{entry.count}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <Link href={`/api/analytics/nsf-rppr?${scopedQuery}&format=csv&type=evidence`} style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '7px 10px', color: 'var(--cpp-ink)' }}>RPPR evidence CSV</div>
-                </Link>
-                <Link href="/admin/collections/reporting-evidence-links" style={{ textDecoration: 'none' }}>
-                  <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '7px 10px', color: 'var(--cpp-ink)' }}>Manage evidence links</div>
-                </Link>
-              </div>
-            </div>
-
-            <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 10, padding: 14, background: 'var(--admin-surface)' }}>
-              <div style={{ fontWeight: 700 }}>Metric definition registry</div>
-              <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
-                {centerPayload.metricDefinitions.map((metric) => (
-                  <div key={metric.key} style={{ border: '1px dashed var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px' }}>
-                    <div style={{ fontWeight: 700 }}>{metric.name}</div>
-                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 3 }}>{metric.description}</div>
-                    <div style={{ marginTop: 4, fontSize: 12, color: 'var(--cpp-muted)' }}>
-                      Numerator: {metric.numerator}
-                    </div>
-                    <div style={{ marginTop: 2, fontSize: 12, color: 'var(--cpp-muted)' }}>
-                      Denominator: {metric.denominator}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {centerPayload.complianceChecklist ? (
-              <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 10, padding: 14, background: 'var(--admin-surface)' }}>
-                <div style={{ fontWeight: 700 }}>NSF RPPR compliance checklist</div>
-                <div style={{ marginTop: 6, fontSize: 13, color: 'var(--cpp-muted)' }}>
-                  Overall status: {centerPayload.complianceChecklist.overallStatus} | Met {centerPayload.complianceChecklist.metCount} of {centerPayload.complianceChecklist.checks.length}
-                </div>
-                <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>
-                  {centerPayload.complianceChecklist.checks.map((check) => (
-                    <div key={check.key} style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px' }}>
-                      <div style={{ fontWeight: 700, color: check.status === 'missing' ? '#b91c1c' : 'var(--cpp-ink)' }}>
-                        [{check.status.toUpperCase()}] {check.label}
-                      </div>
-                      <div style={{ marginTop: 3, fontSize: 12, color: 'var(--cpp-muted)' }}>{check.detail}</div>
-                      <div style={{ marginTop: 4, fontSize: 12, color: 'var(--cpp-muted)' }}>
-                        Action: {check.action}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
-            <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 10, padding: 14, background: 'var(--admin-surface)' }}>
-              <div style={{ fontWeight: 700 }}>Data quality panel</div>
-              <div style={{ marginTop: 6, fontSize: 13, color: 'var(--cpp-muted)' }}>
-                Confidence: {centerPayload.dataQuality.confidence}
-              </div>
-              <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>
-                {centerPayload.dataQuality.issues.length ? (
-                  centerPayload.dataQuality.issues.map((issue) => (
-                    <div key={issue.key} style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px' }}>
-                      <div style={{ fontWeight: 700, color: issue.severity === 'high' ? '#b91c1c' : 'var(--cpp-ink)' }}>
-                        [{issue.severity.toUpperCase()}] {issue.message}
-                      </div>
-                      {issue.recommendation ? (
-                        <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 3 }}>
-                          {issue.recommendation}
+              <div className="rs-grid-2">
+                <ReportingPanel
+                  title="Completion by class"
+                  hint="Top classes by completion rate"
+                >
+                  {centerPayload.summary.classCompletion.length === 0 ? (
+                    <div className="rs-empty">No class completion data for this scope yet.</div>
+                  ) : (
+                    [...centerPayload.summary.classCompletion]
+                      .sort((a, b) => b.completionRate - a.completionRate)
+                      .slice(0, 6)
+                      .map((item) => (
+                        <HBar
+                          key={item.id}
+                          label={item.title}
+                          numerator={item.uniqueLearnersCompleted}
+                          denominator={item.uniqueLearnersStarted || 1}
+                          rate={item.completionRate}
+                          accent="#1553cf"
+                        />
+                      ))
+                  )}
+                </ReportingPanel>
+                <ReportingPanel
+                  title="Completion by chapter"
+                  hint="Top chapters by completion rate"
+                >
+                  {centerPayload.summary.chapterCompletion.length === 0 ? (
+                    <div className="rs-empty">No chapter completion data for this scope yet.</div>
+                  ) : (
+                    [...centerPayload.summary.chapterCompletion]
+                      .sort((a, b) => b.completionRate - a.completionRate)
+                      .slice(0, 6)
+                      .map((item) => (
+                        <HBar
+                          key={item.id}
+                          label={item.title}
+                          numerator={item.uniqueLearnersCompleted}
+                          denominator={item.uniqueLearnersStarted || 1}
+                          rate={item.completionRate}
+                          accent="#0d9488"
+                        />
+                      ))
+                  )}
+                </ReportingPanel>
+                <ReportingPanel title="Quiz mastery" hint="Share of attempts at ≥80%">
+                  {(() => {
+                    const attempted = centerPayload.summary.quizPerformance.reduce(
+                      (sum, q) => sum + q.uniqueLearnersAttempted,
+                      0,
+                    )
+                    const mastered = centerPayload.summary.quizPerformance.reduce(
+                      (sum, q) => sum + q.uniqueLearnersMastered,
+                      0,
+                    )
+                    const rate = attempted ? mastered / attempted : 0
+                    if (attempted === 0) {
+                      return <div className="rs-empty">No quiz attempts in this scope yet.</div>
+                    }
+                    return (
+                      <Donut
+                        value={rate}
+                        accent="#a855f7"
+                        label={`${mastered}/${attempted} mastered`}
+                        sub={`across ${centerPayload.summary.quizPerformance.length} quizzes`}
+                      />
+                    )
+                  })()}
+                </ReportingPanel>
+                <ReportingPanel
+                  title="Weekly engagement"
+                  hint={`Active learners over the past ${Math.min(centerPayload.summary.weeklyEngagement.length, 8)} weeks`}
+                >
+                  {centerPayload.summary.weeklyEngagement.length === 0 ? (
+                    <div className="rs-empty">No engagement data for this scope yet.</div>
+                  ) : (
+                    <>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'baseline',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <div>
+                          <div
+                            style={{
+                              fontSize: 22,
+                              fontWeight: 800,
+                              color: 'var(--cpp-ink)',
+                              fontVariantNumeric: 'tabular-nums',
+                            }}
+                          >
+                            {centerPayload.summary.weeklyEngagement[
+                              centerPayload.summary.weeklyEngagement.length - 1
+                            ]?.activeStudents ?? 0}
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>
+                            most recent week
+                          </div>
                         </div>
-                      ) : null}
-                    </div>
-                  ))
-                ) : (
-                  <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                    No quality blockers detected for this scope.
-                  </div>
-                )}
+                        {(() => {
+                          const last =
+                            centerPayload.summary.weeklyEngagement[
+                              centerPayload.summary.weeklyEngagement.length - 1
+                            ]
+                          if (last?.weekOverWeekChange == null) return null
+                          const pct = Math.round(last.weekOverWeekChange * 100)
+                          if (pct === 0) return null
+                          const up = pct > 0
+                          return (
+                            <span
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 700,
+                                color: up ? '#127455' : '#b91c1c',
+                                background: up
+                                  ? 'rgba(18,116,85,0.1)'
+                                  : 'rgba(185,28,28,0.1)',
+                                padding: '3px 8px',
+                                borderRadius: 999,
+                              }}
+                            >
+                              {up ? '↑' : '↓'} {Math.abs(pct)}% WoW
+                            </span>
+                          )
+                        })()}
+                      </div>
+                      <Sparkline
+                        values={centerPayload.summary.weeklyEngagement.map(
+                          (w) => w.activeStudents,
+                        )}
+                        color="#1553cf"
+                        width={300}
+                        height={64}
+                      />
+                    </>
+                  )}
+                </ReportingPanel>
               </div>
-            </div>
+            </section>
 
-            <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 10, padding: 14, background: 'var(--admin-surface)' }}>
-              <div style={{ fontWeight: 700 }}>Anomaly checks</div>
-              <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>
-                {centerPayload.anomalies.length ? (
-                  centerPayload.anomalies.map((anomaly) => (
-                    <div key={anomaly.key} style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px' }}>
-                      <div style={{ fontWeight: 700 }}>{anomaly.message}</div>
-                      <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 3 }}>
-                        Metric: {anomaly.metricKey} | Severity: {anomaly.severity}
+            <section className="rs-section">
+              <div className="rs-section-head">
+                <span className="rs-section-eyebrow">RPPR Export Center</span>
+                <h2 className="rs-section-title">Generate, snapshot, and export</h2>
+                <p className="rs-section-sub">
+                  Capture immutable snapshots, export CSV/JSON for upload, and save scoped views
+                  for reuse.
+                </p>
+              </div>
+              <div className="rs-card">
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 12,
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: 12,
+                  }}
+                >
+                  <div>
+                    <div className="rs-card-title">Period readiness</div>
+                    <div className="rs-card-sub">
+                      Status:{' '}
+                      <strong style={{ color: 'var(--cpp-ink)' }}>
+                        {centerPayload.rppr?.completeness.overallStatus ?? 'n/a'}
+                      </strong>
+                      {' '}·{' '}
+                      {centerPayload.rppr?.completeness.readinessScore ?? 0}% ready
+                    </div>
+                  </div>
+                  <Link
+                    href={`/api/analytics/reporting-center?${scopedQuery}&action=create-snapshot&reuseIfUnchanged=true`}
+                    className="rs-cta-primary"
+                  >
+                    Capture snapshot
+                  </Link>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  <Link
+                    href={`/api/analytics/reporting-center?${scopedQuery}&format=json`}
+                    className="rs-pill"
+                  >
+                    Center JSON
+                  </Link>
+                  <Link
+                    href={`/api/analytics/reporting-center?${scopedQuery}&format=csv&type=summary`}
+                    className="rs-pill"
+                  >
+                    Summary CSV
+                  </Link>
+                  <Link
+                    href={`/api/analytics/reporting-center?${scopedQuery}&format=csv&type=participants`}
+                    className="rs-pill"
+                  >
+                    Participants CSV
+                  </Link>
+                  <Link
+                    href={`/api/analytics/reporting-center?${scopedQuery}&format=csv&type=organizations`}
+                    className="rs-pill"
+                  >
+                    Organizations CSV
+                  </Link>
+                  <Link
+                    href={`/api/analytics/reporting-center?${scopedQuery}&format=csv&type=products`}
+                    className="rs-pill"
+                  >
+                    Products CSV
+                  </Link>
+                  <Link
+                    href={`/api/analytics/reporting-center?${scopedQuery}&format=csv&type=evidence`}
+                    className="rs-pill"
+                  >
+                    Evidence CSV
+                  </Link>
+                  <Link
+                    href={`/api/analytics/reporting-center?${scopedQuery}&format=csv&type=data-quality`}
+                    className="rs-pill"
+                  >
+                    Data quality CSV
+                  </Link>
+                  <Link
+                    href={`/api/analytics/reporting-center?${scopedQuery}&format=csv&type=compliance`}
+                    className="rs-pill"
+                  >
+                    Compliance CSV
+                  </Link>
+                  <Link
+                    href={`/api/analytics/reporting-center?${scopedQuery}&format=pdf`}
+                    className="rs-pill"
+                  >
+                    PDF (scaffold)
+                  </Link>
+                  <Link
+                    href={`/api/analytics/reporting-center?${scopedQuery}&action=save-view&label=Reporting%20Center%20View&shared=false`}
+                    className="rs-pill"
+                  >
+                    Save private view
+                  </Link>
+                  <Link
+                    href={`/api/analytics/reporting-center?${scopedQuery}&action=save-view&label=Reporting%20Center%20Shared%20View&shared=true`}
+                    className="rs-pill"
+                  >
+                    Save shared view
+                  </Link>
+                </div>
+              </div>
+              {centerPayload.rppr ? (
+                <div className="rs-grid-2">
+                  <div className="rs-card">
+                    <div className="rs-card-title">Evidence linking</div>
+                    <div className="rs-card-sub">
+                      {centerPayload.rppr.evidence.totalEvidenceLinks} link
+                      {centerPayload.rppr.evidence.totalEvidenceLinks === 1 ? '' : 's'} attached in
+                      this period
+                    </div>
+                    <div
+                      style={{
+                        marginTop: 10,
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                        gap: 8,
+                      }}
+                    >
+                      {centerPayload.rppr.evidence.bySection.length === 0 ? (
+                        <div className="rs-empty">No evidence attached yet.</div>
+                      ) : (
+                        centerPayload.rppr.evidence.bySection.map((entry) => (
+                          <div key={entry.section} className="rs-trend">
+                            <div className="rs-trend-label">{entry.section}</div>
+                            <div className="rs-trend-value">{entry.count}</div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <Link
+                        href={`/api/analytics/nsf-rppr?${scopedQuery}&format=csv&type=evidence`}
+                        className="rs-pill"
+                      >
+                        Evidence CSV
+                      </Link>
+                      <Link
+                        href="/admin/collections/reporting-evidence-links"
+                        className="rs-pill"
+                      >
+                        Manage links
+                      </Link>
+                    </div>
+                  </div>
+                  {centerPayload.complianceChecklist ? (
+                    <div className="rs-card">
+                      <div className="rs-card-title">RPPR compliance checklist</div>
+                      <div className="rs-card-sub">
+                        {centerPayload.complianceChecklist.metCount} of{' '}
+                        {centerPayload.complianceChecklist.checks.length} checks met ·{' '}
+                        {centerPayload.complianceChecklist.overallStatus}
+                      </div>
+                      <div style={{ marginTop: 10, display: 'grid', gap: 6 }}>
+                        {centerPayload.complianceChecklist.checks.slice(0, 8).map((check) => {
+                          const isMissing = check.status === 'missing'
+                          return (
+                            <div key={check.key} className="rs-checklist-row">
+                              <span
+                                className="rs-checklist-icon"
+                                style={{
+                                  background: isMissing
+                                    ? 'rgba(185, 28, 28, 0.12)'
+                                    : 'rgba(20, 131, 92, 0.14)',
+                                  color: isMissing ? '#b91c1c' : '#127455',
+                                }}
+                              >
+                                {isMissing ? '!' : '✓'}
+                              </span>
+                              <div>
+                                <div
+                                  style={{
+                                    fontSize: 13,
+                                    fontWeight: 700,
+                                    color: 'var(--cpp-ink)',
+                                  }}
+                                >
+                                  {check.label}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: 12,
+                                    color: 'var(--cpp-muted)',
+                                    marginTop: 2,
+                                    lineHeight: 1.45,
+                                  }}
+                                >
+                                  {check.detail}
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                    No threshold anomalies detected.
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 10, padding: 14, background: 'var(--admin-surface)' }}>
-              <div style={{ fontWeight: 700 }}>Cross-check validations</div>
-              <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>
-                {centerPayload.crossChecks.map((check) => (
-                  <div key={check.key} style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px' }}>
-                    <div style={{ fontWeight: 700 }}>{check.message}</div>
-                    <div style={{ marginTop: 3, fontSize: 12, color: 'var(--cpp-muted)' }}>
-                      Status: {check.status}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 10, padding: 14, background: 'var(--admin-surface)' }}>
-              <div style={{ fontWeight: 700 }}>Narrative builder (draft only)</div>
-              <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>
-                <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px' }}>
-                  <div style={{ fontWeight: 700 }}>Accomplishments</div>
-                  <div style={{ marginTop: 4, fontSize: 12, color: 'var(--cpp-muted)', lineHeight: 1.5 }}>
-                    {centerPayload.narrativeDrafts.accomplishmentsDraft}
-                  </div>
-                </div>
-                <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px' }}>
-                  <div style={{ fontWeight: 700 }}>Impact</div>
-                  <div style={{ marginTop: 4, fontSize: 12, color: 'var(--cpp-muted)', lineHeight: 1.5 }}>
-                    {centerPayload.narrativeDrafts.impactDraft}
-                  </div>
-                </div>
-                <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px' }}>
-                  <div style={{ fontWeight: 700 }}>Changes / Problems</div>
-                  <div style={{ marginTop: 4, fontSize: 12, color: 'var(--cpp-muted)', lineHeight: 1.5 }}>
-                    {centerPayload.narrativeDrafts.changesProblemsDraft}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 10, padding: 14, background: 'var(--admin-surface)' }}>
-              <div style={{ fontWeight: 700 }}>Metric drilldown</div>
-              <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {centerPayload.metricDefinitions.map((metric) => (
-                  <Link
-                    key={metric.key}
-                    href={`/admin/reporting?${buildScopedQuery({ metricKey: metric.key })}`}
-                    style={{
-                      textDecoration: 'none',
-                      border: selectedMetric === metric.key ? '1px solid #334155' : '1px solid var(--admin-surface-border)',
-                      borderRadius: 8,
-                      padding: '6px 10px',
-                      color: 'var(--cpp-ink)',
-                      fontSize: 12,
-                    }}
-                  >
-                    {metric.name}
-                  </Link>
-                ))}
-              </div>
-              {selectedMetric ? (
-                <div style={{ marginTop: 10, border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px' }}>
-                  <div style={{ fontWeight: 700 }}>Drilldown API</div>
-                  <div style={{ marginTop: 4, fontSize: 12, color: 'var(--cpp-muted)' }}>
-                    Learner-level drilldown rows are available to authorized roles via:
-                  </div>
-                  <div style={{ marginTop: 4, fontSize: 12 }}>
-                    <Link href={`/api/analytics/reporting-center?${buildScopedQuery({ action: 'drilldown', metricKey: selectedMetric })}`}>
-                      /api/analytics/reporting-center?action=drilldown&metricKey={selectedMetric}
-                    </Link>
-                  </div>
-                  <div style={{ marginTop: 4, fontSize: 12 }}>
-                    <Link href={`/api/analytics/reporting-center?${buildScopedQuery({ action: 'drilldown', metricKey: selectedMetric, format: 'csv' })}`}>
-                      Download drilldown CSV
-                    </Link>
-                  </div>
+                  ) : null}
                 </div>
               ) : null}
-            </div>
+            </section>
 
-            <div style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 10, padding: 14, background: 'var(--admin-surface)' }}>
-              <div style={{ fontWeight: 700 }}>Audit timeline and provenance</div>
-              <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>
-                {centerPayload.recentAuditEvents.slice(0, 8).map((event) => (
-                  <div key={String(event.id)} style={{ border: '1px solid var(--admin-surface-border)', borderRadius: 8, padding: '8px 10px' }}>
-                    <div style={{ fontWeight: 700 }}>{String(event.eventType ?? 'event')}</div>
-                    <div style={{ marginTop: 3, fontSize: 12, color: 'var(--cpp-muted)' }}>
-                      {String((event as { createdAt?: string }).createdAt ?? '')} | {String((event as { exportType?: string }).exportType ?? '')}
-                    </div>
-                  </div>
-                ))}
+            <section className="rs-section">
+              <div className="rs-section-head">
+                <span className="rs-section-eyebrow">Data Quality &amp; Validation</span>
+                <h2 className="rs-section-title">Confidence checks &amp; anomalies</h2>
+                <p className="rs-section-sub">
+                  Surface gaps before exporting — issues here block a clean RPPR submission.
+                </p>
               </div>
-            </div>
-          </div>
+              <div className="rs-grid-3">
+                <div className="rs-card">
+                  <div className="rs-card-title">Data quality</div>
+                  <div className="rs-card-sub">
+                    Confidence:{' '}
+                    <strong style={{ color: 'var(--cpp-ink)' }}>
+                      {centerPayload.dataQuality.confidence}
+                    </strong>
+                  </div>
+                  <div style={{ marginTop: 10, display: 'grid', gap: 6 }}>
+                    {centerPayload.dataQuality.issues.length === 0 ? (
+                      <div className="rs-issue is-positive">
+                        <div className="rs-issue-title">No quality blockers detected</div>
+                        <div className="rs-issue-detail">
+                          All quality checks passed for this scope.
+                        </div>
+                      </div>
+                    ) : (
+                      centerPayload.dataQuality.issues.map((issue) => {
+                        const cls =
+                          issue.severity === 'high'
+                            ? 'rs-issue is-high'
+                            : issue.severity === 'medium'
+                              ? 'rs-issue is-warning'
+                              : 'rs-issue'
+                        return (
+                          <div key={issue.key} className={cls}>
+                            <div className="rs-issue-title">{issue.message}</div>
+                            {issue.recommendation ? (
+                              <div className="rs-issue-detail">{issue.recommendation}</div>
+                            ) : null}
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
+                </div>
+                <div className="rs-card">
+                  <div className="rs-card-title">Anomaly checks</div>
+                  <div className="rs-card-sub">Threshold-based deviations from prior periods</div>
+                  <div style={{ marginTop: 10, display: 'grid', gap: 6 }}>
+                    {centerPayload.anomalies.length === 0 ? (
+                      <div className="rs-issue is-positive">
+                        <div className="rs-issue-title">No threshold anomalies</div>
+                        <div className="rs-issue-detail">
+                          Engagement, completion, and mastery are within tolerance.
+                        </div>
+                      </div>
+                    ) : (
+                      centerPayload.anomalies.map((anomaly) => {
+                        const cls =
+                          anomaly.severity === 'high'
+                            ? 'rs-issue is-high'
+                            : anomaly.severity === 'medium'
+                              ? 'rs-issue is-warning'
+                              : 'rs-issue'
+                        return (
+                          <div key={anomaly.key} className={cls}>
+                            <div className="rs-issue-title">{anomaly.message}</div>
+                            <div className="rs-issue-detail">
+                              Metric: {anomaly.metricKey} · severity {anomaly.severity}
+                            </div>
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
+                </div>
+                <div className="rs-card">
+                  <div className="rs-card-title">Cross-checks</div>
+                  <div className="rs-card-sub">Cross-collection integrity validations</div>
+                  <div style={{ marginTop: 10, display: 'grid', gap: 6 }}>
+                    {centerPayload.crossChecks.length === 0 ? (
+                      <div className="rs-empty">No cross-checks configured.</div>
+                    ) : (
+                      centerPayload.crossChecks.map((check) => {
+                        const cls =
+                          check.status === 'fail'
+                            ? 'rs-issue is-high'
+                            : check.status === 'warn'
+                              ? 'rs-issue is-warning'
+                              : 'rs-issue is-positive'
+                        return (
+                          <div key={check.key} className={cls}>
+                            <div className="rs-issue-title">{check.message}</div>
+                            <div className="rs-issue-detail">Status: {check.status}</div>
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="rs-section">
+              <div className="rs-section-head">
+                <span className="rs-section-eyebrow">Historical Trends</span>
+                <h2 className="rs-section-title">KPI movement vs. previous snapshot</h2>
+                <p className="rs-section-sub">
+                  Each metric is compared against the most recent prior snapshot in the same scope.
+                </p>
+              </div>
+              <div className="rs-card">
+                <div className="rs-grid-3">
+                  {centerPayload.trendComparisons.map((trend) => {
+                    const delta = trend.deltaPercent ?? null
+                    const cls =
+                      delta == null
+                        ? 'rs-trend-delta is-flat'
+                        : delta > 0.0001
+                          ? 'rs-trend-delta is-up'
+                          : delta < -0.0001
+                            ? 'rs-trend-delta is-down'
+                            : 'rs-trend-delta is-flat'
+                    return (
+                      <div key={trend.metricKey} className="rs-trend">
+                        <div className="rs-trend-label">{trend.label}</div>
+                        <div className="rs-trend-value">
+                          {formatTrendValue(trend.metricKey, trend.currentValue)}
+                        </div>
+                        <div className={cls}>
+                          {trend.previousValue == null
+                            ? 'No prior snapshot'
+                            : delta == null
+                              ? `Prev ${formatTrendValue(trend.metricKey, trend.previousValue)}`
+                              : `${delta > 0 ? '↑' : delta < 0 ? '↓' : '·'} ${Math.abs(
+                                  Math.round(delta * 1000) / 10,
+                                )}% vs prev`}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </section>
+
+            <section className="rs-section">
+              <div className="rs-section-head">
+                <span className="rs-section-eyebrow">Narratives &amp; Drilldowns</span>
+                <h2 className="rs-section-title">Working drafts and per-metric drilldowns</h2>
+                <p className="rs-section-sub">
+                  Drafts are seeded from the metrics above; pick a metric to surface the
+                  learner-level CSV.
+                </p>
+              </div>
+              <div className="rs-grid-2">
+                <div className="rs-card">
+                  <div className="rs-card-title">Narrative drafts</div>
+                  <div className="rs-card-sub">Auto-generated starting points — copy and edit</div>
+                  <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                    {[
+                      ['Accomplishments', centerPayload.narrativeDrafts.accomplishmentsDraft],
+                      ['Impact', centerPayload.narrativeDrafts.impactDraft],
+                      ['Changes / Problems', centerPayload.narrativeDrafts.changesProblemsDraft],
+                    ].map(([title, body]) => (
+                      <div
+                        key={title}
+                        style={{
+                          border: '1px solid rgba(15, 23, 42, 0.07)',
+                          borderRadius: 10,
+                          padding: '10px 12px',
+                          background: 'rgba(255, 255, 255, 0.7)',
+                        }}
+                      >
+                        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--cpp-ink)' }}>
+                          {title}
+                        </div>
+                        <div
+                          style={{
+                            marginTop: 4,
+                            fontSize: 12,
+                            color: 'var(--cpp-muted)',
+                            lineHeight: 1.55,
+                          }}
+                        >
+                          {body}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rs-card">
+                  <div className="rs-card-title">Metric drilldown</div>
+                  <div className="rs-card-sub">Pick a metric to inspect its definition + CSV</div>
+                  <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {centerPayload.metricDefinitions.map((metric) => (
+                      <Link
+                        key={metric.key}
+                        href={`/admin/reporting?${buildScopedQuery({ metricKey: metric.key })}`}
+                        className={`rs-pill${selectedMetric === metric.key ? ' is-active' : ''}`}
+                      >
+                        {metric.name}
+                      </Link>
+                    ))}
+                  </div>
+                  {selectedMetric ? (
+                    <div
+                      style={{
+                        marginTop: 12,
+                        border: '1px solid rgba(15, 23, 42, 0.07)',
+                        borderRadius: 10,
+                        padding: '10px 12px',
+                        background: 'rgba(255, 255, 255, 0.7)',
+                      }}
+                    >
+                      {(() => {
+                        const def = centerPayload.metricDefinitions.find(
+                          (m) => m.key === selectedMetric,
+                        )
+                        if (!def) return null
+                        return (
+                          <>
+                            <div
+                              style={{
+                                fontSize: 13,
+                                fontWeight: 700,
+                                color: 'var(--cpp-ink)',
+                              }}
+                            >
+                              {def.name}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: 12,
+                                color: 'var(--cpp-muted)',
+                                marginTop: 4,
+                                lineHeight: 1.5,
+                              }}
+                            >
+                              {def.description}
+                            </div>
+                            <div style={{ fontSize: 11.5, color: 'var(--cpp-muted)', marginTop: 6 }}>
+                              <strong style={{ color: 'var(--cpp-ink)' }}>Numerator:</strong>{' '}
+                              {def.numerator}
+                            </div>
+                            <div style={{ fontSize: 11.5, color: 'var(--cpp-muted)' }}>
+                              <strong style={{ color: 'var(--cpp-ink)' }}>Denominator:</strong>{' '}
+                              {def.denominator}
+                            </div>
+                            <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                              <Link
+                                href={`/api/analytics/reporting-center?${buildScopedQuery({ action: 'drilldown', metricKey: selectedMetric, format: 'csv' })}`}
+                                className="rs-pill"
+                              >
+                                Drilldown CSV
+                              </Link>
+                              <Link
+                                href={`/api/analytics/reporting-center?${buildScopedQuery({ action: 'drilldown', metricKey: selectedMetric })}`}
+                                className="rs-pill"
+                              >
+                                Drilldown JSON
+                              </Link>
+                            </div>
+                          </>
+                        )
+                      })()}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </section>
+
+            <section className="rs-section">
+              <div className="rs-section-head">
+                <span className="rs-section-eyebrow">Audit Trail</span>
+                <h2 className="rs-section-title">Recent reporting events</h2>
+                <p className="rs-section-sub">
+                  Each export, snapshot, and saved view is logged with timestamp + actor for
+                  provenance.
+                </p>
+              </div>
+              <div className="rs-card">
+                <div style={{ display: 'grid', gap: 6 }}>
+                  {centerPayload.recentAuditEvents.length === 0 ? (
+                    <div className="rs-empty">No audit events yet for this workspace.</div>
+                  ) : (
+                    centerPayload.recentAuditEvents.slice(0, 10).map((event) => {
+                      const created = String(
+                        (event as { createdAt?: string }).createdAt ?? '',
+                      ).slice(0, 19)
+                      return (
+                        <div
+                          key={String(event.id)}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            gap: 12,
+                            padding: '8px 12px',
+                            borderRadius: 10,
+                            background: 'rgba(15, 23, 42, 0.02)',
+                            fontSize: 12.5,
+                          }}
+                        >
+                          <span style={{ fontWeight: 700, color: 'var(--cpp-ink)' }}>
+                            {String(event.eventType ?? 'event')}
+                          </span>
+                          <span
+                            style={{
+                              color: 'var(--cpp-muted)',
+                              fontVariantNumeric: 'tabular-nums',
+                            }}
+                          >
+                            {created}
+                            {(event as { exportType?: string }).exportType
+                              ? ` · ${String((event as { exportType?: string }).exportType)}`
+                              : ''}
+                          </span>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+              </div>
+            </section>
+          </>
         ) : null}
       </div>
     </Gutter>
