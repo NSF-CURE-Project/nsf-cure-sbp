@@ -695,7 +695,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
                 href={previewHref}
                 target="_blank"
                 rel="noreferrer"
-                className="cw-btn"
+                className="cw-btn cw-btn--primary"
               >
                 Preview
               </a>
@@ -703,18 +703,12 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
               <button
                 type="button"
                 onClick={() => setActiveTab('settings')}
-                className="cw-btn"
+                className="cw-btn cw-btn--primary"
                 title="Set a slug to enable public preview"
               >
                 Preview
               </button>
             )}
-            <Link
-              href={`/admin/collections/classes/${course.id}`}
-              className="cw-btn cw-btn--primary"
-            >
-              Publish
-            </Link>
           </div>
         </div>
 
