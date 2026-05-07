@@ -1,4 +1,9 @@
-name: Payload CMS Migrate + Deploy
+name: Payload CMS Migrate
+
+# Runs Payload migrations against the production database before Railway's
+# native GitHub integration redeploys the payload-cms service. Railway
+# handles the actual deploy on its own; this workflow's only job is to
+# make sure the schema is up-to-date by the time the new image boots.
 
 on:
   push:
@@ -55,36 +60,3 @@ jobs:
 
       - name: Run Payload migrations
         run: DATABASE_URI="$PAYLOAD_DATABASE_URI" pnpm payload migrate
-
-  deploy:
-    name: Deploy Payload CMS To Railway
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    environment: production
-    needs: migrate
-    if: github.ref_name == 'prod'
-    defaults:
-      run:
-        working-directory: payload-cms
-    env:
-      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install Railway CLI
-        run: npm i -g @railway/cli
-
-      - name: Validate deploy secrets
-        run: |
-          test -n "$RAILWAY_TOKEN" || (echo "Missing secret: RAILWAY_TOKEN" && exit 1)
-          test -n "$RAILWAY_PROJECT_ID" || (echo "Missing secret: RAILWAY_PROJECT_ID" && exit 1)
-
-      - name: Deploy payload-cms service
-        run: railway up --ci --detach --service payload-cms --environment production --project "$RAILWAY_PROJECT_ID"
