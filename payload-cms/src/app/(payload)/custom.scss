@@ -114,8 +114,11 @@ html[data-theme='dark'] {
 .template-default.login .admin-login-logo,
 .template-minimal.login .admin-login-logo {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
   width: 100%;
+  gap: 10px;
 }
 
 .template-default.login .admin-login-logo img,
@@ -123,6 +126,15 @@ html[data-theme='dark'] {
   width: min(300px, 66vw);
   height: auto;
   filter: drop-shadow(0 16px 30px rgba(12, 37, 73, 0.2));
+}
+
+.template-default.login .admin-login-logo__caption,
+.template-minimal.login .admin-login-logo__caption {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #102847;
 }
 
 .template-default.login .login__form,
