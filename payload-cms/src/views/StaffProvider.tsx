@@ -1509,26 +1509,6 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           padding-top: 0;
         }
 
-        .admin-back-button {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          border: 1px solid var(--admin-surface-border);
-          border-radius: 999px;
-          background: var(--admin-surface);
-          color: var(--cpp-ink);
-          font-size: 12px;
-          font-weight: 700;
-          padding: 6px 12px;
-          text-decoration: none;
-          box-shadow: var(--admin-shadow);
-        }
-
-        .admin-back-button:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);
-        }
-
         :root {
           --app-header-height: calc(var(--base) * 2.8);
         }
@@ -3135,16 +3115,20 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           display: flex;
           align-items: center;
           gap: 16px;
-          padding: 10px 18px;
+          padding: 6px 20px;
+          min-height: 52px;
           background: var(--admin-surface);
-          border-bottom: 1px solid var(--admin-surface-border);
+          border-bottom: 1px solid rgba(15, 23, 42, 0.06);
           justify-content: space-between;
+        }
+        :root[data-theme='dark'] .admin-topbar {
+          border-bottom-color: rgba(148, 163, 184, 0.1);
         }
 
         .admin-topbar-left {
           display: inline-flex;
           align-items: center;
-          gap: 10px;
+          gap: 8px;
           min-width: 220px;
           z-index: 1;
         }
@@ -3154,34 +3138,37 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           align-items: center;
           gap: 8px;
           text-decoration: none;
-          padding: 2px 6px;
-          border-radius: 10px;
+          padding: 4px 8px;
+          margin-left: -6px;
+          border-radius: 8px;
           border: 1px solid transparent;
-          transition: border-color 140ms ease, background 140ms ease;
+          transition: background 140ms ease;
         }
 
         .admin-topbar-brand:hover {
-          border-color: var(--admin-surface-border);
-          background: rgba(21, 83, 207, 0.06);
+          background: rgba(15, 23, 42, 0.04);
+        }
+        :root[data-theme='dark'] .admin-topbar-brand:hover {
+          background: rgba(148, 163, 184, 0.08);
         }
 
         .admin-topbar-brand-cpp {
           width: auto;
-          height: 28px;
+          height: 24px;
         }
 
         .admin-topbar-brand-nsf {
-          width: 28px;
-          height: 28px;
+          width: 24px;
+          height: 24px;
           border-radius: 999px;
           object-fit: cover;
         }
 
         .admin-topbar-brand-text {
-          font-size: 15px;
-          font-weight: 700;
+          font-size: 14px;
+          font-weight: 600;
           line-height: 1;
-          letter-spacing: 0.01em;
+          letter-spacing: -0.01em;
           color: var(--cpp-ink);
           white-space: nowrap;
         }
@@ -3203,38 +3190,40 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           align-items: center;
           flex-wrap: nowrap;
           justify-content: center;
-          gap: 8px;
+          gap: 6px;
           min-width: 0;
           overflow: hidden;
           text-overflow: ellipsis;
           pointer-events: auto;
         }
 
-        .admin-breadcrumb-link,
-        .admin-breadcrumb-current {
+        .admin-breadcrumb-link {
           font-size: 13px;
-          font-weight: 600;
+          font-weight: 400;
           color: var(--cpp-muted);
           text-decoration: none;
+          transition: color 120ms ease;
         }
 
         .admin-breadcrumb-link:hover {
           color: var(--cpp-ink);
-          text-decoration: underline;
-          text-underline-offset: 2px;
         }
 
         .admin-breadcrumb-current {
+          font-size: 13px;
+          font-weight: 600;
           color: var(--cpp-ink);
           max-width: 320px;
           overflow: hidden;
           text-overflow: ellipsis;
+          letter-spacing: -0.005em;
         }
 
         .admin-breadcrumb-separator {
           color: var(--cpp-muted);
-          opacity: 0.65;
+          opacity: 0.4;
           font-size: 12px;
+          font-weight: 400;
           user-select: none;
         }
 
@@ -3250,36 +3239,40 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         .admin-theme-toggle {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: 4px 12px 4px 6px;
+          gap: 6px;
+          padding: 4px 10px 4px 4px;
           border-radius: 999px;
-          border: 1px solid rgba(15, 23, 42, 0.06);
-          background: rgba(255, 255, 255, 0.6);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-          color: var(--cpp-ink);
-          font-size: 12.5px;
-          font-weight: 700;
-          letter-spacing: 0.01em;
+          border: 1px solid transparent;
+          background: rgba(15, 23, 42, 0.04);
+          color: var(--cpp-muted);
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0;
           cursor: pointer;
-          transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease, transform 160ms ease;
-          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 2px 6px rgba(15, 23, 42, 0.04);
+          transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+          box-shadow: none;
         }
         .admin-theme-toggle:hover {
-          border-color: rgba(15, 23, 42, 0.12);
-          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 8px 18px rgba(15, 23, 42, 0.08);
-          background: rgba(255, 255, 255, 0.86);
-          transform: translateY(-1px);
+          background: rgba(15, 23, 42, 0.08);
+          color: var(--cpp-ink);
+          transform: none;
+          box-shadow: none;
         }
         .admin-theme-toggle:focus-visible {
           outline: none;
-          border-color: rgba(59, 130, 246, 0.6);
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22);
+          border-color: rgba(59, 130, 246, 0.5);
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+        }
+        :root[data-theme='dark'] .admin-theme-toggle {
+          background: rgba(148, 163, 184, 0.1);
+        }
+        :root[data-theme='dark'] .admin-theme-toggle:hover {
+          background: rgba(148, 163, 184, 0.18);
         }
         .admin-theme-toggle-track {
           position: relative;
-          width: 44px;
-          height: 22px;
+          width: 32px;
+          height: 18px;
           border-radius: 999px;
           background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
           box-shadow:
@@ -3295,8 +3288,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           position: absolute;
           top: 2px;
           left: 2px;
-          width: 18px;
-          height: 18px;
+          width: 14px;
+          height: 14px;
           border-radius: 999px;
           background: #ffffff;
           box-shadow:
@@ -3306,7 +3299,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .admin-theme-toggle[aria-checked="true"] .admin-theme-toggle-thumb {
-          transform: translateX(22px);
+          transform: translateX(14px);
           background: #f1f5fb;
         }
         .admin-theme-toggle-icon {
@@ -3322,10 +3315,14 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           transition: opacity 200ms ease;
         }
         .admin-theme-toggle-icon--sun {
-          left: 4px;
+          left: 3px;
         }
         .admin-theme-toggle-icon--moon {
-          right: 4px;
+          right: 3px;
+        }
+        .admin-theme-toggle-icon svg {
+          width: 10px;
+          height: 10px;
         }
         .admin-theme-toggle[aria-checked="true"] .admin-theme-toggle-icon--sun {
           opacity: 0.35;
@@ -3335,11 +3332,14 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
         .admin-theme-toggle-label {
           font-size: 12px;
-          font-weight: 700;
-          color: var(--cpp-ink);
-          letter-spacing: 0.02em;
+          font-weight: 500;
+          color: var(--cpp-muted);
+          letter-spacing: 0;
           min-width: 28px;
           text-align: left;
+        }
+        .admin-theme-toggle:hover .admin-theme-toggle-label {
+          color: var(--cpp-ink);
         }
         @media (max-width: 720px) {
           .admin-theme-toggle-label { display: none; }
@@ -3899,29 +3899,6 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
               />
               <span className="admin-topbar-brand-text">NSF CURE SBP</span>
             </Link>
-            {backHref && currentPath !== '/admin' && currentPath !== '/admin/' ? (
-              <button
-                type="button"
-                className="admin-back-button"
-                onClick={() => {
-                  if (typeof window === 'undefined') return
-                  const stack = pathStackRef.current.length
-                    ? pathStackRef.current
-                    : (window.sessionStorage.getItem('admin-path-stack') ?? '')
-                        .split('|')
-                        .filter(Boolean)
-                  if (stack.length <= 1) return
-                  stack.pop()
-                  const prev = stack[stack.length - 1] ?? '/admin'
-                  pathStackRef.current = stack
-                  window.sessionStorage.setItem('admin-path-stack', stack.join('|'))
-                  window.location.assign(prev)
-                }}
-              >
-                <span aria-hidden="true">←</span>
-                Back
-              </button>
-            ) : null}
           </div>
           <div className="admin-topbar-center">
             {breadcrumbs.length ? (

@@ -1266,17 +1266,18 @@ export default async function HelpTopicPage({ params }: Props) {
             href="/admin/help"
             style={{
               textDecoration: 'none',
-              borderRadius: 9,
-              padding: '9px 14px',
-              background: '#f8fafc',
-              color: 'var(--cpp-ink)',
-              fontWeight: 700,
-              border: '1px solid var(--admin-surface-border)',
+              padding: '4px 8px',
+              marginLeft: -8,
+              color: 'var(--cpp-muted)',
+              fontWeight: 500,
               fontSize: 13,
               whiteSpace: 'nowrap',
+              borderRadius: 6,
+              transition: 'color 120ms ease, background 120ms ease',
             }}
+            className="admin-help-back"
           >
-            ← All Topics
+            ← All topics
           </Link>
         </div>
 
