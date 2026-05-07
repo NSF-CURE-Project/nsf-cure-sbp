@@ -169,8 +169,11 @@ export function AdminCard({
   as = 'section',
 }: AdminCardProps) {
   const Tag = as
+  const mergedClassName = className
+    ? `admin-primitive-card admin-primitive-card--${variant} ${className}`
+    : `admin-primitive-card admin-primitive-card--${variant}`
   return (
-    <Tag className={className} style={getAdminCardStyle(variant, style)}>
+    <Tag className={mergedClassName} style={getAdminCardStyle(variant, style)}>
       {children}
     </Tag>
   )
@@ -239,6 +242,7 @@ export function AdminActionCard({
   return (
     <Link
       href={href}
+      className="admin-primitive-card admin-primitive-card--form admin-primitive-card--action"
       style={{
         ...getAdminCardStyle('form', {
           padding: '16px 18px',

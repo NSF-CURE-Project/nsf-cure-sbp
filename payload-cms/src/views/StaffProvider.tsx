@@ -2488,6 +2488,32 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           border-color: var(--admin-surface-border) !important;
         }
 
+        :root[data-theme="dark"] .admin-primitive-card {
+          background: var(--admin-surface) !important;
+          border-color: var(--admin-surface-border) !important;
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4) !important;
+        }
+        :root[data-theme="dark"] .admin-primitive-card--info {
+          background: var(--admin-surface-muted) !important;
+        }
+        :root[data-theme="dark"] .admin-primitive-card--meta,
+        :root[data-theme="dark"] .admin-primitive-card--summary {
+          background: var(--admin-surface-soft, var(--admin-surface-muted)) !important;
+        }
+        :root[data-theme="dark"] .admin-primitive-card--alert {
+          background: rgba(146, 64, 14, 0.18) !important;
+          border-color: rgba(217, 119, 6, 0.4) !important;
+        }
+        :root[data-theme="dark"] .admin-section-switcher {
+          background: rgba(255, 255, 255, 0.04) !important;
+          border-color: var(--admin-surface-border) !important;
+        }
+        :root[data-theme="dark"] .admin-section-switcher__btn--active {
+          background: var(--admin-surface) !important;
+          border-color: var(--admin-surface-border) !important;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+        }
+
         :root[data-theme="dark"] .dashboard-card div,
         :root[data-theme="dark"] .quick-action-card > div div,
         :root[data-theme="dark"] .dashboard-stat-card div,

@@ -58,7 +58,12 @@ export function AdminSectionSwitcher<T extends string>({
   style,
 }: Props<T>) {
   return (
-    <div role="tablist" aria-label={ariaLabel} style={{ ...getListStyle(compact), ...style }}>
+    <div
+      role="tablist"
+      aria-label={ariaLabel}
+      className="admin-section-switcher"
+      style={{ ...getListStyle(compact), ...style }}
+    >
       {items.map((item) => {
         const active = activeId === item.id
 
@@ -69,6 +74,7 @@ export function AdminSectionSwitcher<T extends string>({
             role="tab"
             aria-selected={active}
             onClick={() => onChange(item.id)}
+            className={`admin-section-switcher__btn${active ? ' admin-section-switcher__btn--active' : ''}`}
             style={getButtonStyle(active, compact)}
           >
             <span
