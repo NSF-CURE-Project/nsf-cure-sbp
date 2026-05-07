@@ -1507,18 +1507,26 @@ const StaffDashboardContent = ({
         filter: none !important;
         transform: none !important;
       }
+      [data-theme='dark'] .content-health-card {
+        background: var(--admin-surface);
+        border-color: var(--admin-surface-border);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+      }
       [data-theme='dark'] .content-health-item {
         background: rgba(15, 23, 42, 0.28);
         border-color: rgba(148, 163, 184, 0.3);
       }
       [data-theme='dark'] .content-health-item-action {
         background: rgba(15, 23, 42, 0.42);
+        border-color: rgba(148, 163, 184, 0.25);
+        color: var(--cpp-ink);
       }
       [data-theme='dark'] .content-health-item-action:hover {
         background: rgba(30, 41, 59, 0.72);
       }
       [data-theme='dark'] .content-health-empty {
         background: rgba(15, 23, 42, 0.28);
+        border-color: rgba(148, 163, 184, 0.3);
       }
     `}</style>
     <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
