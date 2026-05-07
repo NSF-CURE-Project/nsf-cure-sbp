@@ -26,7 +26,8 @@ const getId = (value: unknown): string | number | null => {
 
 // Lightweight student list for the picker. Only returns non-sensitive fields.
 export const userAnalyticsListHandler: PayloadHandler = async (req) => {
-  if (!isStaff(req)) return jsonResponse({ error: 'Unauthorized' }, 403)
+  if (!req?.user) return jsonResponse({ error: 'Unauthorized' }, 401)
+  if (!isStaff(req)) return jsonResponse({ error: 'Forbidden' }, 403)
 
   const url = new URL(req.url ?? 'http://localhost')
   const search = (url.searchParams.get('search') ?? '').trim().toLowerCase()
@@ -78,7 +79,8 @@ export const userAnalyticsListHandler: PayloadHandler = async (req) => {
 }
 
 export const userAnalyticsDetailHandler: PayloadHandler = async (req) => {
-  if (!isStaff(req)) return jsonResponse({ error: 'Unauthorized' }, 403)
+  if (!req?.user) return jsonResponse({ error: 'Unauthorized' }, 401)
+  if (!isStaff(req)) return jsonResponse({ error: 'Forbidden' }, 403)
 
   const url = new URL(req.url ?? 'http://localhost')
   const userId = url.searchParams.get('userId')

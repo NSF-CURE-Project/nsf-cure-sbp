@@ -106,6 +106,10 @@ export default function PrePostDetailView({ id }: { id: string }) {
         const res = await fetch(`/api/staff/pre-post/detail?id=${encodeURIComponent(id)}`, {
           credentials: 'include',
         })
+                if (res.status === 401 && typeof window !== 'undefined') {
+                  window.location.href = `/admin/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
+                  return
+                }
         if (!res.ok) {
           throw new Error(res.status === 403 ? 'You do not have access.' : 'Unable to load pre/post pair.')
         }

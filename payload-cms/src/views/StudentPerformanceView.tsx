@@ -61,6 +61,10 @@ export default function StudentPerformanceView() {
           credentials: 'include',
         })
 
+        if (response.status === 401 && typeof window !== 'undefined') {
+          window.location.href = `/admin/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
+          return
+        }
         if (!response.ok) {
           const message =
             response.status === 403

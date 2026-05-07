@@ -54,7 +54,8 @@ const computeStats = (values: number[]): Stats => {
 }
 
 export const quizStatsHandler: PayloadHandler = async (req) => {
-  if (!isStaff(req)) return jsonResponse({ error: 'Unauthorized' }, 403)
+  if (!req?.user) return jsonResponse({ error: 'Unauthorized' }, 401)
+  if (!isStaff(req)) return jsonResponse({ error: 'Forbidden' }, 403)
 
   const url = new URL(req.url ?? 'http://localhost')
   const quizId = url.searchParams.get('quizId')

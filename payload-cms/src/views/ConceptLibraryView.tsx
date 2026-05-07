@@ -50,6 +50,10 @@ export default function ConceptLibraryView() {
       setError(null)
       try {
         const res = await fetch('/api/staff/concept-list', { credentials: 'include' })
+                if (res.status === 401 && typeof window !== 'undefined') {
+                  window.location.href = `/admin/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
+                  return
+                }
         if (!res.ok) {
           throw new Error(res.status === 403 ? 'You do not have access.' : 'Unable to load concepts.')
         }

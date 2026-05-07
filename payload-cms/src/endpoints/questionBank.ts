@@ -19,7 +19,8 @@ const getId = (value: unknown): string | number | null => {
 }
 
 export const questionBankHandler: PayloadHandler = async (req) => {
-  if (!isStaff(req)) return jsonResponse({ error: 'Unauthorized' }, 403)
+  if (!req?.user) return jsonResponse({ error: 'Unauthorized' }, 401)
+  if (!isStaff(req)) return jsonResponse({ error: 'Forbidden' }, 403)
 
   // Pull a wide net up front; the client-side filters are cheap once we have
   // the rows. For programs with thousands of questions this should be paged.

@@ -46,7 +46,8 @@ const stats = (values: number[]) => {
 
 // List endpoint: lightweight summary for the index page.
 export const prePostListHandler: PayloadHandler = async (req) => {
-  if (!isStaff(req)) return jsonResponse({ error: 'Unauthorized' }, 403)
+  if (!req?.user) return jsonResponse({ error: 'Unauthorized' }, 401)
+  if (!isStaff(req)) return jsonResponse({ error: 'Forbidden' }, 403)
 
   const list = await req.payload.find({
     collection: 'pre-post-assessments',
@@ -90,7 +91,8 @@ export const prePostListHandler: PayloadHandler = async (req) => {
 }
 
 export const prePostDetailHandler: PayloadHandler = async (req) => {
-  if (!isStaff(req)) return jsonResponse({ error: 'Unauthorized' }, 403)
+  if (!req?.user) return jsonResponse({ error: 'Unauthorized' }, 401)
+  if (!isStaff(req)) return jsonResponse({ error: 'Forbidden' }, 403)
 
   const url = new URL(req.url ?? 'http://localhost')
   const id = url.searchParams.get('id')

@@ -107,6 +107,10 @@ export default function QuestionStatsView({ questionId }: { questionId: string }
           `/api/staff/question-stats?questionId=${encodeURIComponent(questionId)}`,
           { credentials: 'include' },
         )
+                if (res.status === 401 && typeof window !== 'undefined') {
+                  window.location.href = `/admin/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
+                  return
+                }
         if (!res.ok) {
           throw new Error(res.status === 403 ? 'You do not have access.' : 'Unable to load stats.')
         }

@@ -25,7 +25,8 @@ const getId = (value: unknown): string | number | null => {
 
 // Lightweight list for the concept library page.
 export const conceptListHandler: PayloadHandler = async (req) => {
-  if (!isStaff(req)) return jsonResponse({ error: 'Unauthorized' }, 403)
+  if (!req?.user) return jsonResponse({ error: 'Unauthorized' }, 401)
+  if (!isStaff(req)) return jsonResponse({ error: 'Forbidden' }, 403)
 
   const concepts = await req.payload.find({
     collection: 'concepts',
@@ -82,7 +83,8 @@ export const conceptListHandler: PayloadHandler = async (req) => {
 
 // Detailed view for one concept: prerequisites, tagged questions, attempt-level mastery.
 export const conceptDetailHandler: PayloadHandler = async (req) => {
-  if (!isStaff(req)) return jsonResponse({ error: 'Unauthorized' }, 403)
+  if (!req?.user) return jsonResponse({ error: 'Unauthorized' }, 401)
+  if (!isStaff(req)) return jsonResponse({ error: 'Forbidden' }, 403)
 
   const url = new URL(req.url ?? 'http://localhost')
   const slug = url.searchParams.get('slug')

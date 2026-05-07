@@ -141,6 +141,10 @@ export default function UserAnalyticsView() {
       setListError(null)
       try {
         const res = await fetch('/api/staff/user-analytics/list', { credentials: 'include' })
+                if (res.status === 401 && typeof window !== 'undefined') {
+                  window.location.href = `/admin/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
+                  return
+                }
         if (!res.ok) {
           throw new Error(res.status === 403 ? 'You do not have access.' : 'Unable to load students.')
         }
@@ -174,6 +178,10 @@ export default function UserAnalyticsView() {
           `/api/staff/user-analytics?userId=${encodeURIComponent(String(selectedId))}`,
           { credentials: 'include' },
         )
+                if (res.status === 401 && typeof window !== 'undefined') {
+                  window.location.href = `/admin/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
+                  return
+                }
         if (!res.ok) {
           throw new Error('Unable to load this student.')
         }

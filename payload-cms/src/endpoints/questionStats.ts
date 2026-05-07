@@ -42,7 +42,8 @@ const pearsonCorrelation = (xs: number[], ys: number[]): number | null => {
 }
 
 export const questionStatsHandler: PayloadHandler = async (req) => {
-  if (!isStaff(req)) return jsonResponse({ error: 'Unauthorized' }, 403)
+  if (!req?.user) return jsonResponse({ error: 'Unauthorized' }, 401)
+  if (!isStaff(req)) return jsonResponse({ error: 'Forbidden' }, 403)
 
   const url = new URL(req.url ?? 'http://localhost')
   const questionId = url.searchParams.get('questionId')

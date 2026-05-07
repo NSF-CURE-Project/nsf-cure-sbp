@@ -80,6 +80,10 @@ export default function ConceptDetailView({ slug }: { slug: string }) {
         const res = await fetch(`/api/staff/concept-detail?slug=${encodeURIComponent(slug)}`, {
           credentials: 'include',
         })
+                if (res.status === 401 && typeof window !== 'undefined') {
+                  window.location.href = `/admin/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
+                  return
+                }
         if (!res.ok) {
           throw new Error(res.status === 404 ? 'Concept not found.' : 'Unable to load concept.')
         }

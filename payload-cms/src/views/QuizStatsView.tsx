@@ -155,6 +155,10 @@ export default function QuizStatsView({ quizId }: { quizId: string }) {
           `/api/staff/quiz-stats?quizId=${encodeURIComponent(quizId)}`,
           { credentials: 'include' },
         )
+                if (res.status === 401 && typeof window !== 'undefined') {
+                  window.location.href = `/admin/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
+                  return
+                }
         if (!res.ok) {
           throw new Error(res.status === 403 ? 'You do not have access.' : 'Unable to load stats.')
         }
