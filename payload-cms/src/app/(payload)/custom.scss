@@ -1,10 +1,11 @@
 /* Payload admin branding overrides */
 @import './admin-tailwind.css';
 @import 'katex/dist/katex.min.css';
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700,900&display=swap');
 
 :root,
 html[data-theme='light'] {
-  --font-body: 'Avenir Next', 'Avenir', 'Segoe UI', 'Helvetica Neue', sans-serif;
+  --font-body: 'Satoshi', 'Avenir Next', 'Avenir', 'Segoe UI', 'Helvetica Neue', sans-serif;
   --font-mono: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
 
   --theme-bg: #f7f5ef;
@@ -36,7 +37,7 @@ html[data-theme='light'] {
 }
 
 html[data-theme='dark'] {
-  --font-body: 'Avenir Next', 'Avenir', 'Segoe UI', 'Helvetica Neue', sans-serif;
+  --font-body: 'Satoshi', 'Avenir Next', 'Avenir', 'Segoe UI', 'Helvetica Neue', sans-serif;
   --font-mono: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
 
   --theme-bg: #0f1411;
