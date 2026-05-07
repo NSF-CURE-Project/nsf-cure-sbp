@@ -98,12 +98,6 @@ const ArrowUpRightIcon = (p: IconProps) => (
     <path d="M7 7h10v10" />
   </Icon>
 )
-const PlusIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M12 5v14" />
-    <path d="M5 12h14" />
-  </Icon>
-)
 const TrendUpIcon = (p: IconProps) => (
   <Icon {...p}>
     <path d="m22 7-8.5 8.5-5-5L2 17" />
@@ -1606,19 +1600,6 @@ const StaffDashboardContent = ({
                 <span
                   style={{
                     fontSize: 11,
-                    fontWeight: 700,
-                    padding: '2px 8px',
-                    borderRadius: 999,
-                    background: 'rgba(21, 83, 207, 0.1)',
-                    color: '#1553cf',
-                    letterSpacing: 0.4,
-                  }}
-                >
-                  Cohort {new Date().getFullYear()}
-                </span>
-                <span
-                  style={{
-                    fontSize: 11,
                     color: 'var(--cpp-muted)',
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -1667,45 +1648,6 @@ const StaffDashboardContent = ({
                 </span>{' '}
                 Manage program content, access analytics, and support students.
               </p>
-              <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
-                <Link
-                  href="/admin/courses"
-                  style={{
-                    textDecoration: 'none',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '8px 14px',
-                    borderRadius: 10,
-                    background: 'linear-gradient(180deg, #1e3a8a 0%, #163074 100%)',
-                    color: '#fff',
-                    fontSize: 13,
-                    fontWeight: 700,
-                    boxShadow:
-                      '0 1px 0 rgba(255,255,255,0.18) inset, 0 8px 20px rgba(21,83,207,0.25)',
-                  }}
-                >
-                  <PlusIcon size={14} /> Manage Courses
-                </Link>
-                <Link
-                  href="/admin/quiz-bank"
-                  style={{
-                    textDecoration: 'none',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '8px 14px',
-                    borderRadius: 10,
-                    background: 'rgba(255,255,255,0.7)',
-                    color: 'var(--cpp-ink)',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    border: '1px solid rgba(15, 23, 42, 0.1)',
-                  }}
-                >
-                  <ClipboardIcon size={14} /> Open Quiz Bank
-                </Link>
-              </div>
             </div>
             <div
               style={{
