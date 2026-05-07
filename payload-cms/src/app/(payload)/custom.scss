@@ -6,7 +6,7 @@
 
 :root,
 html[data-theme='light'] {
-  --font-body: 'Satoshi', 'Avenir Next', 'Avenir', 'Segoe UI', 'Helvetica Neue', sans-serif;
+  --font-body: 'Inter', 'Satoshi', 'Avenir Next', 'Avenir', 'Segoe UI', 'Helvetica Neue', sans-serif;
   --font-mono: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
 
   --theme-bg: #f7f5ef;
@@ -38,7 +38,7 @@ html[data-theme='light'] {
 }
 
 html[data-theme='dark'] {
-  --font-body: 'Satoshi', 'Avenir Next', 'Avenir', 'Segoe UI', 'Helvetica Neue', sans-serif;
+  --font-body: 'Inter', 'Satoshi', 'Avenir Next', 'Avenir', 'Segoe UI', 'Helvetica Neue', sans-serif;
   --font-mono: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
 
   --theme-bg: #0f1411;
