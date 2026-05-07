@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { HelpLink } from './admin/HelpLink'
 
 type Item = {
   id: string | number
@@ -77,8 +78,19 @@ export default function PrePostListView() {
   return (
     <div style={shellStyle}>
       <div style={heroStyle}>
-        <div style={{ fontSize: 12, letterSpacing: 1.1, textTransform: 'uppercase', color: '#c6982f', fontWeight: 800 }}>
-          Pre/Post Workspace
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 12,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ fontSize: 12, letterSpacing: 1.1, textTransform: 'uppercase', color: '#c6982f', fontWeight: 800 }}>
+            Pre/Post Workspace
+          </div>
+          <HelpLink topic="pre-post" />
         </div>
         <h1 style={{ margin: '6px 0 6px', fontSize: 28, color: '#1553cf' }}>Pre/Post Assessments</h1>
         <p style={{ margin: 0, color: 'var(--cpp-muted)', maxWidth: 720, lineHeight: 1.55 }}>

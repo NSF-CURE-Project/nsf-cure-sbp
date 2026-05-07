@@ -14,6 +14,7 @@ import {
   AdminMiniCard,
   adminChipStyle,
 } from '@/views/admin/AdminCardPrimitives'
+import { HelpLink } from '@/views/admin/HelpLink'
 
 type SiteManagementTab = 'general' | 'navigation' | 'users'
 
@@ -73,8 +74,19 @@ export default function AdminSettingsPage() {
   return (
     <Gutter>
       <div style={{ maxWidth: 960, margin: '24px auto 80px' }}>
-        <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--cpp-ink)' }}>
-          Site Management
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 16,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--cpp-ink)' }}>
+            Site Management
+          </div>
+          <HelpLink topic="site-management" />
         </div>
         <p style={{ marginTop: 8, color: 'var(--cpp-muted)', maxWidth: 560 }}>
           Manage branding, navigation, support content, and admin access for the NSF CURE admin

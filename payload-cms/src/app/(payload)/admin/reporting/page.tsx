@@ -8,6 +8,7 @@ import { getReportingCenterPayload } from '@/reporting/reportingCenter'
 import type { ReportingCohortFilters } from '@/reporting/types'
 import { isSchemaMismatchError, schemaRepairHint } from '@/reporting/schema'
 import { HBar, Donut, Sparkline, ReportingPanel } from '@/views/reporting/charts'
+import { HelpLink } from '@/views/admin/HelpLink'
 
 type ReportingPeriodDoc = {
   id: string | number
@@ -577,23 +578,34 @@ export default async function AdminReportingPage({ searchParams }: Props) {
       `}</style>
       <div className="rs-shell">
         <header className="rs-hero">
-          <span className="rs-eyebrow">
-            <svg
-              aria-hidden="true"
-              width="11"
-              height="11"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M3 3v18h18" />
-              <path d="M7 14l3-3 3 3 5-5" />
-            </svg>
-            Reporting Suite
-          </span>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              gap: 12,
+              flexWrap: 'wrap',
+            }}
+          >
+            <span className="rs-eyebrow">
+              <svg
+                aria-hidden="true"
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 3v18h18" />
+                <path d="M7 14l3-3 3 3 5-5" />
+              </svg>
+              Reporting Suite
+            </span>
+            <HelpLink topic="reporting" />
+          </div>
           <h1 className="rs-title">NSF institutional analytics &amp; RPPR workspace</h1>
           <p className="rs-sub">
             Period-scoped cohort analytics, snapshot-backed RPPR drafts, and audit-grade exports —

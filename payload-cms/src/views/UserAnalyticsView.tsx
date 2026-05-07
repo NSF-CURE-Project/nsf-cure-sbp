@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
+import { HelpLink } from './admin/HelpLink'
 
 type StudentRow = {
   id: string | number
@@ -212,8 +213,19 @@ export default function UserAnalyticsView() {
   return (
     <div style={shellStyle}>
       <div style={heroStyle}>
-        <div style={{ fontSize: 12, letterSpacing: 1.1, textTransform: 'uppercase', color: '#c6982f', fontWeight: 800 }}>
-          Per-Student Analytics
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 12,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ fontSize: 12, letterSpacing: 1.1, textTransform: 'uppercase', color: '#c6982f', fontWeight: 800 }}>
+            Per-Student Analytics
+          </div>
+          <HelpLink topic="analytics" />
         </div>
         <h1 style={{ margin: '6px 0 8px', fontSize: 28, lineHeight: 1.15, color: '#1553cf' }}>
           User Analytics

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import type { StudentPerformancePayload } from '../utils/studentPerformance'
+import { HelpLink } from './admin/HelpLink'
 import { InsightsPanel } from './student-performance/InsightsPanel'
 import { MetricCard } from './student-performance/MetricCard'
 import { StudentPerformanceTable } from './student-performance/StudentPerformanceTable'
@@ -136,9 +137,20 @@ export default function StudentPerformanceView() {
           }}
         >
           <div>
-            <h1 style={{ margin: '0 0 10px', fontSize: 30, lineHeight: 1.15, color: '#1553cf' }}>
-              Student Performance
-            </h1>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                gap: 12,
+                flexWrap: 'wrap',
+              }}
+            >
+              <h1 style={{ margin: '0 0 10px', fontSize: 30, lineHeight: 1.15, color: '#1553cf' }}>
+                Student Performance
+              </h1>
+              <HelpLink topic="analytics" />
+            </div>
             <p style={{ margin: 0, maxWidth: 760, color: 'var(--cpp-muted)', lineHeight: 1.6 }}>
               Track who is progressing, who is stalled, and where staff attention is needed across
               lessons, quizzes, and problem sets.

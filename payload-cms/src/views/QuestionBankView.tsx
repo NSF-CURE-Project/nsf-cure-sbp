@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import SavedViewsBar from './SavedViewsBar'
+import { HelpLink } from './admin/HelpLink'
 
 type Concept = { id: string | number; name: string; slug: string; subject: string | null }
 
@@ -129,8 +130,19 @@ export default function QuestionBankView() {
   return (
     <div style={shellStyle}>
       <div style={heroStyle}>
-        <div style={{ fontSize: 12, letterSpacing: 1.1, textTransform: 'uppercase', color: '#c6982f', fontWeight: 800 }}>
-          Question Bank
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 12,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ fontSize: 12, letterSpacing: 1.1, textTransform: 'uppercase', color: '#c6982f', fontWeight: 800 }}>
+            Question Bank
+          </div>
+          <HelpLink topic="quizzes" />
         </div>
         <h1 style={{ margin: '6px 0 6px', fontSize: 28, color: '#1553cf' }}>All quiz questions</h1>
         <p style={{ margin: 0, color: 'var(--cpp-muted)', maxWidth: 720, lineHeight: 1.55 }}>

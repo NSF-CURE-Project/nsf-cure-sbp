@@ -12,6 +12,7 @@ import {
   QuizzesTab,
   SettingsTab,
 } from './WorkspaceTabs'
+import { HelpLink } from '../admin/HelpLink'
 
 type WorkspaceTab = 'outline' | 'lessons' | 'quizzes' | 'preview' | 'settings' | 'publish'
 
@@ -68,6 +69,7 @@ export default function CourseWorkspace({ initialCourse }: CourseWorkspaceProps)
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <HelpLink topic="courses" />
             <Link
               href={`/admin/collections/classes/${course.id}`}
               className="rounded-md border border-[var(--admin-surface-border)] px-3 py-1.5 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:bg-[var(--admin-surface-muted)]"

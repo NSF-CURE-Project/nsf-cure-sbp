@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import SavedViewsBar from './SavedViewsBar'
 import Link from 'next/link'
 import { parseStringArray } from '@/lib/quiz'
+import { HelpLink } from './admin/HelpLink'
 
 type CourseOption = {
   id: string
@@ -673,7 +674,8 @@ export default function QuizBankView({ initialQuizzes, courses, chapters }: Quiz
             chapter.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <HelpLink topic="quizzes" />
           <button
             type="button"
             onClick={() => setImportOpen(true)}

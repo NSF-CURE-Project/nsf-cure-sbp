@@ -22,6 +22,7 @@ import {
 import type { DragMeta, EntityId, SaveStatus } from './types'
 import SaveStatusIndicator from './SaveStatusIndicator'
 import CoursesHomeCard, { type CourseCatalogItem } from './CoursesHomeCard'
+import { HelpLink } from '../admin/HelpLink'
 import { reorderInArray } from './reorder-utils'
 import { deleteCourse, saveCourseOrder } from './courses-order-api'
 
@@ -207,6 +208,7 @@ export default function CoursesHome({ initialCourses }: CoursesHomeProps) {
         </div>
         <div className="flex items-center gap-2">
           <SaveStatusIndicator status={status} />
+          <HelpLink topic="courses" />
           <Link
             href="/admin/courses/new"
             className="rounded-md bg-slate-900 px-3 py-2 text-xs font-semibold text-white no-underline hover:bg-slate-800"

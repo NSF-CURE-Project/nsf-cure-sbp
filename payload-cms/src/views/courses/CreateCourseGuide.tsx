@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createChapterInCourse, createCourse } from './courses-order-api'
+import { HelpLink } from '../admin/HelpLink'
 
 type Step = 'basics' | 'chapters' | 'review'
 
@@ -117,7 +118,12 @@ export default function CreateCourseGuide() {
           <span aria-hidden>›</span>
           <span>Create course</span>
         </div>
-        <h1 className="m-0 text-2xl font-semibold text-[var(--cpp-ink)]">Create a new course</h1>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <h1 className="m-0 text-2xl font-semibold text-[var(--cpp-ink)]">
+            Create a new course
+          </h1>
+          <HelpLink topic="courses" />
+        </div>
         <p className="text-sm text-[var(--cpp-muted)]">
           A short guided flow. You can add lessons, quizzes, and finer settings from the course
           workspace after creation.
