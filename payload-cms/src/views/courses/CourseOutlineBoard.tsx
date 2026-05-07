@@ -25,6 +25,7 @@ import EmptyChapterState from './EmptyChapterState'
 import SaveStatusIndicator from './SaveStatusIndicator'
 import EntityInspector, { type Selection } from './EntityInspector'
 import LessonAssignmentDrawer from './LessonAssignmentDrawer'
+import QuizAssignmentDrawer from './QuizAssignmentDrawer'
 import {
   cloneCourses,
   getCourseByChapterId,
@@ -114,6 +115,7 @@ export default function CourseOutlineBoard({
     { type: 'chapter'; id: EntityId } | { type: 'lesson'; id: EntityId } | null
   >(null)
   const [addLessonChapterId, setAddLessonChapterId] = useState<EntityId | null>(null)
+  const [quizAssignLessonId, setQuizAssignLessonId] = useState<EntityId | null>(null)
   const deleteErrorRef = useRef<HTMLDivElement | null>(null)
 
   const committedRef = useRef<CourseNode[]>(courses)
@@ -497,6 +499,7 @@ export default function CourseOutlineBoard({
                     setSelectedKey({ type: 'lesson', id: lesson.id })
                   }
                   onAddLesson={(node) => setAddLessonChapterId(node.id)}
+                  onAssignQuiz={(lesson) => setQuizAssignLessonId(lesson.id)}
                 />
               ))
             ) : (
@@ -513,6 +516,32 @@ export default function CourseOutlineBoard({
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      <QuizAssignmentDrawer
+        lesson={
+          quizAssignLessonId
+            ? (course.chapters
+                .flatMap((chapter) => chapter.lessons)
+                .find((lesson) => lesson.id === quizAssignLessonId) ?? null)
+            : null
+        }
+        onClose={() => setQuizAssignLessonId(null)}
+        onQuizChanged={(lessonId, quizTitle) => {
+          setCourses((prev) => {
+            const next = prev.map((courseItem) => ({
+              ...courseItem,
+              chapters: courseItem.chapters.map((chapter) => ({
+                ...chapter,
+                lessons: chapter.lessons.map((lesson) =>
+                  lesson.id === lessonId ? { ...lesson, quizTitle } : lesson,
+                ),
+              })),
+            }))
+            committedRef.current = next
+            return next
+          })
+        }}
+      />
 
       <LessonAssignmentDrawer
         chapter={
@@ -562,6 +591,10 @@ export default function CourseOutlineBoard({
       <EntityInspector
         selection={resolveSelection(course, selectedKey)}
         onClose={() => setSelectedKey(null)}
+        onAssignQuiz={(lesson) => {
+          setSelectedKey(null)
+          setQuizAssignLessonId(lesson.id)
+        }}
         onTitleSaved={({ type, id, title }) => {
           setCourses((prev) =>
             prev.map((courseItem) => ({

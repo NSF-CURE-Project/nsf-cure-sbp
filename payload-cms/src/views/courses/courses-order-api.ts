@@ -195,6 +195,69 @@ export const searchUnassignedLessons = async (
   })
 }
 
+type QuizSearchDoc = {
+  id: string | number
+  title?: string
+  _status?: string
+  updatedAt?: string
+}
+
+export type QuizSearchResult = {
+  id: EntityId
+  title: string
+  status: string | null
+  updatedAt: string | null
+}
+
+export const searchQuizzes = async (
+  query: string,
+  limit = 25,
+): Promise<QuizSearchResult[]> => {
+  const params = new URLSearchParams()
+  params.set('depth', '0')
+  params.set('limit', String(limit))
+  params.set('sort', '-updatedAt')
+  if (query.trim()) {
+    params.set('where[title][like]', query.trim())
+  }
+  const json = await get<{ docs?: QuizSearchDoc[] }>(`/api/quizzes?${params.toString()}`)
+  return (json.docs ?? []).map((doc) => ({
+    id: String(doc.id),
+    title: doc.title ?? 'Untitled quiz',
+    status: doc._status ?? null,
+    updatedAt: doc.updatedAt ?? null,
+  }))
+}
+
+type LessonLayoutBlock = Record<string, unknown> & { blockType?: string }
+
+const fetchLessonLayout = async (lessonId: EntityId): Promise<LessonLayoutBlock[]> => {
+  const json = await get<{ layout?: unknown }>(
+    `/api/lessons/${lessonId}?depth=0`,
+  )
+  return Array.isArray(json.layout) ? (json.layout as LessonLayoutBlock[]) : []
+}
+
+export const assignQuizToLesson = async (lessonId: EntityId, quizId: EntityId) => {
+  const layout = await fetchLessonLayout(lessonId)
+  const existingIndex = layout.findIndex((block) => block.blockType === 'quizBlock')
+  const quizBlock: LessonLayoutBlock =
+    existingIndex >= 0
+      ? { ...layout[existingIndex], blockType: 'quizBlock', quiz: quizId }
+      : { blockType: 'quizBlock', quiz: quizId, showTitle: true }
+  const nextLayout =
+    existingIndex >= 0
+      ? layout.map((block, index) => (index === existingIndex ? quizBlock : block))
+      : [...layout, quizBlock]
+  await patch(`/api/lessons/${lessonId}`, { layout: nextLayout })
+}
+
+export const removeQuizFromLesson = async (lessonId: EntityId) => {
+  const layout = await fetchLessonLayout(lessonId)
+  const nextLayout = layout.filter((block) => block.blockType !== 'quizBlock')
+  await patch(`/api/lessons/${lessonId}`, { layout: nextLayout })
+}
+
 export const deleteChapter = async (chapterId: EntityId) => {
   await remove(`/api/chapters/${chapterId}`)
 }

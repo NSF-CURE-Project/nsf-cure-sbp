@@ -20,6 +20,7 @@ type SortableLessonRowProps = {
   isSelected: boolean
   onDelete: (lesson: LessonNode) => void
   onSelect: (lesson: LessonNode) => void
+  onAssignQuiz: (lesson: LessonNode) => void
 }
 
 export default function SortableLessonRow({
@@ -33,6 +34,7 @@ export default function SortableLessonRow({
   isSelected,
   onDelete,
   onSelect,
+  onAssignQuiz,
 }: SortableLessonRowProps) {
   const sortable = useSortable({
     id: `lesson:${lesson.id}`,
@@ -52,9 +54,9 @@ export default function SortableLessonRow({
 
   const overflowActions: OverflowAction[] = [
     {
-      kind: 'link',
+      kind: 'button',
       label: lesson.quizTitle ? 'Change quiz' : 'Assign quiz',
-      href: `/admin/collections/lessons/${lesson.id}`,
+      onClick: () => onAssignQuiz(lesson),
     },
     {
       kind: 'button',
@@ -97,12 +99,26 @@ export default function SortableLessonRow({
         aria-pressed={isSelected}
       >
         <div className="truncate text-sm font-medium text-[var(--cpp-ink)]">{lesson.title}</div>
-        <div className="truncate text-xs text-[var(--cpp-muted)]">
-          Quiz: {lesson.quizTitle || 'Not assigned'}
-        </div>
       </button>
       {reorderMode ? null : (
         <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => onAssignQuiz(lesson)}
+            className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wider transition ${
+              lesson.quizTitle
+                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+            }`}
+            aria-label={
+              lesson.quizTitle
+                ? `Change quiz for lesson ${lesson.title}`
+                : `Assign quiz to lesson ${lesson.title}`
+            }
+            title={lesson.quizTitle ? `Quiz: ${lesson.quizTitle}` : 'No quiz assigned'}
+          >
+            {lesson.quizTitle ? `Quiz: ${lesson.quizTitle}` : 'No quiz'}
+          </button>
           <Link
             href={`/admin/collections/lessons/${lesson.id}`}
             className="rounded-md border border-[var(--admin-surface-border)] px-2 py-1 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:bg-[var(--admin-surface-muted)]"

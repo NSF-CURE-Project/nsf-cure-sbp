@@ -17,6 +17,7 @@ type EntityInspectorProps = {
   onTitleSaved: (entity: { type: 'chapter' | 'lesson'; id: string; title: string }) => void
   onDeleteChapter?: (chapter: ChapterNode) => void
   onDeleteLesson?: (lesson: LessonNode) => void
+  onAssignQuiz?: (lesson: LessonNode) => void
   deleting: boolean
 }
 
@@ -26,6 +27,7 @@ export default function EntityInspector({
   onTitleSaved,
   onDeleteChapter,
   onDeleteLesson,
+  onAssignQuiz,
   deleting,
 }: EntityInspectorProps) {
   const open = selection !== null
@@ -145,6 +147,15 @@ export default function EntityInspector({
         </div>
 
         <div className="grid gap-1.5">
+          {!isChapter && onAssignQuiz ? (
+            <button
+              type="button"
+              onClick={() => onAssignQuiz(selection.lesson)}
+              className="rounded-md border border-[var(--admin-surface-border)] px-3 py-2 text-center text-xs font-semibold text-[var(--cpp-ink)] hover:bg-[var(--admin-surface-muted)]"
+            >
+              {selection.lesson.quizTitle ? 'Change quiz' : 'Assign quiz'}
+            </button>
+          ) : null}
           <Link
             href={
               isChapter

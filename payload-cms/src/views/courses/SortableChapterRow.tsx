@@ -27,6 +27,7 @@ type SortableChapterRowProps = {
   onSelectChapter: (chapter: ChapterNode) => void
   onSelectLesson: (lesson: ChapterNode['lessons'][number], chapter: ChapterNode) => void
   onAddLesson: (chapter: ChapterNode) => void
+  onAssignQuiz: (lesson: ChapterNode['lessons'][number]) => void
 }
 
 export default function SortableChapterRow({
@@ -45,6 +46,7 @@ export default function SortableChapterRow({
   onSelectChapter,
   onSelectLesson,
   onAddLesson,
+  onAssignQuiz,
 }: SortableChapterRowProps) {
   const sortable = useSortable({
     id: `chapter:${chapter.id}`,
@@ -160,6 +162,7 @@ export default function SortableChapterRow({
                   isSelected={selectedLessonId === lesson.id}
                   onDelete={onDeleteLesson}
                   onSelect={(lessonNode) => onSelectLesson(lessonNode, chapter)}
+                  onAssignQuiz={onAssignQuiz}
                 />
               ))
             ) : (
