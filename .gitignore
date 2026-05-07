@@ -36,4 +36,3 @@ openai-codex*
 /scripts/lib/local-workflow.mjs
 /scripts/scan-repo.mjs
 /scripts/tests/local-workflow.test.mjs
-node_modules
