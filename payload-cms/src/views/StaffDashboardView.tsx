@@ -2186,6 +2186,77 @@ const StaffDashboardContent = ({
             />
           </div>
         </div>
+        <div style={sectionLabelStyle}>Operational Signals</div>
+        <div style={{ ...contentBoxStyle }}>
+          <NeedsAttentionPanel stats={stats} managementCounts={managementCounts} />
+        </div>
+        <div style={{ ...contentBoxStyle }}>
+          <div className="content-health-heading">
+            <div className="content-health-heading-title">Content Health</div>
+            <p className="content-health-heading-subtitle">
+              Monitor lesson quality signals and student friction indicators to identify where
+              course content may need updates.
+            </p>
+          </div>
+          <div className="content-health-grid">
+            <ContentHealthCard
+              title="Low completion lessons"
+              description="Lessons with completion rates below the expected threshold."
+              emptyMessage="Completion trends look healthy across current lessons."
+              tone="completion"
+              icon={
+                <>
+                  <path d="M4 19h16" />
+                  <path d="M7 15l4-4 3 3 4-6" />
+                </>
+              }
+              items={contentHealth.lowCompletion.map((item) => ({
+                id: item.id,
+                title: item.title,
+                metric: `${Math.round(item.rate * 100)}% complete`,
+                href: `/admin/collections/lessons/${item.id}`,
+              }))}
+            />
+            <ContentHealthCard
+              title="High question volume"
+              description="Lessons with elevated student question activity."
+              emptyMessage="No lessons show unusual question volume right now."
+              tone="questions"
+              icon={
+                <>
+                  <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H6l-3 3V11.5A8.5 8.5 0 0 1 11.5 3h1A8.5 8.5 0 0 1 21 11.5z" />
+                  <path d="M9 11h6" />
+                  <path d="M9 15h4" />
+                </>
+              }
+              items={contentHealth.highQuestions.map((item) => ({
+                id: item.id,
+                title: item.title,
+                metric: `${item.count} questions`,
+                href: `/admin/collections/lessons/${item.id}`,
+              }))}
+            />
+            <ContentHealthCard
+              title="Low helpfulness"
+              description="Lessons with weaker helpfulness ratings from students."
+              emptyMessage="Helpfulness scores are stable and no lessons are currently flagged."
+              tone="helpfulness"
+              icon={
+                <>
+                  <path d="M10 14V5.5a2.5 2.5 0 0 1 5 0V14" />
+                  <path d="M7 10h10a2 2 0 0 1 1.93 2.52l-1.15 4A2 2 0 0 1 15.86 18H9a2 2 0 0 1-2-2v-6z" />
+                  <path d="M7 10H5.5A1.5 1.5 0 0 0 4 11.5V16a2 2 0 0 0 2 2h1" />
+                </>
+              }
+              items={contentHealth.lowHelpfulness.map((item) => ({
+                id: item.id,
+                title: item.title,
+                metric: `${item.rating.toFixed(1)} / 4 helpfulness`,
+                href: `/admin/collections/lessons/${item.id}`,
+              }))}
+            />
+          </div>
+        </div>
         <div style={sectionLabelStyle}>NSF Reporting</div>
         <div style={{ ...contentBoxStyle }}>
           {(() => {
@@ -2345,77 +2416,6 @@ const StaffDashboardContent = ({
               </div>
             )
           })()}
-        </div>
-        <div style={sectionLabelStyle}>Operational Signals</div>
-        <div style={{ ...contentBoxStyle }}>
-          <NeedsAttentionPanel stats={stats} managementCounts={managementCounts} />
-        </div>
-        <div style={{ ...contentBoxStyle }}>
-          <div className="content-health-heading">
-            <div className="content-health-heading-title">Content Health</div>
-            <p className="content-health-heading-subtitle">
-              Monitor lesson quality signals and student friction indicators to identify where
-              course content may need updates.
-            </p>
-          </div>
-          <div className="content-health-grid">
-            <ContentHealthCard
-              title="Low completion lessons"
-              description="Lessons with completion rates below the expected threshold."
-              emptyMessage="Completion trends look healthy across current lessons."
-              tone="completion"
-              icon={
-                <>
-                  <path d="M4 19h16" />
-                  <path d="M7 15l4-4 3 3 4-6" />
-                </>
-              }
-              items={contentHealth.lowCompletion.map((item) => ({
-                id: item.id,
-                title: item.title,
-                metric: `${Math.round(item.rate * 100)}% complete`,
-                href: `/admin/collections/lessons/${item.id}`,
-              }))}
-            />
-            <ContentHealthCard
-              title="High question volume"
-              description="Lessons with elevated student question activity."
-              emptyMessage="No lessons show unusual question volume right now."
-              tone="questions"
-              icon={
-                <>
-                  <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H6l-3 3V11.5A8.5 8.5 0 0 1 11.5 3h1A8.5 8.5 0 0 1 21 11.5z" />
-                  <path d="M9 11h6" />
-                  <path d="M9 15h4" />
-                </>
-              }
-              items={contentHealth.highQuestions.map((item) => ({
-                id: item.id,
-                title: item.title,
-                metric: `${item.count} questions`,
-                href: `/admin/collections/lessons/${item.id}`,
-              }))}
-            />
-            <ContentHealthCard
-              title="Low helpfulness"
-              description="Lessons with weaker helpfulness ratings from students."
-              emptyMessage="Helpfulness scores are stable and no lessons are currently flagged."
-              tone="helpfulness"
-              icon={
-                <>
-                  <path d="M10 14V5.5a2.5 2.5 0 0 1 5 0V14" />
-                  <path d="M7 10h10a2 2 0 0 1 1.93 2.52l-1.15 4A2 2 0 0 1 15.86 18H9a2 2 0 0 1-2-2v-6z" />
-                  <path d="M7 10H5.5A1.5 1.5 0 0 0 4 11.5V16a2 2 0 0 0 2 2h1" />
-                </>
-              }
-              items={contentHealth.lowHelpfulness.map((item) => ({
-                id: item.id,
-                title: item.title,
-                metric: `${item.rating.toFixed(1)} / 4 helpfulness`,
-                href: `/admin/collections/lessons/${item.id}`,
-              }))}
-            />
-          </div>
         </div>
       </div>
     </div>
