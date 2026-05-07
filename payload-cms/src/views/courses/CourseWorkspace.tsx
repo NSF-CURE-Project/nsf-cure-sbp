@@ -688,7 +688,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
               href={`/admin/collections/classes/${course.id}`}
               className="cw-btn cw-btn--ghost"
             >
-              Edit details
+              Edit Course
             </Link>
             {previewHref ? (
               <a
