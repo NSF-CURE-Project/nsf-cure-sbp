@@ -564,12 +564,455 @@ const ContentHealthCard = ({
   )
 }
 
+// ---------- Mini chart primitives for the Reporting module ----------
+const HBar = ({
+  label,
+  numerator,
+  denominator,
+  rate,
+  accent = '#1553cf',
+}: {
+  label: string
+  numerator: number
+  denominator: number
+  rate: number
+  accent?: string
+}) => {
+  const pct = Math.max(0, Math.min(1, rate))
+  return (
+    <div style={{ display: 'grid', gap: 4 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          gap: 8,
+        }}
+      >
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: 'var(--cpp-ink)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            minWidth: 0,
+          }}
+          title={label}
+        >
+          {label}
+        </span>
+        <span
+          style={{ fontSize: 11, color: 'var(--cpp-muted)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}
+        >
+          <strong style={{ color: 'var(--cpp-ink)' }}>{Math.round(pct * 100)}%</strong>
+          <span style={{ opacity: 0.7 }}>
+            {' '}
+            · {numerator}/{denominator}
+          </span>
+        </span>
+      </div>
+      <div
+        style={{
+          height: 8,
+          borderRadius: 999,
+          background: 'rgba(15, 23, 42, 0.06)',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            width: `${(pct * 100).toFixed(1)}%`,
+            height: '100%',
+            background: `linear-gradient(90deg, ${accent}aa 0%, ${accent} 100%)`,
+            borderRadius: 999,
+            transition: 'width 600ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
+const Donut = ({
+  value,
+  size = 90,
+  stroke = 10,
+  accent = '#1553cf',
+  label,
+  sub,
+}: {
+  value: number
+  size?: number
+  stroke?: number
+  accent?: string
+  label?: string
+  sub?: string
+}) => {
+  const pct = Math.max(0, Math.min(1, value))
+  const radius = (size - stroke) / 2
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference * (1 - pct)
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="rgba(15, 23, 42, 0.07)"
+          strokeWidth={stroke}
+          fill="none"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={accent}
+          strokeWidth={stroke}
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          style={{ transition: 'stroke-dashoffset 700ms cubic-bezier(0.22, 0.61, 0.36, 1)' }}
+        />
+        <text
+          x="50%"
+          y="50%"
+          textAnchor="middle"
+          dominantBaseline="central"
+          style={{
+            fontSize: 16,
+            fontWeight: 800,
+            fill: 'var(--cpp-ink)',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          {Math.round(pct * 100)}%
+        </text>
+      </svg>
+      <div style={{ minWidth: 0 }}>
+        {label ? (
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--cpp-ink)' }}>{label}</div>
+        ) : null}
+        {sub ? (
+          <div style={{ fontSize: 11, color: 'var(--cpp-muted)', marginTop: 2 }}>{sub}</div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+const ReportingPanel = ({
+  title,
+  hint,
+  children,
+}: {
+  title: string
+  hint?: string
+  children: React.ReactNode
+}) => (
+  <div
+    style={{
+      borderRadius: 14,
+      border: '1px solid rgba(15, 23, 42, 0.06)',
+      background:
+        'linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 255, 0.92) 100%)',
+      padding: '14px 16px',
+      boxShadow: '0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 6px 14px rgba(15, 23, 42, 0.04)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10,
+      minHeight: 180,
+    }}
+  >
+    <div>
+      <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--cpp-ink)' }}>{title}</div>
+      {hint ? (
+        <div style={{ fontSize: 11, color: 'var(--cpp-muted)', marginTop: 2 }}>{hint}</div>
+      ) : null}
+    </div>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>{children}</div>
+  </div>
+)
+
+const formatRelativeTime = (iso: string | null): string | null => {
+  if (!iso) return null
+  const ts = new Date(iso).getTime()
+  if (!Number.isFinite(ts)) return null
+  const diffMs = Date.now() - ts
+  const minute = 60 * 1000
+  const hour = 60 * minute
+  const day = 24 * hour
+  if (diffMs < minute) return 'Updated just now'
+  if (diffMs < hour) return `Updated ${Math.floor(diffMs / minute)}m ago`
+  if (diffMs < day) return `Updated ${Math.floor(diffMs / hour)}h ago`
+  if (diffMs < 30 * day) return `Updated ${Math.floor(diffMs / day)}d ago`
+  return `Updated ${new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+}
+
+type ModuleCardProps = {
+  tone: ModuleTone
+  title: string
+  description: string
+  meta: Array<{ label: string; value: number | string; tone?: 'warning' | 'positive' }>
+  footer?: string | null
+  primary: { href: string; label: string }
+  secondary?: { href: string; label: string }
+  icon: React.ReactNode
+}
+
+const ModuleCard = ({
+  tone,
+  title,
+  description,
+  meta,
+  footer,
+  primary,
+  secondary,
+  icon,
+}: ModuleCardProps) => {
+  const palette = moduleToneStyles[tone]
+  return (
+    <div className="dashboard-module-card" style={{ borderRadius: 14 }}>
+      <div className="dashboard-module-card-head">
+        <ModuleIcon tone={tone}>{icon}</ModuleIcon>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--cpp-ink)', letterSpacing: -0.1 }}>
+            {title}
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--cpp-muted)', marginTop: 2, lineHeight: 1.45 }}>
+            {description}
+          </div>
+        </div>
+      </div>
+      <div className="dashboard-module-meta-row">
+        {meta.map((m) => (
+          <span
+            key={m.label}
+            className={`dashboard-module-meta-chip${
+              m.tone === 'warning' ? ' is-warning' : m.tone === 'positive' ? ' is-positive' : ''
+            }`}
+          >
+            <strong>{m.value}</strong>
+            <span>{m.label}</span>
+          </span>
+        ))}
+      </div>
+      <div className="dashboard-module-foot">
+        <div className="dashboard-module-actions">
+          <Link
+            href={primary.href}
+            className="dashboard-module-primary"
+            style={{ background: palette.color }}
+          >
+            {primary.label}
+            <svg
+              aria-hidden="true"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M5 12h14" />
+              <path d="m13 5 7 7-7 7" />
+            </svg>
+          </Link>
+          {secondary ? (
+            <Link href={secondary.href} className="dashboard-module-secondary">
+              {secondary.label}
+            </Link>
+          ) : null}
+        </div>
+        {footer ? <div className="dashboard-module-footer-meta">{footer}</div> : null}
+      </div>
+    </div>
+  )
+}
+
+type NeedsAttentionItem = {
+  href: string
+  label: string
+  count: number
+  description: string
+  tone: 'warning' | 'danger' | 'neutral' | 'positive'
+}
+
+const NeedsAttentionPanel = ({
+  stats,
+  managementCounts,
+}: {
+  stats: { unanswered: number; unreadFeedback: number; awaitingLessonFeedback: number }
+  managementCounts?: {
+    lessonsTotal: number
+    publishedLessonsCount: number
+    classroomsTotal: number
+  }
+}) => {
+  const unpublished = Math.max(
+    0,
+    (managementCounts?.lessonsTotal ?? 0) - (managementCounts?.publishedLessonsCount ?? 0),
+  )
+  const items: NeedsAttentionItem[] = [
+    {
+      href: '/admin/collections/lessons?where[_status][equals]=draft',
+      label: 'Unpublished lessons',
+      count: unpublished,
+      description: unpublished
+        ? 'Drafts not yet visible to students'
+        : 'Every lesson is published',
+      tone: unpublished > 0 ? 'warning' : 'positive',
+    },
+    {
+      href: '/admin/collections/feedback?where[read][equals]=false',
+      label: 'Unread feedback',
+      count: stats.unreadFeedback,
+      description: stats.unreadFeedback
+        ? 'Sitewide feedback waiting on a read'
+        : 'Inbox is clear',
+      tone: stats.unreadFeedback > 0 ? 'warning' : 'positive',
+    },
+    {
+      href: '/admin/collections/lesson-feedback',
+      label: 'Lesson feedback to reply',
+      count: stats.awaitingLessonFeedback,
+      description: stats.awaitingLessonFeedback
+        ? 'Threads awaiting a staff response'
+        : 'No outstanding lesson threads',
+      tone: stats.awaitingLessonFeedback > 0 ? 'warning' : 'positive',
+    },
+    {
+      href: '/admin/collections/questions?where[status][equals]=open',
+      label: 'Unanswered questions',
+      count: stats.unanswered,
+      description: stats.unanswered
+        ? 'Open questions from students'
+        : 'No open questions',
+      tone: stats.unanswered > 0 ? 'danger' : 'positive',
+    },
+  ]
+  const flagged = items.filter((it) => it.count > 0).length
+
+  return (
+    <div className="dashboard-attention-panel">
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+          marginBottom: 8,
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--cpp-ink)' }}>
+            Needs Attention
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--cpp-muted)', marginTop: 2 }}>
+            Operational inbox across the platform
+          </div>
+        </div>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            padding: '3px 8px',
+            borderRadius: 999,
+            background:
+              flagged > 0 ? 'rgba(217, 119, 6, 0.12)' : 'rgba(20, 131, 92, 0.12)',
+            color: flagged > 0 ? '#b45309' : '#127455',
+          }}
+        >
+          {flagged > 0 ? `${flagged} flagged` : 'All clear'}
+        </span>
+      </div>
+      <div style={{ display: 'grid', gap: 4 }}>
+        {items.map((item) => {
+          const isFlagged = item.count > 0
+          const accent =
+            item.tone === 'danger'
+              ? '#b91c1c'
+              : item.tone === 'warning'
+                ? '#b45309'
+                : item.tone === 'positive'
+                  ? '#127455'
+                  : '#475569'
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              className="dashboard-attention-row"
+              style={{
+                ...(isFlagged ? { borderLeftColor: accent } : {}),
+              }}
+            >
+              <span
+                aria-hidden
+                className="dashboard-attention-dot"
+                style={{
+                  background: isFlagged ? accent : 'rgba(20, 131, 92, 0.5)',
+                  boxShadow: isFlagged
+                    ? `0 0 0 4px ${accent}22`
+                    : '0 0 0 4px rgba(20, 131, 92, 0.12)',
+                }}
+              />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      color: 'var(--cpp-ink)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: isFlagged ? accent : 'var(--cpp-muted)',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {item.count}
+                  </span>
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--cpp-muted)', marginTop: 2 }}>
+                  {item.description}
+                </div>
+              </div>
+            </Link>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 const StaffDashboardContent = ({
   user,
   stats,
   contentHealth,
   reporting,
   kpiHistory,
+  managementCounts,
 }: {
   user?: AdminViewServerProps['initPageResult']['req']['user']
   stats: {
@@ -586,6 +1029,16 @@ const StaffDashboardContent = ({
     activeStudents: number[]
     publishedLessons: number[]
     completionRate: number[]
+  }
+  managementCounts?: {
+    coursesTotal: number
+    chaptersTotal: number
+    lessonsTotal: number
+    publishedLessonsCount: number
+    quizzesTotal: number
+    quizQuestionsTotal: number
+    classroomsTotal: number
+    lastLessonUpdatedAt: string | null
   }
   contentHealth: {
     lowCompletion: { id: string | number; title: string; rate: number }[]
@@ -633,6 +1086,233 @@ const StaffDashboardContent = ({
       }
       @media (prefers-reduced-motion: reduce) {
         .dashboard-fade-in { animation: none !important; }
+      }
+
+      .dashboard-module-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      @media (max-width: 720px) {
+        .dashboard-module-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .dashboard-module-card {
+        position: relative;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 255, 0.96) 100%);
+        padding: 14px 16px;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 6px 14px rgba(15, 23, 42, 0.04);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+      }
+      .dashboard-module-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset,
+          0 12px 24px rgba(15, 23, 42, 0.08);
+        border-color: rgba(15, 23, 42, 0.12);
+      }
+      .dashboard-module-card-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .dashboard-module-meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .dashboard-module-meta-chip {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px;
+        padding: 4px 9px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.05);
+        font-size: 11px;
+        color: var(--cpp-muted);
+        font-weight: 600;
+        line-height: 1;
+      }
+      .dashboard-module-meta-chip strong {
+        color: var(--cpp-ink);
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        font-size: 12px;
+      }
+      .dashboard-module-meta-chip.is-warning {
+        background: rgba(217, 119, 6, 0.12);
+        color: #b45309;
+      }
+      .dashboard-module-meta-chip.is-warning strong {
+        color: #b45309;
+      }
+      .dashboard-module-meta-chip.is-positive {
+        background: rgba(20, 131, 92, 0.12);
+        color: #127455;
+      }
+      .dashboard-module-meta-chip.is-positive strong {
+        color: #127455;
+      }
+      .dashboard-module-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 2px;
+      }
+      .dashboard-module-actions {
+        display: inline-flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .dashboard-module-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 12px;
+        border-radius: 9px;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #fff;
+        text-decoration: none;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.18) inset, 0 6px 14px rgba(15, 23, 42, 0.1);
+        transition: transform 160ms ease, box-shadow 160ms ease;
+      }
+      .dashboard-module-primary svg {
+        transition: transform 160ms ease;
+      }
+      .dashboard-module-card:hover .dashboard-module-primary svg {
+        transform: translateX(2px);
+      }
+      .dashboard-module-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset, 0 10px 20px rgba(15, 23, 42, 0.16);
+      }
+      .dashboard-module-secondary {
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 12px;
+        border-radius: 9px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--cpp-ink);
+        text-decoration: none;
+        background: rgba(15, 23, 42, 0.04);
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        transition: background 160ms ease, border-color 160ms ease;
+      }
+      .dashboard-module-secondary:hover {
+        background: rgba(15, 23, 42, 0.07);
+        border-color: rgba(15, 23, 42, 0.12);
+      }
+      .dashboard-module-footer-meta {
+        font-size: 11px;
+        color: var(--cpp-muted);
+        font-weight: 600;
+      }
+
+      .dashboard-reporting-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+        gap: 12px;
+      }
+      @media (max-width: 960px) {
+        .dashboard-reporting-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .dashboard-reporting-main {
+        border-radius: 16px;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(248, 250, 255, 0.94) 100%);
+        padding: 16px;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 8px 20px rgba(15, 23, 42, 0.04);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .dashboard-reporting-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .dashboard-reporting-charts {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      @media (max-width: 720px) {
+        .dashboard-reporting-charts {
+          grid-template-columns: 1fr;
+        }
+      }
+      .dashboard-reporting-export-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        padding-top: 10px;
+        border-top: 1px solid rgba(15, 23, 42, 0.06);
+      }
+      .dashboard-export-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--cpp-ink);
+        text-decoration: none;
+        background: rgba(15, 23, 42, 0.04);
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        transition: background 140ms ease;
+      }
+      .dashboard-export-pill:hover {
+        background: rgba(15, 23, 42, 0.08);
+      }
+
+      .dashboard-attention-panel {
+        border-radius: 16px;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(248, 250, 255, 0.94) 100%);
+        padding: 16px;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 8px 20px rgba(15, 23, 42, 0.04);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+      .dashboard-attention-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        border-left: 3px solid transparent;
+        background: rgba(15, 23, 42, 0.02);
+        text-decoration: none;
+        transition: background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+      }
+      .dashboard-attention-row:hover {
+        background: rgba(15, 23, 42, 0.06);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.05);
+      }
+      .dashboard-attention-dot {
+        margin-top: 6px;
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        flex-shrink: 0;
       }
       .quick-action-card > div {
         transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
@@ -1631,306 +2311,352 @@ const StaffDashboardContent = ({
         </div>
         <div style={sectionLabelStyle}>Course & Site Management</div>
         <div style={{ ...contentBoxStyle }}>
-          <div style={{ display: 'grid', gap: 12 }}>
-            <div style={moduleRowStyle}>
-              <div style={moduleMetaStyle}>
-                <ModuleIcon tone="blue">
+          <div className="dashboard-module-grid">
+            <ModuleCard
+              tone="blue"
+              title="Course Workspace"
+              description="Edit chapters, lessons, and ordering across every course."
+              meta={[
+                { label: 'courses', value: managementCounts?.coursesTotal ?? 0 },
+                { label: 'chapters', value: managementCounts?.chaptersTotal ?? 0 },
+                { label: 'lessons', value: managementCounts?.lessonsTotal ?? 0 },
+              ]}
+              footer={formatRelativeTime(managementCounts?.lastLessonUpdatedAt ?? null)}
+              primary={{ href: '/admin/courses', label: 'Manage Courses' }}
+              icon={
+                <>
                   <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
                   <path d="M20 22V5a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 5.5v14" />
-                </ModuleIcon>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cpp-ink)' }}>
-                    Course Workspace
-                  </div>
-                  <div className="dashboard-module-description">
-                    Open courses to edit chapters, lessons, and ordering.
-                  </div>
-                </div>
-              </div>
-              <Link href="/admin/courses" className="dashboard-chip-link" draggable={false}>
-                <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
-                  Manage Courses
-                </div>
-              </Link>
-            </div>
-            <div style={moduleRowStyle}>
-              <div style={moduleMetaStyle}>
-                <ModuleIcon tone="emerald">
+                </>
+              }
+            />
+            <ModuleCard
+              tone="purple"
+              title="Quiz Bank"
+              description="Build assessments, reuse calibrated questions, assign quizzes to lessons."
+              meta={[
+                { label: 'quizzes', value: managementCounts?.quizzesTotal ?? 0 },
+                { label: 'questions', value: managementCounts?.quizQuestionsTotal ?? 0 },
+                {
+                  label: 'unanswered',
+                  value: stats.unanswered,
+                  tone: stats.unanswered > 0 ? 'warning' : undefined,
+                },
+              ]}
+              primary={{ href: '/admin/quiz-bank', label: 'Open Quiz Bank' }}
+              secondary={{ href: '/admin/question-bank', label: 'Question Bank' }}
+              icon={
+                <>
                   <path d="M9 6h11" />
                   <path d="M9 12h11" />
                   <path d="M9 18h11" />
                   <path d="M4 6h.01" />
                   <path d="M4 12h.01" />
                   <path d="M4 18h.01" />
-                </ModuleIcon>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cpp-ink)' }}>
-                    Quiz Bank
-                  </div>
-                  <div className="dashboard-module-description">
-                    Build assessments, reuse questions, and assign quizzes to lessons.
-                  </div>
-                </div>
-              </div>
-              <Link href="/admin/quiz-bank" className="dashboard-chip-link">
-                <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
-                  Open Quiz Bank
-                </div>
-              </Link>
-            </div>
-            <div style={moduleRowStyle}>
-              <div style={moduleMetaStyle}>
-                <ModuleIcon tone="slate">
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 5 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 5 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 5a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 5a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15z" />
-                </ModuleIcon>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cpp-ink)' }}>
-                    Site Management
-                  </div>
-                  <div className="dashboard-module-description">
-                    Manage navigation order, global pages, site settings, and users & roles.
-                  </div>
-                </div>
-              </div>
-              <Link href="/admin/site-management" className="dashboard-chip-link">
-                <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <svg
-                      aria-hidden="true"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="12" cy="12" r="3" />
-                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 5 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 5 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 5a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 5a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15z" />
-                    </svg>
-                    Site Management
-                  </span>
-                </div>
-              </Link>
-            </div>
-            <div style={moduleRowStyle}>
-              <div style={moduleMetaStyle}>
-                <ModuleIcon tone="amber">
+                </>
+              }
+            />
+            <ModuleCard
+              tone="emerald"
+              title="Classrooms"
+              description="Create join codes, manage cohort rosters, track enrollments for credit."
+              meta={[
+                { label: 'classrooms', value: managementCounts?.classroomsTotal ?? 0 },
+                { label: 'enrolled', value: stats.accounts },
+                { label: 'active 7d', value: stats.activeStudents },
+              ]}
+              primary={{ href: '/admin/collections/classrooms', label: 'Manage Classrooms' }}
+              secondary={{
+                href: '/admin/collections/classroom-memberships',
+                label: 'View Enrollments',
+              }}
+              icon={
+                <>
                   <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                   <circle cx="8.5" cy="7" r="3.2" />
                   <path d="M20 8v6" />
                   <path d="M23 11h-6" />
-                </ModuleIcon>
+                </>
+              }
+            />
+            <ModuleCard
+              tone="slate"
+              title="Site Management"
+              description="Navigation order, global pages, site settings, users & roles."
+              meta={[
+                { label: 'pages', value: managementCounts?.coursesTotal != null ? '—' : '—' },
+                {
+                  label: 'unread feedback',
+                  value: stats.unreadFeedback,
+                  tone: stats.unreadFeedback > 0 ? 'warning' : undefined,
+                },
+              ]}
+              primary={{ href: '/admin/site-management', label: 'Open Site Settings' }}
+              icon={
+                <>
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 5 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 5 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 5a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 5a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15z" />
+                </>
+              }
+            />
+          </div>
+        </div>
+        <div style={sectionLabelStyle}>NSF Reporting</div>
+        <div style={{ ...contentBoxStyle }}>
+          <div className="dashboard-reporting-grid">
+            <div className="dashboard-reporting-main">
+              <div className="dashboard-reporting-head">
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cpp-ink)' }}>
-                    Classrooms
+                  <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--cpp-ink)' }}>
+                    Operational reporting suite
                   </div>
-                  <div className="dashboard-module-description">
-                    Create join codes and track student enrollments for credit.
+                  <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 2 }}>
+                    Period-based RPPR exports, completion analytics, and engagement signals.
                   </div>
                 </div>
+                <Link
+                  href="/admin/reporting"
+                  className="dashboard-module-primary"
+                  style={{ background: '#1553cf' }}
+                >
+                  Open Reporting
+                  <svg
+                    aria-hidden="true"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M5 12h14" />
+                    <path d="m13 5 7 7-7 7" />
+                  </svg>
+                </Link>
               </div>
-              <div
-                style={{
-                  display: 'flex',
-                  gap: 8,
-                  flexWrap: 'wrap',
-                  padding: 3,
-                  borderRadius: 12,
-                  border: '1px solid var(--admin-surface-border)',
-                  background: 'rgba(237, 246, 255, 0.9)',
-                }}
-              >
-                <Link href="/admin/collections/classrooms" className="dashboard-chip-link">
-                  <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
-                    Manage Classrooms
-                  </div>
+              <div className="dashboard-reporting-charts">
+                <ReportingPanel
+                  title="Completion by class"
+                  hint="% of enrolled learners who finished each course"
+                >
+                  {reporting.classCompletion.length === 0 ? (
+                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                      No class completion data yet.
+                    </div>
+                  ) : (
+                    reporting.classCompletion
+                      .slice(0, 4)
+                      .map((item) => (
+                        <HBar
+                          key={item.id}
+                          label={item.title}
+                          numerator={item.uniqueLearnersCompleted}
+                          denominator={item.uniqueLearnersStarted || 1}
+                          rate={item.completionRate}
+                          accent="#1553cf"
+                        />
+                      ))
+                  )}
+                </ReportingPanel>
+                <ReportingPanel
+                  title="Completion by chapter"
+                  hint="Top 4 chapters by completion rate"
+                >
+                  {reporting.chapterCompletion.length === 0 ? (
+                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                      No chapter completion data yet.
+                    </div>
+                  ) : (
+                    [...reporting.chapterCompletion]
+                      .sort((a, b) => b.completionRate - a.completionRate)
+                      .slice(0, 4)
+                      .map((item) => (
+                        <HBar
+                          key={item.id}
+                          label={item.title}
+                          numerator={item.uniqueLearnersCompleted}
+                          denominator={item.uniqueLearnersStarted || 1}
+                          rate={item.completionRate}
+                          accent="#0d9488"
+                        />
+                      ))
+                  )}
+                </ReportingPanel>
+                <ReportingPanel
+                  title="Quiz mastery"
+                  hint="Share of attempts that hit ≥80% mastery"
+                >
+                  {(() => {
+                    const attempted = reporting.quizPerformance.reduce(
+                      (sum, q) => sum + q.uniqueLearnersAttempted,
+                      0,
+                    )
+                    const mastered = reporting.quizPerformance.reduce(
+                      (sum, q) => sum + q.uniqueLearnersMastered,
+                      0,
+                    )
+                    const rate = attempted ? mastered / attempted : 0
+                    if (attempted === 0) {
+                      return (
+                        <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                          No quiz attempts yet.
+                        </div>
+                      )
+                    }
+                    const top = [...reporting.quizPerformance]
+                      .sort((a, b) => b.masteryRate - a.masteryRate)
+                      .slice(0, 3)
+                    return (
+                      <>
+                        <Donut
+                          value={rate}
+                          accent="#a855f7"
+                          label={`${mastered}/${attempted} mastered`}
+                          sub={`across ${reporting.quizPerformance.length} quizzes`}
+                        />
+                        <div style={{ display: 'grid', gap: 6, marginTop: 4 }}>
+                          {top.map((q) => (
+                            <div
+                              key={q.quizId}
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                fontSize: 12,
+                                gap: 8,
+                              }}
+                            >
+                              <span
+                                style={{
+                                  color: 'var(--cpp-ink)',
+                                  fontWeight: 600,
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  minWidth: 0,
+                                }}
+                                title={q.title}
+                              >
+                                {q.title}
+                              </span>
+                              <span
+                                style={{
+                                  color: 'var(--cpp-muted)',
+                                  fontVariantNumeric: 'tabular-nums',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {Math.round(q.masteryRate * 100)}%
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )
+                  })()}
+                </ReportingPanel>
+                <ReportingPanel
+                  title="Week-over-week engagement"
+                  hint={`Past ${Math.min(reporting.weeklyEngagement.length, 8)} weeks of active learners`}
+                >
+                  {reporting.weeklyEngagement.length === 0 ? (
+                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                      No engagement data yet.
+                    </div>
+                  ) : (
+                    <>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'baseline',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <div>
+                          <div
+                            style={{
+                              fontSize: 22,
+                              fontWeight: 800,
+                              color: 'var(--cpp-ink)',
+                              fontVariantNumeric: 'tabular-nums',
+                            }}
+                          >
+                            {reporting.weeklyEngagement[reporting.weeklyEngagement.length - 1]
+                              ?.activeStudents ?? 0}
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>
+                            active students this week
+                          </div>
+                        </div>
+                        {(() => {
+                          const last =
+                            reporting.weeklyEngagement[reporting.weeklyEngagement.length - 1]
+                          if (last?.weekOverWeekChange == null) return null
+                          const pct = Math.round(last.weekOverWeekChange * 100)
+                          if (pct === 0) return null
+                          const up = pct > 0
+                          return (
+                            <span
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 700,
+                                color: up ? '#127455' : '#b91c1c',
+                                background: up ? 'rgba(18,116,85,0.1)' : 'rgba(185,28,28,0.1)',
+                                padding: '3px 8px',
+                                borderRadius: 999,
+                              }}
+                            >
+                              {up ? '↑' : '↓'} {Math.abs(pct)}% WoW
+                            </span>
+                          )
+                        })()}
+                      </div>
+                      <Sparkline
+                        values={reporting.weeklyEngagement.map((w) => w.activeStudents)}
+                        color="#1553cf"
+                        width={260}
+                        height={56}
+                      />
+                    </>
+                  )}
+                </ReportingPanel>
+              </div>
+              <div className="dashboard-reporting-export-row">
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.6,
+                    color: 'var(--cpp-muted)',
+                    marginRight: 6,
+                  }}
+                >
+                  Exports
+                </div>
+                <Link href="/api/analytics/reporting-summary?format=csv" className="dashboard-export-pill">
+                  Summary CSV
                 </Link>
                 <Link
-                  href="/admin/collections/classroom-memberships"
-                  className="dashboard-chip-link"
+                  href="/api/analytics/reporting-summary?format=csv&type=class-completion"
+                  className="dashboard-export-pill"
                 >
-                  <div
-                    style={heroSecondaryStyle}
-                    className="dashboard-chip dashboard-chip--secondary"
-                  >
-                    View Enrollments
-                  </div>
+                  Class completion CSV
+                </Link>
+                <Link
+                  href="/api/analytics/reporting-summary?format=csv&type=quiz-performance"
+                  className="dashboard-export-pill"
+                >
+                  Quiz performance CSV
                 </Link>
               </div>
             </div>
-            <div
-              style={{
-                borderRadius: 14,
-                border: '1px solid var(--admin-surface-border)',
-                background: 'var(--admin-surface)',
-                padding: '14px 16px',
-                boxShadow: '0 1px 0 rgba(15, 23, 42, 0.06)',
-                display: 'grid',
-                gap: 12,
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                  flexWrap: 'wrap',
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cpp-ink)' }}>
-                    NSF Reporting
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 4 }}>
-                    Open period-based RPPR reporting, exports, and completeness checks.
-                  </div>
-                </div>
-                <Link href="/admin/reporting" className="dashboard-chip-link">
-                  <div style={heroPrimaryStyle} className="dashboard-chip dashboard-chip--primary">
-                    Open Reporting
-                  </div>
-                </Link>
-              </div>
-              <div
-                style={{
-                  borderTop: '1px solid var(--admin-surface-border)',
-                  paddingTop: 12,
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    letterSpacing: 0.4,
-                    textTransform: 'uppercase',
-                    color: 'var(--cpp-muted)',
-                    marginBottom: 10,
-                  }}
-                >
-                  NSF reporting summary
-                </div>
-                <div
-                  style={{
-                    display: 'grid',
-                    gap: 12,
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                  }}
-                >
-                  <div style={contentHealthCardStyle}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cpp-ink)' }}>
-                      Completion by class
-                    </div>
-                    <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
-                      {reporting.classCompletion.slice(0, 5).map((item) => (
-                        <li key={item.id}>
-                          <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>
-                            {item.title}
-                          </div>
-                          <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                            {Math.round(item.completionRate * 100)}% ({item.uniqueLearnersCompleted}
-                            /{item.uniqueLearnersStarted})
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div style={contentHealthCardStyle}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cpp-ink)' }}>
-                      Completion by chapter
-                    </div>
-                    <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
-                      {reporting.chapterCompletion.slice(0, 5).map((item) => (
-                        <li key={item.id}>
-                          <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>
-                            {item.title}
-                          </div>
-                          <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                            {Math.round(item.completionRate * 100)}% ({item.uniqueLearnersCompleted}
-                            /{item.uniqueLearnersStarted})
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div style={contentHealthCardStyle}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cpp-ink)' }}>
-                      Quiz mastery distribution
-                    </div>
-                    <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
-                      {reporting.quizPerformance.slice(0, 5).map((item) => (
-                        <li key={item.quizId}>
-                          <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>
-                            {item.title}
-                          </div>
-                          <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                            {item.uniqueLearnersMastered}/{item.uniqueLearnersAttempted} mastered (
-                            {Math.round(item.masteryRate * 100)}%)
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div style={contentHealthCardStyle}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cpp-ink)' }}>
-                      Week-over-week engagement
-                    </div>
-                    <ul style={{ marginTop: 10, display: 'grid', gap: 8 }}>
-                      {reporting.weeklyEngagement.slice(-5).map((item) => (
-                        <li key={item.weekStart}>
-                          <div style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>
-                            {item.weekStart}
-                          </div>
-                          <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                            {item.activeStudents} active students{' '}
-                            {item.weekOverWeekChange == null
-                              ? '(baseline)'
-                              : `(${item.weekOverWeekChange >= 0 ? '+' : ''}${Math.round(item.weekOverWeekChange * 100)}% WoW)`}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  <Link
-                    href="/api/analytics/reporting-summary?format=csv"
-                    style={{ textDecoration: 'none' }}
-                  >
-                    <div
-                      style={heroPrimaryStyle}
-                      className="dashboard-chip dashboard-chip--primary"
-                    >
-                      Download NSF summary CSV
-                    </div>
-                  </Link>
-                  <Link
-                    href="/api/analytics/reporting-summary?format=csv&type=class-completion"
-                    style={{ textDecoration: 'none' }}
-                  >
-                    <div
-                      style={heroSecondaryStyle}
-                      className="dashboard-chip dashboard-chip--secondary"
-                    >
-                      Class completion CSV
-                    </div>
-                  </Link>
-                  <Link
-                    href="/api/analytics/reporting-summary?format=csv&type=quiz-performance"
-                    style={{ textDecoration: 'none' }}
-                  >
-                    <div
-                      style={heroSecondaryStyle}
-                      className="dashboard-chip dashboard-chip--secondary"
-                    >
-                      Quiz performance CSV
-                    </div>
-                  </Link>
-                </div>
-              </div>
+            <div className="dashboard-reporting-side">
+              <NeedsAttentionPanel
+                stats={stats}
+                managementCounts={managementCounts}
+              />
             </div>
           </div>
         </div>
@@ -2114,6 +2840,39 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     publishedLessonsCount = publishedLessons.totalDocs ?? 0
   } catch {
     publishedLessonsCount = 0
+  }
+
+  // Operational counts shown inline in the management cards. Fail open so
+  // a single broken collection doesn't black out the whole dashboard.
+  let coursesTotal = 0
+  let chaptersTotal = 0
+  let lessonsTotal = 0
+  let quizzesTotal = 0
+  let quizQuestionsTotal = 0
+  let classroomsTotal = 0
+  let lastLessonUpdatedAt: string | null = null
+  try {
+    const [courses, chapters, lessonsAll, quizzes, qbank, classrooms, recentLesson] = await Promise.all([
+      payload.find({ collection: 'classes', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
+      payload.find({ collection: 'chapters', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
+      payload.find({ collection: 'lessons', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
+      payload.find({ collection: 'quizzes', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
+      payload.find({ collection: 'quiz-questions', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
+      payload.find({ collection: 'classrooms', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
+      payload
+        .find({ collection: 'lessons', depth: 0, limit: 1, sort: '-updatedAt' })
+        .catch(() => ({ docs: [] as Array<{ updatedAt?: string }> })),
+    ])
+    coursesTotal = (courses as { totalDocs?: number }).totalDocs ?? 0
+    chaptersTotal = (chapters as { totalDocs?: number }).totalDocs ?? 0
+    lessonsTotal = (lessonsAll as { totalDocs?: number }).totalDocs ?? 0
+    quizzesTotal = (quizzes as { totalDocs?: number }).totalDocs ?? 0
+    quizQuestionsTotal = (qbank as { totalDocs?: number }).totalDocs ?? 0
+    classroomsTotal = (classrooms as { totalDocs?: number }).totalDocs ?? 0
+    const lessonDoc = (recentLesson as { docs?: Array<{ updatedAt?: string }> }).docs?.[0]
+    lastLessonUpdatedAt = lessonDoc?.updatedAt ?? null
+  } catch {
+    // leave defaults
   }
 
   try {
@@ -2409,6 +3168,17 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     avgCompletion: avgCompletionRate,
   }
 
+  const managementCounts = {
+    coursesTotal,
+    chaptersTotal,
+    lessonsTotal,
+    publishedLessonsCount,
+    quizzesTotal,
+    quizQuestionsTotal,
+    classroomsTotal,
+    lastLessonUpdatedAt,
+  }
+
   return (
     <StaffDashboardContent
       user={user}
@@ -2416,6 +3186,7 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
       contentHealth={contentHealth}
       reporting={reporting}
       kpiHistory={kpiHistory}
+      managementCounts={managementCounts}
     />
   )
 }

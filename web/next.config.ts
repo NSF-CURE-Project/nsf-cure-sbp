@@ -33,40 +33,38 @@ const nextConfig: NextConfig = {
     root: projectRoot,
   },
   images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60,
     remotePatterns: [
-      // Allow images from your Strapi dev server
-      {
-        protocol: "http",
-        hostname: "localhost",
-        port: "1337",
-        pathname: "/uploads/**",
-      },
-      // Optional: if you use 127.0.0.1
-      {
-        protocol: "http",
-        hostname: "127.0.0.1",
-        port: "1337",
-        pathname: "/uploads/**",
-      },
-      // Payload local media (admin)
-      {
-        protocol: "http",
-        hostname: "localhost",
-        port: "3000",
-        pathname: "/api/media/**",
-      },
-      {
-        protocol: "http",
-        hostname: "admin.sbp.local",
-        port: "3000",
-        pathname: "/api/media/**",
-      },
-      {
-        protocol: "http",
-        hostname: "app.sbp.local",
-        port: "3001",
-        pathname: "/api/media/**",
-      },
+      // Payload local media (dev only — gated on NODE_ENV)
+      ...(process.env.NODE_ENV !== "production"
+        ? ([
+            {
+              protocol: "http",
+              hostname: "localhost",
+              port: "3000",
+              pathname: "/api/media/**",
+            },
+            {
+              protocol: "http",
+              hostname: "127.0.0.1",
+              port: "3000",
+              pathname: "/api/media/**",
+            },
+            {
+              protocol: "http",
+              hostname: "admin.sbp.local",
+              port: "3000",
+              pathname: "/api/media/**",
+            },
+            {
+              protocol: "http",
+              hostname: "app.sbp.local",
+              port: "3001",
+              pathname: "/api/media/**",
+            },
+          ] as const)
+        : []),
       {
         protocol: "https",
         hostname: "i.ytimg.com",
@@ -90,28 +88,62 @@ const nextConfig: NextConfig = {
             }
           })()
         : []),
-      // Optional: add your production Strapi domain later
-      // {
-      //   protocol: "https",
-      //   hostname: "your-strapi-domain.com",
-      //   pathname: "/uploads/**",
-      // },
     ],
   },
-  headers: async () => [
-    {
-      source: "/:path*",
-      headers: [
-        {
-          // Tell browsers to use HTTPS only for cppsbp.org and every subdomain.
-          // Two-year max-age + preload qualifies for hstspreload.org once
-          // we're ready to submit.
-          key: "Strict-Transport-Security",
-          value: "max-age=63072000; includeSubDomains; preload",
-        },
-      ],
-    },
-  ],
+  headers: async () => {
+    const cmsHostFromEnv = (() => {
+      try {
+        return process.env.NEXT_PUBLIC_CMS_URL
+          ? new URL(process.env.NEXT_PUBLIC_CMS_URL).origin
+          : "";
+      } catch {
+        return "";
+      }
+    })();
+
+    const isProd = process.env.NODE_ENV === "production";
+    const scriptSrc = isProd
+      ? "'self' 'unsafe-inline'"
+      : "'self' 'unsafe-inline' 'unsafe-eval'";
+
+    const csp = [
+      "default-src 'self'",
+      `script-src ${scriptSrc}`,
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' data: https://fonts.gstatic.com",
+      `img-src 'self' data: blob: https://i.ytimg.com${cmsHostFromEnv ? ` ${cmsHostFromEnv}` : ""}`,
+      `connect-src 'self'${cmsHostFromEnv ? ` ${cmsHostFromEnv}` : ""}`,
+      "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
+      "frame-ancestors 'none'",
+      "form-action 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "worker-src 'self' blob:",
+      "manifest-src 'self'",
+      ...(isProd ? ["upgrade-insecure-requests"] : []),
+    ].join("; ");
+
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+          },
+          { key: "X-DNS-Prefetch-Control", value: "on" },
+          { key: "Content-Security-Policy", value: csp },
+        ],
+      },
+    ];
+  },
   rewrites: async () => ({
     afterFiles: [
       {

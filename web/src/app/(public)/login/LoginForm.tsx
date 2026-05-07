@@ -63,11 +63,6 @@ export function LoginForm() {
         throw new Error(data?.message ?? "Login failed.");
       }
 
-      const data = await res.json();
-      if (data?.token) {
-        localStorage.setItem("sbp-auth-token", data.token);
-      }
-
       setStatus("success");
       setMessage("Logged in successfully.");
       window.location.href = getReturnPath();
