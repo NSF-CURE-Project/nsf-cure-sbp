@@ -208,7 +208,7 @@ export default function CoursesHome({ initialCourses }: CoursesHomeProps) {
         <div className="flex items-center gap-2">
           <SaveStatusIndicator status={status} />
           <Link
-            href="/admin/collections/classes/create"
+            href="/admin/courses/new"
             className="rounded-md bg-slate-900 px-3 py-2 text-xs font-semibold text-white no-underline hover:bg-slate-800"
           >
             Create course
@@ -249,7 +249,7 @@ export default function CoursesHome({ initialCourses }: CoursesHomeProps) {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>No courses yet. Create your first course to begin building curriculum.</div>
             <Link
-              href="/admin/collections/classes/create"
+              href="/admin/courses/new"
               className="rounded-md bg-slate-900 px-3 py-2 text-xs font-semibold text-white no-underline"
             >
               Create first course

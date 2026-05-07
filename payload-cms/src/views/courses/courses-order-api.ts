@@ -86,6 +86,49 @@ export const updateCourseSettings = async (
   await patch(`/api/classes/${courseId}`, data)
 }
 
+type CreatedDoc<T = Record<string, unknown>> = { doc?: T & { id?: string | number } }
+
+export const createCourse = async (data: {
+  title: string
+  slug?: string
+}): Promise<{ id: EntityId; title: string; slug: string | null }> => {
+  const result = await post<CreatedDoc<{ title?: string; slug?: string }>>('/api/classes', {
+    title: data.title,
+    ...(data.slug ? { slug: data.slug } : {}),
+  })
+  const doc = result.doc
+  if (!doc?.id) throw new Error('Course create response missing id')
+  return {
+    id: String(doc.id),
+    title: doc.title ?? data.title,
+    slug: doc.slug ?? null,
+  }
+}
+
+export const createChapterInCourse = async (
+  courseId: EntityId,
+  title: string,
+  chapterNumber: number,
+): Promise<{ id: EntityId; title: string; order: number }> => {
+  const result = await post<
+    CreatedDoc<{ title?: string; chapterNumber?: number }>
+  >('/api/chapters', {
+    title,
+    class: courseId,
+    chapterNumber,
+  })
+  const doc = result.doc
+  if (!doc?.id) throw new Error('Chapter create response missing id')
+  return {
+    id: String(doc.id),
+    title: doc.title ?? title,
+    order:
+      typeof doc.chapterNumber === 'number' && Number.isFinite(doc.chapterNumber)
+        ? doc.chapterNumber
+        : chapterNumber,
+  }
+}
+
 export const updateChapterTitle = async (chapterId: EntityId, title: string) => {
   await patch(`/api/chapters/${chapterId}`, { title })
 }
