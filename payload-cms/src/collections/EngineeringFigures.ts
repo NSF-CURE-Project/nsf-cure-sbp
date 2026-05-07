@@ -138,6 +138,18 @@ export const EngineeringFigures: CollectionConfig = {
       defaultValue: 400,
     },
     {
+      name: 'axes',
+      type: 'group',
+      fields: [
+        { name: 'show', type: 'checkbox', defaultValue: false, label: 'Show coordinate axes' },
+        { name: 'x', type: 'number', defaultValue: 40, label: 'Origin X (px)' },
+        { name: 'y', type: 'number', defaultValue: 360, label: 'Origin Y (px)' },
+        { name: 'length', type: 'number', defaultValue: 50, label: 'Axis length (px)' },
+        { name: 'xLabel', type: 'text', defaultValue: 'x' },
+        { name: 'yLabel', type: 'text', defaultValue: 'y' },
+      ],
+    },
+    {
       name: 'isTemplate',
       type: 'checkbox',
       defaultValue: false,

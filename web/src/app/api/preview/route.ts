@@ -3,6 +3,30 @@ import { NextRequest, NextResponse } from "next/server";
 
 const PREVIEW_SECRET = process.env.PREVIEW_SECRET || "";
 
+const resolvePublicOrigin = (req: NextRequest) => {
+  const configuredSiteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.RAILWAY_PUBLIC_DOMAIN
+      ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+      : "");
+
+  if (configuredSiteUrl) {
+    try {
+      return new URL(configuredSiteUrl).origin;
+    } catch {
+      // Fall through to forwarded headers.
+    }
+  }
+
+  const forwardedProto = req.headers.get("x-forwarded-proto") || "https";
+  const forwardedHost =
+    req.headers.get("x-forwarded-host") ||
+    req.headers.get("host") ||
+    req.nextUrl.host;
+
+  return `${forwardedProto}://${forwardedHost}`;
+};
+
 export async function GET(req: NextRequest) {
   const rawPreviewHost =
     process.env.PREVIEW_HOST || process.env.NEXT_PUBLIC_PREVIEW_URL || "";
@@ -27,6 +51,7 @@ export async function GET(req: NextRequest) {
   const secret = searchParams.get("secret");
   const type = searchParams.get("type");
   const slug = searchParams.get("slug") || "";
+  const classSlug = searchParams.get("classSlug") || "";
 
   if (!secret || secret !== PREVIEW_SECRET) {
     return NextResponse.json({ message: "Invalid secret" }, { status: 401 });
@@ -49,7 +74,11 @@ export async function GET(req: NextRequest) {
       redirect = "/";
       break;
     case "lesson":
-      redirect = `/preview/lesson/${slug}`;
+      // When the lesson's class is known, route through the canonical
+      // class-scoped page, which enforces tree membership via resolveLessonForClass.
+      redirect = classSlug
+        ? `/classes/${classSlug}/lessons/${slug}`
+        : `/preview/lesson/${slug}`;
       break;
     case "class":
       redirect = `/classes/${slug}`;
@@ -60,6 +89,9 @@ export async function GET(req: NextRequest) {
     case "problem-set":
       redirect = `/preview/problem-set/${slug}`;
       break;
+    case "problem-library":
+      redirect = `/preview/problem-library`;
+      break;
     case "home":
       redirect = `/`;
       break;
@@ -67,7 +99,7 @@ export async function GET(req: NextRequest) {
       redirect = "/";
   }
 
-  const target = new URL(redirect, req.url);
+  const target = new URL(redirect, resolvePublicOrigin(req));
   // Keep preview state in draft-mode cookies, not in shareable URLs.
   target.searchParams.set("preview", "1");
   return NextResponse.redirect(target);

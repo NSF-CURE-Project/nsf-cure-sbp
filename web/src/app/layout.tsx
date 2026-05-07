@@ -2,7 +2,6 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { ThemeProvider } from "../theme/theme-provider";
 import React from "react";
-import NavbarGate from "@/components/navigation/NavbarGate";
 import { getSiteBranding } from "@/lib/payloadSdk/siteBranding";
 import { defaultDescription, siteName, siteUrl } from "@/lib/seo";
 
@@ -52,7 +51,6 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <NavbarGate />
           {children}
         </ThemeProvider>
       </body>

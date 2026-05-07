@@ -1,4 +1,5 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { s3Storage } from '@payloadcms/storage-s3'
 import {
   FixedToolbarFeature,
   InlineToolbarFeature,
@@ -18,6 +19,9 @@ import { Lessons } from './collections/Lessons'
 import { Pages } from './collections/Pages'
 import { Accounts } from './collections/Accounts'
 import { QuizQuestions } from './collections/QuizQuestions'
+import { Concepts } from './collections/Concepts'
+import { PrePostAssessments } from './collections/PrePostAssessments'
+import { SavedViews } from './collections/SavedViews'
 import { Quizzes } from './collections/Quizzes'
 import { QuizAttempts } from './collections/QuizAttempts'
 import { EngineeringFigures } from './collections/EngineeringFigures'
@@ -41,17 +45,25 @@ import { ReportingAuditEvents } from './collections/ReportingAuditEvents'
 import { ReportingSavedViews } from './collections/ReportingSavedViews'
 import { ReportingEvidenceLinks } from './collections/ReportingEvidenceLinks'
 import { ReportingProductRecords } from './collections/ReportingProductRecords'
+import { ApiKeys } from './collections/ApiKeys'
 import { AdminHelp } from './globals/AdminHelp'
 import { Footer } from './globals/Footer'
 import { SiteBranding } from './globals/SiteBranding'
 import {
   joinClassroomHandler,
+  leaveClassroomHandler,
   regenerateClassroomCodeHandler,
 } from './endpoints/classroomEndpoints'
 import { previewUrlHandler } from './endpoints/previewUrl'
 import { confirmEmailHandler, requestEmailConfirmationHandler } from './endpoints/emailConfirmation'
 import { logoutAllSessionsHandler } from './endpoints/logoutAll'
 import { accountsMeHandler } from './endpoints/accountsMe'
+import { accountsHeartbeatHandler } from './endpoints/accountsHeartbeat'
+import {
+  accountDataSummaryHandler,
+  updateMyDemographicsHandler,
+  updateNotificationPreferencesHandler,
+} from './endpoints/accountEndpoints'
 import { reportingSummaryHandler } from './endpoints/reportingSummary'
 import { nsfRpprSummaryHandler } from './endpoints/nsfRpprSummary'
 import { reportingCenterHandler } from './endpoints/reportingCenter'
@@ -59,6 +71,26 @@ import { metricDefinitionsHandler } from './endpoints/metricDefinitions'
 import { emailPreviewHandler } from './endpoints/emailPreview'
 import { certificateHandler } from './endpoints/certificate'
 import { quizAttemptReviewHandler } from './endpoints/quizAttemptReview'
+import { problemAttemptReviewHandler } from './endpoints/problemAttemptReview'
+import { publicProblemSetByIdHandler, publicProblemSetListHandler } from './endpoints/publicProblemSets'
+import { lessonQuestionsHandler, questionDetailHandler } from './endpoints/questionsEndpoints'
+import { studentAnalyticsHandler } from './endpoints/studentAnalytics'
+import { studentPerformanceHandler } from './endpoints/studentPerformance'
+import { demoQuizFormatsHandler } from './endpoints/demoQuizFormats'
+import {
+  userAnalyticsListHandler,
+  userAnalyticsDetailHandler,
+} from './endpoints/userAnalytics'
+import { quizStatsHandler } from './endpoints/quizStats'
+import { questionStatsHandler } from './endpoints/questionStats'
+import { conceptListHandler, conceptDetailHandler } from './endpoints/conceptStats'
+import { questionBankHandler } from './endpoints/questionBank'
+import { prePostListHandler, prePostDetailHandler } from './endpoints/prePostAssessment'
+import { classroomListHandler, classroomRosterHandler } from './endpoints/instructorEndpoints'
+import { apiKeyValidateHandler } from './endpoints/apiKeyValidate'
+import { gptRpprContextHandler } from './endpoints/gptRpprContext'
+import { generateRpprPdfHandler } from './endpoints/generateRpprPdf'
+import { adminCreateUserHandler } from './endpoints/adminCreateUser'
 // Uses the generated import map entry for the dashboard view component
 const StaffDashboardView: PayloadComponent = {
   path: '@/views/StaffDashboardView#default',
@@ -72,8 +104,6 @@ const AdminLogo: CustomComponent = {
 const AdminIcon: CustomComponent = {
   path: '@/views/AdminIcon#default',
 }
-const enableStaffProvider = process.env.PAYLOAD_ENABLE_STAFF_PROVIDER === 'true'
-
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
@@ -346,7 +376,7 @@ export default buildConfig({
     },
 
     components: {
-      providers: enableStaffProvider ? [StaffProvider] : [],
+      providers: [StaffProvider],
       graphics: {
         Logo: AdminLogo,
         Icon: AdminIcon,
@@ -374,9 +404,13 @@ export default buildConfig({
     ReportingSavedViews,
     ReportingEvidenceLinks,
     ReportingProductRecords,
+    ApiKeys,
     Accounts,
     Users,
     Media,
+    Concepts,
+    PrePostAssessments,
+    SavedViews,
     Questions,
     QuizQuestions,
     Quizzes,
@@ -409,6 +443,27 @@ export default buildConfig({
       payload.sendEmail = adapter.sendEmail
       payload.logger.warn('Email adapter was missing; reattached.')
     }
+
+    process.once('SIGTERM', async () => {
+      payload.logger.info('[shutdown] SIGTERM received, draining...')
+      const forceExitTimer = setTimeout(() => {
+        payload.logger.error('[shutdown] Forced exit after timeout')
+        process.exit(1)
+      }, 10_000)
+
+      try {
+        await payload.db?.destroy?.()
+        clearTimeout(forceExitTimer)
+        process.exit(0)
+      } catch (error) {
+        clearTimeout(forceExitTimer)
+        payload.logger.error({
+          msg: '[shutdown] Failed to close database cleanly',
+          err: error,
+        })
+        process.exit(1)
+      }
+    })
   },
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
@@ -416,13 +471,43 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URI || '',
+      max: 20,
+      min: 2,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
     },
     // Prevent accidental schema drift against shared/production databases.
     push: false,
   }),
   sharp,
-  plugins: [],
+  plugins: process.env.S3_BUCKET
+    ? [
+        s3Storage({
+          collections: {
+            media: true,
+          },
+          bucket: process.env.S3_BUCKET,
+          config: {
+            credentials: {
+              accessKeyId: process.env.S3_ACCESS_KEY_ID ?? '',
+              secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? '',
+            },
+            region: process.env.S3_REGION ?? 'us-east-1',
+            endpoint: process.env.S3_ENDPOINT || undefined,
+          },
+        }),
+      ]
+    : [],
   endpoints: [
+    {
+      path: '/health',
+      method: 'get',
+      handler: async () =>
+        new Response(JSON.stringify({ status: 'ok', ts: Date.now() }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+    },
     {
       path: '/classrooms/join',
       method: 'post',
@@ -432,6 +517,11 @@ export default buildConfig({
       path: '/classrooms/regenerate-code',
       method: 'post',
       handler: regenerateClassroomCodeHandler,
+    },
+    {
+      path: '/classrooms/:classroomId/leave',
+      method: 'post',
+      handler: leaveClassroomHandler,
     },
     {
       path: '/preview-url',
@@ -449,6 +539,86 @@ export default buildConfig({
       handler: accountsMeHandler,
     },
     {
+      path: '/accounts/heartbeat',
+      method: 'post',
+      handler: accountsHeartbeatHandler,
+    },
+    {
+      path: '/auth/api-key-info',
+      method: 'get',
+      handler: apiKeyValidateHandler,
+    },
+    {
+      path: '/accounts/me/demographics',
+      method: 'patch',
+      handler: updateMyDemographicsHandler,
+    },
+    {
+      path: '/accounts/me/notification-preferences',
+      method: 'patch',
+      handler: updateNotificationPreferencesHandler,
+    },
+    {
+      path: '/accounts/me/data-summary',
+      method: 'get',
+      handler: accountDataSummaryHandler,
+    },
+    {
+      path: '/staff/student-performance',
+      method: 'get',
+      handler: studentPerformanceHandler,
+    },
+    {
+      path: '/staff/user-analytics/list',
+      method: 'get',
+      handler: userAnalyticsListHandler,
+    },
+    {
+      path: '/staff/user-analytics',
+      method: 'get',
+      handler: userAnalyticsDetailHandler,
+    },
+    {
+      path: '/staff/quiz-stats',
+      method: 'get',
+      handler: quizStatsHandler,
+    },
+    {
+      path: '/staff/question-stats',
+      method: 'get',
+      handler: questionStatsHandler,
+    },
+    {
+      path: '/staff/concept-list',
+      method: 'get',
+      handler: conceptListHandler,
+    },
+    {
+      path: '/staff/concept-detail',
+      method: 'get',
+      handler: conceptDetailHandler,
+    },
+    {
+      path: '/staff/question-bank',
+      method: 'get',
+      handler: questionBankHandler,
+    },
+    {
+      path: '/staff/pre-post/list',
+      method: 'get',
+      handler: prePostListHandler,
+    },
+    {
+      path: '/staff/pre-post/detail',
+      method: 'get',
+      handler: prePostDetailHandler,
+    },
+    {
+      path: '/demo/quiz-formats',
+      method: 'get',
+      handler: demoQuizFormatsHandler,
+    },
+    {
       path: '/accounts/request-email-confirmation',
       method: 'post',
       handler: requestEmailConfirmationHandler,
@@ -462,6 +632,11 @@ export default buildConfig({
       path: '/accounts/logout-all',
       method: 'post',
       handler: logoutAllSessionsHandler,
+    },
+    {
+      path: '/admin/users/create',
+      method: 'post',
+      handler: adminCreateUserHandler,
     },
     {
       path: '/accounts/email-preview',
@@ -494,6 +669,21 @@ export default buildConfig({
       handler: metricDefinitionsHandler,
     },
     {
+      path: '/analytics/student',
+      method: 'get',
+      handler: studentAnalyticsHandler,
+    },
+    {
+      path: '/analytics/gpt-rppr-context',
+      method: 'get',
+      handler: gptRpprContextHandler,
+    },
+    {
+      path: '/analytics/generate-rppr-pdf',
+      method: 'post',
+      handler: generateRpprPdfHandler,
+    },
+    {
       path: '/classrooms/:classroomId/certificate',
       method: 'get',
       handler: certificateHandler,
@@ -502,6 +692,41 @@ export default buildConfig({
       path: '/quiz-attempts/:attemptId/review',
       method: 'get',
       handler: quizAttemptReviewHandler,
+    },
+    {
+      path: '/problem-attempts/:attemptId/review',
+      method: 'get',
+      handler: problemAttemptReviewHandler,
+    },
+    {
+      path: '/public/problem-sets',
+      method: 'get',
+      handler: publicProblemSetListHandler,
+    },
+    {
+      path: '/public/problem-sets/:problemSetId',
+      method: 'get',
+      handler: publicProblemSetByIdHandler,
+    },
+    {
+      path: '/questions/by-lesson/:lessonId',
+      method: 'get',
+      handler: lessonQuestionsHandler,
+    },
+    {
+      path: '/questions/:questionId/detail',
+      method: 'get',
+      handler: questionDetailHandler,
+    },
+    {
+      path: '/instructor/classrooms',
+      method: 'get',
+      handler: classroomListHandler,
+    },
+    {
+      path: '/instructor/classrooms/:classroomId/roster',
+      method: 'get',
+      handler: classroomRosterHandler,
     },
   ],
 })

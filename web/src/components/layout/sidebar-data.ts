@@ -17,8 +17,14 @@ const normalizeClassesForSidebar = (classes: ClassDoc[]): SidebarClass[] => {
     a: { order?: number | null; title?: string | null },
     b: { order?: number | null; title?: string | null }
   ) => {
-    const orderA = typeof a.order === "number" ? a.order : Number(a.order ?? 0);
-    const orderB = typeof b.order === "number" ? b.order : Number(b.order ?? 0);
+    const orderA =
+      typeof a.order === "number" && Number.isFinite(a.order)
+        ? a.order
+        : Number.MAX_SAFE_INTEGER;
+    const orderB =
+      typeof b.order === "number" && Number.isFinite(b.order)
+        ? b.order
+        : Number.MAX_SAFE_INTEGER;
     if (orderA !== orderB) return orderA - orderB;
     const titleA = typeof a.title === "string" ? a.title.toLowerCase() : "";
     const titleB = typeof b.title === "string" ? b.title.toLowerCase() : "";

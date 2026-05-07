@@ -1,8 +1,14 @@
-name: Payload CMS Migrations
+name: Payload CMS Migrate
+
+# Runs Payload migrations against the production database before Railway's
+# native GitHub integration redeploys the payload-cms service. Railway
+# handles the actual deploy on its own; this workflow's only job is to
+# make sure the schema is up-to-date by the time the new image boots.
 
 on:
   push:
     branches:
+      - prod
       - production
     paths:
       - 'payload-cms/**'

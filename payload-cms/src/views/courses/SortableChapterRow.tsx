@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import Link from 'next/link'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { useDroppable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
@@ -10,6 +9,7 @@ import DragHandle from './DragHandle'
 import DropIndicator from './DropIndicator'
 import SortableLessonRow from './SortableLessonRow'
 import EmptyLessonState from './EmptyLessonState'
+import RowOverflowMenu, { type OverflowAction } from './RowOverflowMenu'
 
 type SortableChapterRowProps = {
   chapter: ChapterNode
@@ -17,6 +17,17 @@ type SortableChapterRowProps = {
   index: number
   lessonDropTargetId: EntityId | null
   chapterDropTargetId: EntityId | null
+  deleting: boolean
+  deletingLessonId: EntityId | null
+  reorderMode: boolean
+  isSelected: boolean
+  selectedLessonId: EntityId | null
+  onDeleteChapter: (chapter: ChapterNode) => void
+  onDeleteLesson: (lesson: ChapterNode['lessons'][number]) => void
+  onSelectChapter: (chapter: ChapterNode) => void
+  onSelectLesson: (lesson: ChapterNode['lessons'][number], chapter: ChapterNode) => void
+  onAddLesson: (chapter: ChapterNode) => void
+  onAssignQuiz: (lesson: ChapterNode['lessons'][number]) => void
 }
 
 export default function SortableChapterRow({
@@ -25,6 +36,17 @@ export default function SortableChapterRow({
   index,
   lessonDropTargetId,
   chapterDropTargetId,
+  deleting,
+  deletingLessonId,
+  reorderMode,
+  isSelected,
+  selectedLessonId,
+  onDeleteChapter,
+  onDeleteLesson,
+  onSelectChapter,
+  onSelectLesson,
+  onAddLesson,
+  onAssignQuiz,
 }: SortableChapterRowProps) {
   const sortable = useSortable({
     id: `chapter:${chapter.id}`,
@@ -54,39 +76,70 @@ export default function SortableChapterRow({
     <div
       ref={sortable.setNodeRef}
       style={style}
-      className={`relative rounded-md border border-[var(--admin-surface-border)] bg-[var(--admin-surface)] ${
-        sortable.isDragging ? 'opacity-60' : ''
-      }`}
+      className={`relative rounded-md border bg-[var(--admin-surface)] ${
+        isSelected ? 'border-sky-400 ring-1 ring-sky-200' : 'border-[var(--admin-surface-border)]'
+      } ${sortable.isDragging ? 'opacity-60' : ''}`}
     >
       <DropIndicator visible={chapterDropTargetId === chapter.id} />
-      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
-        <DragHandle
-          label={`Reorder chapter ${chapter.title}`}
-          listeners={sortable.listeners as Record<string, unknown>}
-          attributes={sortable.attributes as unknown as Record<string, unknown>}
-        />
-        <div className="min-w-0">
-          <div className="truncate text-sm font-semibold text-[var(--cpp-ink)]">{chapter.title}</div>
+      <div className="group/row grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
+        <div
+          className={
+            reorderMode
+              ? 'opacity-100'
+              : 'opacity-30 transition group-hover/row:opacity-100 focus-within:opacity-100'
+          }
+        >
+          <DragHandle
+            label={`Reorder chapter ${chapter.title}`}
+            listeners={sortable.listeners as Record<string, unknown>}
+            attributes={sortable.attributes as unknown as Record<string, unknown>}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => onSelectChapter(chapter)}
+          className="min-w-0 cursor-pointer rounded-sm bg-transparent px-1 py-0.5 text-left transition hover:bg-[var(--admin-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+          aria-pressed={isSelected}
+        >
+          <div className="truncate text-sm font-semibold text-[var(--cpp-ink)]">
+            {chapter.title}
+          </div>
           <div className="text-xs text-[var(--cpp-muted)]">
             {chapter.lessons.length} lesson{chapter.lessons.length === 1 ? '' : 's'}
           </div>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <Link
-            href={`/admin/collections/chapters/${chapter.id}`}
-            className="rounded-md border border-[var(--admin-surface-border)] px-2 py-1 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:bg-[var(--admin-surface-muted)]"
-            aria-label={`Edit chapter ${chapter.title}`}
-          >
-            Edit chapter
-          </Link>
-          <Link
-            href={`/admin/collections/lessons/create?chapter=${chapter.id}`}
-            className="rounded-md border border-[var(--admin-surface-border)] px-2 py-1 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:bg-[var(--admin-surface-muted)]"
-            aria-label={`Add lesson to chapter ${chapter.title}`}
-          >
-            Add lesson
-          </Link>
-        </div>
+        </button>
+        {reorderMode ? null : (
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => onAddLesson(chapter)}
+              className="rounded-md bg-slate-900 px-2 py-1 text-xs font-semibold text-white hover:bg-slate-800"
+              aria-label={`Add lesson to chapter ${chapter.title}`}
+            >
+              Add lesson
+            </button>
+            <RowOverflowMenu
+              ariaLabel={`More actions for chapter ${chapter.title}`}
+              actions={
+                [
+                  {
+                    kind: 'link',
+                    label: 'Edit chapter',
+                    href: `/admin/collections/chapters/${chapter.id}`,
+                  },
+                  {
+                    kind: 'button',
+                    label: 'Delete chapter',
+                    destructive: true,
+                    disabled: deleting,
+                    pendingLabel: 'Deleting…',
+                    onClick: () => onDeleteChapter(chapter),
+                  },
+                ] satisfies OverflowAction[]
+              }
+            />
+          </div>
+        )}
       </div>
 
       <div className="border-t border-[var(--admin-surface-border)] bg-[var(--admin-surface-muted)] px-2 py-2">
@@ -104,6 +157,12 @@ export default function SortableChapterRow({
                   courseId={courseId}
                   index={lessonIndex}
                   isDropTarget={lessonDropTargetId === lesson.id}
+                  deleting={deletingLessonId === lesson.id}
+                  reorderMode={reorderMode}
+                  isSelected={selectedLessonId === lesson.id}
+                  onDelete={onDeleteLesson}
+                  onSelect={(lessonNode) => onSelectLesson(lessonNode, chapter)}
+                  onAssignQuiz={onAssignQuiz}
                 />
               ))
             ) : (
@@ -111,12 +170,15 @@ export default function SortableChapterRow({
             )}
           </SortableContext>
 
-          <Link
-            href={`/admin/collections/lessons/create?chapter=${chapter.id}`}
-            className="inline-flex w-fit rounded-md px-1 py-1 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:underline"
-          >
-            + Add lesson
-          </Link>
+          {reorderMode ? null : (
+            <button
+              type="button"
+              onClick={() => onAddLesson(chapter)}
+              className="inline-flex w-fit rounded-md bg-transparent px-1 py-1 text-xs font-semibold text-[var(--cpp-ink)] hover:underline"
+            >
+              + Add lesson
+            </button>
+          )}
         </div>
       </div>
     </div>

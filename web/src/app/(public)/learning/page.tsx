@@ -8,8 +8,7 @@ import {
   type LearningLessonIndexEntry,
 } from "@/components/learning/LearningPersonalization";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "default-no-store";
+export const revalidate = 60;
 
 export const metadata = buildMetadata({
   title: "Learning",

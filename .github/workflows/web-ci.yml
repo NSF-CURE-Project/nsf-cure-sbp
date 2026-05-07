@@ -1,0 +1,66 @@
+name: Web CI
+
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/web-ci.yml'
+  push:
+    branches:
+      - main
+      - dev
+      - prod
+      - production
+    paths:
+      - 'web/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/web-ci.yml'
+
+concurrency:
+  group: web-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-typecheck-build:
+    name: Lint, Typecheck, Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    env:
+      # Build-time stand-ins so Next can resolve env at compile.
+      NEXT_PUBLIC_CMS_URL: https://example.invalid
+      NEXT_PUBLIC_SITE_URL: https://example.invalid
+      PAYLOAD_PROXY_TARGET: https://example.invalid
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: '1'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm exec tsc --noEmit
+
+      - name: Build
+        run: pnpm build

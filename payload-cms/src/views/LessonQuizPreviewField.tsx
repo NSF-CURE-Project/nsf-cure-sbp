@@ -4,9 +4,23 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useField } from '@payloadcms/ui'
 import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { Quiz, QuizQuestion } from '@/payload-types'
+import { getAcceptedAnswers, getChoiceOptions, getQuestionType } from '@/lib/quiz'
 
 type QuizDoc = Pick<Quiz, 'id' | 'title' | 'questions'>
-type QuestionDoc = Pick<QuizQuestion, 'id' | 'title' | 'prompt' | 'options' | 'explanation'>
+type QuestionDoc = Pick<
+  QuizQuestion,
+  | 'id'
+  | 'title'
+  | 'prompt'
+  | 'options'
+  | 'questionType'
+  | 'trueFalseAnswer'
+  | 'acceptedAnswers'
+  | 'numericCorrectValue'
+  | 'numericTolerance'
+  | 'numericUnit'
+  | 'explanation'
+>
 
 const toId = (value: unknown): string | null => {
   if (typeof value === 'string' || typeof value === 'number') return String(value)
@@ -85,9 +99,9 @@ export default function LessonQuizPreviewField() {
       </div>
       <div style={{ display: 'grid', gap: 16 }}>
         {questions.map((question, index) => {
-          const options = Array.isArray(question.options) ? question.options : []
-          const correctCount = options.filter((option) => option?.isCorrect).length
-          const inputType = correctCount > 1 ? 'checkbox' : 'radio'
+          const questionType = getQuestionType(question)
+          const options = getChoiceOptions(question)
+          const inputType = questionType === 'multi-select' ? 'checkbox' : 'radio'
           return (
             <section
               key={question.id}
@@ -103,27 +117,50 @@ export default function LessonQuizPreviewField() {
               <div style={{ fontWeight: 700 }}>
                 {index + 1}. {question.title ?? 'Untitled question'}
               </div>
+              <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>Format: {questionType}</div>
               {question.prompt ? (
                 <div style={{ color: 'var(--cpp-muted)' }}>
                   <RichText data={question.prompt} />
                 </div>
               ) : null}
-              <div style={{ display: 'grid', gap: 8 }}>
-                {options.map((option, optionIndex) => (
-                  <label
-                    key={option.id ?? optionIndex}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'auto 1fr',
-                      gap: 8,
-                      alignItems: 'center',
-                    }}
-                  >
-                    <input type={inputType} disabled />
-                    <span>{option.label ?? 'Option'}</span>
-                  </label>
-                ))}
-              </div>
+              {questionType === 'single-select' || questionType === 'multi-select' || questionType === 'true-false' ? (
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {options.map((option, optionIndex) => (
+                    <label
+                      key={option.id ?? optionIndex}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'auto 1fr',
+                        gap: 8,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <input type={inputType} disabled />
+                      <span>{option.label ?? 'Option'}</span>
+                    </label>
+                  ))}
+                </div>
+              ) : null}
+              {questionType === 'short-text' ? (
+                <div style={{ display: 'grid', gap: 8 }}>
+                  <input type="text" disabled className="input" placeholder="Learner free-response" />
+                  <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                    Accepted answers: {getAcceptedAnswers(question).join(', ') || 'Not set'}
+                  </div>
+                </div>
+              ) : null}
+              {questionType === 'numeric' ? (
+                <div style={{ display: 'grid', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input type="number" disabled className="input" placeholder="Learner numeric response" />
+                    {question.numericUnit ? <span>{question.numericUnit}</span> : null}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
+                    Correct value: {question.numericCorrectValue ?? '—'}
+                    {question.numericTolerance != null ? ` (tolerance ±${question.numericTolerance})` : ''}
+                  </div>
+                </div>
+              ) : null}
               {question.explanation ? (
                 <div style={{ color: 'var(--cpp-muted)' }}>
                   <strong>Explanation:</strong> <RichText data={question.explanation} />

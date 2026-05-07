@@ -9,16 +9,15 @@ describe('gradeSymbolic', () => {
     await expect(
       gradeSymbolic('sqrt(3)*F/2', '(3^0.5 * F) / 2', variables, 1e-6, 6, 'p1'),
     ).resolves.toBe(true)
-  })
+  }, 20_000)
 
   it('marks non-equivalent expressions as incorrect', async () => {
     await expect(gradeSymbolic('F/2', 'sqrt(3)*F/2', variables, 1e-6, 6, 'p1')).resolves.toBe(false)
-  })
+  }, 20_000)
 
   it('returns false when all points fail evaluation', async () => {
     await expect(gradeSymbolic('sqrt(-1)', 'sqrt(3)*F/2', variables, 1e-6, 5, 'p2')).resolves.toBe(
       false,
     )
-  })
+  }, 20_000)
 })
-

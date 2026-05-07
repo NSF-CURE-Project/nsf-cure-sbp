@@ -1,8 +1,7 @@
 import { getPayloadBaseUrl } from "./payloadUrl";
 const API_ROUTE = "/api";
 const RETRYABLE_STATUSES = new Set([502, 503, 504]);
-const DEFAULT_TIMEOUT_MS =
-  process.env.NODE_ENV === "production" ? 8000 : 3000;
+const DEFAULT_TIMEOUT_MS = process.env.NODE_ENV === "production" ? 8000 : 3000;
 
 const getRequestTimeoutMs = () => {
   const raw = process.env.PAYLOAD_REQUEST_TIMEOUT_MS;
@@ -11,7 +10,8 @@ const getRequestTimeoutMs = () => {
 };
 
 const isAbortError = (error: unknown) =>
-  error instanceof Error && (error.name === "AbortError" || error.message.includes("aborted"));
+  error instanceof Error &&
+  (error.name === "AbortError" || error.message.includes("aborted"));
 
 function appendDraft(path: string, draft?: boolean) {
   const value = draft ? "true" : "false";
@@ -55,7 +55,11 @@ async function request<T>(
       });
 
       if (!res.ok) {
-        if (method === "GET" && attempt === 0 && RETRYABLE_STATUSES.has(res.status)) {
+        if (
+          method === "GET" &&
+          attempt === 0 &&
+          RETRYABLE_STATUSES.has(res.status)
+        ) {
           continue;
         }
         throw new Error(`Payload API error: ${res.status} (${path})`);
@@ -65,14 +69,16 @@ async function request<T>(
         return await parseJsonOrThrow<T>(res, path);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        const canRetry = method === "GET" && attempt === 0 && message.includes("invalid JSON");
+        const canRetry =
+          method === "GET" && attempt === 0 && message.includes("invalid JSON");
         if (canRetry) {
           continue;
         }
         throw error;
       }
     } catch (error) {
-      const canRetryTimeout = method === "GET" && attempt === 0 && isAbortError(error);
+      const canRetryTimeout =
+        method === "GET" && attempt === 0 && isAbortError(error);
       if (canRetryTimeout) {
         continue;
       }
@@ -86,9 +92,24 @@ async function request<T>(
 }
 
 export const payload = {
-  get: <T>(path: string, options?: { draft?: boolean; revalidate?: number }) =>
-    request<T>(appendDraft(path, options?.draft), {
-      cache: options?.draft ? "no-store" : "force-cache",
-      next: options?.draft ? undefined : { revalidate: options?.revalidate ?? 60 },
-    }),
+  get: <T>(
+    path: string,
+    options?: {
+      draft?: boolean;
+      revalidate?: number;
+      cache?: "force-cache" | "no-store";
+    }
+  ) => {
+    const shouldBypassCache =
+      options?.draft ||
+      options?.cache === "no-store" ||
+      options?.revalidate === 0;
+
+    return request<T>(appendDraft(path, options?.draft), {
+      cache: shouldBypassCache ? "no-store" : "force-cache",
+      next: shouldBypassCache
+        ? undefined
+        : { revalidate: options?.revalidate ?? 60 },
+    });
+  },
 };

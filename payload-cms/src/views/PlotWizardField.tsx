@@ -1,8 +1,13 @@
 'use client'
 
 import { reduceFieldsToValues } from 'payload/shared'
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useAllFormFields, useField } from '@payloadcms/ui'
+import {
+  buildPlotLabelOptions,
+  coercePlotWizardReference,
+  validateResultPlotSegments,
+} from '@/lib/problemSet/resultPlotValidation'
 
 type PlotType = 'shear' | 'moment' | 'deflection' | 'custom'
 
@@ -159,11 +164,11 @@ const svgPath = (pattern: Exclude<PatternKey, 'custom'>, plotType: PlotType) => 
 export default function PlotWizardField() {
   const [formState] = useAllFormFields()
   const values = useMemo(() => reduceFieldsToValues(formState, true), [formState])
-  const partLabels = useMemo(() => {
+  const partLabelOptions = useMemo(() => {
     const parts = Array.isArray((values as { parts?: unknown[] }).parts)
       ? (((values as { parts?: unknown[] }).parts ?? []) as Array<{ label?: string }>)
       : []
-    return parts.map((part) => (part.label ?? '').trim()).filter(Boolean)
+    return buildPlotLabelOptions(parts.map((part) => (part.label ?? '').trim()).filter(Boolean))
   }, [values])
 
   const { value: plotTypeValue } = useField<PlotType>({ path: 'plotType' })
@@ -180,12 +185,52 @@ export default function PlotWizardField() {
   const patternDef = pattern !== 'custom' ? PATTERNS[pattern] : null
   const params = patternDef?.params ?? []
 
+  const buildNormalizedMap = useCallback(
+    (keys: string[], nextMap: Record<string, string>) =>
+      Object.fromEntries(
+        keys.map((key) => {
+          const rawValue = (nextMap[key] ?? key).trim()
+          const mappedValue = coercePlotWizardReference(rawValue || key, partLabelOptions)
+          return [key, mappedValue || key]
+        }),
+      ),
+    [partLabelOptions],
+  )
+
+  const generatedPattern = useMemo(() => {
+    if (pattern === 'custom' || !patternDef) {
+      return {
+        normalizedMap: {} as Record<string, string>,
+        segments: [] as Segment[],
+        error: '',
+      }
+    }
+    if (plotType === 'deflection') {
+      return {
+        normalizedMap: buildNormalizedMap(patternDef.params, paramMap),
+        segments: [] as Segment[],
+        error:
+          'Preset templates are unavailable for deflection plots. Switch to Custom and enter the real deflection equations manually.',
+      }
+    }
+
+    const normalizedMap = buildNormalizedMap(patternDef.params, paramMap)
+    const segments = patternDef.generate(plotType, normalizedMap)
+    const validation = validateResultPlotSegments({ plotType, segments })
+    return {
+      normalizedMap,
+      segments,
+      error: validation === true ? '' : validation,
+    }
+  }, [buildNormalizedMap, paramMap, pattern, patternDef, plotType])
+
   const applyPattern = (nextPattern: Exclude<PatternKey, 'custom'>, nextMap: Record<string, string>) => {
     const definition = PATTERNS[nextPattern]
-    const normalizedMap = Object.fromEntries(
-      definition.params.map((key) => [key, (nextMap[key] ?? key).trim() || key]),
-    )
+    if (plotType === 'deflection') return
+    const normalizedMap = buildNormalizedMap(definition.params, nextMap)
     const segments = definition.generate(plotType, normalizedMap)
+    const validation = validateResultPlotSegments({ plotType, segments })
+    if (validation !== true) return
     setSegmentsValue(segments)
 
     if (!xMaxValue && normalizedMap.L) {
@@ -253,16 +298,27 @@ export default function PlotWizardField() {
                       [param]: event.target.value,
                     }
                     setParamMap(nextMap)
-                    applyPattern(pattern, nextMap)
+                    applyPattern(pattern as Exclude<PatternKey, 'custom'>, nextMap)
                   }}
                 />
                 <datalist id={`${param}-options`}>
-                  {partLabels.map((label) => (
-                    <option key={`${param}-${label}`} value={label} />
+                  {partLabelOptions.map((option) => (
+                    <option key={`${param}-${option.rawLabel}`} value={option.rawLabel} />
                   ))}
                 </datalist>
               </label>
             ))}
+            {partLabelOptions.some((option) => option.sanitized) ? (
+              <div style={{ fontSize: 11, color: 'var(--theme-elevation-700)' }}>
+                Labels with spaces or symbols are converted to math identifiers when formulas are generated:
+                {' '}
+                {partLabelOptions
+                  .filter((option) => option.sanitized)
+                  .slice(0, 4)
+                  .map((option) => `${option.rawLabel} → ${option.reference}`)
+                  .join(', ')}
+              </div>
+            ) : null}
           </div>
 
           <div style={{ display: 'grid', gap: 4 }}>
@@ -276,13 +332,15 @@ export default function PlotWizardField() {
                 padding: 8,
               }}
             >
-              {PATTERNS[pattern]
-                .generate(plotType, Object.fromEntries(params.map((key) => [key, (paramMap[key] ?? key).trim() || key])))
-                .map((segment, index) => (
+              {generatedPattern.error ? (
+                <div style={{ fontSize: 12, color: '#b45309' }}>{generatedPattern.error}</div>
+              ) : (
+                generatedPattern.segments.map((segment, index) => (
                   <code key={`${segment.formula}-${index}`} style={{ fontSize: 12 }}>
                     {segment.xStart} to {segment.xEnd}: {segment.formula}
                   </code>
-                ))}
+                ))
+              )}
             </div>
           </div>
 

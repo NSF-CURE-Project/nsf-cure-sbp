@@ -82,9 +82,13 @@ export interface Config {
     'reporting-saved-views': ReportingSavedView;
     'reporting-evidence-links': ReportingEvidenceLink;
     'reporting-product-records': ReportingProductRecord;
+    'api-keys': ApiKey;
     accounts: Account;
     users: User;
     media: Media;
+    concepts: Concept;
+    'pre-post-assessments': PrePostAssessment;
+    'saved-views': SavedView;
     questions: Question;
     'quiz-questions': QuizQuestion;
     quizzes: Quiz;
@@ -119,9 +123,13 @@ export interface Config {
     'reporting-saved-views': ReportingSavedViewsSelect<false> | ReportingSavedViewsSelect<true>;
     'reporting-evidence-links': ReportingEvidenceLinksSelect<false> | ReportingEvidenceLinksSelect<true>;
     'reporting-product-records': ReportingProductRecordsSelect<false> | ReportingProductRecordsSelect<true>;
+    'api-keys': ApiKeysSelect<false> | ApiKeysSelect<true>;
     accounts: AccountsSelect<false> | AccountsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    concepts: ConceptsSelect<false> | ConceptsSelect<true>;
+    'pre-post-assessments': PrePostAssessmentsSelect<false> | PrePostAssessmentsSelect<true>;
+    'saved-views': SavedViewsSelect<false> | SavedViewsSelect<true>;
     questions: QuestionsSelect<false> | QuestionsSelect<true>;
     'quiz-questions': QuizQuestionsSelect<false> | QuizQuestionsSelect<true>;
     quizzes: QuizzesSelect<false> | QuizzesSelect<true>;
@@ -209,7 +217,13 @@ export interface UserAuthOperations {
  */
 export interface Class {
   id: number;
+  /**
+   * Use the staff-facing course name, such as "Statics Fundamentals" or "Mechanics of Materials".
+   */
   title: string;
+  /**
+   * Optional short summary for staff context. You can refine it later after the course is created.
+   */
   description?: string | null;
   order?: number | null;
   chapters?: (number | Chapter)[] | null;
@@ -228,7 +242,9 @@ export interface Chapter {
    * Shown as Ch {number} in the sidebar.
    */
   chapterNumber?: number | null;
-  lessons?: (number | Lesson)[] | null;
+  /**
+   * Pre-filled from Course Workspace. Change only if this chapter belongs in a different course.
+   */
   class: number | Class;
   slug: string;
   /**
@@ -249,6 +265,7 @@ export interface Chapter {
     };
     [k: string]: unknown;
   } | null;
+  lessons?: (number | Lesson)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -258,13 +275,10 @@ export interface Chapter {
  */
 export interface Lesson {
   id: number;
-  /**
-   * Managed from the Reorder lessons list.
-   */
   order?: number | null;
   title: string;
   /**
-   * Assign this lesson to a chapter.
+   * Pre-filled when you add a lesson from a chapter row.
    */
   chapter: number | Chapter;
   /**
@@ -277,25 +291,10 @@ export interface Lesson {
   layout?:
     | (
         | {
-            title: string;
-            subtitle?: string | null;
-            buttonLabel?: string | null;
-            buttonHref?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'heroBlock';
-          }
-        | {
-            title: string;
+            title?: string | null;
             subtitle?: string | null;
             size?: ('sm' | 'md' | 'lg') | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'sectionTitle';
-          }
-        | {
-            title: string;
-            text?: {
+            body?: {
               root: {
                 type: string;
                 children: {
@@ -310,10 +309,17 @@ export interface Lesson {
               };
               [k: string]: unknown;
             } | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'textSection';
+          }
+        | {
+            title: string;
+            subtitle?: string | null;
             size?: ('sm' | 'md' | 'lg') | null;
             id?: string | null;
             blockName?: string | null;
-            blockType: 'sectionBlock';
+            blockType: 'sectionTitle';
           }
         | {
             body: {
@@ -334,12 +340,6 @@ export interface Lesson {
             id?: string | null;
             blockName?: string | null;
             blockType: 'richTextBlock';
-          }
-        | {
-            text?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'textBlock';
           }
         | {
             video?: (number | null) | Media;
@@ -398,43 +398,20 @@ export interface Lesson {
           }
         | {
             title?: string | null;
-            description?: string | null;
-            resources?:
-              | {
-                  title: string;
-                  description?: string | null;
-                  url: string;
-                  type?: ('link' | 'video' | 'download' | 'other') | null;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'resourcesList';
-          }
-        | {
-            title?: string | null;
-            description?: string | null;
-            groupByCategory?: boolean | null;
-            contacts?:
-              | {
-                  name: string;
-                  title?: string | null;
-                  category?: ('staff' | 'technical') | null;
-                  phone?: string | null;
-                  email?: string | null;
-                  photo?: (number | null) | Media;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'contactsList';
-          }
-        | {
-            title?: string | null;
+            /**
+             * Attach a quiz to this lesson section or create a new one.
+             */
             quiz: number | Quiz;
             showTitle?: boolean | null;
+            showAnswers?: boolean | null;
+            /**
+             * Leave blank for unlimited attempts.
+             */
+            maxAttempts?: number | null;
+            /**
+             * Overrides the quiz time limit for this lesson section if set.
+             */
+            timeLimitSec?: number | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'quizBlock';
@@ -451,21 +428,6 @@ export interface Lesson {
           }
       )[]
     | null;
-  assessment?: {
-    /**
-     * Attach a quiz to this lesson or create a new one.
-     */
-    quiz?: (number | null) | Quiz;
-    showAnswers?: boolean | null;
-    /**
-     * Leave blank for unlimited attempts.
-     */
-    maxAttempts?: number | null;
-    /**
-     * Overrides the quiz time limit for this lesson if set.
-     */
-    timeLimitSec?: number | null;
-  };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -526,6 +488,10 @@ export interface Quiz {
 export interface QuizQuestion {
   id: number;
   title: string;
+  /**
+   * Supported values: single-select, multi-select, true-false, short-text, numeric.
+   */
+  questionType: string;
   prompt: {
     root: {
       type: string;
@@ -541,11 +507,33 @@ export interface QuizQuestion {
     };
     [k: string]: unknown;
   };
-  options: {
-    label: string;
-    isCorrect?: boolean | null;
-    id?: string | null;
-  }[];
+  options?:
+    | {
+        label: string;
+        isCorrect?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  trueFalseAnswer?: boolean | null;
+  /**
+   * Provide a JSON array or newline/comma-separated answers, e.g. ["stress","normal stress"].
+   */
+  acceptedAnswers?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Use "normalized" to ignore case and extra spacing, or "exact" for strict matching.
+   */
+  textMatchMode?: string | null;
+  numericCorrectValue?: number | null;
+  numericTolerance?: number | null;
+  numericUnit?: string | null;
   explanation?: {
     root: {
       type: string;
@@ -565,9 +553,46 @@ export interface QuizQuestion {
   topic?: string | null;
   tags?: string[] | null;
   difficulty?: ('intro' | 'easy' | 'medium' | 'hard') | null;
+  /**
+   * Concepts this question primarily assesses. Drives mastery, remediation, and concept-level analytics.
+   */
+  concepts?: (number | Concept)[] | null;
+  /**
+   * Cognitive level the question targets (Bloom’s taxonomy).
+   */
+  bloomLevel?: ('remember' | 'understand' | 'apply' | 'analyze' | 'evaluate' | 'create') | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * Atomic learning concepts. Tag questions, lessons, and problems by concept so analytics, mastery, and remediation can hang off a single ontology.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "concepts".
+ */
+export interface Concept {
+  id: number;
+  name: string;
+  /**
+   * Auto-generated from the name; edit to customize.
+   */
+  slug: string;
+  subject?: ('statics' | 'mechanics' | 'math' | 'physics' | 'general') | null;
+  /**
+   * Cognitive level the concept primarily targets.
+   */
+  bloomLevel?: ('remember' | 'understand' | 'apply' | 'analyze' | 'evaluate' | 'create') | null;
+  /**
+   * Short, plain-language description of the concept for staff.
+   */
+  description?: string | null;
+  /**
+   * Other concepts that should be mastered before this one.
+   */
+  prerequisiteConcepts?: (number | Concept)[] | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -607,7 +632,6 @@ export interface Problem {
     };
     [k: string]: unknown;
   };
-  figure?: (number | null) | EngineeringFigure;
   difficulty?: ('intro' | 'easy' | 'medium' | 'hard') | null;
   topic?: string | null;
   tags?: string[] | null;
@@ -629,8 +653,12 @@ export interface Problem {
       [k: string]: unknown;
     } | null;
     unit?: string | null;
-    partType?: ('numeric' | 'symbolic' | 'fbd-draw') | null;
+    partType?: ('numeric' | 'symbolic') | null;
     correctAnswer?: number | null;
+    /**
+     * Optional formula for template-enabled problems. Example: "w * L / 2". If present, this overrides the static numeric answer during grading.
+     */
+    correctAnswerExpression?: string | null;
     tolerance?: number | null;
     toleranceType?: ('absolute' | 'relative') | null;
     significantFigures?: number | null;
@@ -655,20 +683,6 @@ export interface Problem {
         }[]
       | null;
     symbolicTolerance?: number | null;
-    fbdRubric?: {
-      requiredForces?:
-        | {
-            id: string;
-            label?: string | null;
-            correctAngle: number;
-            angleTolerance?: number | null;
-            magnitudeRequired?: boolean | null;
-            correctMagnitude?: number | null;
-            magnitudeTolerance?: number | null;
-          }[]
-        | null;
-      forbiddenForces?: number | null;
-    };
     explanation?: {
       root: {
         type: string;
@@ -686,62 +700,45 @@ export interface Problem {
     } | null;
     id?: string | null;
   }[];
-  resultPlots?:
+  /**
+   * Enable deterministic template variables so one authored problem can be previewed across many generated variants.
+   */
+  parameterizationEnabled?: boolean | null;
+  /**
+   * Default seed used by the admin preview to reproduce the same generated variant.
+   */
+  parameterSeed?: string | null;
+  /**
+   * Author independent variables here. The preview will sample values from each defined range using the chosen seed.
+   */
+  parameterDefinitions?:
     | {
-        plotType: 'shear' | 'moment' | 'deflection' | 'custom';
-        title?: string | null;
-        xLabel?: string | null;
-        yLabel?: string | null;
-        xMin?: number | null;
-        xMax?: string | null;
-        segments?:
-          | {
-              xStart: string;
-              xEnd: string;
-              formula: string;
-              id?: string | null;
-            }[]
-          | null;
-        criticalPoints?:
-          | {
-              x: string;
-              label?: string | null;
-              id?: string | null;
-            }[]
-          | null;
+        name: string;
+        label?: string | null;
+        unit?: string | null;
+        defaultValue?: number | null;
+        min?: number | null;
+        max?: number | null;
+        step?: number | null;
+        precision?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Derived values are evaluated in order and may reference previously defined parameters and derived values.
+   */
+  derivedValues?:
+    | {
+        name: string;
+        label?: string | null;
+        expression: string;
+        unit?: string | null;
         id?: string | null;
       }[]
     | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "engineering-figures".
- */
-export interface EngineeringFigure {
-  id: number;
-  title: string;
-  type: 'fbd' | 'truss' | 'beam' | 'moment-diagram';
-  description?: string | null;
-  figureData:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  width?: number | null;
-  height?: number | null;
-  /**
-   * Mark as a reusable template. Templates appear in the template picker.
-   */
-  isTemplate?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -773,16 +770,10 @@ export interface Page {
             blockType: 'heroBlock';
           }
         | {
-            title: string;
+            title?: string | null;
             subtitle?: string | null;
             size?: ('sm' | 'md' | 'lg') | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'sectionTitle';
-          }
-        | {
-            title: string;
-            text?: {
+            body?: {
               root: {
                 type: string;
                 children: {
@@ -797,10 +788,17 @@ export interface Page {
               };
               [k: string]: unknown;
             } | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'textSection';
+          }
+        | {
+            title: string;
+            subtitle?: string | null;
             size?: ('sm' | 'md' | 'lg') | null;
             id?: string | null;
             blockName?: string | null;
-            blockType: 'sectionBlock';
+            blockType: 'sectionTitle';
           }
         | {
             body: {
@@ -821,12 +819,6 @@ export interface Page {
             id?: string | null;
             blockName?: string | null;
             blockType: 'richTextBlock';
-          }
-        | {
-            text?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'textBlock';
           }
         | {
             video?: (number | null) | Media;
@@ -917,14 +909,6 @@ export interface Page {
             id?: string | null;
             blockName?: string | null;
             blockType: 'contactsList';
-          }
-        | {
-            title?: string | null;
-            quiz: number | Quiz;
-            showTitle?: boolean | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'quizBlock';
           }
       )[]
     | null;
@@ -1027,6 +1011,22 @@ export interface Account {
    */
   role: 'student';
   fullName?: string | null;
+  /**
+   * Total number of successful sign-ins.
+   */
+  loginCount?: number | null;
+  /**
+   * Timestamp of the most recent successful sign-in.
+   */
+  lastLoginAt?: string | null;
+  /**
+   * Updated by the client heartbeat while the user has the app open.
+   */
+  lastSeenAt?: string | null;
+  /**
+   * Cumulative active time in the app, accumulated from heartbeats.
+   */
+  totalActiveSeconds?: number | null;
   currentStreak?: number | null;
   longestStreak?: number | null;
   lastStreakDate?: string | null;
@@ -1060,6 +1060,12 @@ export interface Account {
    */
   transferStudent?: boolean | null;
   includeInRppr?: boolean | null;
+  notificationPreferences?: {
+    questionAnswered?: boolean | null;
+    newContent?: boolean | null;
+    announcement?: boolean | null;
+    quizDeadline?: boolean | null;
+  };
   /**
    * Reserved for CPP SSO integration (e.g., Okta, Azure AD).
    */
@@ -1384,6 +1390,90 @@ export interface ReportingProductRecord {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "api-keys".
+ */
+export interface ApiKey {
+  id: number;
+  name: string;
+  /**
+   * API key is shown once at creation time and masked thereafter.
+   */
+  key: string;
+  owner: number | User;
+  scopes: ('reporting:read' | 'accounts:read')[];
+  lastUsedAt?: string | null;
+  expiresAt?: string | null;
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Pair a pre-assessment quiz with a post-assessment quiz for the same construct. Drives normalized-gain analysis and pre/post research outputs.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pre-post-assessments".
+ */
+export interface PrePostAssessment {
+  id: number;
+  title: string;
+  /**
+   * Optional notes on what this pre/post pair measures.
+   */
+  description?: string | null;
+  /**
+   * Quiz administered before instruction.
+   */
+  preQuiz: number | Quiz;
+  /**
+   * Quiz administered after instruction. Should target the same concepts as the pre-quiz.
+   */
+  postQuiz: number | Quiz;
+  /**
+   * Optional: scope the analysis to one classroom. Leave blank to aggregate across all attempts.
+   */
+  classroom?: (number | null) | Classroom;
+  /**
+   * Concepts the assessment targets (used for downstream concept-level reporting).
+   */
+  concepts?: (number | Concept)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Saved filter/sort presets for the staff dashboard, sharable across the team.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "saved-views".
+ */
+export interface SavedView {
+  id: number;
+  name: string;
+  /**
+   * Identifier for which dashboard the view applies to (e.g. quiz-bank).
+   */
+  scope: string;
+  /**
+   * Serialized filter/sort state. Schema is dictated by the dashboard.
+   */
+  state:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * When true, all staff users see this view.
+   */
+  shared?: boolean | null;
+  owner: number | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "questions".
  */
 export interface Question {
@@ -1395,6 +1485,10 @@ export interface Question {
   lesson: number | Lesson;
   chapter?: (number | null) | Chapter;
   class?: (number | null) | Class;
+  /**
+   * The classroom membership used when the student asked this question.
+   */
+  classroom?: (number | null) | Classroom;
   status: 'open' | 'answered' | 'resolved';
   title: string;
   /**
@@ -1457,6 +1551,10 @@ export interface QuizAttempt {
               id?: string | null;
             }[]
           | null;
+        responseKind?: string | null;
+        textAnswer?: string | null;
+        numericAnswer?: number | null;
+        normalizedAnswer?: string | null;
         optionOrder?:
           | {
               optionId?: string | null;
@@ -1477,12 +1575,49 @@ export interface QuizAttempt {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "engineering-figures".
+ */
+export interface EngineeringFigure {
+  id: number;
+  title: string;
+  type: 'fbd' | 'truss' | 'beam' | 'moment-diagram';
+  description?: string | null;
+  figureData:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  width?: number | null;
+  height?: number | null;
+  axes?: {
+    show?: boolean | null;
+    x?: number | null;
+    y?: number | null;
+    length?: number | null;
+    xLabel?: string | null;
+    yLabel?: string | null;
+  };
+  /**
+   * Mark as a reusable template. Templates appear in the template picker.
+   */
+  isTemplate?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "problem-attempts".
  */
 export interface ProblemAttempt {
   id: number;
   problemSet: number | ProblemSet;
   lesson?: (number | null) | Lesson;
+  attemptNumber?: number | null;
+  attemptScopeKey?: string | null;
   user: number | Account;
   startedAt?: string | null;
   completedAt?: string | null;
@@ -1490,20 +1625,31 @@ export interface ProblemAttempt {
   answers?:
     | {
         problem: number | Problem;
+        variantSeed?: string | null;
+        variantSignature?: string | null;
+        variantScope?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        generatedVariant?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
         parts?:
           | {
               partIndex: number;
               studentAnswer?: number | null;
               studentExpression?: string | null;
-              placedForces?:
-                | {
-                    [k: string]: unknown;
-                  }
-                | unknown[]
-                | string
-                | number
-                | boolean
-                | null;
               isCorrect?: boolean | null;
               score?: number | null;
               id?: string | null;
@@ -1689,6 +1835,10 @@ export interface PayloadLockedDocument {
         value: number | ReportingProductRecord;
       } | null)
     | ({
+        relationTo: 'api-keys';
+        value: number | ApiKey;
+      } | null)
+    | ({
         relationTo: 'accounts';
         value: number | Account;
       } | null)
@@ -1699,6 +1849,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'concepts';
+        value: number | Concept;
+      } | null)
+    | ({
+        relationTo: 'pre-post-assessments';
+        value: number | PrePostAssessment;
+      } | null)
+    | ({
+        relationTo: 'saved-views';
+        value: number | SavedView;
       } | null)
     | ({
         relationTo: 'questions';
@@ -1824,10 +1986,10 @@ export interface ClassesSelect<T extends boolean = true> {
 export interface ChaptersSelect<T extends boolean = true> {
   title?: T;
   chapterNumber?: T;
-  lessons?: T;
   class?: T;
   slug?: T;
   objective?: T;
+  lessons?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1843,13 +2005,13 @@ export interface LessonsSelect<T extends boolean = true> {
   layout?:
     | T
     | {
-        heroBlock?:
+        textSection?:
           | T
           | {
               title?: T;
               subtitle?: T;
-              buttonLabel?: T;
-              buttonHref?: T;
+              size?: T;
+              body?: T;
               id?: T;
               blockName?: T;
             };
@@ -1862,26 +2024,10 @@ export interface LessonsSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
-        sectionBlock?:
-          | T
-          | {
-              title?: T;
-              text?: T;
-              size?: T;
-              id?: T;
-              blockName?: T;
-            };
         richTextBlock?:
           | T
           | {
               body?: T;
-              id?: T;
-              blockName?: T;
-            };
-        textBlock?:
-          | T
-          | {
-              text?: T;
               id?: T;
               blockName?: T;
             };
@@ -1930,49 +2076,15 @@ export interface LessonsSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
-        resourcesList?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              resources?:
-                | T
-                | {
-                    title?: T;
-                    description?: T;
-                    url?: T;
-                    type?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        contactsList?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              groupByCategory?: T;
-              contacts?:
-                | T
-                | {
-                    name?: T;
-                    title?: T;
-                    category?: T;
-                    phone?: T;
-                    email?: T;
-                    photo?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
         quizBlock?:
           | T
           | {
               title?: T;
               quiz?: T;
               showTitle?: T;
+              showAnswers?: T;
+              maxAttempts?: T;
+              timeLimitSec?: T;
               id?: T;
               blockName?: T;
             };
@@ -1987,14 +2099,6 @@ export interface LessonsSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
-      };
-  assessment?:
-    | T
-    | {
-        quiz?: T;
-        showAnswers?: T;
-        maxAttempts?: T;
-        timeLimitSec?: T;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -2021,6 +2125,16 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        textSection?:
+          | T
+          | {
+              title?: T;
+              subtitle?: T;
+              size?: T;
+              body?: T;
+              id?: T;
+              blockName?: T;
+            };
         sectionTitle?:
           | T
           | {
@@ -2030,26 +2144,10 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
-        sectionBlock?:
-          | T
-          | {
-              title?: T;
-              text?: T;
-              size?: T;
-              id?: T;
-              blockName?: T;
-            };
         richTextBlock?:
           | T
           | {
               body?: T;
-              id?: T;
-              blockName?: T;
-            };
-        textBlock?:
-          | T
-          | {
-              text?: T;
               id?: T;
               blockName?: T;
             };
@@ -2132,15 +2230,6 @@ export interface PagesSelect<T extends boolean = true> {
                     photo?: T;
                     id?: T;
                   };
-              id?: T;
-              blockName?: T;
-            };
-        quizBlock?:
-          | T
-          | {
-              title?: T;
-              quiz?: T;
-              showTitle?: T;
               id?: T;
               blockName?: T;
             };
@@ -2334,6 +2423,21 @@ export interface ReportingProductRecordsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "api-keys_select".
+ */
+export interface ApiKeysSelect<T extends boolean = true> {
+  name?: T;
+  key?: T;
+  owner?: T;
+  scopes?: T;
+  lastUsedAt?: T;
+  expiresAt?: T;
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "accounts_select".
  */
 export interface AccountsSelect<T extends boolean = true> {
@@ -2343,6 +2447,10 @@ export interface AccountsSelect<T extends boolean = true> {
   emailVerificationExpiresAt?: T;
   role?: T;
   fullName?: T;
+  loginCount?: T;
+  lastLoginAt?: T;
+  lastSeenAt?: T;
+  totalActiveSeconds?: T;
   currentStreak?: T;
   longestStreak?: T;
   lastStreakDate?: T;
@@ -2356,6 +2464,14 @@ export interface AccountsSelect<T extends boolean = true> {
   firstGenCollegeStudent?: T;
   transferStudent?: T;
   includeInRppr?: T;
+  notificationPreferences?:
+    | T
+    | {
+        questionAnswered?: T;
+        newContent?: T;
+        announcement?: T;
+        quizDeadline?: T;
+      };
   ssoProvider?: T;
   ssoSubject?: T;
   updatedAt?: T;
@@ -2421,6 +2537,47 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "concepts_select".
+ */
+export interface ConceptsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  subject?: T;
+  bloomLevel?: T;
+  description?: T;
+  prerequisiteConcepts?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pre-post-assessments_select".
+ */
+export interface PrePostAssessmentsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  preQuiz?: T;
+  postQuiz?: T;
+  classroom?: T;
+  concepts?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "saved-views_select".
+ */
+export interface SavedViewsSelect<T extends boolean = true> {
+  name?: T;
+  scope?: T;
+  state?: T;
+  shared?: T;
+  owner?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "questions_select".
  */
 export interface QuestionsSelect<T extends boolean = true> {
@@ -2428,6 +2585,7 @@ export interface QuestionsSelect<T extends boolean = true> {
   lesson?: T;
   chapter?: T;
   class?: T;
+  classroom?: T;
   status?: T;
   title?: T;
   body?: T;
@@ -2449,6 +2607,7 @@ export interface QuestionsSelect<T extends boolean = true> {
  */
 export interface QuizQuestionsSelect<T extends boolean = true> {
   title?: T;
+  questionType?: T;
   prompt?: T;
   options?:
     | T
@@ -2457,11 +2616,19 @@ export interface QuizQuestionsSelect<T extends boolean = true> {
         isCorrect?: T;
         id?: T;
       };
+  trueFalseAnswer?: T;
+  acceptedAnswers?: T;
+  textMatchMode?: T;
+  numericCorrectValue?: T;
+  numericTolerance?: T;
+  numericUnit?: T;
   explanation?: T;
   attachments?: T;
   topic?: T;
   tags?: T;
   difficulty?: T;
+  concepts?: T;
+  bloomLevel?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -2513,6 +2680,10 @@ export interface QuizAttemptsSelect<T extends boolean = true> {
               optionId?: T;
               id?: T;
             };
+        responseKind?: T;
+        textAnswer?: T;
+        numericAnswer?: T;
+        normalizedAnswer?: T;
         optionOrder?:
           | T
           | {
@@ -2541,6 +2712,16 @@ export interface EngineeringFiguresSelect<T extends boolean = true> {
   figureData?: T;
   width?: T;
   height?: T;
+  axes?:
+    | T
+    | {
+        show?: T;
+        x?: T;
+        y?: T;
+        length?: T;
+        xLabel?: T;
+        yLabel?: T;
+      };
   isTemplate?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -2552,7 +2733,6 @@ export interface EngineeringFiguresSelect<T extends boolean = true> {
 export interface ProblemsSelect<T extends boolean = true> {
   title?: T;
   prompt?: T;
-  figure?: T;
   difficulty?: T;
   topic?: T;
   tags?: T;
@@ -2564,6 +2744,7 @@ export interface ProblemsSelect<T extends boolean = true> {
         unit?: T;
         partType?: T;
         correctAnswer?: T;
+        correctAnswerExpression?: T;
         tolerance?: T;
         toleranceType?: T;
         significantFigures?: T;
@@ -2585,49 +2766,31 @@ export interface ProblemsSelect<T extends boolean = true> {
               id?: T;
             };
         symbolicTolerance?: T;
-        fbdRubric?:
-          | T
-          | {
-              requiredForces?:
-                | T
-                | {
-                    id?: T;
-                    label?: T;
-                    correctAngle?: T;
-                    angleTolerance?: T;
-                    magnitudeRequired?: T;
-                    correctMagnitude?: T;
-                    magnitudeTolerance?: T;
-                  };
-              forbiddenForces?: T;
-            };
         explanation?: T;
         id?: T;
       };
-  resultPlots?:
+  parameterizationEnabled?: T;
+  parameterSeed?: T;
+  parameterDefinitions?:
     | T
     | {
-        plotType?: T;
-        title?: T;
-        xLabel?: T;
-        yLabel?: T;
-        xMin?: T;
-        xMax?: T;
-        segments?:
-          | T
-          | {
-              xStart?: T;
-              xEnd?: T;
-              formula?: T;
-              id?: T;
-            };
-        criticalPoints?:
-          | T
-          | {
-              x?: T;
-              label?: T;
-              id?: T;
-            };
+        name?: T;
+        label?: T;
+        unit?: T;
+        defaultValue?: T;
+        min?: T;
+        max?: T;
+        step?: T;
+        precision?: T;
+        id?: T;
+      };
+  derivedValues?:
+    | T
+    | {
+        name?: T;
+        label?: T;
+        expression?: T;
+        unit?: T;
         id?: T;
       };
   updatedAt?: T;
@@ -2656,6 +2819,8 @@ export interface ProblemSetsSelect<T extends boolean = true> {
 export interface ProblemAttemptsSelect<T extends boolean = true> {
   problemSet?: T;
   lesson?: T;
+  attemptNumber?: T;
+  attemptScopeKey?: T;
   user?: T;
   startedAt?: T;
   completedAt?: T;
@@ -2664,13 +2829,16 @@ export interface ProblemAttemptsSelect<T extends boolean = true> {
     | T
     | {
         problem?: T;
+        variantSeed?: T;
+        variantSignature?: T;
+        variantScope?: T;
+        generatedVariant?: T;
         parts?:
           | T
           | {
               partIndex?: T;
               studentAnswer?: T;
               studentExpression?: T;
-              placedForces?: T;
               isCorrect?: T;
               score?: T;
               id?: T;
@@ -2875,7 +3043,81 @@ export interface AdminHelp {
     };
     [k: string]: unknown;
   } | null;
-  _status?: ('draft' | 'published') | null;
+  /**
+   * Structured content for each help topic doc page. Add an entry for a topic to override its built-in defaults. Leave empty to use the hardcoded fallback.
+   */
+  helpTopics?:
+    | {
+        topicId:
+          | 'getting-started'
+          | 'courses'
+          | 'quizzes'
+          | 'student-support'
+          | 'classrooms'
+          | 'reporting'
+          | 'site-management'
+          | 'troubleshooting';
+        /**
+         * Each section becomes a heading with an anchor in the table of contents.
+         */
+        sections?:
+          | {
+              /**
+               * Used for #anchor links in the TOC sidebar. No spaces or special chars — e.g. "access", "roles", "daily-checklist".
+               */
+              anchorId: string;
+              heading: string;
+              blocks?:
+                | (
+                    | {
+                        text: string;
+                        id?: string | null;
+                        blockName?: string | null;
+                        blockType: 'paragraph';
+                      }
+                    | {
+                        text: string;
+                        id?: string | null;
+                        blockName?: string | null;
+                        blockType: 'note';
+                      }
+                    | {
+                        type?: ('bullets' | 'steps') | null;
+                        items?:
+                          | {
+                              text: string;
+                              /**
+                               * If set, the item text is rendered as a link to this URL.
+                               */
+                              href?: string | null;
+                              id?: string | null;
+                            }[]
+                          | null;
+                        id?: string | null;
+                        blockName?: string | null;
+                        blockType: 'list';
+                      }
+                    | {
+                        cards?:
+                          | {
+                              label: string;
+                              href: string;
+                              desc?: string | null;
+                              id?: string | null;
+                            }[]
+                          | null;
+                        id?: string | null;
+                        blockName?: string | null;
+                        blockType: 'linkCardGrid';
+                      }
+                  )[]
+                | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -2968,7 +3210,65 @@ export interface AdminHelpSelect<T extends boolean = true> {
   supportRequestHref?: T;
   resources?: T;
   body?: T;
-  _status?: T;
+  helpTopics?:
+    | T
+    | {
+        topicId?: T;
+        sections?:
+          | T
+          | {
+              anchorId?: T;
+              heading?: T;
+              blocks?:
+                | T
+                | {
+                    paragraph?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    note?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    list?:
+                      | T
+                      | {
+                          type?: T;
+                          items?:
+                            | T
+                            | {
+                                text?: T;
+                                href?: T;
+                                id?: T;
+                              };
+                          id?: T;
+                          blockName?: T;
+                        };
+                    linkCardGrid?:
+                      | T
+                      | {
+                          cards?:
+                            | T
+                            | {
+                                label?: T;
+                                href?: T;
+                                desc?: T;
+                                id?: T;
+                              };
+                          id?: T;
+                          blockName?: T;
+                        };
+                  };
+              id?: T;
+            };
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

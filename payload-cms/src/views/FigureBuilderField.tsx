@@ -5,7 +5,7 @@ import { useField } from '@payloadcms/ui'
 
 type FigureType = 'fbd' | 'truss' | 'beam' | 'moment-diagram'
 
-type Force = {
+export type Force = {
   id: string
   label: string
   origin: [number, number]
@@ -14,7 +14,7 @@ type Force = {
   color?: string
 }
 
-type FBDData = {
+export type FBDData = {
   type: 'fbd'
   body: {
     shape: 'rect' | 'circle' | 'polygon'
@@ -29,14 +29,14 @@ type FBDData = {
   forces: Force[]
 }
 
-type TrussData = {
+export type TrussData = {
   type: 'truss'
   nodes: { id: string; x: number; y: number; support?: 'pin' | 'roller' | 'fixed' | null }[]
   members: { from: string; to: string; id?: string }[]
   loads: { node: string; angle: number; magnitude: number; label?: string }[]
 }
 
-type BeamData = {
+export type BeamData = {
   type: 'beam'
   length: number
   scale: number
@@ -47,15 +47,16 @@ type BeamData = {
   dimensions?: boolean
 }
 
-type MomentDiagramData = {
+export type MomentDiagramData = {
   type: 'moment-diagram'
   length: number
   scale: number
   yScale: number
   points: { x: number; M: number }[]
+  labels?: { x: number; label: string }[]
 }
 
-type FigureData = FBDData | TrussData | BeamData | MomentDiagramData
+export type FigureData = FBDData | TrussData | BeamData | MomentDiagramData
 type TemplateDoc = {
   id: string | number
   title?: string
@@ -64,7 +65,7 @@ type TemplateDoc = {
 }
 
 const toRadians = (degrees: number) => (degrees * Math.PI) / 180
-const arrowEnd = (x: number, y: number, angleDeg: number, magnitude = 1) => {
+export const arrowEnd = (x: number, y: number, angleDeg: number, magnitude = 1) => {
   const length = 60 * magnitude
   const radians = toRadians(angleDeg)
   return {
@@ -108,7 +109,7 @@ function Arrow({
   )
 }
 
-function SVGCanvas({ value }: { value: FigureData | null }) {
+export function SVGCanvas({ value }: { value: FigureData | null }) {
   const figure = value as FigureData | null
   return (
     <div
@@ -210,12 +211,57 @@ function SVGCanvas({ value }: { value: FigureData | null }) {
               const end = arrowEnd(x, 130, load.angle, Math.max(0.35, load.magnitude / 20))
               return <Arrow key={`p-${idx}`} x1={x} y1={130} x2={end.x} y2={end.y} label={load.label} />
             })}
+            {(figure.distributedLoads ?? []).map((load, idx) => {
+              const xStart = 60 + load.xStart * figure.scale
+              const xEnd = 60 + load.xEnd * figure.scale
+              const arrowCount = Math.max(2, Math.round((xEnd - xStart) / 20))
+              const arrowY = 150
+              return (
+                <g key={`d-${idx}`}>
+                  <line x1={xStart} y1={arrowY - 20} x2={xEnd} y2={arrowY - 20} stroke="#ef4444" strokeWidth={1.5} />
+                  {Array.from({ length: arrowCount }, (_, i) => {
+                    const x = xStart + (i / (arrowCount - 1)) * (xEnd - xStart)
+                    return <Arrow key={`da-${idx}-${i}`} x1={x} y1={arrowY - 20} x2={x} y2={arrowY} />
+                  })}
+                  {load.label ? (
+                    <text x={(xStart + xEnd) / 2} y={arrowY - 28} textAnchor="middle" fill="#ef4444" fontSize={11}>
+                      {load.label}
+                    </text>
+                  ) : null}
+                </g>
+              )
+            })}
           </>
-        ) : (
-          <text x={30} y={40} fill="#64748b" fontSize={14}>
-            Moment diagram builder panel will be added in a later run.
-          </text>
-        )}
+        ) : figure.type === 'moment-diagram' ? (
+          <>
+            {(() => {
+              const left = 60
+              const baseY = 300
+              const pts = (figure.points ?? []).map((point) => ({
+                x: left + point.x * figure.scale,
+                y: baseY - point.M * figure.yScale,
+              }))
+              const polygon = [
+                `${left},${baseY}`,
+                ...pts.map((point) => `${point.x},${point.y}`),
+                `${left + figure.length * figure.scale},${baseY}`,
+              ].join(' ')
+
+              return (
+                <>
+                  <line x1={left} y1={baseY} x2={left + figure.length * figure.scale} y2={baseY} stroke="#334155" />
+                  <polyline points={pts.map((point) => `${point.x},${point.y}`).join(' ')} fill="none" stroke="#1d4ed8" strokeWidth={2} />
+                  <polygon points={polygon} fill="rgba(59,130,246,0.15)" />
+                  {(figure.labels ?? []).map((label, idx) => (
+                    <text key={`ml-${idx}`} x={left + label.x * figure.scale + 6} y={baseY - 8} fill="#0f172a" fontSize={11}>
+                      {label.label}
+                    </text>
+                  ))}
+                </>
+              )
+            })()}
+          </>
+        ) : null}
       </svg>
     </div>
   )
@@ -365,6 +411,279 @@ function BeamBuilder({
           onChange={(e) => onChange({ ...value, scale: Number(e.target.value) || 40 })}
         />
       </label>
+      <div style={{ display: 'grid', gap: 6 }}>
+        <div style={{ fontSize: 12, fontWeight: 600 }}>Distributed Loads</div>
+        {(value.distributedLoads ?? []).map((load, index) => (
+          <div
+            key={`dl-${index}`}
+            style={{
+              border: '1px solid var(--theme-elevation-150)',
+              borderRadius: 8,
+              padding: 8,
+              display: 'grid',
+              gap: 6,
+            }}
+          >
+            <div style={{ display: 'grid', gap: 4, gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
+              <label style={{ display: 'grid', gap: 4 }}>
+                <span style={{ fontSize: 11 }}>xStart</span>
+                <input
+                  type="number"
+                  value={load.xStart}
+                  onChange={(e) => {
+                    const next = [...(value.distributedLoads ?? [])]
+                    next[index] = { ...load, xStart: Number(e.target.value) || 0 }
+                    onChange({ ...value, distributedLoads: next })
+                  }}
+                />
+              </label>
+              <label style={{ display: 'grid', gap: 4 }}>
+                <span style={{ fontSize: 11 }}>xEnd</span>
+                <input
+                  type="number"
+                  value={load.xEnd}
+                  onChange={(e) => {
+                    const next = [...(value.distributedLoads ?? [])]
+                    next[index] = { ...load, xEnd: Number(e.target.value) || 0 }
+                    onChange({ ...value, distributedLoads: next })
+                  }}
+                />
+              </label>
+              <label style={{ display: 'grid', gap: 4 }}>
+                <span style={{ fontSize: 11 }}>wStart</span>
+                <input
+                  type="number"
+                  value={load.wStart}
+                  onChange={(e) => {
+                    const next = [...(value.distributedLoads ?? [])]
+                    next[index] = { ...load, wStart: Number(e.target.value) || 0 }
+                    onChange({ ...value, distributedLoads: next })
+                  }}
+                />
+              </label>
+              <label style={{ display: 'grid', gap: 4 }}>
+                <span style={{ fontSize: 11 }}>wEnd</span>
+                <input
+                  type="number"
+                  value={load.wEnd}
+                  onChange={(e) => {
+                    const next = [...(value.distributedLoads ?? [])]
+                    next[index] = { ...load, wEnd: Number(e.target.value) || 0 }
+                    onChange({ ...value, distributedLoads: next })
+                  }}
+                />
+              </label>
+            </div>
+            <label style={{ display: 'grid', gap: 4 }}>
+              <span style={{ fontSize: 11 }}>Label</span>
+              <input
+                value={load.label ?? ''}
+                onChange={(e) => {
+                  const next = [...(value.distributedLoads ?? [])]
+                  next[index] = { ...load, label: e.target.value }
+                  onChange({ ...value, distributedLoads: next })
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() =>
+                onChange({
+                  ...value,
+                  distributedLoads: (value.distributedLoads ?? []).filter((_, idx) => idx !== index),
+                })
+              }
+            >
+              Remove distributed load
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() =>
+            onChange({
+              ...value,
+              distributedLoads: [
+                ...(value.distributedLoads ?? []),
+                { xStart: 0, xEnd: value.length, wStart: 1, wEnd: 1, label: 'w' },
+              ],
+            })
+          }
+        >
+          Add distributed load
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function MomentDiagramBuilder({
+  value,
+  onChange,
+}: {
+  value: MomentDiagramData
+  onChange: (next: MomentDiagramData) => void
+}) {
+  const ensurePoints = (points: { x: number; M: number }[], length: number) => {
+    const next = [...points]
+    if (!next.length) {
+      return [{ x: 0, M: 0 }, { x: length, M: 0 }]
+    }
+    if (next.length === 1) {
+      return [next[0], { x: length, M: 0 }]
+    }
+    return next
+  }
+
+  const points = ensurePoints(value.points ?? [], value.length)
+  const labels = value.labels ?? []
+  const left = 40
+  const baseY = 170
+  const plotPts = points.map((point) => ({
+    x: left + point.x * value.scale,
+    y: baseY - point.M * value.yScale,
+  }))
+  const polyline = plotPts.map((point) => `${point.x},${point.y}`).join(' ')
+
+  return (
+    <div style={{ display: 'grid', gap: 8 }}>
+      <label style={{ display: 'grid', gap: 4 }}>
+        <span style={{ fontSize: 12 }}>Span length (m)</span>
+        <input
+          type="number"
+          value={value.length}
+          onChange={(e) => onChange({ ...value, length: Number(e.target.value) || 1 })}
+        />
+      </label>
+      <label style={{ display: 'grid', gap: 4 }}>
+        <span style={{ fontSize: 12 }}>Scale (px / m)</span>
+        <input
+          type="number"
+          value={value.scale}
+          onChange={(e) => onChange({ ...value, scale: Number(e.target.value) || 70 })}
+        />
+      </label>
+      <label style={{ display: 'grid', gap: 4 }}>
+        <span style={{ fontSize: 12 }}>Y Scale (px / kN·m)</span>
+        <input
+          type="number"
+          value={value.yScale}
+          onChange={(e) => onChange({ ...value, yScale: Number(e.target.value) || 20 })}
+        />
+      </label>
+
+      <div style={{ display: 'grid', gap: 6 }}>
+        <div style={{ fontSize: 12, fontWeight: 600 }}>Points</div>
+        {points.map((point, index) => (
+          <div key={`point-${index}`} style={{ display: 'grid', gap: 6, gridTemplateColumns: '1fr 1fr auto' }}>
+            <input
+              type="number"
+              value={point.x}
+              onChange={(e) => {
+                const next = [...points]
+                next[index] = { ...point, x: Number(e.target.value) || 0 }
+                onChange({ ...value, points: next })
+              }}
+            />
+            <input
+              type="number"
+              value={point.M}
+              onChange={(e) => {
+                const next = [...points]
+                next[index] = { ...point, M: Number(e.target.value) || 0 }
+                onChange({ ...value, points: next })
+              }}
+            />
+            <button
+              type="button"
+              disabled={points.length <= 2}
+              onClick={() => {
+                if (points.length <= 2) return
+                onChange({ ...value, points: points.filter((_, idx) => idx !== index) })
+              }}
+            >
+              Remove
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() =>
+            onChange({
+              ...value,
+              points: [...points, { x: Number((value.length / 2).toFixed(2)), M: 0 }],
+            })
+          }
+        >
+          Add point
+        </button>
+      </div>
+
+      <div style={{ display: 'grid', gap: 6 }}>
+        <div style={{ fontSize: 12, fontWeight: 600 }}>Labels</div>
+        {labels.map((label, index) => (
+          <div key={`label-${index}`} style={{ display: 'grid', gap: 6, gridTemplateColumns: '1fr 2fr auto' }}>
+            <input
+              type="number"
+              value={label.x}
+              onChange={(e) => {
+                const next = [...labels]
+                next[index] = { ...label, x: Number(e.target.value) || 0 }
+                onChange({ ...value, labels: next })
+              }}
+            />
+            <input
+              value={label.label}
+              onChange={(e) => {
+                const next = [...labels]
+                next[index] = { ...label, label: e.target.value }
+                onChange({ ...value, labels: next })
+              }}
+            />
+            <button
+              type="button"
+              onClick={() =>
+                onChange({
+                  ...value,
+                  labels: labels.filter((_, idx) => idx !== index),
+                })
+              }
+            >
+              Remove
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() =>
+            onChange({
+              ...value,
+              labels: [...labels, { x: Number((value.length / 2).toFixed(2)), label: 'Peak' }],
+            })
+          }
+        >
+          Add label
+        </button>
+      </div>
+
+      <div
+        style={{
+          border: '1px solid var(--theme-elevation-150)',
+          borderRadius: 8,
+          padding: 8,
+          background: 'var(--theme-elevation-0)',
+        }}
+      >
+        <svg viewBox="0 0 520 220" style={{ width: '100%', height: 'auto', display: 'block' }}>
+          <line x1={left} y1={baseY} x2={left + value.length * value.scale} y2={baseY} stroke="#334155" />
+          <polyline points={polyline} fill="none" stroke="#1d4ed8" strokeWidth={2} />
+          {labels.map((label, idx) => (
+            <text key={`preview-label-${idx}`} x={left + label.x * value.scale + 5} y={baseY - 8} fill="#0f172a" fontSize={11}>
+              {label.label}
+            </text>
+          ))}
+        </svg>
+      </div>
     </div>
   )
 }
@@ -630,6 +949,8 @@ export default function FigureBuilderField() {
                 <TrussBuilder value={figureData} onChange={setFigureData} />
               ) : figureData?.type === 'beam' ? (
                 <BeamBuilder value={figureData} onChange={setFigureData} />
+              ) : figureData?.type === 'moment-diagram' ? (
+                <MomentDiagramBuilder value={figureData} onChange={setFigureData} />
               ) : null}
             </div>
           </div>

@@ -5,7 +5,10 @@ import { useField, useForm } from '@payloadcms/ui'
 import LessonOrderList from './LessonOrderList'
 
 type IdValue = string | number | null | undefined
-type LessonRelationshipValue = Array<string | number | { id?: string | number } | null> | null | undefined
+type LessonRelationshipValue =
+  | Array<string | number | { id?: string | number } | null>
+  | null
+  | undefined
 type LessonRelationshipItem = string | number | { id?: string | number } | null
 
 const toId = (item: LessonRelationshipItem): string => {
@@ -61,6 +64,8 @@ export default function ChapterLessonOrderField() {
     if (typeof legacyIdValue === 'number') return String(legacyIdValue)
     return pathId
   }, [idValue, legacyIdValue, pathId])
+
+  if (!chapterId) return null
 
   return (
     <div style={{ margin: '6px 0 20px' }}>

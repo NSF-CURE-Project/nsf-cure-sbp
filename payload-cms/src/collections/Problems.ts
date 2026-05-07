@@ -1,7 +1,9 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
+import { validateProblemTemplate } from '../lib/problemSet/problemTemplate'
 
 const isStaff = (req?: PayloadRequest | null) =>
-  req?.user?.collection === 'users' && ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
+  req?.user?.collection === 'users' &&
+  ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
 
 export const Problems: CollectionConfig = {
   slug: 'problems',
@@ -21,7 +23,7 @@ export const Problems: CollectionConfig = {
   },
   hooks: {
     beforeChange: [
-      ({ data }) => {
+      async ({ data }) => {
         const parts = Array.isArray((data as { parts?: unknown[] } | undefined)?.parts)
           ? (((data as { parts?: unknown[] }).parts ?? []) as Array<Record<string, unknown>>)
           : []
@@ -44,6 +46,19 @@ export const Problems: CollectionConfig = {
             )
         }
 
+        const templateValidation = validateProblemTemplate({
+          enabled: Boolean(
+            (data as { parameterizationEnabled?: boolean } | undefined)?.parameterizationEnabled,
+          ),
+          parameterDefinitions: (data as { parameterDefinitions?: unknown } | undefined)
+            ?.parameterDefinitions,
+          derivedValues: (data as { derivedValues?: unknown } | undefined)?.derivedValues,
+        })
+
+        if (templateValidation.errors.length) {
+          throw new Error(templateValidation.errors.join(' '))
+        }
+
         return data
       },
     ],
@@ -64,11 +79,6 @@ export const Problems: CollectionConfig = {
               name: 'prompt',
               type: 'richText',
               required: true,
-            },
-            {
-              name: 'figure',
-              type: 'relationship',
-              relationTo: 'engineering-figures',
             },
             {
               name: 'difficulty',
@@ -115,7 +125,6 @@ export const Problems: CollectionConfig = {
                   options: [
                     { label: 'Numeric', value: 'numeric' },
                     { label: 'Symbolic', value: 'symbolic' },
-                    { label: 'Free-Body Diagram (Draw)', value: 'fbd-draw' },
                   ],
                 },
                 {
@@ -123,7 +132,18 @@ export const Problems: CollectionConfig = {
                   type: 'number',
                   required: true,
                   admin: {
-                    condition: (_, siblingData) => (siblingData?.partType ?? 'numeric') === 'numeric',
+                    condition: (_, siblingData) =>
+                      (siblingData?.partType ?? 'numeric') === 'numeric',
+                  },
+                },
+                {
+                  name: 'correctAnswerExpression',
+                  type: 'text',
+                  admin: {
+                    condition: (_, siblingData) =>
+                      (siblingData?.partType ?? 'numeric') === 'numeric',
+                    description:
+                      'Optional formula for template-enabled problems. Example: "w * L / 2". If present, this overrides the static numeric answer during grading.',
                   },
                 },
                 {
@@ -132,7 +152,8 @@ export const Problems: CollectionConfig = {
                   required: true,
                   defaultValue: 0.05,
                   admin: {
-                    condition: (_, siblingData) => (siblingData?.partType ?? 'numeric') === 'numeric',
+                    condition: (_, siblingData) =>
+                      (siblingData?.partType ?? 'numeric') === 'numeric',
                   },
                 },
                 {
@@ -145,21 +166,24 @@ export const Problems: CollectionConfig = {
                     { label: 'Relative', value: 'relative' },
                   ],
                   admin: {
-                    condition: (_, siblingData) => (siblingData?.partType ?? 'numeric') === 'numeric',
+                    condition: (_, siblingData) =>
+                      (siblingData?.partType ?? 'numeric') === 'numeric',
                   },
                 },
                 {
                   name: 'significantFigures',
                   type: 'number',
                   admin: {
-                    condition: (_, siblingData) => (siblingData?.partType ?? 'numeric') === 'numeric',
+                    condition: (_, siblingData) =>
+                      (siblingData?.partType ?? 'numeric') === 'numeric',
                   },
                 },
                 {
                   name: 'toleranceExplainer',
                   type: 'ui',
                   admin: {
-                    condition: (_, siblingData) => (siblingData?.partType ?? 'numeric') === 'numeric',
+                    condition: (_, siblingData) =>
+                      (siblingData?.partType ?? 'numeric') === 'numeric',
                     components: {
                       Field: '@/views/ToleranceExplainerField#default',
                     },
@@ -170,7 +194,8 @@ export const Problems: CollectionConfig = {
                   type: 'select',
                   defaultValue: 'threshold',
                   admin: {
-                    condition: (_, siblingData) => (siblingData?.partType ?? 'numeric') === 'numeric',
+                    condition: (_, siblingData) =>
+                      (siblingData?.partType ?? 'numeric') === 'numeric',
                   },
                   options: [
                     { label: 'Threshold', value: 'threshold' },
@@ -244,149 +269,117 @@ export const Problems: CollectionConfig = {
                   },
                 },
                 {
-                  name: 'fbdRubric',
-                  type: 'group',
-                  admin: {
-                    condition: (_, siblingData) => siblingData?.partType === 'fbd-draw',
-                  },
-                  fields: [
-                    {
-                      name: 'requiredForces',
-                      type: 'array',
-                      fields: [
-                        {
-                          name: 'id',
-                          type: 'text',
-                          required: true,
-                        },
-                        {
-                          name: 'label',
-                          type: 'text',
-                        },
-                        {
-                          name: 'correctAngle',
-                          type: 'number',
-                          required: true,
-                          defaultValue: 0,
-                        },
-                        {
-                          name: 'angleTolerance',
-                          type: 'number',
-                          defaultValue: 5,
-                        },
-                        {
-                          name: 'magnitudeRequired',
-                          type: 'checkbox',
-                          defaultValue: false,
-                        },
-                        {
-                          name: 'correctMagnitude',
-                          type: 'number',
-                        },
-                        {
-                          name: 'magnitudeTolerance',
-                          type: 'number',
-                          defaultValue: 0.05,
-                        },
-                      ],
-                    },
-                    {
-                      name: 'forbiddenForces',
-                      type: 'number',
-                      defaultValue: 0,
-                    },
-                  ],
-                },
-                {
                   name: 'explanation',
                   type: 'richText',
                 },
               ],
             },
+          ],
+        },
+        {
+          label: 'Templates',
+          fields: [
             {
-              name: 'resultPlots',
+              name: 'parameterizationEnabled',
+              type: 'checkbox',
+              defaultValue: false,
+              admin: {
+                description:
+                  'Enable deterministic template variables so one authored problem can be previewed across many generated variants.',
+              },
+            },
+            {
+              name: 'parameterSeed',
+              type: 'text',
+              defaultValue: 'template-default',
+              admin: {
+                condition: (data) => Boolean(data?.parameterizationEnabled),
+                description:
+                  'Default seed used by the admin preview to reproduce the same generated variant.',
+              },
+            },
+            {
+              name: 'parameterDefinitions',
               type: 'array',
+              admin: {
+                condition: (data) => Boolean(data?.parameterizationEnabled),
+                description:
+                  'Author independent variables here. The preview will sample values from each defined range using the chosen seed.',
+              },
               fields: [
                 {
-                  name: 'plotType',
-                  type: 'select',
+                  name: 'name',
+                  type: 'text',
                   required: true,
-                  defaultValue: 'shear',
-                  options: [
-                    { label: 'Shear', value: 'shear' },
-                    { label: 'Moment', value: 'moment' },
-                    { label: 'Deflection', value: 'deflection' },
-                    { label: 'Custom', value: 'custom' },
-                  ],
                 },
                 {
-                  name: 'title',
+                  name: 'label',
                   type: 'text',
                 },
                 {
-                  name: 'xLabel',
-                  type: 'text',
-                  defaultValue: 'x (m)',
-                },
-                {
-                  name: 'yLabel',
+                  name: 'unit',
                   type: 'text',
                 },
                 {
-                  name: 'xMin',
+                  name: 'defaultValue',
                   type: 'number',
-                  defaultValue: 0,
                 },
                 {
-                  name: 'xMax',
-                  type: 'text',
+                  name: 'min',
+                  type: 'number',
                 },
                 {
-                  name: 'plotWizard',
-                  type: 'ui',
-                  admin: {
-                    components: {
-                      Field: '@/views/PlotWizardField#default',
-                    },
-                  },
+                  name: 'max',
+                  type: 'number',
                 },
                 {
-                  name: 'segments',
-                  type: 'array',
-                  fields: [
-                    {
-                      name: 'xStart',
-                      type: 'text',
-                      required: true,
-                    },
-                    {
-                      name: 'xEnd',
-                      type: 'text',
-                      required: true,
-                    },
-                    {
-                      name: 'formula',
-                      type: 'text',
-                      required: true,
-                    },
-                  ],
+                  name: 'step',
+                  type: 'number',
                 },
                 {
-                  name: 'criticalPoints',
-                  type: 'array',
-                  fields: [
-                    {
-                      name: 'x',
-                      type: 'text',
-                      required: true,
-                    },
-                    {
-                      name: 'label',
-                      type: 'text',
-                    },
-                  ],
+                  name: 'precision',
+                  type: 'number',
                 },
               ],
+            },
+            {
+              name: 'derivedValues',
+              type: 'array',
+              admin: {
+                condition: (data) => Boolean(data?.parameterizationEnabled),
+                description:
+                  'Derived values are evaluated in order and may reference previously defined parameters and derived values.',
+              },
+              fields: [
+                {
+                  name: 'name',
+                  type: 'text',
+                  required: true,
+                },
+                {
+                  name: 'label',
+                  type: 'text',
+                },
+                {
+                  name: 'expression',
+                  type: 'text',
+                  required: true,
+                },
+                {
+                  name: 'unit',
+                  type: 'text',
+                },
+              ],
+            },
+            {
+              name: 'templatePreview',
+              type: 'ui',
+              admin: {
+                condition: (data) => Boolean(data?.parameterizationEnabled),
+                components: {
+                  Field: '@/views/ProblemTemplatePreviewField#default',
+                },
+              },
             },
           ],
         },

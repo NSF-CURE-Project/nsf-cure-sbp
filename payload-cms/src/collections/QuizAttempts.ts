@@ -1,31 +1,9 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
+import { getId, gradeQuizAnswer } from '../lib/quiz'
 
 const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' &&
   ['admin', 'staff', 'professor'].includes(req?.user?.role ?? '')
-
-const getId = (value: unknown): string | null => {
-  if (typeof value === 'string' || typeof value === 'number') return String(value)
-  if (typeof value === 'object' && value !== null && 'id' in value) {
-    return String((value as { id?: string | number }).id ?? '')
-  }
-  return null
-}
-
-const normalizeOptionIds = (value?: unknown): string[] => {
-  if (!Array.isArray(value)) return []
-  return value
-    .map((item) => {
-      if (typeof item === 'string') return item
-      if (typeof item === 'object' && item !== null && 'optionId' in item) {
-        return String((item as { optionId?: string }).optionId ?? '')
-      }
-      return ''
-    })
-    .filter(Boolean)
-}
-
-const clampScore = (value: number) => Math.max(0, Math.min(1, value))
 
 export const QuizAttempts: CollectionConfig = {
   slug: 'quiz-attempts',
@@ -69,13 +47,7 @@ export const QuizAttempts: CollectionConfig = {
           ? ((quiz as { questions?: unknown[] }).questions ?? [])
           : []
 
-        const questionMap = new Map<
-          string,
-          {
-            correctOptionIds: string[]
-            optionIds: string[]
-          }
-        >()
+        const questionMap = new Map<string, Record<string, unknown>>()
 
         for (const item of quizQuestions) {
           const questionId = getId(item)
@@ -91,17 +63,7 @@ export const QuizAttempts: CollectionConfig = {
                 })
 
           if (!questionDoc) continue
-          const options = Array.isArray((questionDoc as { options?: unknown[] }).options)
-            ? ((questionDoc as { options?: unknown[] }).options ?? [])
-            : []
-          const optionIds = options
-            .map((opt) => getId(opt))
-            .filter((id): id is string => Boolean(id))
-          const correctOptionIds = options
-            .filter((opt) => (opt as { isCorrect?: boolean }).isCorrect)
-            .map((opt) => getId(opt))
-            .filter((id): id is string => Boolean(id))
-          questionMap.set(questionId, { correctOptionIds, optionIds })
+          questionMap.set(questionId, questionDoc as Record<string, unknown>)
         }
 
         const answers = Array.isArray(data.answers) ? data.answers : []
@@ -112,38 +74,28 @@ export const QuizAttempts: CollectionConfig = {
           const questionId = getId((answer as { question?: unknown }).question)
           if (!questionId) return answer
 
-          const questionInfo = questionMap.get(questionId)
-          const correctIds = questionInfo?.correctOptionIds ?? []
-          const selectedIds = normalizeOptionIds(
-            (answer as { selectedOptionIds?: unknown }).selectedOptionIds,
+          const questionInfo = questionMap.get(questionId) ?? {}
+          const graded = gradeQuizAnswer(
+            questionInfo,
+            {
+              selectedOptionIds: (answer as { selectedOptionIds?: unknown }).selectedOptionIds,
+              textAnswer: (answer as { textAnswer?: unknown }).textAnswer,
+              numericAnswer: (answer as { numericAnswer?: unknown }).numericAnswer,
+            },
+            scoring,
           )
-          const selectedSet = new Set(selectedIds)
-          const correctSet = new Set(correctIds)
-
-          const exactMatch =
-            correctIds.length > 0 &&
-            correctIds.length === selectedSet.size &&
-            correctIds.every((id) => selectedSet.has(id))
-
-          let score = 0
-          if (scoring === 'partial') {
-            if (correctIds.length > 0) {
-              const correctSelected = selectedIds.filter((id) => correctSet.has(id)).length
-              const incorrectSelected = selectedIds.filter((id) => !correctSet.has(id)).length
-              score = clampScore((correctSelected - incorrectSelected) / correctIds.length)
-            }
-          } else {
-            score = exactMatch ? 1 : 0
-          }
-
-          const isCorrect = score === 1
-          totalScore += score
+          const isCorrect = graded.isCorrect
+          totalScore += graded.score
           if (isCorrect) correctCount += 1
 
           return {
             ...answer,
+            responseKind: graded.responseKind,
+            textAnswer: graded.textAnswer,
+            numericAnswer: graded.numericAnswer,
+            normalizedAnswer: graded.normalizedAnswer,
             isCorrect,
-            score: Number(score.toFixed(2)),
+            score: Number(graded.score.toFixed(2)),
           }
         })
 
@@ -240,6 +192,28 @@ export const QuizAttempts: CollectionConfig = {
               type: 'text',
             },
           ],
+        },
+        {
+          name: 'responseKind',
+          type: 'text',
+          admin: {
+            readOnly: true,
+          },
+        },
+        {
+          name: 'textAnswer',
+          type: 'text',
+        },
+        {
+          name: 'numericAnswer',
+          type: 'number',
+        },
+        {
+          name: 'normalizedAnswer',
+          type: 'text',
+          admin: {
+            readOnly: true,
+          },
         },
         {
           name: 'optionOrder',

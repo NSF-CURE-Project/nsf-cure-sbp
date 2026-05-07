@@ -8,9 +8,6 @@ export const AdminHelp: GlobalConfig = {
     update: ({ req }) =>
       req.user?.collection === 'users' && (req.user?.role === 'admin' || req.user?.role === 'staff'),
   },
-  versions: {
-    drafts: true,
-  },
   admin: {
     group: 'Settings',
     description: 'Guidance content shown on the admin Help page.',
@@ -53,7 +50,7 @@ export const AdminHelp: GlobalConfig = {
       ],
       admin: {
         description:
-          'JSON array: [{ "label": string, "desc": string, "href": string }].',
+          'JSON array: [{ "label": string, "desc": string, "href": string }]. Reserved — not currently rendered on the help page.',
       },
     },
     {
@@ -62,7 +59,8 @@ export const AdminHelp: GlobalConfig = {
       type: 'json',
       defaultValue: ['Reporting', 'Courses', 'Classrooms', 'Quizzes', 'Troubleshooting'],
       admin: {
-        description: 'JSON array of strings for topic tags.',
+        description:
+          'JSON array of strings. Reserved — not currently rendered on the help page.',
       },
     },
     {
@@ -129,13 +127,174 @@ export const AdminHelp: GlobalConfig = {
       ],
       admin: {
         description:
-          'JSON array: [{ "label": string, "desc": string, "href": string }].',
+          'JSON array: [{ "label": string, "desc": string, "href": string }]. Reserved — not currently rendered on the help page.',
       },
     },
     {
       name: 'body',
       label: 'Help content',
       type: 'richText',
+      admin: {
+        description: 'Reserved — not currently rendered on the help page.',
+      },
+    },
+    {
+      name: 'helpTopics',
+      label: 'Help topic content',
+      type: 'array',
+      admin: {
+        description:
+          'Structured content for each help topic doc page. Add an entry for a topic to override its built-in defaults. Leave empty to use the hardcoded fallback.',
+        initCollapsed: true,
+      },
+      fields: [
+        {
+          name: 'topicId',
+          label: 'Topic',
+          type: 'select',
+          required: true,
+          options: [
+            { label: 'Getting Started', value: 'getting-started' },
+            { label: 'Courses & Curriculum', value: 'courses' },
+            { label: 'Quiz Bank', value: 'quizzes' },
+            { label: 'Student Support', value: 'student-support' },
+            { label: 'Classrooms', value: 'classrooms' },
+            { label: 'Concepts', value: 'concepts' },
+            { label: 'Pre/Post Assessments', value: 'pre-post' },
+            { label: 'Analytics & Performance', value: 'analytics' },
+            { label: 'NSF Reporting', value: 'reporting' },
+            { label: 'Site Management', value: 'site-management' },
+            { label: 'Troubleshooting', value: 'troubleshooting' },
+          ],
+        },
+        {
+          name: 'sections',
+          label: 'Sections',
+          type: 'array',
+          admin: {
+            description: 'Each section becomes a heading with an anchor in the table of contents.',
+          },
+          fields: [
+            {
+              name: 'anchorId',
+              label: 'Anchor ID',
+              type: 'text',
+              required: true,
+              admin: {
+                description:
+                  'Used for #anchor links in the TOC sidebar. No spaces or special chars — e.g. "access", "roles", "daily-checklist".',
+              },
+            },
+            {
+              name: 'heading',
+              label: 'Section heading',
+              type: 'text',
+              required: true,
+            },
+            {
+              name: 'blocks',
+              label: 'Content blocks',
+              type: 'blocks',
+              blocks: [
+                {
+                  slug: 'paragraph',
+                  labels: { singular: 'Paragraph', plural: 'Paragraphs' },
+                  fields: [
+                    {
+                      name: 'text',
+                      label: 'Text',
+                      type: 'textarea',
+                      required: true,
+                    },
+                  ],
+                },
+                {
+                  slug: 'note',
+                  labels: { singular: 'Note', plural: 'Notes' },
+                  fields: [
+                    {
+                      name: 'text',
+                      label: 'Note text',
+                      type: 'textarea',
+                      required: true,
+                    },
+                  ],
+                },
+                {
+                  slug: 'list',
+                  labels: { singular: 'List', plural: 'Lists' },
+                  fields: [
+                    {
+                      name: 'type',
+                      label: 'List type',
+                      type: 'select',
+                      defaultValue: 'bullets',
+                      options: [
+                        { label: 'Bullet list', value: 'bullets' },
+                        { label: 'Numbered steps', value: 'steps' },
+                      ],
+                    },
+                    {
+                      name: 'items',
+                      label: 'Items',
+                      type: 'array',
+                      minRows: 1,
+                      fields: [
+                        {
+                          name: 'text',
+                          label: 'Item text',
+                          type: 'text',
+                          required: true,
+                        },
+                        {
+                          name: 'href',
+                          label: 'Link (optional)',
+                          type: 'text',
+                          admin: {
+                            description:
+                              'If set, the item text is rendered as a link to this URL.',
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  slug: 'linkCardGrid',
+                  labels: { singular: 'Link Card Grid', plural: 'Link Card Grids' },
+                  fields: [
+                    {
+                      name: 'cards',
+                      label: 'Cards',
+                      type: 'array',
+                      minRows: 1,
+                      fields: [
+                        {
+                          name: 'label',
+                          label: 'Label',
+                          type: 'text',
+                          required: true,
+                        },
+                        {
+                          name: 'href',
+                          label: 'Link',
+                          type: 'text',
+                          required: true,
+                        },
+                        {
+                          name: 'desc',
+                          label: 'Description',
+                          type: 'text',
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
     },
   ],
 }

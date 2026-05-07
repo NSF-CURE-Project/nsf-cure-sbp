@@ -543,6 +543,28 @@ export default function Navbar() {
                   <span className="text-sm font-medium">Settings</span>
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem
+                asChild
+                className="cursor-pointer rounded-lg px-2 py-2.5 focus:bg-muted/70"
+              >
+                <Link href="/saved-lessons" className="flex w-full items-center gap-3">
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-muted/40">
+                    <Settings className="h-3.5 w-3.5 text-muted-foreground" />
+                  </span>
+                  <span className="text-sm font-medium">Saved lessons</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                asChild
+                className="cursor-pointer rounded-lg px-2 py-2.5 focus:bg-muted/70"
+              >
+                <Link href="/data-transparency" className="flex w-full items-center gap-3">
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-muted/40">
+                    <Settings className="h-3.5 w-3.5 text-muted-foreground" />
+                  </span>
+                  <span className="text-sm font-medium">Data transparency</span>
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator className="my-2" />
               <DropdownMenuItem
                 className="cursor-pointer rounded-lg px-2 py-2.5 text-red-400 focus:bg-red-500/10 focus:text-red-300"
@@ -766,6 +788,18 @@ export default function Navbar() {
                       className="rounded-md px-3 py-2 transition hover:bg-muted"
                     >
                       Settings
+                    </Link>
+                    <Link
+                      href="/saved-lessons"
+                      className="rounded-md px-3 py-2 transition hover:bg-muted"
+                    >
+                      Saved lessons
+                    </Link>
+                    <Link
+                      href="/data-transparency"
+                      className="rounded-md px-3 py-2 transition hover:bg-muted"
+                    >
+                      Data transparency
                     </Link>
                     <div className="rounded-md px-3 py-2">
                       <div className="flex items-center justify-between text-xs uppercase tracking-wide text-muted-foreground">

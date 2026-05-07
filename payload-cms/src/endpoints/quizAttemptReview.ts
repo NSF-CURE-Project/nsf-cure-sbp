@@ -1,4 +1,10 @@
 import type { PayloadHandler } from 'payload'
+import {
+  getAcceptedAnswers,
+  getChoiceOptions,
+  getQuestionType,
+  normalizeSelectedOptionIds,
+} from '../lib/quiz'
 
 const jsonError = (error: string, status: number) =>
   Response.json(
@@ -155,30 +161,19 @@ export const quizAttemptReviewHandler: PayloadHandler = async (req) => {
     const answer = entry as Record<string, unknown>
     const questionId = getId(answer.question)
     const question = questionById.get(questionId) ?? {}
-    const options = Array.isArray(question.options) ? question.options : []
-    const selectedOptionIds = Array.isArray(answer.selectedOptionIds)
-      ? answer.selectedOptionIds
-          .map((item) => {
-            if (typeof item === 'object' && item !== null && 'optionId' in item) {
-              const optionId = (item as { optionId?: string | number }).optionId
-              return optionId != null ? String(optionId) : ''
-            }
-            return ''
-          })
-          .filter(Boolean)
-      : []
+    const questionType = getQuestionType(question as {
+      questionType?: string | null
+      options?: unknown[] | null
+      trueFalseAnswer?: boolean | null
+    })
+    const options = getChoiceOptions(question as Parameters<typeof getChoiceOptions>[0])
+    const selectedOptionIds = normalizeSelectedOptionIds(answer.selectedOptionIds)
 
     const optionMap = new Map(
       options.map((item) => {
-        const id = getId(item)
-        const label =
-          typeof item === 'object' && item !== null && 'label' in item
-            ? String((item as { label?: unknown }).label ?? '')
-            : ''
-        const isCorrect =
-          typeof item === 'object' && item !== null && 'isCorrect' in item
-            ? Boolean((item as { isCorrect?: boolean }).isCorrect)
-            : false
+        const id = item.id
+        const label = item.label
+        const isCorrect = item.isCorrect
         return [id, { id, label, isCorrect }] as const
       }),
     )
@@ -193,6 +188,23 @@ export const quizAttemptReviewHandler: PayloadHandler = async (req) => {
 
     const isCorrect = Boolean(answer.isCorrect)
     const score = typeof answer.score === 'number' ? answer.score : isCorrect ? 1 : 0
+    const textAnswer = typeof answer.textAnswer === 'string' ? answer.textAnswer : null
+    const numericAnswer =
+      typeof answer.numericAnswer === 'number' ? answer.numericAnswer : null
+    const acceptedAnswers = getAcceptedAnswers(question as Parameters<typeof getAcceptedAnswers>[0])
+    const numericCorrectValue =
+      typeof question.numericCorrectValue === 'number' ? question.numericCorrectValue : null
+    const numericTolerance =
+      typeof question.numericTolerance === 'number' ? question.numericTolerance : null
+    const numericUnit = typeof question.numericUnit === 'string' ? question.numericUnit : null
+    const responseKind =
+      typeof answer.responseKind === 'string'
+        ? answer.responseKind
+        : questionType === 'numeric'
+          ? 'numeric'
+          : questionType === 'short-text'
+            ? 'text'
+            : 'option-selection'
 
     return {
       id: questionId,
@@ -202,9 +214,17 @@ export const quizAttemptReviewHandler: PayloadHandler = async (req) => {
           : `Question`,
       prompt: question.prompt ?? null,
       explanation: question.explanation ?? null,
+      questionType,
+      responseKind,
       selectedOptionIds,
       selectedLabels,
       correctLabels,
+      textAnswer,
+      numericAnswer,
+      acceptedAnswers,
+      numericCorrectValue,
+      numericTolerance,
+      numericUnit,
       isCorrect,
       score,
       remediationLink,

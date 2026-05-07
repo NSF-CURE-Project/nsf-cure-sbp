@@ -2,8 +2,42 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { Gutter } from '@payloadcms/ui'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { Gutter, useAuth } from '@payloadcms/ui'
+import { AdminUserCreatePanel } from '@/views/AdminUserCreatePanel'
 import PageOrderList from '@/views/PageOrderList'
+import { AdminSectionSwitcher } from '@/views/admin/AdminSectionSwitcher'
+import {
+  AdminActionCard,
+  AdminCard,
+  AdminCardHeader,
+  AdminMiniCard,
+  adminChipStyle,
+} from '@/views/admin/AdminCardPrimitives'
+
+type SiteManagementTab = 'general' | 'navigation' | 'users'
+
+const siteManagementTabs: Array<{
+  id: SiteManagementTab
+  label: string
+  description: string
+}> = [
+  {
+    id: 'general',
+    label: 'General',
+    description: 'Branding, footer content, and support portal settings.',
+  },
+  {
+    id: 'navigation',
+    label: 'Navigation',
+    description: 'Manage page order and add new public navigation pages.',
+  },
+  {
+    id: 'users',
+    label: 'Users & Roles',
+    description: 'Manage admin-portal access for staff, professors, and admins.',
+  },
+]
 
 const sectionTitleStyle: React.CSSProperties = {
   fontSize: 12,
@@ -14,30 +48,28 @@ const sectionTitleStyle: React.CSSProperties = {
   marginTop: 28,
 }
 
-const cardStyle: React.CSSProperties = {
-  borderRadius: 8,
-  border: '1px solid var(--admin-surface-border)',
-  background: 'var(--admin-surface)',
-  boxShadow: 'var(--admin-shadow)',
-  padding: '16px 18px',
-}
-
-const linkCardStyle: React.CSSProperties = {
-  ...cardStyle,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 6,
-  textDecoration: 'none',
-  color: 'var(--cpp-ink)',
-}
-
-const linkDescriptionStyle: React.CSSProperties = {
-  fontSize: 13,
-  color: 'var(--cpp-muted)',
-  lineHeight: 1.5,
-}
-
 export default function AdminSettingsPage() {
+  const auth = useAuth()
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const router = useRouter()
+  const selectedTab = searchParams.get('tab')
+  const activeTab: SiteManagementTab =
+    selectedTab === 'navigation' || selectedTab === 'users' ? selectedTab : 'general'
+  const canCreateUsers = auth.user?.role === 'admin'
+
+  const handleTabChange = (nextTab: SiteManagementTab) => {
+    const nextParams = new URLSearchParams(searchParams.toString())
+    if (nextTab === 'general') {
+      nextParams.delete('tab')
+    } else {
+      nextParams.set('tab', nextTab)
+    }
+
+    const nextQuery = nextParams.toString()
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname)
+  }
+
   return (
     <Gutter>
       <div style={{ maxWidth: 960, margin: '24px auto 80px' }}>
@@ -45,86 +77,125 @@ export default function AdminSettingsPage() {
           Site Management
         </div>
         <p style={{ marginTop: 8, color: 'var(--cpp-muted)', maxWidth: 560 }}>
-          Manage navigation order, page content, and admin guidance for the NSF CURE admin
+          Manage branding, navigation, support content, and admin access for the NSF CURE admin
           experience.
         </p>
 
-        <div style={sectionTitleStyle}>Header & Footer</div>
-        <div style={{ ...cardStyle, marginTop: 12 }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 12,
-            }}
-          >
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cpp-ink)' }}>
-              Navigation Pages
-            </div>
-            <Link
-              href="/admin/collections/pages/create"
+        <AdminSectionSwitcher
+          ariaLabel="Site management sections"
+          items={siteManagementTabs}
+          activeId={activeTab}
+          onChange={handleTabChange}
+          style={{ marginTop: 20 }}
+        />
+
+        {activeTab === 'general' ? (
+          <>
+            <div style={sectionTitleStyle}>General</div>
+            <div
               style={{
-                padding: '6px 12px',
-                borderRadius: 8,
-                border: '1px solid var(--admin-surface-border)',
-                background: 'var(--admin-chip-bg)',
-                color: 'var(--cpp-ink)',
-                textDecoration: 'none',
-                fontWeight: 600,
-                fontSize: 12,
-                whiteSpace: 'nowrap',
+                marginTop: 12,
+                display: 'grid',
+                gap: 12,
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
               }}
             >
-              Create page
-            </Link>
-          </div>
-          <div style={{ marginTop: 6, fontSize: 12, color: 'var(--cpp-muted)' }}>
-            Drag to reorder navigation pages.
-          </div>
-          <div style={{ marginTop: 12 }}>
-            <PageOrderList showEditLinks compact showHint={false} />
-          </div>
-        </div>
+              <AdminActionCard
+                href="/admin/globals/site-branding"
+                title="Site Branding"
+                description="Upload the program logo used on the student home page and browser tab icon."
+                meta="Global"
+              />
+              <AdminActionCard
+                href="/admin/globals/footer"
+                title="Footer Content"
+                description="Edit footer links, contact info, and enable or disable feedback availability."
+                meta="Global"
+              />
+              <AdminActionCard
+                href="/admin/globals/admin-help"
+                title="Help Portal"
+                description="Edit the Support Hub content, FAQ entries, quick actions, and support settings."
+                meta="Global"
+              />
+            </div>
+          </>
+        ) : null}
 
-        <div
-          style={{
-            marginTop: 12,
-            display: 'grid',
-            gap: 12,
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          }}
-        >
-          <Link href="/admin/globals/site-branding" style={linkCardStyle}>
-            <div style={{ fontWeight: 700 }}>Site Branding</div>
-            <div style={linkDescriptionStyle}>
-              Upload the program logo used on the student home page and browser tab icon.
-            </div>
-          </Link>
-          <Link href="/admin/globals/footer" style={linkCardStyle}>
-            <div style={{ fontWeight: 700 }}>Footer Content</div>
-            <div style={linkDescriptionStyle}>
-              Edit footer links, contact info, and enable/disable feedback.
-            </div>
-          </Link>
-        </div>
+        {activeTab === 'navigation' ? (
+          <>
+            <div style={sectionTitleStyle}>Navigation</div>
+            <AdminCard variant="form" style={{ marginTop: 12 }}>
+              <AdminCardHeader
+                compact
+                title="Navigation Pages"
+                description="Drag to reorder public navigation pages, then create new pages when the site needs additional destinations."
+                actions={
+                  <Link
+                    href="/admin/collections/pages/create"
+                    style={{
+                      ...adminChipStyle,
+                      textDecoration: 'none',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Create page
+                  </Link>
+                }
+              />
+              <div style={{ marginTop: 12 }}>
+                <PageOrderList showEditLinks compact showHint={false} />
+              </div>
+            </AdminCard>
+          </>
+        ) : null}
 
-        <div style={sectionTitleStyle}>Admin</div>
-        <div
-          style={{
-            marginTop: 12,
-            display: 'grid',
-            gap: 12,
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          }}
-        >
-          <Link href="/admin/globals/admin-help" style={linkCardStyle}>
-            <div style={{ fontWeight: 700 }}>Help Portal</div>
-            <div style={linkDescriptionStyle}>
-              Edit the Support Hub content, FAQ entries, quick actions, and support settings.
-            </div>
-          </Link>
-        </div>
+        {activeTab === 'users' ? (
+          <>
+            <div style={sectionTitleStyle}>Users & Roles</div>
+            <AdminCard
+              variant="form"
+              style={{
+                marginTop: 12,
+              }}
+            >
+              <AdminCardHeader
+                compact
+                title="Admin Portal Access"
+                description="Open the users collection to update roles, reset passwords, and manage who can access the staff portal."
+              />
+
+              <div
+                style={{
+                  display: 'grid',
+                  gap: 12,
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                }}
+              >
+                <AdminActionCard
+                  href="/admin/collections/users"
+                  title="User Directory"
+                  description="Review existing staff accounts and update names, emails, or roles."
+                  meta="Collection"
+                />
+                <AdminActionCard
+                  href="/admin/collections/users/create"
+                  title="Full Create Form"
+                  description="Open the full Payload create screen for new admin-portal users."
+                  meta="Create"
+                />
+              </div>
+
+              <AdminMiniCard
+                title="Role guide"
+                variant="info"
+                body="`staff` supports daily content and student support tasks, `professor` supports instructional access, and `admin` adds user-management permissions."
+              />
+
+              <AdminUserCreatePanel canCreateUsers={canCreateUsers} />
+            </AdminCard>
+          </>
+        ) : null}
       </div>
     </Gutter>
   )

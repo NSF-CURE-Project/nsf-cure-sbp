@@ -1,5 +1,6 @@
 import type { Block, CollectionConfig, PayloadRequest } from 'payload'
-import { pageBlocks } from '../blocks/pageBlocks'
+import { lessonBlocks } from '../blocks/pageBlocks'
+import { canReceiveNotification } from '../utils/notificationPreferences'
 import { ensureUniqueSlug, slugify } from '../utils/slug'
 
 const resolveLessonClassSlug = (data?: { class?: unknown; chapter?: unknown }) => {
@@ -41,6 +42,49 @@ const extractSlug = (value: unknown): string => {
     return (value as { slug?: string }).slug ?? ''
   }
   return ''
+}
+
+type LegacyAssessment = {
+  quiz?: unknown
+  showAnswers?: boolean | null
+  maxAttempts?: number | null
+  timeLimitSec?: number | null
+}
+
+type QuizLayoutBlock = {
+  blockType: 'quizBlock'
+  quiz: unknown
+  title?: string
+  showTitle?: boolean
+  showAnswers?: boolean | null
+  maxAttempts?: number | null
+  timeLimitSec?: number | null
+}
+
+const normalizeQuizLayout = (value: unknown): Record<string, unknown>[] => {
+  if (!Array.isArray(value)) return []
+  return value.filter(
+    (entry): entry is Record<string, unknown> => typeof entry === 'object' && entry !== null,
+  )
+}
+
+const hasQuizBlock = (layout: Record<string, unknown>[]) =>
+  layout.some((block) => block.blockType === 'quizBlock')
+
+const buildLegacyAssessmentQuizBlock = (assessment: LegacyAssessment): QuizLayoutBlock | null => {
+  if (!assessment.quiz) return null
+  return {
+    blockType: 'quizBlock',
+    quiz: assessment.quiz,
+    showTitle: true,
+    showAnswers: typeof assessment.showAnswers === 'boolean' ? assessment.showAnswers : true,
+    maxAttempts:
+      typeof assessment.maxAttempts === 'number' ? assessment.maxAttempts : (assessment.maxAttempts ?? null),
+    timeLimitSec:
+      typeof assessment.timeLimitSec === 'number'
+        ? assessment.timeLimitSec
+        : (assessment.timeLimitSec ?? null),
+  }
 }
 
 const problemSetBlock: Block = {
@@ -115,6 +159,27 @@ export const Lessons: CollectionConfig = {
     drafts: true,
   },
   hooks: {
+    beforeChange: [
+      async ({ data, originalDoc }) => {
+        if (!data) return data
+
+        const draftLayout = normalizeQuizLayout(data.layout)
+        if (hasQuizBlock(draftLayout)) return data
+
+        const persistedLayout = normalizeQuizLayout(originalDoc?.layout)
+        if (hasQuizBlock(persistedLayout)) return data
+
+        const nextBlock =
+          buildLegacyAssessmentQuizBlock((data.assessment as LegacyAssessment | undefined) ?? {}) ??
+          buildLegacyAssessmentQuizBlock((originalDoc?.assessment as LegacyAssessment | undefined) ?? {})
+
+        if (!nextBlock) return data
+
+        const baseLayout = draftLayout.length > 0 ? draftLayout : persistedLayout
+        data.layout = [...baseLayout, nextBlock]
+        return data
+      },
+    ],
     afterChange: [
       async ({ doc, previousDoc, req }) => {
         const isNowPublished = doc?._status === 'published'
@@ -145,9 +210,10 @@ export const Lessons: CollectionConfig = {
               depth: 0,
               overrideAccess: true,
             })
-            classSlug = typeof (classDoc as { slug?: unknown }).slug === 'string'
-              ? (classDoc as { slug?: string }).slug ?? ''
-              : ''
+            classSlug =
+              typeof (classDoc as { slug?: unknown }).slug === 'string'
+                ? ((classDoc as { slug?: string }).slug ?? '')
+                : ''
           }
 
           if (!classSlug) return
@@ -202,11 +268,19 @@ export const Lessons: CollectionConfig = {
               .filter((id) => Number.isFinite(id)),
           )
 
-          const lessonTitle = typeof doc.title === 'string' ? doc.title : 'A new lesson was published.'
+          const lessonTitle =
+            typeof doc.title === 'string' ? doc.title : 'A new lesson was published.'
           const createJobs = recipientIds
             .filter((recipientId) => !existingRecipients.has(recipientId))
-            .map((recipientId) =>
-              req.payload.create({
+            .map(async (recipientId) => {
+              const shouldNotify = await canReceiveNotification(
+                req.payload,
+                recipientId,
+                'new_content',
+              )
+              if (!shouldNotify) return null
+
+              return req.payload.create({
                 collection: 'notifications',
                 overrideAccess: true,
                 data: {
@@ -217,8 +291,8 @@ export const Lessons: CollectionConfig = {
                   link: lessonLink,
                   read: false,
                 } as never,
-              }),
-            )
+              })
+            })
 
           const results = await Promise.allSettled(createJobs)
           const failures = results.filter((result) => result.status === 'rejected')
@@ -382,6 +456,8 @@ export const Lessons: CollectionConfig = {
             id: originalDoc?.id,
             where: chapterId ? { chapter: { equals: chapterId } } : undefined,
           })
+        } else if (typeof data.slug === 'string') {
+          data.slug = slugify(data.slug)
         }
         return data
       },
@@ -394,6 +470,15 @@ export const Lessons: CollectionConfig = {
         {
           label: 'Content',
           fields: [
+            {
+              name: 'lessonSetupGuide',
+              type: 'ui',
+              admin: {
+                components: {
+                  Field: '@/views/ContentCreateGuideField#default',
+                },
+              },
+            },
             {
               name: 'lessonOrderGuide',
               type: 'ui',
@@ -409,9 +494,7 @@ export const Lessons: CollectionConfig = {
               type: 'number',
               min: 0,
               admin: {
-                position: 'sidebar',
-                description: 'Managed from the Reorder lessons list.',
-                readOnly: true,
+                hidden: true,
               },
             },
             {
@@ -426,7 +509,7 @@ export const Lessons: CollectionConfig = {
               relationTo: 'chapters',
               required: true,
               admin: {
-                description: 'Assign this lesson to a chapter.',
+                description: 'Pre-filled when you add a lesson from a chapter row.',
               },
             },
 
@@ -437,7 +520,11 @@ export const Lessons: CollectionConfig = {
               required: true,
               validate: async (
                 value: unknown,
-                options?: { data?: { chapter?: unknown }; req?: PayloadRequest; id?: string | number },
+                options?: {
+                  data?: { chapter?: unknown }
+                  req?: PayloadRequest
+                  id?: string | number
+                },
               ) => {
                 const data = options?.data
                 const req = options?.req
@@ -463,7 +550,8 @@ export const Lessons: CollectionConfig = {
                 return true
               },
               admin: {
-                description: 'Auto-generated from the lesson title. Must be unique within a chapter.',
+                description:
+                  'Auto-generated from the lesson title. Must be unique within a chapter.',
                 hidden: true,
               },
             },
@@ -477,7 +565,7 @@ export const Lessons: CollectionConfig = {
                 singular: 'Section',
                 plural: 'Sections',
               },
-              blocks: [...pageBlocks, problemSetBlock],
+              blocks: [...lessonBlocks, problemSetBlock],
               admin: {
                 description: 'Build the lesson by adding and reordering content blocks.',
               },
@@ -490,61 +578,6 @@ export const Lessons: CollectionConfig = {
                   Field: '@/views/LessonFeedbackPanel#default',
                 },
               },
-            },
-          ],
-        },
-        {
-          label: 'Assessment',
-          fields: [
-            {
-              name: 'assessment',
-              type: 'group',
-              fields: [
-                {
-                  name: 'quiz',
-                  label: 'Attach quiz',
-                  type: 'relationship',
-                  relationTo: 'quizzes',
-                  admin: {
-                    allowCreate: true,
-                    allowEdit: true,
-                    description: 'Attach a quiz to this lesson or create a new one.',
-                  },
-                },
-                {
-                  name: 'showAnswers',
-                  label: 'Show answers after submit',
-                  type: 'checkbox',
-                  defaultValue: true,
-                },
-                {
-                  name: 'maxAttempts',
-                  label: 'Max attempts',
-                  type: 'number',
-                  min: 0,
-                  admin: {
-                    description: 'Leave blank for unlimited attempts.',
-                  },
-                },
-                {
-                  name: 'timeLimitSec',
-                  label: 'Time limit (seconds)',
-                  type: 'number',
-                  min: 0,
-                  admin: {
-                    description: 'Overrides the quiz time limit for this lesson if set.',
-                  },
-                },
-                {
-                  name: 'quizPreview',
-                  type: 'ui',
-                  admin: {
-                    components: {
-                      Field: '@/views/LessonQuizPreviewField#default',
-                    },
-                  },
-                },
-              ],
             },
           ],
         },

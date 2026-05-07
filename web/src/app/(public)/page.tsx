@@ -5,8 +5,7 @@ import { getSiteBranding } from "@/lib/payloadSdk/siteBranding";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "default-no-store";
+export const revalidate = 60;
 
 export const metadata = buildMetadata({
   title: "Home",

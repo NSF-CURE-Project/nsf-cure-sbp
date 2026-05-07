@@ -1,10 +1,28 @@
+"use client";
+
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
 import type { PageLayoutBlock } from "@/lib/payloadSdk/types";
-import { QuizBlock as QuizBlockComponent } from "@/components/quiz/QuizBlock";
-import { ProblemSetBlock as ProblemSetBlockComponent } from "@/components/problemSet/ProblemSetBlock";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
+
+// Heavy interactive blocks (mathjs / katex / state machines) — load on demand
+// so non-problem/quiz pages don't pay for them in the initial bundle.
+const QuizBlockComponent = dynamic(
+  () =>
+    import("@/components/quiz/QuizBlock").then((m) => ({
+      default: m.QuizBlock,
+    })),
+  { ssr: false }
+);
+const ProblemSetBlockComponent = dynamic(
+  () =>
+    import("@/components/problemSet/ProblemSetBlock").then((m) => ({
+      default: m.ProblemSetBlock,
+    })),
+  { ssr: false }
+);
 
 const CMS_URL = getPayloadBaseUrl();
 
@@ -301,16 +319,15 @@ export function PageLayout({
   lessonId?: string;
 }) {
   if (!blocks?.length) return null;
-  let heroLogoRendered = false;
+  const firstHeroIndex = blocks.findIndex(
+    (block) => block.blockType === "heroBlock"
+  );
 
   return (
     <div className={className}>
       {blocks.map((block, idx) => {
         if (block.blockType === "heroBlock") {
-          const shouldShowLogo = heroLogo && !heroLogoRendered;
-          if (shouldShowLogo) {
-            heroLogoRendered = true;
-          }
+          const shouldShowLogo = !!heroLogo && idx === firstHeroIndex;
           return (
             <section key={block.id ?? idx} className="space-y-4">
               <div className="flex items-center gap-3">
@@ -363,6 +380,29 @@ export function PageLayout({
           );
         }
 
+        if (block.blockType === "textSection") {
+          const TitleTag = getTitleTag(block.size);
+          const titleClass = getTitleClass(block.size);
+          return (
+            <section key={block.id ?? idx} className="space-y-3">
+              {block.title && (
+                <TitleTag className={`${titleClass} font-semibold`}>
+                  {block.title}
+                </TitleTag>
+              )}
+              {block.subtitle && (
+                <p className="text-muted-foreground leading-7">
+                  {block.subtitle}
+                </p>
+              )}
+              {renderRichTextOrText(
+                block.body,
+                "prose dark:prose-invert prose-invert leading-7 max-w-none text-foreground"
+              )}
+            </section>
+          );
+        }
+
         if (block.blockType === "sectionBlock") {
           const TitleTag = getTitleTag(block.size);
           const titleClass = getTitleClass(block.size);
@@ -372,9 +412,9 @@ export function PageLayout({
                 {block.title}
               </TitleTag>
               {renderRichTextOrText(
-                  block.text,
-                  "prose dark:prose-invert prose-invert leading-7 max-w-none text-muted-foreground"
-                )}
+                block.text,
+                "prose dark:prose-invert prose-invert leading-7 max-w-none text-muted-foreground"
+              )}
             </section>
           );
         }
@@ -398,7 +438,9 @@ export function PageLayout({
 
         if (block.blockType === "videoBlock") {
           const externalUrl = typeof block.url === "string" ? block.url : "";
-          const youtubeUrl = getYouTubeEmbedData(externalUrl) ? externalUrl : "";
+          const youtubeUrl = getYouTubeEmbedData(externalUrl)
+            ? externalUrl
+            : "";
           if (youtubeUrl) {
             return (
               <YouTubeVideoCard
@@ -562,13 +604,17 @@ export function PageLayout({
               ].filter((section) => section.items.length > 0)
             : [{ label: block.title ?? "Contacts", items: contacts }];
           return (
-            <section key={block.id ?? idx} className="space-y-4">
-              <div>
-                <h2 className="text-2xl font-semibold">
+            <section key={block.id ?? idx} className="space-y-6">
+              <div className="relative overflow-hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/10 via-background to-emerald-500/10 p-6">
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/15 blur-2xl"
+                />
+                <h2 className="text-3xl font-semibold tracking-tight">
                   {block.title ?? "Contacts"}
                 </h2>
                 {block.description && (
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                     {block.description}
                   </p>
                 )}
@@ -578,69 +624,77 @@ export function PageLayout({
                   No contact information available.
                 </p>
               ) : (
-                <div className="space-y-8">
+                <div className="space-y-6">
                   {sections.map((section, sectionIdx) => (
-                    <section key={sectionIdx} className="space-y-4">
+                    <section
+                      key={sectionIdx}
+                      className="rounded-2xl border border-border/50 bg-background/70 p-5 shadow-sm"
+                    >
                       {groupByCategory && (
-                        <h3 className="text-lg font-semibold tracking-tight text-foreground/90">
-                          {section.label}
-                        </h3>
+                        <div className="mb-4 flex items-center gap-3">
+                          <div className="h-8 w-1.5 rounded-full bg-primary/50" />
+                          <h3 className="text-lg font-semibold tracking-tight text-foreground">
+                            {section.label}
+                          </h3>
+                        </div>
                       )}
-                      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                         {section.items.map((person, personIdx) => {
                           const photoUrl = resolveContactPhoto(person.photo);
                           return (
-                            <div
+                            <article
                               key={person.id ?? personIdx}
-                              className="rounded-lg border border-border/40 bg-muted/20 backdrop-blur-sm p-6 flex flex-col items-center text-center hover:shadow-md transition-all duration-200 hover:bg-muted/30"
+                              className="group rounded-xl border border-border/50 bg-card/80 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-md"
                             >
-                              {photoUrl ? (
-                                <div className="w-32 h-32 relative mb-4">
-                                  <Image
-                                    src={photoUrl}
-                                    alt={person.name ?? "Contact photo"}
-                                    fill
-                                    className="object-cover rounded-full border border-border/40"
-                                  />
+                              <div className="flex items-start gap-4">
+                                {photoUrl ? (
+                                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border border-border/40">
+                                    <Image
+                                      src={photoUrl}
+                                      alt={person.name ?? "Contact photo"}
+                                      fill
+                                      className="object-cover"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-border/40 bg-primary/10 text-2xl text-primary">
+                                    👤
+                                  </div>
+                                )}
+                                <div className="min-w-0 space-y-1">
+                                  <h3 className="truncate text-lg font-semibold text-foreground">
+                                    {person.name}
+                                  </h3>
+                                  {person.title ? (
+                                    <p className="text-sm font-medium text-muted-foreground">
+                                      {person.title}
+                                    </p>
+                                  ) : (
+                                    <p className="text-sm text-muted-foreground">
+                                      Program Contact
+                                    </p>
+                                  )}
                                 </div>
-                              ) : (
-                                <div className="w-32 h-32 mb-4 rounded-full bg-muted flex items-center justify-center text-3xl">
-                                  👤
-                                </div>
-                              )}
-
-                              <h3 className="text-xl font-semibold mb-1">
-                                {person.name}
-                              </h3>
-
-                              {person.title && (
-                                <p className="text-sm font-bold text-foreground mb-2">
-                                  {person.title}
-                                </p>
-                              )}
-
-                              {person.email && (
-                                <p className="text-sm text-muted-foreground">
+                              </div>
+                              <div className="mt-4 space-y-2 text-sm">
+                                {person.email ? (
                                   <a
                                     href={`mailto:${person.email}`}
-                                    className="hover:text-foreground transition-colors"
+                                    className="block truncate text-emerald-700 underline-offset-2 hover:underline"
                                   >
                                     {person.email}
                                   </a>
-                                </p>
-                              )}
-
-                              {person.phone && (
-                                <p className="text-sm text-muted-foreground mt-1">
+                                ) : null}
+                                {person.phone ? (
                                   <a
                                     href={`tel:${person.phone}`}
-                                    className="hover:text-foreground transition-colors"
+                                    className="block text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
                                   >
                                     {person.phone}
                                   </a>
-                                </p>
-                              )}
-                            </div>
+                                ) : null}
+                              </div>
+                            </article>
                           );
                         })}
                       </div>

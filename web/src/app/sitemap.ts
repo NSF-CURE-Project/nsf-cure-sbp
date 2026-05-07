@@ -13,7 +13,6 @@ const staticRoutes = [
   "/search",
   "/resources",
   "/contact-us",
-  "/contacts",
   "/getting-started",
 ];
 

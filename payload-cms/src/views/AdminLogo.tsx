@@ -10,6 +10,7 @@ export default function AdminLogo() {
         height={320}
         style={{ width: 'min(320px, 70vw)', height: 'auto' }}
       />
+      <span className="admin-login-logo__caption">Admin Portal</span>
     </div>
   )
 }

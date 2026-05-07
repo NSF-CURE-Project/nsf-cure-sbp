@@ -67,9 +67,203 @@ html[data-theme='dark'] {
   --theme-error-600: #f97066;
 }
 
-html[data-admin-login='true'],
 .template-default.login,
-.template-minimal.login,
+.template-minimal.login {
+  --admin-login-card-bg: #ffffff;
+  --admin-login-card-border: #d8e6d4;
+  --admin-login-card-shadow: 0 28px 72px rgba(20, 56, 25, 0.18);
+  --admin-login-input-bg: #f7faf5;
+  --admin-login-input-border: #c8d8c2;
+  --admin-login-input-focus: #2d8a3f;
+  --admin-login-link: #196128;
+  --admin-login-button-top: #2d8a3f;
+  --admin-login-button-bottom: #15521e;
+  min-height: 100vh;
+  padding: clamp(24px, 7vh, 56px) 16px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 184, 28, 0.22) 0%, rgba(255, 184, 28, 0.05) 34%, transparent 62%),
+    radial-gradient(circle at 82% 84%, rgba(45, 138, 63, 0.14) 0%, rgba(45, 138, 63, 0.04) 36%, transparent 66%),
+    linear-gradient(180deg, #fafdf6 0%, #eef4ea 100%);
+}
+
+.template-default.login .template-default__nav-toggler-wrapper {
+  display: none !important;
+}
+
+.template-default.login .template-default__wrap,
+.template-minimal.login .template-minimal__wrap,
+.template-default.login .template__wrap,
+.template-minimal.login .template__wrap {
+  width: min(520px, 100%);
+  margin: 0 auto;
+}
+
+.template-default.login .login__brand,
+.template-minimal.login .login__brand {
+  margin: 0 auto 8px;
+  width: min(520px, 100%);
+  display: flex;
+  justify-content: center;
+}
+
+.template-default.login .admin-login-logo,
+.template-minimal.login .admin-login-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 10px;
+}
+
+.template-default.login .admin-login-logo img,
+.template-minimal.login .admin-login-logo img {
+  width: min(300px, 66vw);
+  height: auto;
+  filter: drop-shadow(0 16px 30px rgba(20, 56, 25, 0.2));
+}
+
+.template-default.login .admin-login-logo__caption,
+.template-minimal.login .admin-login-logo__caption {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #15521e;
+}
+
+.template-default.login .login__form,
+.template-minimal.login .login__form {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid var(--admin-login-card-border);
+  background: var(--admin-login-card-bg);
+  padding: 24px 24px 20px;
+  box-shadow: var(--admin-login-card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.template-default.login .login__form .field-type,
+.template-minimal.login .login__form .field-type {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.template-default.login .login__form .field-type__wrap,
+.template-minimal.login .login__form .field-type__wrap {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.template-default.login .login__form label,
+.template-minimal.login .login__form label {
+  color: #15521e;
+  font-weight: 700;
+}
+
+.template-default.login .login__form input,
+.template-minimal.login .login__form input,
+.template-default.login .login__form textarea,
+.template-minimal.login .login__form textarea,
+.template-default.login .login__form select,
+.template-minimal.login .login__form select {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 10px;
+  border: 1.5px solid var(--admin-login-input-border);
+  background: var(--admin-login-input-bg);
+  padding: 11px 14px;
+  color: #0f172a;
+  transition: border-color 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.template-default.login .login__form input:focus,
+.template-minimal.login .login__form input:focus,
+.template-default.login .login__form textarea:focus,
+.template-minimal.login .login__form textarea:focus,
+.template-default.login .login__form select:focus,
+.template-minimal.login .login__form select:focus {
+  border-color: var(--admin-login-input-focus);
+  box-shadow: 0 0 0 3px rgba(45, 138, 63, 0.18);
+  outline: none;
+  background: #ffffff;
+}
+
+.template-default.login .login__form > a,
+.template-minimal.login .login__form > a {
+  color: var(--admin-login-link);
+  font-weight: 600;
+  text-decoration: none;
+  width: fit-content;
+  margin-top: 2px;
+}
+
+.template-default.login .login__form > a:hover,
+.template-minimal.login .login__form > a:hover {
+  text-decoration: underline;
+}
+
+.template-default.login .login__form .btn,
+.template-minimal.login .login__form .btn,
+.template-default.login .login__form button[type='submit'],
+.template-minimal.login .login__form button[type='submit'] {
+  width: 100%;
+  margin: 8px 0 0;
+  border-radius: 10px;
+  border: 0;
+  min-height: 48px;
+  font-weight: 700;
+  color: #ffffff !important;
+  background: linear-gradient(
+    150deg,
+    var(--admin-login-button-top) 0%,
+    var(--admin-login-button-bottom) 100%
+  ) !important;
+  box-shadow: 0 15px 30px rgba(21, 82, 30, 0.3);
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+.template-default.login .login__form .btn:hover,
+.template-minimal.login .login__form .btn:hover,
+.template-default.login .login__form button[type='submit']:hover,
+.template-minimal.login .login__form button[type='submit']:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 36px rgba(21, 82, 30, 0.32);
+  filter: saturate(1.05);
+}
+
+@media (max-width: 768px) {
+  .template-default.login,
+  .template-minimal.login {
+    padding: 22px 12px 20px;
+    gap: 10px;
+  }
+
+  .template-default.login .admin-login-logo img,
+  .template-minimal.login .admin-login-logo img {
+    width: min(255px, 70vw);
+  }
+
+  .template-default.login .login__form,
+  .template-minimal.login .login__form {
+    border-radius: 13px;
+    padding: 18px 16px 16px;
+  }
+}
+
 .template-default.forgot-password,
 .template-minimal.forgot-password,
 .template-default.reset-password,
@@ -100,9 +294,6 @@ html[data-admin-login='true'],
   --theme-error-600: #b42318;
 }
 
-html[data-admin-login='true'] body,
-.template-default.login,
-.template-minimal.login,
 .template-default.forgot-password,
 .template-minimal.forgot-password,
 .template-default.reset-password,
@@ -111,9 +302,6 @@ html[data-admin-login='true'] body,
   position: relative;
 }
 
-html[data-admin-login='true'] .template-default,
-.template-default.login,
-.template-minimal.login,
 .template-default.forgot-password,
 .template-minimal.forgot-password,
 .template-default.reset-password,
@@ -127,9 +315,6 @@ html[data-admin-login='true'] .template-default,
   gap: 16px;
 }
 
-html[data-admin-login='true'] .admin-login-logo,
-.template-default.login .admin-login-logo,
-.template-minimal.login .admin-login-logo,
 .template-default.forgot-password .admin-login-logo,
 .template-minimal.forgot-password .admin-login-logo,
 .template-default.reset-password .admin-login-logo,
@@ -140,9 +325,6 @@ html[data-admin-login='true'] .admin-login-logo,
   margin: 0 auto;
 }
 
-html[data-admin-login='true'] .admin-login-logo img,
-.template-default.login .admin-login-logo img,
-.template-minimal.login .admin-login-logo img,
 .template-default.forgot-password .admin-login-logo img,
 .template-minimal.forgot-password .admin-login-logo img,
 .template-default.reset-password .admin-login-logo img,
@@ -151,9 +333,6 @@ html[data-admin-login='true'] .admin-login-logo img,
   height: auto;
 }
 
-html[data-admin-login='true'] form,
-.template-default.login form,
-.template-minimal.login form,
 .template-default.forgot-password form,
 .template-minimal.forgot-password form,
 .template-default.reset-password form,
@@ -168,9 +347,6 @@ html[data-admin-login='true'] form,
   margin: 0 auto;
 }
 
-html[data-admin-login='true'] .field-type,
-.template-default.login .field-type,
-.template-minimal.login .field-type,
 .template-default.forgot-password .field-type,
 .template-minimal.forgot-password .field-type,
 .template-default.reset-password .field-type,
@@ -182,9 +358,6 @@ html[data-admin-login='true'] .field-type,
   margin: 0 0 14px !important;
 }
 
-html[data-admin-login='true'] .field-type__wrap,
-.template-default.login .field-type__wrap,
-.template-minimal.login .field-type__wrap,
 .template-default.forgot-password .field-type__wrap,
 .template-minimal.forgot-password .field-type__wrap,
 .template-default.reset-password .field-type__wrap,
@@ -195,9 +368,6 @@ html[data-admin-login='true'] .field-type__wrap,
   padding: 0 !important;
 }
 
-html[data-admin-login='true'] label,
-.template-default.login label,
-.template-minimal.login label,
 .template-default.forgot-password label,
 .template-minimal.forgot-password label,
 .template-default.reset-password label,
@@ -206,15 +376,6 @@ html[data-admin-login='true'] label,
   color: #0f172a;
 }
 
-html[data-admin-login='true'] input,
-html[data-admin-login='true'] textarea,
-html[data-admin-login='true'] select,
-.template-default.login input,
-.template-minimal.login input,
-.template-default.login textarea,
-.template-minimal.login textarea,
-.template-default.login select,
-.template-minimal.login select,
 .template-default.forgot-password input,
 .template-minimal.forgot-password input,
 .template-default.forgot-password textarea,
@@ -235,15 +396,6 @@ html[data-admin-login='true'] select,
   color: #0f172a;
 }
 
-html[data-admin-login='true'][data-theme='dark'] input,
-html[data-admin-login='true'][data-theme='dark'] textarea,
-html[data-admin-login='true'][data-theme='dark'] select,
-html[data-theme='dark'] .template-default.login input,
-html[data-theme='dark'] .template-minimal.login input,
-html[data-theme='dark'] .template-default.login textarea,
-html[data-theme='dark'] .template-minimal.login textarea,
-html[data-theme='dark'] .template-default.login select,
-html[data-theme='dark'] .template-minimal.login select,
 html[data-theme='dark'] .template-default.forgot-password input,
 html[data-theme='dark'] .template-minimal.forgot-password input,
 html[data-theme='dark'] .template-default.forgot-password textarea,
@@ -261,15 +413,6 @@ html[data-theme='dark'] .template-minimal.reset-password select {
   border-color: #d6dbe6 !important;
 }
 
-html[data-admin-login='true'] input:focus,
-html[data-admin-login='true'] textarea:focus,
-html[data-admin-login='true'] select:focus,
-.template-default.login input:focus,
-.template-minimal.login input:focus,
-.template-default.login textarea:focus,
-.template-minimal.login textarea:focus,
-.template-default.login select:focus,
-.template-minimal.login select:focus,
 .template-default.forgot-password input:focus,
 .template-minimal.forgot-password input:focus,
 .template-default.forgot-password textarea:focus,
@@ -286,9 +429,6 @@ html[data-admin-login='true'] select:focus,
   box-shadow: 0 0 0 3px rgba(15, 61, 46, 0.15);
 }
 
-html[data-admin-login='true'] button[type='submit'],
-.template-default.login button[type='submit'],
-.template-minimal.login button[type='submit'],
 .template-default.forgot-password button[type='submit'],
 .template-minimal.forgot-password button[type='submit'],
 .template-default.reset-password button[type='submit'],
@@ -303,9 +443,6 @@ html[data-admin-login='true'] button[type='submit'],
   box-shadow: 0 14px 28px rgba(15, 61, 46, 0.28);
 }
 
-html[data-admin-login='true'] button[type='submit']:hover,
-.template-default.login button[type='submit']:hover,
-.template-minimal.login button[type='submit']:hover,
 .template-default.forgot-password button[type='submit']:hover,
 .template-minimal.forgot-password button[type='submit']:hover,
 .template-default.reset-password button[type='submit']:hover,
@@ -313,9 +450,6 @@ html[data-admin-login='true'] button[type='submit']:hover,
   background: #0a2b20;
 }
 
-html[data-admin-login='true'] a,
-.template-default.login a,
-.template-minimal.login a,
 .template-default.forgot-password a,
 .template-minimal.forgot-password a,
 .template-default.reset-password a,
@@ -325,9 +459,6 @@ html[data-admin-login='true'] a,
   text-decoration: none;
 }
 
-html[data-admin-login='true'] a:hover,
-.template-default.login a:hover,
-.template-minimal.login a:hover,
 .template-default.forgot-password a:hover,
 .template-minimal.forgot-password a:hover,
 .template-default.reset-password a:hover,
@@ -335,9 +466,6 @@ html[data-admin-login='true'] a:hover,
   text-decoration: underline;
 }
 
-html[data-admin-login='true'] .template-default,
-.template-default.login,
-.template-minimal.login,
 .template-default.forgot-password,
 .template-minimal.forgot-password,
 .template-default.reset-password,
@@ -345,9 +473,6 @@ html[data-admin-login='true'] .template-default,
   padding-bottom: 32px;
 }
 
-html[data-admin-login='true'] .admin-global-footer,
-.template-default.login .admin-global-footer,
-.template-minimal.login .admin-global-footer,
 .template-default.forgot-password .admin-global-footer,
 .template-minimal.forgot-password .admin-global-footer,
 .template-default.reset-password .admin-global-footer,
@@ -367,17 +492,6 @@ html[data-admin-login='true'] .admin-global-footer,
   z-index: 4;
 }
 
-html[data-admin-login='true'] .template-default,
-html[data-admin-login='true'] .template__wrap,
-html[data-admin-login='true'] .template-default__wrap,
-html[data-admin-login='true'] .template-minimal__wrap,
-.template-default.login,
-.template-minimal.login,
-.template-default.login .template__wrap,
-.template-minimal.login .template__wrap,
-.template-default.login .template-default__wrap,
-.template-minimal.login .template-default__wrap,
-.template-minimal.login .template-minimal__wrap,
 .template-default.forgot-password,
 .template-minimal.forgot-password,
 .template-default.forgot-password .template__wrap,
@@ -420,46 +534,46 @@ body {
 }
 
 /* Hide admin sidebar only in the authenticated app shell. */
-html .nav,
-html .nav--collapsed,
-html .nav--closed {
+html[data-admin-context='app'] .nav,
+html[data-admin-context='app'] .nav--collapsed,
+html[data-admin-context='app'] .nav--closed {
   display: none !important;
   width: 0 !important;
 }
 
-html .nav-toggler,
-html .nav-toggle,
-html .nav__toggle,
-html [data-element='nav-toggle'] {
+html[data-admin-context='app'] .nav-toggler,
+html[data-admin-context='app'] .nav-toggle,
+html[data-admin-context='app'] .nav__toggle,
+html[data-admin-context='app'] [data-element='nav-toggle'] {
   display: none !important;
 }
 
-html .template,
-html .template__body,
-html .template__content {
+html[data-admin-context='app'] .template,
+html[data-admin-context='app'] .template__body,
+html[data-admin-context='app'] .template__content {
   margin-left: 0 !important;
   padding-left: 0 !important;
 }
 
-html .template-default--nav-hydrated aside.nav,
-html #nav-toggler {
+html[data-admin-context='app'] .template-default--nav-hydrated aside.nav,
+html[data-admin-context='app'] #nav-toggler {
   display: none !important;
 }
 
-html .template-default {
+html[data-admin-context='app'] .template-default {
   display: inherit !important;
   grid-template-columns: 0 minmax(0, 1fr) !important;
 }
 
-html .template-default__wrap,
-html .template__wrap {
+html[data-admin-context='app'] .template-default__wrap,
+html[data-admin-context='app'] .template__wrap {
   margin-left: 0 !important;
   padding-left: 0 !important;
   width: 100% !important;
 }
 
-html .template-default__content,
-html .template__content {
+html[data-admin-context='app'] .template-default__content,
+html[data-admin-context='app'] .template__content {
   margin-left: 0 !important;
   padding-left: 0 !important;
   width: 100% !important;

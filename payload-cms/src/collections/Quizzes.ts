@@ -1,4 +1,5 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
+import { getQuestionIssues } from '../lib/quiz'
 
 const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' &&
@@ -10,21 +11,6 @@ const getId = (value: unknown): string | null => {
     return String((value as { id?: string | number }).id ?? '')
   }
   return null
-}
-
-type QuestionOption = { label?: string | null; isCorrect?: boolean | null }
-
-const isQuestionOption = (value: unknown): value is QuestionOption =>
-  typeof value === 'object' && value !== null && ('label' in value || 'isCorrect' in value)
-
-const getQuestionIssues = (question: { options?: unknown[] | null }) => {
-  const options = Array.isArray(question.options) ? question.options.filter(isQuestionOption) : []
-  const optionCount = options.filter((option) => option?.label?.trim()).length
-  const correctCount = options.filter((option) => option?.isCorrect).length
-  const issues: string[] = []
-  if (optionCount < 3) issues.push('needs 3+ options')
-  if (correctCount < 1) issues.push('needs a correct answer')
-  return issues
 }
 
 export const Quizzes: CollectionConfig = {
@@ -70,6 +56,15 @@ export const Quizzes: CollectionConfig = {
     delete: ({ req }) => isStaff(req),
   },
   fields: [
+    {
+      name: 'quizSetupGuide',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '@/views/ContentCreateGuideField#default',
+        },
+      },
+    },
     {
       name: 'title',
       type: 'text',

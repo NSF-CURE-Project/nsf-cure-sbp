@@ -51,6 +51,31 @@ export const Accounts: CollectionConfig = {
     group: 'Students',
   },
   hooks: {
+    afterLogin: [
+      async ({ user, req }) => {
+        if (!user?.id || !req?.payload) return user
+        try {
+          const now = new Date()
+          const previousCount =
+            typeof (user as { loginCount?: number }).loginCount === 'number'
+              ? (user as { loginCount?: number }).loginCount
+              : 0
+          await req.payload.update({
+            collection: 'accounts',
+            id: user.id,
+            data: {
+              loginCount: (previousCount ?? 0) + 1,
+              lastLoginAt: now.toISOString(),
+              lastSeenAt: now.toISOString(),
+            },
+            overrideAccess: true,
+          })
+        } catch (error) {
+          req.payload.logger?.error?.({ err: error }, 'Failed to record account login')
+        }
+        return user
+      },
+    ],
     beforeValidate: [
       ({ data }) => {
         if (!data || typeof data !== 'object') return data
@@ -178,6 +203,48 @@ export const Accounts: CollectionConfig = {
       type: 'text',
     },
     {
+      name: 'loginCount',
+      label: 'Login count',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: 'Total number of successful sign-ins.',
+      },
+    },
+    {
+      name: 'lastLoginAt',
+      label: 'Last login at',
+      type: 'date',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: 'Timestamp of the most recent successful sign-in.',
+      },
+    },
+    {
+      name: 'lastSeenAt',
+      label: 'Last seen at',
+      type: 'date',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: 'Updated by the client heartbeat while the user has the app open.',
+      },
+    },
+    {
+      name: 'totalActiveSeconds',
+      label: 'Total active seconds',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: 'Cumulative active time in the app, accumulated from heartbeats.',
+      },
+    },
+    {
       name: 'currentStreak',
       label: 'Current streak',
       type: 'number',
@@ -290,6 +357,32 @@ export const Accounts: CollectionConfig = {
       admin: {
         position: 'sidebar',
       },
+    },
+    {
+      name: 'notificationPreferences',
+      type: 'group',
+      fields: [
+        {
+          name: 'questionAnswered',
+          type: 'checkbox',
+          defaultValue: true,
+        },
+        {
+          name: 'newContent',
+          type: 'checkbox',
+          defaultValue: true,
+        },
+        {
+          name: 'announcement',
+          type: 'checkbox',
+          defaultValue: true,
+        },
+        {
+          name: 'quizDeadline',
+          type: 'checkbox',
+          defaultValue: true,
+        },
+      ],
     },
     {
       name: 'ssoProvider',

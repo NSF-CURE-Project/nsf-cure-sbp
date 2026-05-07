@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 
 import { PayloadRichText } from "@/components/ui/payloadRichText";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type QuizReviewQuestionCardProps = {
@@ -10,8 +14,16 @@ type QuizReviewQuestionCardProps = {
     title: string;
     prompt?: unknown;
     explanation?: unknown;
+    questionType: string;
+    responseKind?: string;
     selectedLabels: string[];
     correctLabels: string[];
+    textAnswer?: string | null;
+    numericAnswer?: number | null;
+    acceptedAnswers?: string[];
+    numericCorrectValue?: number | null;
+    numericTolerance?: number | null;
+    numericUnit?: string | null;
     isCorrect: boolean;
     remediationLink?: string | null;
   };
@@ -21,6 +33,8 @@ export function QuizReviewQuestionCard({
   index,
   question,
 }: QuizReviewQuestionCardProps) {
+  const [showExplanation, setShowExplanation] = useState(false);
+
   return (
     <article className="rounded-xl border border-border/60 bg-card/50 p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -51,35 +65,95 @@ export function QuizReviewQuestionCard({
       ) : null}
 
       <div className="mt-3 space-y-2 text-sm">
-        <p>
-          <span className="font-semibold text-foreground">Your answer:</span>{" "}
-          <span className="text-muted-foreground">
-            {question.selectedLabels.length
-              ? question.selectedLabels.join(", ")
-              : "No answer selected"}
-          </span>
-        </p>
-        <p>
-          <span className="font-semibold text-foreground">Correct answer:</span>{" "}
-          <span className="text-muted-foreground">
-            {question.correctLabels.length
-              ? question.correctLabels.join(", ")
-              : "Not available"}
-          </span>
-        </p>
+        {(question.questionType === "single-select" ||
+          question.questionType === "multi-select" ||
+          question.questionType === "true-false") && (
+          <>
+            <p>
+              <span className="font-semibold text-foreground">Your answer:</span>{" "}
+              <span className="text-muted-foreground">
+                {question.selectedLabels.length
+                  ? question.selectedLabels.join(", ")
+                  : "No answer selected"}
+              </span>
+            </p>
+            <p>
+              <span className="font-semibold text-foreground">Correct answer:</span>{" "}
+              <span className="text-muted-foreground">
+                {question.correctLabels.length
+                  ? question.correctLabels.join(", ")
+                  : "Not available"}
+              </span>
+            </p>
+          </>
+        )}
+        {question.questionType === "short-text" && (
+          <>
+            <p>
+              <span className="font-semibold text-foreground">Your answer:</span>{" "}
+              <span className="text-muted-foreground">
+                {question.textAnswer?.trim() ? question.textAnswer : "No answer submitted"}
+              </span>
+            </p>
+            <p>
+              <span className="font-semibold text-foreground">Accepted answers:</span>{" "}
+              <span className="text-muted-foreground">
+                {question.acceptedAnswers?.length
+                  ? question.acceptedAnswers.join(", ")
+                  : "Not available"}
+              </span>
+            </p>
+          </>
+        )}
+        {question.questionType === "numeric" && (
+          <>
+            <p>
+              <span className="font-semibold text-foreground">Your answer:</span>{" "}
+              <span className="text-muted-foreground">
+                {question.numericAnswer != null
+                  ? `${question.numericAnswer}${question.numericUnit ? ` ${question.numericUnit}` : ""}`
+                  : "No answer submitted"}
+              </span>
+            </p>
+            <p>
+              <span className="font-semibold text-foreground">Correct value:</span>{" "}
+              <span className="text-muted-foreground">
+                {question.numericCorrectValue != null
+                  ? `${question.numericCorrectValue}${question.numericUnit ? ` ${question.numericUnit}` : ""}${
+                      question.numericTolerance != null
+                        ? ` (tolerance ±${question.numericTolerance})`
+                        : ""
+                    }`
+                  : "Not available"}
+              </span>
+            </p>
+          </>
+        )}
       </div>
 
       {!question.isCorrect && question.explanation ? (
         <div className="mt-4 rounded-lg border border-border/60 bg-muted/35 p-4">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Explanation
-          </p>
-          <PayloadRichText
-            content={
-              question.explanation as unknown as Parameters<typeof PayloadRichText>[0]["content"]
-            }
-            className="prose prose-invert max-w-none text-sm text-foreground"
-          />
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Explanation
+            </p>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setShowExplanation((value) => !value)}
+            >
+              {showExplanation ? "Hide explanation" : "Show explanation"}
+            </Button>
+          </div>
+          {showExplanation ? (
+            <PayloadRichText
+              content={
+                question.explanation as unknown as Parameters<typeof PayloadRichText>[0]["content"]
+              }
+              className="prose prose-invert mt-3 max-w-none text-sm text-foreground"
+            />
+          ) : null}
         </div>
       ) : null}
 

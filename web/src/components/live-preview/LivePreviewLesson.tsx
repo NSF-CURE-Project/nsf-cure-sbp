@@ -36,8 +36,25 @@ export function LivePreviewLesson({
   const blocks = Array.isArray(data?.layout)
     ? (data?.layout as PageLayoutBlock[])
     : [];
+  const classId =
+    typeof data?.chapter === "object" &&
+    data?.chapter !== null &&
+    "class" in data.chapter
+      ? (() => {
+          const classValue = (data.chapter as { class?: unknown }).class;
+          if (typeof classValue === "object" && classValue !== null) {
+            const id = (classValue as { id?: string | number }).id;
+            return id != null ? String(id) : undefined;
+          }
+          if (typeof classValue === "string" || typeof classValue === "number") {
+            return String(classValue);
+          }
+          return undefined;
+        })()
+      : undefined;
   const assessment = data?.assessment ?? null;
   const assessmentQuiz = assessment?.quiz ?? null;
+  const hasQuizBlock = blocks.some((block) => block.blockType === "quizBlock");
   const assessmentBlock = assessmentQuiz
     ? {
         blockType: "quizBlock" as const,
@@ -108,7 +125,7 @@ export function LivePreviewLesson({
           No content yet. Add blocks to this lesson.
         </p>
       )}
-      {assessmentBlock ? (
+      {!hasQuizBlock && assessmentBlock ? (
         <div className="mt-12">
           <QuizBlockComponent
             block={assessmentBlock}
@@ -121,6 +138,7 @@ export function LivePreviewLesson({
           <LessonQuestionDrawer
             lessonId={String(data.id)}
             lessonTitle={title}
+            classId={classId}
             onSubmitted={() => setQuestionRefresh((value) => value + 1)}
           />
           <LessonQuestionList

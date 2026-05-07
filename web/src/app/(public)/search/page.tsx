@@ -1027,8 +1027,17 @@ function extractExplicitTagsFromBlocks(blocks: PageLayoutBlock[]): string[] {
 
 function extractAssessmentTags(lesson: LessonDoc): string[] {
   const tags: string[] = [];
-  const quizValue = lesson.assessment?.quiz;
-  if (typeof quizValue === "object" && quizValue !== null) {
+  const blocks = Array.isArray(lesson.layout) ? lesson.layout : [];
+  const quizBlocks = blocks.filter(
+    (block): block is Extract<PageLayoutBlock, { blockType: "quizBlock" }> =>
+      block.blockType === "quizBlock"
+  );
+  const quizValues = quizBlocks.length
+    ? quizBlocks.map((block) => block.quiz)
+    : [lesson.assessment?.quiz];
+
+  quizValues.forEach((quizValue) => {
+    if (typeof quizValue !== "object" || quizValue === null) return;
     const quizDoc = quizValue as QuizDoc;
     if (Array.isArray(quizDoc.tags)) {
       quizDoc.tags.forEach((tag) => {
@@ -1036,7 +1045,8 @@ function extractAssessmentTags(lesson: LessonDoc): string[] {
       });
     }
     if (typeof quizDoc.difficulty === "string") tags.push(quizDoc.difficulty);
-  }
+  });
+
   return tags;
 }
 

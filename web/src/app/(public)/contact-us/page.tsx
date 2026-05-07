@@ -3,8 +3,7 @@ import { getPageBySlug, type PageDoc } from "@/lib/payloadSdk/pages";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "default-no-store";
+export const revalidate = 300;
 
 export const metadata = buildMetadata({
   title: "Contact Us",

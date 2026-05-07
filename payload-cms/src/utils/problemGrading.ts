@@ -2,7 +2,7 @@ import { gradeSymbolic } from '../lib/problemSet/symbolicGrading'
 
 export type ToleranceType = 'absolute' | 'relative'
 export type ScoringMode = 'threshold' | 'linear-decay' | 'stepped'
-export type PartType = 'numeric' | 'symbolic' | 'fbd-draw'
+export type PartType = 'numeric' | 'symbolic'
 
 export type PartGradingConfig = {
   correctAnswer: number
@@ -19,42 +19,25 @@ export type ProblemPartForGrading = PartGradingConfig & {
   symbolicAnswer?: string | null
   symbolicVariables?: { variable: string; testMin: number; testMax: number }[]
   symbolicTolerance?: number | null
-  fbdRubric?: {
-    requiredForces?: {
-      id: string
-      label?: string
-      correctAngle?: number
-      angleTolerance?: number
-      magnitudeRequired?: boolean
-      correctMagnitude?: number
-      magnitudeTolerance?: number
-    }[]
-    forbiddenForces?: number
-  } | null
 }
 
 export type SubmittedPartAnswer = {
   partIndex: number
   studentAnswer?: number | null
   studentExpression?: string | null
-  placedForces?: {
-    forces?: {
-      id: string
-      origin: [number, number]
-      angle: number
-      magnitude: number
-      label: string
-    }[]
-  } | null
 }
 
 export type SubmittedProblemAnswer = {
   problem: string | number
+  variantSeed?: string | null
+  variantSignature?: string | null
+  variantScope?: Record<string, number> | null
   parts?: SubmittedPartAnswer[]
 }
 
 export type ProblemForGrading = {
   id: string | number
+  templateScope?: Record<string, number> | null
   parts?: ProblemPartForGrading[]
 }
 
@@ -73,62 +56,6 @@ export const roundToSigFigs = (value: number, significantFigures: number): numbe
 
 const clampScore = (value: number) => Math.max(0, Math.min(1, value))
 
-const angleDiff = (a: number, b: number) => {
-  const normalizedA = ((a % 360) + 360) % 360
-  const normalizedB = ((b % 360) + 360) % 360
-  const delta = Math.abs(normalizedA - normalizedB) % 360
-  return delta > 180 ? 360 - delta : delta
-}
-
-const gradeFbdPart = (
-  submittedForces: {
-    id: string
-    origin: [number, number]
-    angle: number
-    magnitude: number
-    label: string
-  }[],
-  rubric: ProblemPartForGrading['fbdRubric'],
-) => {
-  const requiredForces = Array.isArray(rubric?.requiredForces) ? rubric?.requiredForces : []
-  const forbiddenForces = Math.max(0, Number(rubric?.forbiddenForces ?? 0))
-  if (!requiredForces.length) {
-    const score = submittedForces.length <= forbiddenForces ? 1 : 0
-    return { score, isCorrect: score === 1 }
-  }
-
-  const used = new Set<number>()
-  let matched = 0
-  for (const requiredForce of requiredForces) {
-    const angleTolerance = Math.abs(Number(requiredForce.angleTolerance ?? 5))
-    const magnitudeRequired = Boolean(requiredForce.magnitudeRequired)
-    const correctMagnitude = Number(requiredForce.correctMagnitude ?? 0)
-    const magnitudeTolerance = Math.abs(Number(requiredForce.magnitudeTolerance ?? 0.05))
-
-    const matchIndex = submittedForces.findIndex((force, index) => {
-      if (used.has(index)) return false
-      if (angleDiff(force.angle, Number(requiredForce.correctAngle ?? 0)) > angleTolerance) return false
-      if (!magnitudeRequired) return true
-      if (!Number.isFinite(correctMagnitude)) return false
-      const magnitudeError = Math.abs(force.magnitude - correctMagnitude)
-      return magnitudeError <= magnitudeTolerance
-    })
-
-    if (matchIndex >= 0) {
-      used.add(matchIndex)
-      matched += 1
-    }
-  }
-
-  const unmatchedExtra = Math.max(0, submittedForces.length - matched - forbiddenForces)
-  const deduction = requiredForces.length ? unmatchedExtra / requiredForces.length : 0
-  const score = clampScore(matched / requiredForces.length - deduction)
-  return {
-    score,
-    isCorrect: score === 1,
-  }
-}
-
 const getNormalizedError = (studentRaw: number, config: PartGradingConfig): number => {
   let student = studentRaw
   if (config.significantFigures && config.significantFigures > 0) {
@@ -145,7 +72,10 @@ const getNormalizedError = (studentRaw: number, config: PartGradingConfig): numb
   return diff
 }
 
-export function gradePart(studentRaw: number, config: PartGradingConfig): { score: number; isCorrect: boolean } {
+export function gradePart(
+  studentRaw: number,
+  config: PartGradingConfig,
+): { score: number; isCorrect: boolean } {
   const tolerance = Math.abs(config.tolerance)
   const normalizedError = getNormalizedError(studentRaw, config)
   const scoringMode = config.scoringMode ?? 'threshold'
@@ -195,96 +125,72 @@ export const gradeProblemAttemptAnswers = async (
   let totalParts = 0
   let correctCount = 0
 
-  const normalizedAnswers = await Promise.all(submission.map(async (item) => {
-    const problemId = String(item.problem)
-    const problem = problemsById.get(problemId)
-    const canonicalParts = Array.isArray(problem?.parts) ? problem.parts : []
-    const submittedParts = Array.isArray(item.parts) ? item.parts : []
-    const submittedByIndex = new Map<number, SubmittedPartAnswer>(
-      submittedParts.map((part) => [part.partIndex, part]),
-    )
+  const normalizedAnswers = await Promise.all(
+    submission.map(async (item) => {
+      const problemId = String(item.problem)
+      const problem = problemsById.get(problemId)
+      const canonicalParts = Array.isArray(problem?.parts) ? problem.parts : []
+      const submittedParts = Array.isArray(item.parts) ? item.parts : []
+      const submittedByIndex = new Map<number, SubmittedPartAnswer>(
+        submittedParts.map((part) => [part.partIndex, part]),
+      )
 
-    const gradedParts = await Promise.all(canonicalParts.map(async (part, partIndex) => {
-      totalParts += 1
-      const submittedPart = submittedByIndex.get(partIndex)
-      const partType = part.partType ?? 'numeric'
-      const rawStudent = toFiniteNumber(submittedPart?.studentAnswer)
-      const studentExpression =
-        typeof submittedPart?.studentExpression === 'string'
-          ? submittedPart.studentExpression.trim()
-          : ''
+      const gradedParts = await Promise.all(
+        canonicalParts.map(async (part, partIndex) => {
+          totalParts += 1
+          const submittedPart = submittedByIndex.get(partIndex)
+          const partType = part.partType ?? 'numeric'
+          const rawStudent = toFiniteNumber(submittedPart?.studentAnswer)
+          const studentExpression =
+            typeof submittedPart?.studentExpression === 'string'
+              ? submittedPart.studentExpression.trim()
+              : ''
 
-      let graded = { score: 0, isCorrect: false }
+          let graded = { score: 0, isCorrect: false }
 
-      if (partType === 'symbolic') {
-        const isCorrect = await gradeSymbolic(
-          studentExpression,
-          part.symbolicAnswer ?? '',
-          part.symbolicVariables ?? [],
-          Math.abs(part.symbolicTolerance ?? 0.000001),
-          5,
-          `${problemId}:${partIndex}`,
-        )
-        graded = { score: isCorrect ? 1 : 0, isCorrect }
-      } else if (partType === 'fbd-draw') {
-        const submittedForces = Array.isArray(submittedPart?.placedForces?.forces)
-          ? submittedPart.placedForces?.forces
-              ?.slice(0, 20)
-              .filter(
-                (force) =>
-                  typeof force?.id === 'string' &&
-                  Array.isArray(force?.origin) &&
-                  force.origin.length === 2 &&
-                  Number.isFinite(force.origin[0]) &&
-                  Number.isFinite(force.origin[1]) &&
-                  Number.isFinite(force?.angle) &&
-                  Number.isFinite(force?.magnitude) &&
-                  typeof force?.label === 'string',
-              )
-              .map((force) => ({
-                id: force.id,
-                origin: [force.origin[0], force.origin[1]] as [number, number],
-                angle: force.angle,
-                magnitude: force.magnitude,
-                label: force.label,
-              }))
-          : []
-        graded = gradeFbdPart(submittedForces, part.fbdRubric)
-      } else {
-        graded =
-          rawStudent == null
-            ? { score: 0, isCorrect: false }
-            : gradePart(rawStudent, {
-                correctAnswer: part.correctAnswer,
-                tolerance: part.tolerance,
-                toleranceType: part.toleranceType,
-                significantFigures: part.significantFigures,
-                scoringMode: part.scoringMode,
-                scoringSteps: part.scoringSteps,
-              })
-      }
-      const partScore = Number(graded.score.toFixed(4))
-      totalScore += partScore
-      if (graded.isCorrect) correctCount += 1
+          if (partType === 'symbolic') {
+            const isCorrect = await gradeSymbolic(
+              studentExpression,
+              part.symbolicAnswer ?? '',
+              part.symbolicVariables ?? [],
+              Math.abs(part.symbolicTolerance ?? 0.000001),
+              5,
+              `${problemId}:${partIndex}`,
+            )
+            graded = { score: isCorrect ? 1 : 0, isCorrect }
+          } else {
+            graded =
+              rawStudent == null
+                ? { score: 0, isCorrect: false }
+                : gradePart(rawStudent, {
+                    correctAnswer: part.correctAnswer,
+                    tolerance: part.tolerance,
+                    toleranceType: part.toleranceType,
+                    significantFigures: part.significantFigures,
+                    scoringMode: part.scoringMode,
+                    scoringSteps: part.scoringSteps,
+                  })
+          }
+          const partScore = Number(graded.score.toFixed(4))
+          totalScore += partScore
+          if (graded.isCorrect) correctCount += 1
+
+          return {
+            partIndex,
+            studentAnswer: rawStudent,
+            studentExpression: studentExpression || null,
+            isCorrect: graded.isCorrect,
+            score: partScore,
+          }
+        }),
+      )
 
       return {
-        partIndex,
-        studentAnswer: rawStudent,
-        studentExpression: studentExpression || null,
-        placedForces:
-          partType === 'fbd-draw' && Array.isArray(submittedPart?.placedForces?.forces)
-            ? { forces: submittedPart?.placedForces?.forces?.slice(0, 20) ?? [] }
-            : null,
-        isCorrect: graded.isCorrect,
-        score: partScore,
+        problem: problemId,
+        parts: gradedParts,
       }
-    }))
-
-    return {
-      problem: problemId,
-      parts: gradedParts,
-    }
-  }))
+    }),
+  )
 
   return {
     answers: normalizedAnswers,

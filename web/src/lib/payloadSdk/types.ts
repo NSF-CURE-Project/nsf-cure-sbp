@@ -81,6 +81,15 @@ export type RichTextBlock = {
   body?: unknown;
 };
 
+export type TextSectionBlock = {
+  id?: string;
+  blockType: "textSection";
+  title?: string;
+  subtitle?: string;
+  size?: "sm" | "md" | "lg";
+  body?: unknown;
+};
+
 export type TextBlock = {
   id?: string;
   blockType: "textBlock";
@@ -173,7 +182,14 @@ export type QuizQuestionDoc = {
   id: string | number;
   title?: string;
   prompt?: unknown;
+  questionType?: "single-select" | "multi-select" | "true-false" | "short-text" | "numeric" | string;
   options?: QuizQuestionOption[];
+  trueFalseAnswer?: boolean;
+  acceptedAnswers?: unknown;
+  textMatchMode?: "exact" | "normalized" | string;
+  numericCorrectValue?: number | null;
+  numericTolerance?: number | null;
+  numericUnit?: string | null;
   explanation?: unknown;
   attachments?: unknown;
   topic?: string;
@@ -227,13 +243,27 @@ export type FBDData = {
     magnitude: number;
     color?: string;
   }[];
-  dimensions?: { from: [number, number]; to: [number, number]; label: string }[];
-  angles?: { vertex: [number, number]; from: number; to: number; label: string }[];
+  dimensions?: {
+    from: [number, number];
+    to: [number, number];
+    label: string;
+  }[];
+  angles?: {
+    vertex: [number, number];
+    from: number;
+    to: number;
+    label: string;
+  }[];
 };
 
 export type TrussData = {
   type: "truss";
-  nodes: { id: string; x: number; y: number; support?: "pin" | "roller" | "fixed" | null }[];
+  nodes: {
+    id: string;
+    x: number;
+    y: number;
+    support?: "pin" | "roller" | "fixed" | null;
+  }[];
   members: { from: string; to: string; id?: string }[];
   loads: { node: string; angle: number; magnitude: number; label?: string }[];
 };
@@ -250,7 +280,12 @@ export type BeamData = {
     wEnd: number;
     label?: string;
   }[];
-  pointLoads?: { x: number; magnitude: number; angle: number; label?: string }[];
+  pointLoads?: {
+    x: number;
+    magnitude: number;
+    angle: number;
+    label?: string;
+  }[];
   moments?: { x: number; value: number; label?: string }[];
   dimensions?: boolean;
 };
@@ -264,7 +299,11 @@ export type MomentDiagramData = {
   labels?: { x: number; label: string }[];
 };
 
-export type EngineeringFigureData = FBDData | TrussData | BeamData | MomentDiagramData;
+export type EngineeringFigureData =
+  | FBDData
+  | TrussData
+  | BeamData
+  | MomentDiagramData;
 
 export type EngineeringFigureDoc = {
   id: string | number;
@@ -274,6 +313,14 @@ export type EngineeringFigureDoc = {
   figureData: EngineeringFigureData;
   width?: number;
   height?: number;
+  axes?: {
+    show?: boolean;
+    x?: number;
+    y?: number;
+    length?: number;
+    xLabel?: string;
+    yLabel?: string;
+  };
 };
 
 export type ProblemPart = {
@@ -281,8 +328,9 @@ export type ProblemPart = {
   label: string;
   prompt?: unknown;
   unit?: string;
-  partType?: "numeric" | "symbolic" | "fbd-draw";
+  partType?: "numeric" | "symbolic";
   correctAnswer?: number;
+  correctAnswerExpression?: string;
   tolerance?: number;
   toleranceType?: "absolute" | "relative";
   significantFigures?: number | null;
@@ -296,18 +344,6 @@ export type ProblemPart = {
     testMax?: number;
   }[];
   symbolicTolerance?: number;
-  fbdRubric?: {
-    requiredForces?: {
-      id: string;
-      label?: string;
-      correctAngle?: number;
-      angleTolerance?: number;
-      magnitudeRequired?: boolean;
-      correctMagnitude?: number;
-      magnitudeTolerance?: number;
-    }[];
-    forbiddenForces?: number;
-  };
   explanation?: unknown;
 };
 
@@ -336,16 +372,27 @@ export type ProblemResultPlot = {
   criticalPoints?: ProblemResultPlotCriticalPoint[];
 };
 
+export type ProblemVariantValue = {
+  key: string;
+  label: string;
+  unit?: string | null;
+  value: number;
+};
+
 export type ProblemDoc = {
   id: string | number;
   title?: string;
   prompt?: unknown;
-  figure?: EngineeringFigureDoc | string | number;
   difficulty?: "intro" | "easy" | "medium" | "hard" | string;
   topic?: string;
   tags?: string[];
+  variant?: {
+    seed: string;
+    signature: string;
+    parameters: ProblemVariantValue[];
+    derived: ProblemVariantValue[];
+  };
   parts?: ProblemPart[];
-  resultPlots?: ProblemResultPlot[];
 };
 
 export type ProblemSetDoc = {
@@ -363,15 +410,6 @@ export type ProblemAttemptPartAnswer = {
   partIndex: number;
   studentAnswer?: number | null;
   studentExpression?: string | null;
-  placedForces?: {
-    forces: {
-      id: string;
-      origin: [number, number];
-      angle: number;
-      magnitude: number;
-      label: string;
-    }[];
-  } | null;
   isCorrect?: boolean;
   score?: number;
 };
@@ -411,6 +449,7 @@ export type PageLayoutBlock =
   | SectionTitleBlock
   | SectionBlock
   | RichTextBlock
+  | TextSectionBlock
   | TextBlock
   | VideoBlock
   | ListBlock

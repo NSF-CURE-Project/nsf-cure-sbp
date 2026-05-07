@@ -69,6 +69,29 @@ const getLessonId = (l: LessonItem) =>
 const getLessonTitle = (l: LessonItem) =>
   l.title ?? l.name ?? "Untitled Lesson";
 
+const BAD_TITLE_EXACT = new Set([
+  "test",
+  "todo",
+  "temp",
+  "draft",
+  "untitled",
+  "asas",
+  "dsd",
+  "asd",
+  "qwe",
+  "zxc",
+]);
+
+const cleanTitle = (value: string, fallback: string) => {
+  const t = value.trim();
+  const normalized = t.toLowerCase();
+  if (!t) return fallback;
+  if (BAD_TITLE_EXACT.has(normalized)) return fallback;
+  if (/^[a-z]{1,3}$/i.test(t)) return fallback;
+  if (/^(.)\1{2,}$/i.test(t)) return fallback;
+  return t;
+};
+
 export default function SidebarClient({ classes }: Props) {
   const pathname = usePathname();
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(
@@ -268,9 +291,11 @@ export default function SidebarClient({ classes }: Props) {
           const classOpen = !!openClasses[cSlug];
           const classTitle = getClassTitle(cls);
           const classHasActiveLesson = !!(
-            currentLessonSlug && lessonOwner[currentLessonSlug]?.classSlug === cSlug
+            currentLessonSlug &&
+            lessonOwner[currentLessonSlug]?.classSlug === cSlug
           );
-          const classIsActive = currentClassSlug === cSlug || classHasActiveLesson;
+          const classIsActive =
+            currentClassSlug === cSlug || classHasActiveLesson;
 
           return (
             <li key={cSlug}>
@@ -353,6 +378,9 @@ export default function SidebarClient({ classes }: Props) {
                       const chOpen = !!openChapters[chKey];
 
                       const lessons = getLessons(ch);
+                      const chapterCompleted = lessons.filter((ls) =>
+                        completedLessons.has(getLessonId(ls))
+                      ).length;
 
                       const chapterOverviewActive =
                         currentClassSlug === cSlug &&
@@ -380,9 +408,17 @@ export default function SidebarClient({ classes }: Props) {
                             >
                               <Link
                                 href={`/classes/${cSlug}/chapters/${chSlug}`}
-                                className="flex-1 text-left text-inherit focus-visible:outline-none"
+                                className="flex flex-1 items-center justify-between gap-2 text-left text-inherit focus-visible:outline-none"
                               >
-                                {getChapterLabel(ch)}
+                                <span>
+                                  {cleanTitle(
+                                    getChapterLabel(ch),
+                                    "Untitled chapter"
+                                  )}
+                                </span>
+                                <span className="shrink-0 rounded-full bg-muted/60 px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                                  {chapterCompleted}/{lessons.length || 0}
+                                </span>
                               </Link>
                               <button
                                 type="button"
@@ -439,10 +475,11 @@ export default function SidebarClient({ classes }: Props) {
                                             : "border-transparent text-muted-foreground/70 hover:border-primary/40 hover:bg-muted/20 hover:text-foreground"
                                         )}
                                       >
-                                        <span
-                                          className="relative flex items-center gap-2 pl-2"
-                                        >
-                                          {getLessonTitle(ls)}
+                                        <span className="relative flex items-center gap-2 pl-2">
+                                          {cleanTitle(
+                                            getLessonTitle(ls),
+                                            "Untitled lesson"
+                                          )}
                                           {completedLessons.has(lsId) ? (
                                             <Check className="h-3 w-3 text-emerald-500" />
                                           ) : null}
