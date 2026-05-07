@@ -1398,73 +1398,91 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
 
         :root[data-theme="dark"] {
-          --cpp-cream: #070b14;
-          --cpp-ink: #e7edf6;
-          --cpp-muted: #9aa4b2;
-          --admin-surface: #0f1624;
-          --admin-surface-muted: #121b2a;
-          --admin-surface-soft: #101b2d;
-          --admin-surface-border: rgba(148, 163, 184, 0.18);
+          /* Deep navy/slate dark palette tuned for an academic SaaS feel. */
+          --cpp-cream: #08111f;
+          --cpp-ink: #f1f5fb;
+          --cpp-muted: #94a3b8;
+          --cpp-subtle: #64748b;
+          --admin-surface: #111c2e;
+          --admin-surface-muted: #0f1828;
+          --admin-surface-soft: #131e33;
+          --admin-surface-elevated: #172033;
+          --admin-surface-elevated-strong: #1c2740;
+          --admin-surface-border: rgba(148, 163, 184, 0.16);
           --admin-surface-border-strong: rgba(148, 163, 184, 0.28);
-          --admin-hero-bg: var(--admin-surface);
-          --admin-hero-border: var(--admin-surface-border);
-          --admin-panel-bg: var(--admin-surface);
-          --admin-panel-bg-muted: rgba(15, 23, 42, 0.36);
-          --admin-panel-accent-bg: rgba(148, 163, 184, 0.12);
-          --admin-form-card-bg: rgba(15, 22, 36, 0.98);
-          --admin-meta-card-bg: rgba(16, 24, 39, 0.96);
-          --admin-info-card-bg: rgba(19, 32, 52, 0.98);
-          --admin-hero-grid: rgba(148, 163, 184, 0.08);
+          --admin-hero-bg: linear-gradient(160deg, #111c2e 0%, #131f35 60%, #16294a 100%);
+          --admin-hero-border: rgba(96, 138, 220, 0.28);
+          --admin-panel-bg: #111c2e;
+          --admin-panel-bg-muted: rgba(20, 30, 50, 0.86);
+          --admin-panel-accent-bg: rgba(80, 130, 220, 0.14);
+          --admin-form-card-bg: #131e33;
+          --admin-meta-card-bg: #131e33;
+          --admin-info-card-bg: #15213a;
+          --admin-hero-grid: rgba(148, 163, 184, 0.10);
           --admin-chip-bg: rgba(148, 163, 184, 0.14);
-          --admin-chip-primary-bg: #e7edf6;
-          --admin-chip-primary-text: #070b14;
-          --admin-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-          --admin-shadow-soft: 0 14px 28px rgba(0, 0, 0, 0.26);
-          --admin-shadow-deep: 0 24px 48px rgba(0, 0, 0, 0.38);
-          --theme-bg: #070b14;
-          --theme-text: #e7edf6;
-          --theme-input-bg: #0c1220;
-          --theme-elevation-0: #070b14;
-          --theme-elevation-50: #0b111d;
-          --theme-elevation-100: #101827;
-          --theme-elevation-150: #151f30;
-          --theme-elevation-200: #1b263a;
+          --admin-chip-border: rgba(148, 163, 184, 0.22);
+          --admin-chip-primary-bg: #2563eb;
+          --admin-chip-primary-text: #f8fafc;
+          --admin-primary: #3b82f6;
+          --admin-primary-hover: #5191f3;
+          --admin-focus-ring: rgba(96, 165, 250, 0.45);
+          --admin-shadow: 0 22px 48px rgba(2, 6, 18, 0.55);
+          --admin-shadow-soft: 0 14px 28px rgba(2, 6, 18, 0.40);
+          --admin-shadow-deep: 0 26px 60px rgba(2, 6, 18, 0.62);
+          --theme-bg: #08111f;
+          --theme-text: #f1f5fb;
+          --theme-input-bg: #131e33;
+          --theme-elevation-0: #08111f;
+          --theme-elevation-50: #0b1422;
+          --theme-elevation-100: #111c2e;
+          --theme-elevation-150: #16223a;
+          --theme-elevation-200: #1c2942;
           --theme-elevation-800: #e7edf6;
           --theme-elevation-900: #f3f6fb;
           --theme-elevation-1000: #ffffff;
-          --color-success-250: #1f2937;
+          --color-success-250: #15233a;
+        }
+
+        :root[data-theme="dark"] body,
+        html[data-theme="dark"] body {
+          background:
+            radial-gradient(70% 80% at 0% 0%, rgba(37, 99, 235, 0.10) 0%, rgba(37, 99, 235, 0) 60%),
+            radial-gradient(70% 80% at 100% 100%, rgba(168, 85, 247, 0.08) 0%, rgba(168, 85, 247, 0) 60%),
+            linear-gradient(135deg, #08111f 0%, #0b1322 48%, #0d1d3a 100%);
+          background-attachment: fixed;
         }
 
         @media (prefers-color-scheme: dark) {
           :root:not([data-theme]) {
-            --cpp-cream: #070b14;
-            --cpp-ink: #e7edf6;
-            --cpp-muted: #9aa4b2;
-            --admin-surface: #0f1624;
-            --admin-surface-muted: #121b2a;
-            --admin-surface-border: rgba(148, 163, 184, 0.18);
-            --admin-hero-bg: var(--admin-surface);
-            --admin-hero-border: var(--admin-surface-border);
-            --admin-panel-bg: var(--admin-surface);
-            --admin-panel-bg-muted: rgba(15, 23, 42, 0.36);
-            --admin-panel-accent-bg: rgba(148, 163, 184, 0.12);
-            --admin-hero-grid: rgba(148, 163, 184, 0.08);
+            --cpp-cream: #08111f;
+            --cpp-ink: #f1f5fb;
+            --cpp-muted: #94a3b8;
+            --admin-surface: #111c2e;
+            --admin-surface-muted: #0f1828;
+            --admin-surface-elevated: #172033;
+            --admin-surface-border: rgba(148, 163, 184, 0.16);
+            --admin-hero-bg: linear-gradient(160deg, #111c2e 0%, #131f35 60%, #16294a 100%);
+            --admin-hero-border: rgba(96, 138, 220, 0.28);
+            --admin-panel-bg: #111c2e;
+            --admin-panel-bg-muted: rgba(20, 30, 50, 0.86);
+            --admin-panel-accent-bg: rgba(80, 130, 220, 0.14);
+            --admin-hero-grid: rgba(148, 163, 184, 0.10);
             --admin-chip-bg: rgba(148, 163, 184, 0.14);
-            --admin-chip-primary-bg: #e7edf6;
-            --admin-chip-primary-text: #070b14;
-            --admin-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-            --theme-bg: #070b14;
-            --theme-text: #e7edf6;
-            --theme-input-bg: #0c1220;
-            --theme-elevation-0: #070b14;
-            --theme-elevation-50: #0b111d;
-            --theme-elevation-100: #101827;
-            --theme-elevation-150: #151f30;
-            --theme-elevation-200: #1b263a;
+            --admin-chip-primary-bg: #2563eb;
+            --admin-chip-primary-text: #f8fafc;
+            --admin-shadow: 0 22px 48px rgba(2, 6, 18, 0.55);
+            --theme-bg: #08111f;
+            --theme-text: #f1f5fb;
+            --theme-input-bg: #131e33;
+            --theme-elevation-0: #08111f;
+            --theme-elevation-50: #0b1422;
+            --theme-elevation-100: #111c2e;
+            --theme-elevation-150: #16223a;
+            --theme-elevation-200: #1c2942;
             --theme-elevation-800: #e7edf6;
             --theme-elevation-900: #f3f6fb;
             --theme-elevation-1000: #ffffff;
-            --color-success-250: #1f2937;
+            --color-success-250: #15233a;
           }
         }
 
@@ -2520,9 +2538,432 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
 
         :root[data-theme="dark"] .admin-dashboard-hero {
-          background: #182235 !important;
+          background:
+            radial-gradient(110% 140% at 0% 0%, rgba(59, 130, 246, 0.16) 0%, rgba(59, 130, 246, 0) 55%),
+            radial-gradient(110% 140% at 100% 100%, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0) 60%),
+            linear-gradient(160deg, #111c2e 0%, #131f35 60%, #16294a 100%) !important;
+          border-color: rgba(96, 138, 220, 0.28) !important;
+          box-shadow: 0 18px 42px rgba(2, 6, 18, 0.55), 0 1px 0 rgba(255, 255, 255, 0.04) inset !important;
+        }
+
+        /* ============================================================
+           Comprehensive dark mode polish — applied via attribute selector
+           so light mode remains untouched.
+           ============================================================ */
+
+        /* Topbar — elevated dark surface with subtle bottom border. */
+        :root[data-theme="dark"] .admin-topbar {
+          background: rgba(10, 17, 32, 0.86);
+          border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+          backdrop-filter: blur(14px) saturate(120%);
+          -webkit-backdrop-filter: blur(14px) saturate(120%);
+        }
+        :root[data-theme="dark"] .admin-topbar-brand-text {
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .admin-topbar-brand:hover {
+          background: rgba(59, 130, 246, 0.08);
+          border-color: rgba(96, 138, 220, 0.28);
+        }
+        :root[data-theme="dark"] .admin-breadcrumb-link {
+          color: var(--cpp-muted);
+        }
+        :root[data-theme="dark"] .admin-breadcrumb-link:hover {
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .admin-breadcrumb-current {
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .admin-breadcrumb-separator {
+          color: rgba(148, 163, 184, 0.55);
+        }
+
+        /* Back button (topbar) */
+        :root[data-theme="dark"] .admin-back-button {
+          background: rgba(20, 30, 50, 0.7);
           border-color: rgba(148, 163, 184, 0.2);
-          box-shadow: 0 16px 36px rgba(7, 10, 16, 0.45);
+          color: var(--cpp-ink);
+          box-shadow: 0 4px 10px rgba(2, 6, 18, 0.3);
+        }
+        :root[data-theme="dark"] .admin-back-button:hover {
+          background: rgba(28, 40, 65, 0.9);
+          border-color: rgba(148, 163, 184, 0.34);
+          box-shadow: 0 8px 16px rgba(2, 6, 18, 0.45);
+        }
+
+        /* Dashboard grids: module cards, attention panels, gateway, etc. */
+        :root[data-theme="dark"] .dashboard-module-card {
+          background: linear-gradient(180deg, #131e33 0%, #111a2c 100%);
+          border-color: rgba(148, 163, 184, 0.16);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 14px 30px rgba(2, 6, 18, 0.45);
+        }
+        :root[data-theme="dark"] .dashboard-module-card:hover {
+          border-color: rgba(96, 138, 220, 0.32);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 18px 36px rgba(2, 6, 18, 0.55);
+        }
+        :root[data-theme="dark"] .dashboard-module-meta-chip {
+          background: rgba(148, 163, 184, 0.10);
+          color: var(--cpp-muted);
+          border: 1px solid rgba(148, 163, 184, 0.16);
+        }
+        :root[data-theme="dark"] .dashboard-module-meta-chip strong {
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .dashboard-module-meta-chip.is-warning {
+          background: rgba(217, 119, 6, 0.18);
+          color: #fbbf24;
+          border-color: rgba(217, 119, 6, 0.32);
+        }
+        :root[data-theme="dark"] .dashboard-module-meta-chip.is-warning strong {
+          color: #fbbf24;
+        }
+        :root[data-theme="dark"] .dashboard-module-meta-chip.is-positive {
+          background: rgba(34, 197, 94, 0.16);
+          color: #6ee7b7;
+          border-color: rgba(34, 197, 94, 0.30);
+        }
+        :root[data-theme="dark"] .dashboard-module-meta-chip.is-positive strong {
+          color: #6ee7b7;
+        }
+
+        /* Dashboard primary CTA — keep brand blue, tuned for dark hover. */
+        :root[data-theme="dark"] .dashboard-module-primary {
+          background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+          color: #f8fafc;
+          box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4), 0 1px 0 rgba(255, 255, 255, 0.12) inset;
+        }
+        :root[data-theme="dark"] .dashboard-module-primary:hover {
+          filter: brightness(1.08);
+          box-shadow: 0 10px 22px rgba(37, 99, 235, 0.48), 0 1px 0 rgba(255, 255, 255, 0.14) inset;
+        }
+
+        :root[data-theme="dark"] .dashboard-module-secondary {
+          background: rgba(148, 163, 184, 0.10);
+          border: 1px solid rgba(148, 163, 184, 0.18);
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .dashboard-module-secondary:hover {
+          background: rgba(148, 163, 184, 0.16);
+          border-color: rgba(148, 163, 184, 0.32);
+        }
+
+        /* Quick action cards (different per accent) */
+        :root[data-theme="dark"] .quick-action-card > div {
+          background: linear-gradient(180deg, #131e33 0%, #111a2c 100%);
+          border-color: rgba(148, 163, 184, 0.16);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 20px rgba(2, 6, 18, 0.40);
+        }
+        :root[data-theme="dark"] .quick-action-card:hover > div {
+          border-color: rgba(96, 138, 220, 0.30);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 14px 26px rgba(2, 6, 18, 0.55);
+        }
+
+        /* Stat cards (KPI tiles) */
+        :root[data-theme="dark"] .dashboard-stat-card {
+          background: #131e33;
+          border-color: rgba(148, 163, 184, 0.16);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 12px 24px rgba(2, 6, 18, 0.40);
+        }
+        :root[data-theme="dark"] .dashboard-stat-card:hover {
+          border-color: rgba(96, 138, 220, 0.32);
+        }
+
+        /* Generic dashboard panel */
+        :root[data-theme="dark"] .dashboard-panel {
+          background: #131e33;
+          border-color: rgba(148, 163, 184, 0.16);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 12px 24px rgba(2, 6, 18, 0.40);
+        }
+
+        /* Needs Attention panel */
+        :root[data-theme="dark"] .dashboard-attention-panel {
+          background: linear-gradient(180deg, #131e33 0%, #111a2c 100%);
+          border-color: rgba(148, 163, 184, 0.16);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 14px 30px rgba(2, 6, 18, 0.45);
+        }
+        :root[data-theme="dark"] .dashboard-attention-row {
+          background: rgba(148, 163, 184, 0.06);
+        }
+        :root[data-theme="dark"] .dashboard-attention-row:hover {
+          background: rgba(148, 163, 184, 0.12);
+          box-shadow: 0 6px 14px rgba(2, 6, 18, 0.40);
+        }
+
+        /* Reporting Suite gateway card on the dashboard */
+        :root[data-theme="dark"] .reporting-gateway {
+          background:
+            radial-gradient(120% 140% at 0% 0%, rgba(59, 130, 246, 0.16) 0%, rgba(59, 130, 246, 0) 55%),
+            radial-gradient(120% 140% at 100% 100%, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0) 60%),
+            linear-gradient(180deg, #131e33 0%, #111a2c 100%);
+          border-color: rgba(96, 138, 220, 0.28);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 18px 38px rgba(2, 6, 18, 0.55);
+        }
+        :root[data-theme="dark"] .reporting-gateway-eyebrow {
+          color: #93c5fd;
+          background: rgba(59, 130, 246, 0.14);
+          border-color: rgba(96, 138, 220, 0.28);
+        }
+        :root[data-theme="dark"] .reporting-gateway-title {
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .reporting-gateway-sub {
+          color: var(--cpp-muted);
+        }
+        :root[data-theme="dark"] .reporting-gateway-stat {
+          background: rgba(20, 30, 50, 0.7);
+          border-color: rgba(148, 163, 184, 0.16);
+        }
+        :root[data-theme="dark"] .reporting-gateway-stat-label {
+          color: var(--cpp-muted);
+        }
+        :root[data-theme="dark"] .reporting-gateway-stat-value {
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .reporting-gateway-stat-meta {
+          color: var(--cpp-muted);
+        }
+        :root[data-theme="dark"] .reporting-gateway-period--active {
+          color: #6ee7b7;
+          background: rgba(34, 197, 94, 0.16);
+          border-color: rgba(34, 197, 94, 0.30);
+        }
+        :root[data-theme="dark"] .reporting-gateway-period--draft {
+          color: #fbbf24;
+          background: rgba(217, 119, 6, 0.18);
+          border-color: rgba(217, 119, 6, 0.32);
+        }
+        :root[data-theme="dark"] .reporting-gateway-period--none {
+          color: var(--cpp-muted);
+          background: rgba(148, 163, 184, 0.10);
+          border-color: rgba(148, 163, 184, 0.18);
+        }
+        :root[data-theme="dark"] .reporting-gateway-secondary {
+          background: rgba(148, 163, 184, 0.10);
+          border-color: rgba(148, 163, 184, 0.18);
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .reporting-gateway-secondary:hover {
+          background: rgba(148, 163, 184, 0.16);
+          border-color: rgba(148, 163, 184, 0.32);
+        }
+        :root[data-theme="dark"] .reporting-gateway-primary {
+          background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+          color: #f8fafc;
+          box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4), 0 1px 0 rgba(255, 255, 255, 0.12) inset;
+        }
+        :root[data-theme="dark"] .reporting-gateway-primary:hover {
+          filter: brightness(1.08);
+          box-shadow: 0 10px 22px rgba(37, 99, 235, 0.48), 0 1px 0 rgba(255, 255, 255, 0.14) inset;
+        }
+
+        /* Export pills (dashboard) */
+        :root[data-theme="dark"] .dashboard-export-pill {
+          background: rgba(148, 163, 184, 0.10);
+          border-color: rgba(148, 163, 184, 0.18);
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .dashboard-export-pill:hover {
+          background: rgba(148, 163, 184, 0.16);
+          border-color: rgba(148, 163, 184, 0.32);
+        }
+
+        /* Content Health blocks (legacy classes use cpp variables already) */
+        :root[data-theme="dark"] .content-health-heading-title {
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .content-health-heading-subtitle {
+          color: var(--cpp-muted);
+        }
+
+        /* ============================================================
+           Reporting Suite page (.rs-* classes) — dark mode pass.
+           ============================================================ */
+        :root[data-theme="dark"] .rs-hero {
+          background:
+            radial-gradient(80% 100% at 0% 0%, rgba(59, 130, 246, 0.16) 0%, rgba(59, 130, 246, 0) 60%),
+            radial-gradient(80% 100% at 100% 100%, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0) 60%),
+            linear-gradient(180deg, #111c2e 0%, #131f35 70%, #16294a 100%);
+          border-color: rgba(96, 138, 220, 0.28);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 22px 42px rgba(2, 6, 18, 0.55);
+        }
+        :root[data-theme="dark"] .rs-eyebrow,
+        :root[data-theme="dark"] .rs-section-eyebrow {
+          color: #93c5fd;
+          background: rgba(59, 130, 246, 0.14);
+          border-color: rgba(96, 138, 220, 0.28);
+        }
+        :root[data-theme="dark"] .rs-section-eyebrow {
+          background: transparent;
+          border: none;
+          padding: 0;
+        }
+        :root[data-theme="dark"] .rs-title,
+        :root[data-theme="dark"] .rs-section-title {
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .rs-sub,
+        :root[data-theme="dark"] .rs-section-sub {
+          color: var(--cpp-muted);
+        }
+        :root[data-theme="dark"] .rs-meta-chip {
+          background: rgba(20, 30, 50, 0.7);
+          border-color: rgba(148, 163, 184, 0.16);
+        }
+        :root[data-theme="dark"] .rs-meta-chip-label,
+        :root[data-theme="dark"] .rs-meta-chip-meta {
+          color: var(--cpp-muted);
+        }
+        :root[data-theme="dark"] .rs-meta-chip-value {
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .rs-card {
+          background: linear-gradient(180deg, #131e33 0%, #111a2c 100%);
+          border-color: rgba(148, 163, 184, 0.16);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 12px 24px rgba(2, 6, 18, 0.40);
+        }
+        :root[data-theme="dark"] .rs-card-title {
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .rs-card-sub {
+          color: var(--cpp-muted);
+        }
+        :root[data-theme="dark"] .rs-pill {
+          background: rgba(148, 163, 184, 0.10);
+          border-color: rgba(148, 163, 184, 0.18);
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .rs-pill:hover {
+          background: rgba(148, 163, 184, 0.16);
+          border-color: rgba(148, 163, 184, 0.32);
+        }
+        :root[data-theme="dark"] .rs-pill.is-active {
+          background: rgba(59, 130, 246, 0.18);
+          border-color: rgba(96, 138, 220, 0.42);
+          color: #93c5fd;
+        }
+        :root[data-theme="dark"] .rs-cta-primary {
+          background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+          color: #f8fafc;
+          box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4), 0 1px 0 rgba(255, 255, 255, 0.12) inset;
+        }
+        :root[data-theme="dark"] .rs-cta-primary:hover {
+          filter: brightness(1.08);
+          box-shadow: 0 10px 22px rgba(37, 99, 235, 0.48), 0 1px 0 rgba(255, 255, 255, 0.14) inset;
+        }
+        :root[data-theme="dark"] .rs-period-row {
+          background: rgba(20, 30, 50, 0.5);
+          border-color: rgba(148, 163, 184, 0.14);
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .rs-period-row:hover {
+          border-color: rgba(96, 138, 220, 0.36);
+          box-shadow: 0 8px 18px rgba(2, 6, 18, 0.4);
+        }
+        :root[data-theme="dark"] .rs-period-row.is-active {
+          border-color: #3b82f6;
+          background: rgba(59, 130, 246, 0.10);
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+        }
+        :root[data-theme="dark"] .rs-status-badge {
+          /* Inline-styled colors override; provide a more readable default for stale states. */
+          filter: saturate(0.9) brightness(0.95);
+        }
+        :root[data-theme="dark"] .rs-kpi {
+          background: rgba(20, 30, 50, 0.7);
+          border-color: rgba(148, 163, 184, 0.16);
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .rs-kpi:hover {
+          border-color: rgba(96, 138, 220, 0.36);
+          box-shadow: 0 14px 26px rgba(2, 6, 18, 0.50);
+        }
+        :root[data-theme="dark"] .rs-kpi-label,
+        :root[data-theme="dark"] .rs-kpi-meta {
+          color: var(--cpp-muted);
+        }
+        :root[data-theme="dark"] .rs-kpi-value {
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .rs-trend {
+          background: rgba(20, 30, 50, 0.6);
+          border-color: rgba(148, 163, 184, 0.14);
+        }
+        :root[data-theme="dark"] .rs-trend-label {
+          color: var(--cpp-muted);
+        }
+        :root[data-theme="dark"] .rs-trend-value {
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .rs-trend-delta.is-up { color: #6ee7b7; }
+        :root[data-theme="dark"] .rs-trend-delta.is-down { color: #fca5a5; }
+        :root[data-theme="dark"] .rs-trend-delta.is-flat { color: var(--cpp-muted); }
+        :root[data-theme="dark"] .rs-issue {
+          background: rgba(148, 163, 184, 0.06);
+          border-left-color: rgba(148, 163, 184, 0.24);
+        }
+        :root[data-theme="dark"] .rs-issue.is-high {
+          background: rgba(220, 38, 38, 0.10);
+          border-left-color: #ef4444;
+        }
+        :root[data-theme="dark"] .rs-issue.is-warning {
+          background: rgba(217, 119, 6, 0.12);
+          border-left-color: #fbbf24;
+        }
+        :root[data-theme="dark"] .rs-issue.is-positive {
+          background: rgba(34, 197, 94, 0.10);
+          border-left-color: #6ee7b7;
+        }
+        :root[data-theme="dark"] .rs-issue-title {
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .rs-issue-detail {
+          color: var(--cpp-muted);
+        }
+        :root[data-theme="dark"] .rs-empty {
+          background: rgba(148, 163, 184, 0.06);
+          color: var(--cpp-muted);
+        }
+        :root[data-theme="dark"] .rs-checklist-row {
+          background: rgba(148, 163, 184, 0.06);
+        }
+
+        /* Reporting chart panels (HBar/Donut/ReportingPanel) used by both dashboard + page */
+        :root[data-theme="dark"] .rs-card,
+        :root[data-theme="dark"] .reporting-gateway-stat {
+          color: var(--cpp-ink);
+        }
+
+        /* User dropdown — make sure dark surfaces are readable. */
+        :root[data-theme="dark"] .admin-user-dropdown {
+          background: rgba(15, 23, 42, 0.96);
+          border-color: rgba(148, 163, 184, 0.18);
+          box-shadow: 0 22px 48px rgba(2, 6, 18, 0.62), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+        }
+        :root[data-theme="dark"] .admin-user-profile {
+          background: rgba(20, 30, 50, 0.5);
+          border-color: rgba(148, 163, 184, 0.14);
+        }
+        :root[data-theme="dark"] .admin-user-profile-name,
+        :root[data-theme="dark"] .admin-user-name {
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .admin-user-profile-email,
+        :root[data-theme="dark"] .admin-user-role,
+        :root[data-theme="dark"] .admin-user-section-label {
+          color: var(--cpp-muted);
+        }
+        :root[data-theme="dark"] .admin-user-action {
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .admin-user-action:hover {
+          background: rgba(148, 163, 184, 0.10);
+        }
+        :root[data-theme="dark"] .admin-user-role-badge {
+          background: rgba(59, 130, 246, 0.16);
+          color: #93c5fd;
+          border-color: rgba(96, 138, 220, 0.32);
         }
 
         .collection-edit--lessons .collection-edit__main-wrapper {
@@ -2772,6 +3213,129 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           gap: 10px;
           margin-left: 0;
           z-index: 1;
+        }
+
+        /* ----- Appearance toggle (theme switch in primary nav) ----- */
+        .admin-theme-toggle {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 4px 12px 4px 6px;
+          border-radius: 999px;
+          border: 1px solid rgba(15, 23, 42, 0.06);
+          background: rgba(255, 255, 255, 0.6);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          color: var(--cpp-ink);
+          font-size: 12.5px;
+          font-weight: 700;
+          letter-spacing: 0.01em;
+          cursor: pointer;
+          transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease, transform 160ms ease;
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 2px 6px rgba(15, 23, 42, 0.04);
+        }
+        .admin-theme-toggle:hover {
+          border-color: rgba(15, 23, 42, 0.12);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 8px 18px rgba(15, 23, 42, 0.08);
+          background: rgba(255, 255, 255, 0.86);
+          transform: translateY(-1px);
+        }
+        .admin-theme-toggle:focus-visible {
+          outline: none;
+          border-color: rgba(59, 130, 246, 0.6);
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22);
+        }
+        .admin-theme-toggle-track {
+          position: relative;
+          width: 44px;
+          height: 22px;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+          box-shadow:
+            inset 0 1px 2px rgba(0, 0, 0, 0.18),
+            0 1px 0 rgba(255, 255, 255, 0.3);
+          transition: background 220ms ease;
+          flex-shrink: 0;
+        }
+        .admin-theme-toggle[aria-checked="true"] .admin-theme-toggle-track {
+          background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+        .admin-theme-toggle-thumb {
+          position: absolute;
+          top: 2px;
+          left: 2px;
+          width: 18px;
+          height: 18px;
+          border-radius: 999px;
+          background: #ffffff;
+          box-shadow:
+            0 1px 2px rgba(0, 0, 0, 0.25),
+            0 0 0 1px rgba(0, 0, 0, 0.04);
+          transform: translateX(0);
+          transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .admin-theme-toggle[aria-checked="true"] .admin-theme-toggle-thumb {
+          transform: translateX(22px);
+          background: #f1f5fb;
+        }
+        .admin-theme-toggle-icon {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          color: #ffffff;
+          opacity: 0.95;
+          pointer-events: none;
+          transition: opacity 200ms ease;
+        }
+        .admin-theme-toggle-icon--sun {
+          left: 4px;
+        }
+        .admin-theme-toggle-icon--moon {
+          right: 4px;
+        }
+        .admin-theme-toggle[aria-checked="true"] .admin-theme-toggle-icon--sun {
+          opacity: 0.35;
+        }
+        .admin-theme-toggle:not([aria-checked="true"]) .admin-theme-toggle-icon--moon {
+          opacity: 0.35;
+        }
+        .admin-theme-toggle-label {
+          font-size: 12px;
+          font-weight: 700;
+          color: var(--cpp-ink);
+          letter-spacing: 0.02em;
+          min-width: 28px;
+          text-align: left;
+        }
+        @media (max-width: 720px) {
+          .admin-theme-toggle-label { display: none; }
+          .admin-theme-toggle { padding: 4px 6px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .admin-theme-toggle-thumb,
+          .admin-theme-toggle-track,
+          .admin-theme-toggle-icon { transition: none; }
+        }
+        :root[data-theme="dark"] .admin-theme-toggle {
+          background: rgba(20, 30, 50, 0.7);
+          border-color: rgba(148, 163, 184, 0.18);
+          color: var(--cpp-ink);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 4px 10px rgba(2, 6, 18, 0.40);
+        }
+        :root[data-theme="dark"] .admin-theme-toggle:hover {
+          background: rgba(28, 40, 65, 0.9);
+          border-color: rgba(148, 163, 184, 0.32);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 10px 22px rgba(2, 6, 18, 0.55);
+        }
+        :root[data-theme="dark"] .admin-theme-toggle-label {
+          color: var(--cpp-ink);
+        }
+        :root[data-theme="dark"] .admin-theme-toggle:focus-visible {
+          border-color: rgba(96, 165, 250, 0.6);
+          box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.30);
         }
 
         @media (max-width: 920px) {
@@ -3102,9 +3666,26 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           opacity: 0.6;
         }
 
+        :root[data-theme="dark"] .admin-user-button {
+          background: rgba(20, 30, 50, 0.7);
+          border-color: rgba(148, 163, 184, 0.18);
+          color: var(--cpp-ink);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 4px 10px rgba(2, 6, 18, 0.40);
+        }
         :root[data-theme="dark"] .admin-user-button:hover,
         :root[data-theme="dark"] .admin-user-menu.is-open .admin-user-button {
-          background: #1a2436;
+          background: rgba(28, 40, 65, 0.92);
+          border-color: rgba(148, 163, 184, 0.32);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 10px 22px rgba(2, 6, 18, 0.55);
+        }
+        :root[data-theme="dark"] .admin-user-avatar {
+          background: rgba(148, 163, 184, 0.10);
+          border-color: rgba(148, 163, 184, 0.18);
+          color: var(--cpp-muted);
+        }
+        :root[data-theme="dark"] .admin-user-button:focus-visible {
+          border-color: rgba(96, 165, 250, 0.6);
+          box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.30);
         }
 
         :root[data-theme="dark"] .admin-user-profile {
@@ -3332,6 +3913,51 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
             ) : null}
           </div>
           <div className="admin-topbar-actions">
+            <button
+              type="button"
+              className="admin-theme-toggle"
+              role="switch"
+              aria-checked={theme === 'dark'}
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              <span className="admin-theme-toggle-track" aria-hidden="true">
+                <span className="admin-theme-toggle-icon admin-theme-toggle-icon--sun">
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="13"
+                    height="13"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="4" />
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                  </svg>
+                </span>
+                <span className="admin-theme-toggle-icon admin-theme-toggle-icon--moon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="13"
+                    height="13"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                  </svg>
+                </span>
+                <span className="admin-theme-toggle-thumb" />
+              </span>
+              <span className="admin-theme-toggle-label">
+                {theme === 'dark' ? 'Dark' : 'Light'}
+              </span>
+            </button>
             <div className={`admin-user-menu${isUserMenuOpen ? ' is-open' : ''}`} ref={userMenuRef}>
               <button
                 type="button"
