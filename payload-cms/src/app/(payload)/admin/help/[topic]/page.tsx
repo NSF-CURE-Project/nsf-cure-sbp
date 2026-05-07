@@ -152,7 +152,7 @@ function GettingStartedContent() {
       <DocSection id="access" title="Access & Sign-in">
         <BulletList
           items={[
-            <>Admin URL (local dev): <Code>http://admin.sbp.local:3000/admin</Code></>,
+            <>Admin URL: your deployment&apos;s <Code>/admin</Code> path (e.g. <Code>http://localhost:3000/admin</Code> in local dev, or your Railway domain in prod).</>,
             <>Sign in with a <Code>users</Code> account — admin, staff, or professor role.</>,
             <>Forgot password? Use the forgot-password flow on the web app or ask an admin to reset it in <InlineLink href="/admin/collections/users">Users</InlineLink>.</>,
           ]}
@@ -294,27 +294,39 @@ function CoursesContent() {
         </Note>
       </DocSection>
 
-      <DocSection id="lesson-editor" title="Lesson Editor Tabs">
+      <DocSection id="lesson-editor" title="Lesson Editor">
+        <p style={{ color: 'var(--cpp-muted)', fontSize: 13, lineHeight: 1.6, marginBottom: 8 }}>
+          Lessons render a single <strong>Content</strong> tab. Lesson body, quizzes, and problem sets all live inside the <Code>Page Layout</Code> blocks field — there is no separate Assessment tab.
+        </p>
         <div style={{ display: 'grid', gap: 9 }}>
           <div style={card}>
             <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Content tab</div>
             <BulletList
               items={[
-                'Page layout blocks — lesson body content',
-                'Lesson order — managed via reorder list',
-                'Lesson Feedback panel — read student feedback and save staff replies',
+                <><Code>Page Layout</Code> — the ordered block list that renders the lesson body.</>,
+                'Lesson order — managed via the reorder list on the Courses Dashboard.',
+                'Lesson Feedback panel — read student feedback and save staff replies inline.',
               ]}
             />
           </div>
           <div style={card}>
-            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Assessment tab</div>
-            <BulletList
+            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Attaching a quiz to a lesson</div>
+            <StepList
               items={[
-                'Attach quiz',
-                'Show answers after submit',
-                'Max attempts',
-                'Lesson-specific time limit override',
-                'Quiz preview',
+                <>In the lesson&apos;s <Code>Page Layout</Code>, add a <strong>Quiz</strong> block.</>,
+                <>Pick a quiz in the <Code>quiz</Code> relationship field.</>,
+                <>Set <Code>showAnswers</Code> (after submit) and <Code>maxAttempts</Code> on the block — these override the quiz defaults for this lesson.</>,
+                <>Save draft, preview, then publish when ready.</>,
+              ]}
+            />
+          </div>
+          <div style={card}>
+            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Attaching a problem set to a lesson</div>
+            <StepList
+              items={[
+                <>Add a <strong>Problem Set</strong> block to <Code>Page Layout</Code>.</>,
+                <>Pick the set in the <Code>problemSet</Code> relationship field.</>,
+                <>Override <Code>showAnswers</Code> / <Code>maxAttempts</Code> at the block level if you need different behavior than the set&apos;s defaults.</>,
               ]}
             />
           </div>
@@ -673,19 +685,24 @@ function SiteManagementContent() {
 
       <DocSection id="admin-help-settings" title="Admin Help Content">
         <p style={{ color: 'var(--cpp-muted)', fontSize: 13, lineHeight: 1.6, marginBottom: 8 }}>
-          Edit the help portal content at <InlineLink href="/admin/globals/admin-help">Admin Help Settings</InlineLink>.
+          Edit the help portal content at <InlineLink href="/admin/globals/admin-help">Admin Help Settings</InlineLink>. Both <Code>admin</Code> and <Code>staff</Code> roles can update it.
         </p>
-        <Note>Admin Help is currently admin-only to update.</Note>
         <BulletList
           items={[
             'Title and subtitle shown on the help hub.',
-            'Quick actions — card links in the help portal.',
-            'FAQ items — accordion questions and answers.',
-            'Support email and response target.',
-            'Resource cards.',
-            'Rich text body for program-specific guidance.',
+            'FAQ items — accordion questions and answers shown on the hub.',
+            'Support email, response target, and support-request link (used by both the hub and per-topic pages).',
+            <>Per-topic content overrides — see the <Code>helpTopics</Code> array. Add an entry for any topic to override its built-in sections with CMS-authored content.</>,
+            <>Topic cards (<Code>title</Code>, <Code>description</Code>, <Code>primaryLinks</Code>) are still hardcoded in <Code>src/lib/adminHelpDocs.ts</Code> — only section content is overridable from this global.</>,
+            <>The <Code>quickActions</Code>, <Code>topicChips</Code>, <Code>resources</Code>, and <Code>body</Code> fields exist on the global but aren&apos;t currently rendered by the help page — treat them as reserved.</>,
           ]}
         />
+      </DocSection>
+
+      <DocSection id="settings" title="Settings menu">
+        <p style={{ color: 'var(--cpp-muted)', fontSize: 13, lineHeight: 1.6, marginBottom: 8 }}>
+          <Code>/admin/settings</Code> redirects to <InlineLink href="/admin/site-management">Site Management</InlineLink>. There is no separate Settings page — globals (Site Branding, Footer, Admin Help) are grouped under the <strong>Settings</strong> sidebar group inside the standard collection-list UI.
+        </p>
       </DocSection>
 
       <DocSection id="site-links" title="Quick Links">
@@ -721,7 +738,7 @@ function TroubleshootingContent() {
           items={[
             <>Click <strong>Edit</strong> in the top-right of the document or global page.</>,
             <>If still locked, check your role in <InlineLink href="/admin/collections/users">Users</InlineLink> — some fields require admin.</>,
-            <><strong>Admin Help</strong> global is admin-only to update.</>,
+            <>Most globals (<strong>Footer</strong>, <strong>Admin Help</strong>, <strong>Site Branding</strong>) accept updates from <Code>admin</Code> or <Code>staff</Code>; user role assignment in <strong>Users</strong> remains admin-only.</>,
           ]}
         />
       </DocSection>
@@ -751,7 +768,12 @@ function TroubleshootingContent() {
             <><InlineLink href="/admin">Return to Dashboard</InlineLink> and use the primary action buttons.</>,
             <><InlineLink href="/admin/courses">Manage Courses</InlineLink> — course/chapter/lesson work.</>,
             <><InlineLink href="/admin/quiz-bank">Open Quiz Bank</InlineLink> — quiz creation and assignment.</>,
-            <><InlineLink href="/admin/site-management">Site Management</InlineLink> — pages and footer.</>,
+            <><InlineLink href="/admin/question-bank">Question Bank</InlineLink> — searchable question library + per-question stats.</>,
+            <><InlineLink href="/admin/student-performance">Student Performance</InlineLink> — cohort KPIs.</>,
+            <><InlineLink href="/admin/user-analytics">User Analytics</InlineLink> — per-student drill-down.</>,
+            <><InlineLink href="/admin/concepts">Concept Library</InlineLink> — concept ontology.</>,
+            <><InlineLink href="/admin/pre-post">Pre/Post Workspace</InlineLink> — normalized-gain pairs.</>,
+            <><InlineLink href="/admin/site-management">Site Management</InlineLink> — pages, footer, and other globals (settings redirects here).</>,
             <><InlineLink href="/admin/reporting">Reporting Center</InlineLink> — RPPR workspace.</>,
           ]}
         />
@@ -776,7 +798,9 @@ function TroubleshootingContent() {
                 <><InlineLink href="/admin/collections/lessons">Lessons</InlineLink></>,
                 <><InlineLink href="/admin/collections/quizzes">Quizzes</InlineLink></>,
                 <><InlineLink href="/admin/collections/quiz-questions">Quiz Questions</InlineLink></>,
-                <>Globals: <InlineLink href="/admin/globals/footer">Footer</InlineLink>, <InlineLink href="/admin/globals/admin-help">Admin Help</InlineLink></>,
+                <><InlineLink href="/admin/collections/problems">Problems</InlineLink></>,
+                <><InlineLink href="/admin/collections/problem-sets">Problem Sets</InlineLink></>,
+                <>Globals: <InlineLink href="/admin/globals/footer">Footer</InlineLink>, <InlineLink href="/admin/globals/site-branding">Site Branding</InlineLink></>,
               ]}
             />
           </div>
@@ -786,11 +810,182 @@ function TroubleshootingContent() {
               items={[
                 'Classes, Chapters',
                 'Classrooms, Classroom Memberships',
+                'Concepts, Pre/Post Assessments',
                 'Student support records (questions, feedback, progress, attempts, notifications)',
+                <>Global: <InlineLink href="/admin/globals/admin-help">Admin Help</InlineLink></>,
               ]}
             />
           </div>
         </div>
+      </DocSection>
+    </>
+  )
+}
+
+function ConceptsContent() {
+  return (
+    <>
+      <DocSection id="overview" title="What concepts are for">
+        <p style={{ color: 'var(--cpp-muted)', fontSize: 13, lineHeight: 1.6, marginBottom: 8 }}>
+          Concepts are the atomic-skill ontology. Tag a question, lesson, or problem with a concept so analytics, mastery, and remediation all hang off the same vocabulary.
+        </p>
+        <BulletList
+          items={[
+            <>Browse and create at <InlineLink href="/admin/concepts">Concept Library</InlineLink>.</>,
+            <>Edit individual records in <InlineLink href="/admin/collections/concepts">Concepts collection</InlineLink>.</>,
+            <>The <Code>slug</Code> field auto-derives from <Code>name</Code>; manual overrides are slugified before save.</>,
+          ]}
+        />
+      </DocSection>
+
+      <DocSection id="creating" title="Creating a concept">
+        <StepList
+          items={[
+            <>Open <InlineLink href="/admin/collections/concepts/create">Create Concept</InlineLink>.</>,
+            <>Fill <Code>name</Code> (the slug auto-fills) and pick a <Code>subject</Code>.</>,
+            <>Optional: add a description, parent concept (for hierarchies), and any prerequisite concepts.</>,
+            <>Save. Read access is public; create/update/delete require admin, staff, or professor.</>,
+          ]}
+        />
+      </DocSection>
+
+      <DocSection id="tagging" title="Tagging content with concepts">
+        <BulletList
+          items={[
+            <>On a quiz question, set the <Code>concepts</Code> relationship to one or more concept records.</>,
+            <>On a lesson or problem, the same <Code>concepts</Code> field exists for analytics rollups.</>,
+            <>Concept tags drive the per-question and per-quiz stats surfaces under <InlineLink href="/admin/question-stats">Question Stats</InlineLink> / <InlineLink href="/admin/quiz-stats">Quiz Stats</InlineLink>.</>,
+          ]}
+        />
+        <Note>
+          A concept that has been tagged on existing content cannot be deleted without first un-tagging it from those records — the relationship is enforced.
+        </Note>
+      </DocSection>
+    </>
+  )
+}
+
+function PrePostContent() {
+  return (
+    <>
+      <DocSection id="overview" title="Why pre/post pairs">
+        <p style={{ color: 'var(--cpp-muted)', fontSize: 13, lineHeight: 1.6, marginBottom: 8 }}>
+          A pre/post pair measures learning gain on the same construct. The platform produces a normalized-gain (Hake) report from each pair so you can quote a clean before/after number in NSF narratives.
+        </p>
+        <BulletList
+          items={[
+            <>Browse pairs at <InlineLink href="/admin/pre-post">Pre/Post Workspace</InlineLink>.</>,
+            <>Edit records in <InlineLink href="/admin/collections/pre-post-assessments">Pre/Post Assessments</InlineLink>.</>,
+            <>Create/update/delete is restricted to admin, staff, or professor.</>,
+          ]}
+        />
+      </DocSection>
+
+      <DocSection id="creating" title="Creating a pre/post pair">
+        <StepList
+          items={[
+            <>First publish two quizzes that target the same construct (a pre version and a post version).</>,
+            <>Open <InlineLink href="/admin/collections/pre-post-assessments/create">Create Pair</InlineLink>.</>,
+            <>Set <Code>title</Code> and an optional <Code>description</Code>.</>,
+            <>Pick <Code>preQuiz</Code> and <Code>postQuiz</Code> from the Quizzes relationship picker.</>,
+            <>Optional: scope to a specific <Code>classroom</Code> and tag with <Code>concepts</Code> for the gain rollup.</>,
+            <>Save. The Pre/Post Workspace will start surfacing the pair&apos;s gain once enough students complete both quizzes.</>,
+          ]}
+        />
+      </DocSection>
+
+      <DocSection id="reading-results" title="Reading the gain report">
+        <BulletList
+          items={[
+            'Each pair surfaces N (matched students), pre mean, post mean, raw gain, and normalized (Hake) gain.',
+            'Only students who completed both the pre and the post are included in the matched-pairs gain.',
+            'Gain shown as "—" means insufficient matched attempts yet, not a zero gain.',
+          ]}
+        />
+      </DocSection>
+    </>
+  )
+}
+
+function AnalyticsContent() {
+  return (
+    <>
+      <DocSection id="overview" title="Three analytics surfaces">
+        <p style={{ color: 'var(--cpp-muted)', fontSize: 13, lineHeight: 1.6, marginBottom: 8 }}>
+          The admin has three distinct analytics workspaces — pick by the question you&apos;re trying to answer:
+        </p>
+        <div style={{ display: 'grid', gap: 7 }}>
+          {[
+            {
+              label: 'Student Performance',
+              href: '/admin/student-performance',
+              desc: 'Cohort-level KPIs: active students, median score, score variability, average quiz score, published lesson count.',
+            },
+            {
+              label: 'User Analytics',
+              href: '/admin/user-analytics',
+              desc: 'Per-student drill-down: pick a student, see their recent quiz and problem-set attempts and timestamps.',
+            },
+            {
+              label: 'Question Bank',
+              href: '/admin/question-bank',
+              desc: 'Searchable question library with type / difficulty / Bloom / concept filters. Jump to per-question stats from any row.',
+            },
+          ].map(({ label, href, desc }) => (
+            <div key={href} style={{ ...card, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 13 }}>{label}</div>
+                <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>{desc}</div>
+              </div>
+              <Link href={href} style={{ textDecoration: 'none', fontSize: 12, fontWeight: 700, padding: '5px 10px', borderRadius: 7, background: '#111827', color: '#f8fafc', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                Open →
+              </Link>
+            </div>
+          ))}
+        </div>
+      </DocSection>
+
+      <DocSection id="cohort" title="Reading Student Performance">
+        <BulletList
+          items={[
+            <><strong>Active students</strong> — anyone with activity in the last 30 days.</>,
+            <><strong>Median score</strong> — the middle student&apos;s aggregate score; resistant to outliers.</>,
+            <><strong>Score variability</strong> — spread across the cohort; widening variance often signals a struggling sub-group.</>,
+            <><strong>Avg quiz score</strong> — average of all quiz attempts in scope.</>,
+            <><strong>Published lessons</strong> — denominator for completion percentages.</>,
+          ]}
+        />
+      </DocSection>
+
+      <DocSection id="per-student" title="Per-student drill-down">
+        <StepList
+          items={[
+            <>Open <InlineLink href="/admin/user-analytics">User Analytics</InlineLink>.</>,
+            'Filter the student list by name or email; the count badge shows filtered / total.',
+            'Click into a student to see recent quiz attempts and recent problem-set attempts side by side.',
+            <>Use this when investigating a specific student&apos;s flag or a parent/professor escalation.</>,
+          ]}
+        />
+      </DocSection>
+
+      <DocSection id="question-stats" title="Question and quiz stats">
+        <BulletList
+          items={[
+            <>From the <InlineLink href="/admin/question-bank">Question Bank</InlineLink>, click into a question to open <InlineLink href="/admin/question-stats">Question Stats</InlineLink> — accuracy, attempt count, distractor histogram.</>,
+            <>From a quiz, jump to <InlineLink href="/admin/quiz-stats">Quiz Stats</InlineLink> for completion rate, average score, and per-question breakdowns.</>,
+            'Concept tags on questions roll up here automatically — that’s the payoff for tagging discipline.',
+          ]}
+        />
+      </DocSection>
+
+      <DocSection id="filter-tips" title="Filter / search tips">
+        <BulletList
+          items={[
+            <>Question Bank search matches title, topic, and tag substrings.</>,
+            <>Filter pills are exclusive within their group (one type, one difficulty, one Bloom level) but combine across groups.</>,
+            <>The cohort filters in Reporting Center are separate — see <InlineLink href="/admin/help/reporting">NSF Reporting</InlineLink> for those.</>,
+          ]}
+        />
       </DocSection>
     </>
   )
@@ -810,7 +1005,7 @@ const TOPIC_TOC: Record<string, { id: string; label: string }[]> = {
     { id: 'overview', label: 'Course Structure' },
     { id: 'courses-dashboard', label: 'Courses Dashboard' },
     { id: 'creating', label: 'Creating Content' },
-    { id: 'lesson-editor', label: 'Lesson Editor Tabs' },
+    { id: 'lesson-editor', label: 'Lesson Editor' },
     { id: 'draft-publish', label: 'Draft & Publish' },
   ],
   quizzes: [
@@ -833,6 +1028,23 @@ const TOPIC_TOC: Record<string, { id: string; label: string }[]> = {
     { id: 'memberships', label: 'Memberships & Enrollment' },
     { id: 'classrooms-nav', label: 'Quick Links' },
   ],
+  concepts: [
+    { id: 'overview', label: 'What concepts are for' },
+    { id: 'creating', label: 'Creating a concept' },
+    { id: 'tagging', label: 'Tagging content' },
+  ],
+  'pre-post': [
+    { id: 'overview', label: 'Why pre/post pairs' },
+    { id: 'creating', label: 'Creating a pair' },
+    { id: 'reading-results', label: 'Reading the gain report' },
+  ],
+  analytics: [
+    { id: 'overview', label: 'Three analytics surfaces' },
+    { id: 'cohort', label: 'Student Performance' },
+    { id: 'per-student', label: 'Per-student drill-down' },
+    { id: 'question-stats', label: 'Question and quiz stats' },
+    { id: 'filter-tips', label: 'Filter / search tips' },
+  ],
   reporting: [
     { id: 'rppr-workflow', label: 'RPPR Workflow' },
     { id: 'exports', label: 'Available Exports' },
@@ -843,6 +1055,7 @@ const TOPIC_TOC: Record<string, { id: string; label: string }[]> = {
     { id: 'pages', label: 'Managing Pages' },
     { id: 'footer', label: 'Footer Settings' },
     { id: 'admin-help-settings', label: 'Admin Help Content' },
+    { id: 'settings', label: 'Settings menu' },
     { id: 'site-links', label: 'Quick Links' },
   ],
   troubleshooting: [
@@ -862,6 +1075,9 @@ function renderTopicContent(topicId: string): React.ReactNode {
     case 'quizzes': return <QuizzesContent />
     case 'student-support': return <StudentSupportContent />
     case 'classrooms': return <ClassroomsContent />
+    case 'concepts': return <ConceptsContent />
+    case 'pre-post': return <PrePostContent />
+    case 'analytics': return <AnalyticsContent />
     case 'reporting': return <ReportingContent />
     case 'site-management': return <SiteManagementContent />
     case 'troubleshooting': return <TroubleshootingContent />
@@ -965,6 +1181,9 @@ export default async function HelpTopicPage({ params }: Props) {
   const cmsTopic = cmsTopics.find((t) => t.topicId === topic.id)
   const cmsSections: CmsSection[] = cmsTopic?.sections ?? []
   const hasCmsContent = cmsSections.length > 0
+  const supportRequestHref =
+    (typeof helpAny?.supportRequestHref === 'string' ? helpAny.supportRequestHref.trim() : '') ||
+    '/admin/collections/feedback/create'
 
   // TOC: prefer CMS anchors, fall back to hardcoded
   const toc = hasCmsContent
@@ -1168,7 +1387,7 @@ export default async function HelpTopicPage({ params }: Props) {
                 For blockers or data issues, contact support with a screenshot and URL.
               </p>
               <Link
-                href="/admin/collections/feedback/create"
+                href={supportRequestHref}
                 style={{
                   textDecoration: 'none',
                   display: 'block',

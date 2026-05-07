@@ -50,7 +50,7 @@ export const AdminHelp: GlobalConfig = {
       ],
       admin: {
         description:
-          'JSON array: [{ "label": string, "desc": string, "href": string }].',
+          'JSON array: [{ "label": string, "desc": string, "href": string }]. Reserved — not currently rendered on the help page.',
       },
     },
     {
@@ -59,7 +59,8 @@ export const AdminHelp: GlobalConfig = {
       type: 'json',
       defaultValue: ['Reporting', 'Courses', 'Classrooms', 'Quizzes', 'Troubleshooting'],
       admin: {
-        description: 'JSON array of strings for topic tags.',
+        description:
+          'JSON array of strings. Reserved — not currently rendered on the help page.',
       },
     },
     {
@@ -126,13 +127,16 @@ export const AdminHelp: GlobalConfig = {
       ],
       admin: {
         description:
-          'JSON array: [{ "label": string, "desc": string, "href": string }].',
+          'JSON array: [{ "label": string, "desc": string, "href": string }]. Reserved — not currently rendered on the help page.',
       },
     },
     {
       name: 'body',
       label: 'Help content',
       type: 'richText',
+      admin: {
+        description: 'Reserved — not currently rendered on the help page.',
+      },
     },
     {
       name: 'helpTopics',
@@ -155,6 +159,9 @@ export const AdminHelp: GlobalConfig = {
             { label: 'Quiz Bank', value: 'quizzes' },
             { label: 'Student Support', value: 'student-support' },
             { label: 'Classrooms', value: 'classrooms' },
+            { label: 'Concepts', value: 'concepts' },
+            { label: 'Pre/Post Assessments', value: 'pre-post' },
+            { label: 'Analytics & Performance', value: 'analytics' },
             { label: 'NSF Reporting', value: 'reporting' },
             { label: 'Site Management', value: 'site-management' },
             { label: 'Troubleshooting', value: 'troubleshooting' },

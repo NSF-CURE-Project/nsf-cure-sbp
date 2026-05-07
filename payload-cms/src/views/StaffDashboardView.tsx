@@ -1568,10 +1568,6 @@ const StaffDashboardContent = ({
           />
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)',
-              gap: 18,
-              alignItems: 'center',
               position: 'relative',
             }}
             className="admin-dashboard-hero-grid"
@@ -1648,84 +1644,6 @@ const StaffDashboardContent = ({
                 </span>{' '}
                 Manage program content, access analytics, and support students.
               </p>
-            </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                gap: 8,
-              }}
-              className="admin-dashboard-hero-stats"
-            >
-              {[
-                {
-                  label: 'Active (7d)',
-                  value: `${stats.activeStudents}`,
-                  icon: <UsersIcon size={14} color="#1553cf" />,
-                  tone: 'rgba(21, 83, 207, 0.08)',
-                },
-                {
-                  label: 'Lessons',
-                  value: `${stats.publishedLessons}`,
-                  icon: <BookOpenIcon size={14} color="#0891b2" />,
-                  tone: 'rgba(8, 145, 178, 0.08)',
-                },
-                {
-                  label: 'Completion',
-                  value:
-                    stats.avgCompletion != null
-                      ? `${Math.round(stats.avgCompletion * 100)}%`
-                      : '—',
-                  icon: <BarChartIcon size={14} color="#0d9488" />,
-                  tone: 'rgba(13, 148, 136, 0.08)',
-                },
-              ].map((kpi, idx) => (
-                <div
-                  key={kpi.label}
-                  className="dashboard-fade-in"
-                  style={{
-                    background: kpi.tone,
-                    border: '1px solid rgba(15, 23, 42, 0.05)',
-                    borderRadius: 12,
-                    padding: '8px 10px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 2,
-                    minWidth: 0,
-                    animationDelay: `${40 + idx * 50}ms`,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      fontSize: 10,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.6,
-                      color: 'var(--cpp-muted)',
-                      fontWeight: 700,
-                    }}
-                  >
-                    {kpi.icon}
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {kpi.label}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 20,
-                      fontWeight: 800,
-                      color: 'var(--cpp-ink)',
-                      lineHeight: 1,
-                      letterSpacing: -0.4,
-                      fontVariantNumeric: 'tabular-nums',
-                    }}
-                  >
-                    {kpi.value}
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
