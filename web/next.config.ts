@@ -106,6 +106,12 @@ const nextConfig: NextConfig = {
       ? "'self' 'unsafe-inline'"
       : "'self' 'unsafe-inline' 'unsafe-eval'";
 
+    // Allow the Payload admin to embed this site in its live-preview iframe.
+    // Falls back to 'self' if NEXT_PUBLIC_CMS_URL is not configured.
+    const frameAncestors = cmsHostFromEnv
+      ? `'self' ${cmsHostFromEnv}`
+      : "'self'";
+
     const csp = [
       "default-src 'self'",
       `script-src ${scriptSrc}`,
@@ -114,7 +120,7 @@ const nextConfig: NextConfig = {
       `img-src 'self' data: blob: https://i.ytimg.com${cmsHostFromEnv ? ` ${cmsHostFromEnv}` : ""}`,
       `connect-src 'self'${cmsHostFromEnv ? ` ${cmsHostFromEnv}` : ""}`,
       "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
-      "frame-ancestors 'none'",
+      `frame-ancestors ${frameAncestors}`,
       "form-action 'self'",
       "base-uri 'self'",
       "object-src 'none'",
@@ -132,7 +138,9 @@ const nextConfig: NextConfig = {
             value: "max-age=63072000; includeSubDomains; preload",
           },
           { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "X-Frame-Options", value: "DENY" },
+          // X-Frame-Options is intentionally omitted; CSP frame-ancestors is
+          // the modern equivalent and supports per-origin allow-listing for
+          // the admin live-preview iframe (XFO can't).
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
             key: "Permissions-Policy",
