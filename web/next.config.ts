@@ -98,6 +98,20 @@ const nextConfig: NextConfig = {
       // },
     ],
   },
+  headers: async () => [
+    {
+      source: "/:path*",
+      headers: [
+        {
+          // Tell browsers to use HTTPS only for cppsbp.org and every subdomain.
+          // Two-year max-age + preload qualifies for hstspreload.org once
+          // we're ready to submit.
+          key: "Strict-Transport-Security",
+          value: "max-age=63072000; includeSubDomains; preload",
+        },
+      ],
+    },
+  ],
   rewrites: async () => ({
     afterFiles: [
       {
