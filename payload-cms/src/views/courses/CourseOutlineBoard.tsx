@@ -88,9 +88,10 @@ export default function CourseOutlineBoard({
   const [deletingLessonId, setDeletingLessonId] = useState<EntityId | null>(null)
   const [deletingChapterId, setDeletingChapterId] = useState<EntityId | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [reorderMode, setReorderMode] = useState(false)
   const deleteErrorRef = useRef<HTMLDivElement | null>(null)
 
-  const committedRef = useRef<CourseNode[]>(normalizeCourseOrders([initialCourse]))
+  const committedRef = useRef<CourseNode[]>(courses)
   const saveQueueRef = useRef(Promise.resolve())
   const saveStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -271,7 +272,7 @@ export default function CourseOutlineBoard({
       const nextCourses: CourseNode[] = [{ ...courses[0], chapters: nextChapters }]
       const next = normalizeCourseOrders(nextCourses)
       setCourses(next)
-      enqueuePersist({ type: 'chapter', previous, next })
+      if (!reorderMode) enqueuePersist({ type: 'chapter', previous, next })
       return
     }
 
@@ -304,7 +305,8 @@ export default function CourseOutlineBoard({
         )
         const next = normalizeCourseOrders(nextCourses)
         setCourses(next)
-        enqueuePersist({ type: 'lesson', previous, next, chapterIds: [source.chapterId] })
+        if (!reorderMode)
+          enqueuePersist({ type: 'lesson', previous, next, chapterIds: [source.chapterId] })
         return
       }
 
@@ -328,13 +330,50 @@ export default function CourseOutlineBoard({
 
       const next = normalizeCourseOrders(nextCourses)
       setCourses(next)
-      enqueuePersist({
-        type: 'lesson',
-        previous,
-        next,
-        chapterIds: Array.from(new Set([source.chapterId, targetChapter.id])),
-      })
+      if (!reorderMode)
+        enqueuePersist({
+          type: 'lesson',
+          previous,
+          next,
+          chapterIds: Array.from(new Set([source.chapterId, targetChapter.id])),
+        })
     }
+  }
+
+  const persistCurrentReorder = async () => {
+    setStatus('saving')
+    try {
+      const previousChapters = committedRef.current[0]?.chapters ?? []
+      const nextChapters = courses[0]?.chapters ?? []
+      const changedChapters = getChangedChapters(previousChapters, nextChapters)
+      if (changedChapters.length) await saveChapterOrder(changedChapters)
+
+      const allChapterIds = nextChapters.map((chapter) => chapter.id)
+      const previousLessons = flattenLessonsByChapter(committedRef.current[0], allChapterIds)
+      const nextLessons = flattenLessonsByChapter(courses[0], allChapterIds)
+      const changedLessons = getChangedLessons(previousLessons, nextLessons)
+      if (changedLessons.length) await saveLessonPositions(changedLessons)
+
+      committedRef.current = courses
+      setSavedStatus()
+      return true
+    } catch (_error) {
+      setCourses(committedRef.current)
+      setStatus('error')
+      if (saveStatusTimerRef.current) clearTimeout(saveStatusTimerRef.current)
+      return false
+    }
+  }
+
+  const handleSaveReorder = async () => {
+    const success = await persistCurrentReorder()
+    if (success) setReorderMode(false)
+  }
+
+  const handleCancelReorder = () => {
+    setCourses(committedRef.current)
+    setReorderMode(false)
+    setStatus('idle')
   }
 
   const overlayLabel =
@@ -346,21 +385,40 @@ export default function CourseOutlineBoard({
             .find((lesson) => lesson.id === activeMeta.lessonId)?.title
         : null
 
+  const hasPendingReorder = courses !== committedRef.current
+
   return (
-    <div className="grid gap-3">
+    <div className="grid gap-3 pb-20">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-xs text-[var(--cpp-muted)]">
           {counts.chapterCount} chapter{counts.chapterCount === 1 ? '' : 's'} ·{' '}
           {counts.lessonCount} lesson{counts.lessonCount === 1 ? '' : 's'}
+          {reorderMode ? (
+            <span className="ml-2 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-sky-800">
+              Reorder mode
+            </span>
+          ) : null}
         </div>
         <div className="flex items-center gap-2">
           <SaveStatusIndicator status={status} />
-          <Link
-            href={`/admin/collections/chapters/create?class=${course.id}`}
-            className="rounded-md bg-slate-900 px-3 py-2 text-xs font-semibold text-white no-underline"
-          >
-            Add chapter
-          </Link>
+          {reorderMode ? null : (
+            <>
+              <button
+                type="button"
+                onClick={() => setReorderMode(true)}
+                disabled={counts.chapterCount === 0}
+                className="rounded-md border border-[var(--admin-surface-border)] px-3 py-2 text-xs font-semibold text-[var(--cpp-ink)] hover:bg-[var(--admin-surface-muted)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Reorder
+              </button>
+              <Link
+                href={`/admin/collections/chapters/create?class=${course.id}`}
+                className="rounded-md bg-slate-900 px-3 py-2 text-xs font-semibold text-white no-underline hover:bg-slate-800"
+              >
+                Add chapter
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
@@ -400,6 +458,7 @@ export default function CourseOutlineBoard({
                   chapterDropTargetId={chapterDropTargetId}
                   deleting={deletingChapterId === chapter.id}
                   deletingLessonId={deletingLessonId}
+                  reorderMode={reorderMode}
                   onDeleteChapter={handleDeleteChapter}
                   onDeleteLesson={handleDeleteLesson}
                 />
@@ -418,6 +477,39 @@ export default function CourseOutlineBoard({
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      {reorderMode ? (
+        <div
+          className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--admin-surface-border)] bg-[var(--admin-surface)] px-4 py-3 shadow-[0_-8px_20px_rgba(15,23,42,0.08)]"
+          role="region"
+          aria-label="Reorder mode toolbar"
+        >
+          <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-3">
+            <div className="text-xs text-[var(--cpp-muted)]">
+              Drag chapters and lessons to reorder.{' '}
+              {hasPendingReorder ? 'Unsaved changes — Save to apply.' : 'No changes yet.'}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleCancelReorder}
+                disabled={status === 'saving'}
+                className="rounded-md border border-[var(--admin-surface-border)] px-3 py-2 text-xs font-semibold text-[var(--cpp-ink)] hover:bg-[var(--admin-surface-muted)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveReorder}
+                disabled={!hasPendingReorder || status === 'saving'}
+                className="rounded-md bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {status === 'saving' ? 'Saving…' : 'Save order'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

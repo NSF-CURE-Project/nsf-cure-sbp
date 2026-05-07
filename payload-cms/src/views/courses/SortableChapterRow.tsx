@@ -20,6 +20,7 @@ type SortableChapterRowProps = {
   chapterDropTargetId: EntityId | null
   deleting: boolean
   deletingLessonId: EntityId | null
+  reorderMode: boolean
   onDeleteChapter: (chapter: ChapterNode) => void
   onDeleteLesson: (lesson: ChapterNode['lessons'][number]) => void
 }
@@ -32,6 +33,7 @@ export default function SortableChapterRow({
   chapterDropTargetId,
   deleting,
   deletingLessonId,
+  reorderMode,
   onDeleteChapter,
   onDeleteLesson,
 }: SortableChapterRowProps) {
@@ -68,12 +70,20 @@ export default function SortableChapterRow({
       }`}
     >
       <DropIndicator visible={chapterDropTargetId === chapter.id} />
-      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
-        <DragHandle
-          label={`Reorder chapter ${chapter.title}`}
-          listeners={sortable.listeners as Record<string, unknown>}
-          attributes={sortable.attributes as unknown as Record<string, unknown>}
-        />
+      <div className="group/row grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
+        <div
+          className={
+            reorderMode
+              ? 'opacity-100'
+              : 'opacity-30 transition group-hover/row:opacity-100 focus-within:opacity-100'
+          }
+        >
+          <DragHandle
+            label={`Reorder chapter ${chapter.title}`}
+            listeners={sortable.listeners as Record<string, unknown>}
+            attributes={sortable.attributes as unknown as Record<string, unknown>}
+          />
+        </div>
         <div className="min-w-0">
           <div className="truncate text-sm font-semibold text-[var(--cpp-ink)]">
             {chapter.title}
@@ -82,35 +92,37 @@ export default function SortableChapterRow({
             {chapter.lessons.length} lesson{chapter.lessons.length === 1 ? '' : 's'}
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <Link
-            href={`/admin/collections/lessons/create?chapter=${chapter.id}`}
-            className="rounded-md bg-slate-900 px-2 py-1 text-xs font-semibold text-white no-underline hover:bg-slate-800"
-            aria-label={`Add lesson to chapter ${chapter.title}`}
-          >
-            Add lesson
-          </Link>
-          <RowOverflowMenu
-            ariaLabel={`More actions for chapter ${chapter.title}`}
-            actions={
-              [
-                {
-                  kind: 'link',
-                  label: 'Edit chapter',
-                  href: `/admin/collections/chapters/${chapter.id}`,
-                },
-                {
-                  kind: 'button',
-                  label: 'Delete chapter',
-                  destructive: true,
-                  disabled: deleting,
-                  pendingLabel: 'Deleting…',
-                  onClick: () => onDeleteChapter(chapter),
-                },
-              ] satisfies OverflowAction[]
-            }
-          />
-        </div>
+        {reorderMode ? null : (
+          <div className="flex items-center gap-1.5">
+            <Link
+              href={`/admin/collections/lessons/create?chapter=${chapter.id}`}
+              className="rounded-md bg-slate-900 px-2 py-1 text-xs font-semibold text-white no-underline hover:bg-slate-800"
+              aria-label={`Add lesson to chapter ${chapter.title}`}
+            >
+              Add lesson
+            </Link>
+            <RowOverflowMenu
+              ariaLabel={`More actions for chapter ${chapter.title}`}
+              actions={
+                [
+                  {
+                    kind: 'link',
+                    label: 'Edit chapter',
+                    href: `/admin/collections/chapters/${chapter.id}`,
+                  },
+                  {
+                    kind: 'button',
+                    label: 'Delete chapter',
+                    destructive: true,
+                    disabled: deleting,
+                    pendingLabel: 'Deleting…',
+                    onClick: () => onDeleteChapter(chapter),
+                  },
+                ] satisfies OverflowAction[]
+              }
+            />
+          </div>
+        )}
       </div>
 
       <div className="border-t border-[var(--admin-surface-border)] bg-[var(--admin-surface-muted)] px-2 py-2">
@@ -129,6 +141,7 @@ export default function SortableChapterRow({
                   index={lessonIndex}
                   isDropTarget={lessonDropTargetId === lesson.id}
                   deleting={deletingLessonId === lesson.id}
+                  reorderMode={reorderMode}
                   onDelete={onDeleteLesson}
                 />
               ))
@@ -137,12 +150,14 @@ export default function SortableChapterRow({
             )}
           </SortableContext>
 
-          <Link
-            href={`/admin/collections/lessons/create?chapter=${chapter.id}`}
-            className="inline-flex w-fit rounded-md px-1 py-1 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:underline"
-          >
-            + Add lesson
-          </Link>
+          {reorderMode ? null : (
+            <Link
+              href={`/admin/collections/lessons/create?chapter=${chapter.id}`}
+              className="inline-flex w-fit rounded-md px-1 py-1 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:underline"
+            >
+              + Add lesson
+            </Link>
+          )}
         </div>
       </div>
     </div>

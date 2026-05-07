@@ -16,6 +16,7 @@ type SortableLessonRowProps = {
   index: number
   isDropTarget: boolean
   deleting: boolean
+  reorderMode: boolean
   onDelete: (lesson: LessonNode) => void
 }
 
@@ -26,6 +27,7 @@ export default function SortableLessonRow({
   index,
   isDropTarget,
   deleting,
+  reorderMode,
   onDelete,
 }: SortableLessonRowProps) {
   const sortable = useSortable({
@@ -69,30 +71,40 @@ export default function SortableLessonRow({
       }`}
     >
       <DropIndicator visible={isDropTarget} />
-      <DragHandle
-        label={`Reorder lesson ${lesson.title}`}
-        listeners={sortable.listeners as Record<string, unknown>}
-        attributes={sortable.attributes as unknown as Record<string, unknown>}
-      />
+      <div
+        className={
+          reorderMode
+            ? 'opacity-100'
+            : 'opacity-30 transition group-hover:opacity-100 focus-within:opacity-100'
+        }
+      >
+        <DragHandle
+          label={`Reorder lesson ${lesson.title}`}
+          listeners={sortable.listeners as Record<string, unknown>}
+          attributes={sortable.attributes as unknown as Record<string, unknown>}
+        />
+      </div>
       <div className="min-w-0">
         <div className="truncate text-sm font-medium text-[var(--cpp-ink)]">{lesson.title}</div>
         <div className="truncate text-xs text-[var(--cpp-muted)]">
           Quiz: {lesson.quizTitle || 'Not assigned'}
         </div>
       </div>
-      <div className="flex items-center gap-1.5">
-        <Link
-          href={`/admin/collections/lessons/${lesson.id}`}
-          className="rounded-md border border-[var(--admin-surface-border)] px-2 py-1 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:bg-[var(--admin-surface-muted)]"
-          aria-label={`Edit lesson ${lesson.title}`}
-        >
-          Edit lesson
-        </Link>
-        <RowOverflowMenu
-          ariaLabel={`More actions for lesson ${lesson.title}`}
-          actions={overflowActions}
-        />
-      </div>
+      {reorderMode ? null : (
+        <div className="flex items-center gap-1.5">
+          <Link
+            href={`/admin/collections/lessons/${lesson.id}`}
+            className="rounded-md border border-[var(--admin-surface-border)] px-2 py-1 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:bg-[var(--admin-surface-muted)]"
+            aria-label={`Edit lesson ${lesson.title}`}
+          >
+            Edit lesson
+          </Link>
+          <RowOverflowMenu
+            ariaLabel={`More actions for lesson ${lesson.title}`}
+            actions={overflowActions}
+          />
+        </div>
+      )}
     </div>
   )
 }
