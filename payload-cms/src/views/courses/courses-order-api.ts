@@ -79,6 +79,13 @@ export const saveLessonPositions = async (lessons: LessonPositionUpdate[]) => {
   await Promise.all(updates)
 }
 
+export const updateCourseSettings = async (
+  courseId: EntityId,
+  data: { title?: string; slug?: string },
+) => {
+  await patch(`/api/classes/${courseId}`, data)
+}
+
 export const updateChapterTitle = async (chapterId: EntityId, title: string) => {
   await patch(`/api/chapters/${chapterId}`, { title })
 }

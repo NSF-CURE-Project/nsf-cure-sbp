@@ -2,8 +2,16 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import type { CourseNode } from './types'
 import CourseOutlineBoard from './CourseOutlineBoard'
+import {
+  LessonsTab,
+  PreviewTab,
+  PublishTab,
+  QuizzesTab,
+  SettingsTab,
+} from './WorkspaceTabs'
 
 type WorkspaceTab = 'outline' | 'lessons' | 'quizzes' | 'preview' | 'settings' | 'publish'
 
@@ -11,22 +19,24 @@ type CourseWorkspaceProps = {
   initialCourse: CourseNode
 }
 
-const tabs: { id: WorkspaceTab; label: string; ready: boolean }[] = [
-  { id: 'outline', label: 'Outline', ready: true },
-  { id: 'lessons', label: 'Lessons', ready: false },
-  { id: 'quizzes', label: 'Quizzes', ready: false },
-  { id: 'preview', label: 'Preview', ready: false },
-  { id: 'settings', label: 'Settings', ready: false },
-  { id: 'publish', label: 'Publish', ready: false },
+const tabs: { id: WorkspaceTab; label: string }[] = [
+  { id: 'outline', label: 'Outline' },
+  { id: 'lessons', label: 'Lessons' },
+  { id: 'quizzes', label: 'Quizzes' },
+  { id: 'preview', label: 'Preview' },
+  { id: 'settings', label: 'Settings' },
+  { id: 'publish', label: 'Publish' },
 ]
 
 export default function CourseWorkspace({ initialCourse }: CourseWorkspaceProps) {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('outline')
   const [course, setCourse] = useState<CourseNode>(initialCourse)
 
   const chapterCount = course.chapters.length
   const lessonCount = course.chapters.reduce((sum, chapter) => sum + chapter.lessons.length, 0)
   const status = chapterCount === 0 ? 'Empty' : 'Active'
+  const previewPath = course.slug ? `/classes/${course.slug}` : null
 
   return (
     <div className="grid gap-4">
@@ -64,22 +74,31 @@ export default function CourseWorkspace({ initialCourse }: CourseWorkspaceProps)
             >
               Edit details
             </Link>
-            <button
-              type="button"
-              disabled
-              className="rounded-md border border-[var(--admin-surface-border)] px-3 py-1.5 text-xs font-semibold text-[var(--cpp-muted)] opacity-60"
-              title="Coming in Phase 2"
-            >
-              Preview
-            </button>
-            <button
-              type="button"
-              disabled
-              className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white opacity-60"
-              title="Coming in Phase 2"
+            {previewPath ? (
+              <a
+                href={previewPath}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-md border border-[var(--admin-surface-border)] px-3 py-1.5 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:bg-[var(--admin-surface-muted)]"
+              >
+                Preview
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setActiveTab('settings')}
+                className="rounded-md border border-[var(--admin-surface-border)] px-3 py-1.5 text-xs font-semibold text-[var(--cpp-muted)] hover:bg-[var(--admin-surface-muted)]"
+                title="Set a slug to enable public preview"
+              >
+                Preview
+              </button>
+            )}
+            <Link
+              href={`/admin/collections/classes/${course.id}`}
+              className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white no-underline hover:bg-slate-800"
             >
               Publish
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -90,21 +109,15 @@ export default function CourseWorkspace({ initialCourse }: CourseWorkspaceProps)
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => tab.ready && setActiveTab(tab.id)}
-                disabled={!tab.ready}
+                onClick={() => setActiveTab(tab.id)}
                 className={`relative rounded-t-md border-b-2 px-3 py-2 text-sm font-semibold transition ${
                   isActive
                     ? 'border-sky-600 text-[var(--cpp-ink)]'
-                    : 'border-transparent text-[var(--cpp-muted)]'
-                } ${tab.ready ? 'hover:text-[var(--cpp-ink)]' : 'cursor-not-allowed opacity-50'}`}
+                    : 'border-transparent text-[var(--cpp-muted)] hover:text-[var(--cpp-ink)]'
+                }`}
                 aria-current={isActive ? 'page' : undefined}
               >
                 {tab.label}
-                {!tab.ready ? (
-                  <span className="ml-1 align-middle text-[10px] font-normal uppercase tracking-wide text-[var(--cpp-muted)]">
-                    soon
-                  </span>
-                ) : null}
               </button>
             )
           })}
@@ -114,11 +127,20 @@ export default function CourseWorkspace({ initialCourse }: CourseWorkspaceProps)
       <div>
         {activeTab === 'outline' ? (
           <CourseOutlineBoard initialCourse={course} onCourseChange={setCourse} />
-        ) : (
-          <div className="rounded-lg border border-dashed border-[var(--admin-surface-border)] bg-[var(--admin-surface-muted)] px-4 py-8 text-center text-sm text-[var(--cpp-muted)]">
-            This section is coming in Phase 2.
-          </div>
-        )}
+        ) : null}
+        {activeTab === 'lessons' ? <LessonsTab course={course} /> : null}
+        {activeTab === 'quizzes' ? <QuizzesTab course={course} /> : null}
+        {activeTab === 'preview' ? <PreviewTab course={course} /> : null}
+        {activeTab === 'settings' ? (
+          <SettingsTab
+            course={course}
+            onCourseChanged={({ title, slug }) => {
+              setCourse((prev) => ({ ...prev, title, slug }))
+              router.refresh()
+            }}
+          />
+        ) : null}
+        {activeTab === 'publish' ? <PublishTab course={course} /> : null}
       </div>
 
       <div className="text-xs text-[var(--cpp-muted)]">

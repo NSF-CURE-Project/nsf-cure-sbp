@@ -9,6 +9,7 @@ import type { CourseNode } from '@/views/courses/types'
 type CourseDoc = {
   id?: string | number
   title?: string
+  slug?: string | null
   order?: number | null
   chapters?: unknown[]
 }
@@ -92,6 +93,7 @@ const buildCourseNode = async (rawCourseId: string): Promise<CourseNode | null> 
   return {
     id: String(courseDoc.id ?? rawCourseId),
     title: courseDoc.title ?? 'Untitled course',
+    slug: courseDoc.slug ?? null,
     order:
       typeof courseDoc.order === 'number' && Number.isFinite(courseDoc.order) ? courseDoc.order : 1,
     chapters,
