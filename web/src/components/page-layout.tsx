@@ -1,10 +1,28 @@
+"use client";
+
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
 import type { PageLayoutBlock } from "@/lib/payloadSdk/types";
-import { QuizBlock as QuizBlockComponent } from "@/components/quiz/QuizBlock";
-import { ProblemSetBlock as ProblemSetBlockComponent } from "@/components/problemSet/ProblemSetBlock";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
+
+// Heavy interactive blocks (mathjs / katex / state machines) — load on demand
+// so non-problem/quiz pages don't pay for them in the initial bundle.
+const QuizBlockComponent = dynamic(
+  () =>
+    import("@/components/quiz/QuizBlock").then((m) => ({
+      default: m.QuizBlock,
+    })),
+  { ssr: false }
+);
+const ProblemSetBlockComponent = dynamic(
+  () =>
+    import("@/components/problemSet/ProblemSetBlock").then((m) => ({
+      default: m.ProblemSetBlock,
+    })),
+  { ssr: false }
+);
 
 const CMS_URL = getPayloadBaseUrl();
 
