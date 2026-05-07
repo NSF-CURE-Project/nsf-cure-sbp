@@ -2800,78 +2800,133 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         .admin-user-button {
           display: inline-flex;
           align-items: center;
-          gap: 10px;
-          padding: 6px 12px 6px 8px;
+          gap: 8px;
+          padding: 4px 10px 4px 4px;
           border-radius: 999px;
-          border: 1px solid var(--admin-surface-border);
-          background: var(--admin-surface);
+          border: 1px solid rgba(15, 23, 42, 0.06);
+          background: rgba(255, 255, 255, 0.6);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
           color: var(--cpp-ink);
           font-weight: 600;
-          box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
-          transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 2px 6px rgba(15, 23, 42, 0.04);
+          transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease, transform 160ms ease;
         }
 
         .admin-user-button:hover {
-          border-color: rgba(148, 163, 184, 0.45);
-          box-shadow: 0 10px 20px rgba(15, 23, 42, 0.16);
-          background: #fbfdff;
+          border-color: rgba(15, 23, 42, 0.12);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 8px 18px rgba(15, 23, 42, 0.08);
+          background: rgba(255, 255, 255, 0.86);
+          transform: translateY(-1px);
         }
 
         .admin-user-button:focus-visible {
           outline: none;
           border-color: rgba(59, 130, 246, 0.5);
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
         }
 
         .admin-user-menu.is-open .admin-user-button {
-          border-color: rgba(148, 163, 184, 0.5);
-          background: #f8fafc;
+          border-color: rgba(15, 23, 42, 0.14);
+          background: rgba(255, 255, 255, 0.92);
         }
 
         .admin-user-avatar {
+          position: relative;
           width: 30px;
           height: 30px;
           border-radius: 999px;
-          border: 1px solid var(--admin-surface-border);
-          background: var(--admin-chip-primary-bg);
-          color: var(--admin-chip-primary-text);
-          font-weight: 700;
+          border: 1px solid rgba(15, 23, 42, 0.06);
+          background:
+            radial-gradient(120% 120% at 30% 20%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 60%),
+            linear-gradient(135deg, rgba(21, 83, 207, 0.18) 0%, rgba(13, 148, 136, 0.18) 100%);
+          color: #1553cf;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 1px 2px rgba(15, 23, 42, 0.06);
+        }
+
+        .admin-user-avatar svg {
+          width: 16px;
+          height: 16px;
+        }
+
+        .admin-user-status-dot {
+          position: absolute;
+          bottom: -1px;
+          right: -1px;
+          width: 9px;
+          height: 9px;
+          border-radius: 999px;
+          background: #10b981;
+          border: 2px solid var(--admin-surface);
+          box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.35);
+        }
+
+        .admin-user-status-dot--lg {
+          width: 11px;
+          height: 11px;
+          bottom: -1px;
+          right: -1px;
+        }
+
+        .admin-user-meta {
+          display: inline-flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0;
+          min-width: 0;
+          line-height: 1.1;
         }
 
         .admin-user-name {
-          max-width: 180px;
+          max-width: 160px;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-          font-size: 13px;
+          font-size: 12.5px;
+          font-weight: 700;
+          color: var(--cpp-ink);
+          letter-spacing: -0.1px;
+        }
+
+        .admin-user-role {
+          max-width: 160px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          font-size: 10.5px;
+          font-weight: 600;
+          color: var(--cpp-muted);
+          letter-spacing: 0.3px;
         }
 
         .admin-user-caret {
-          width: 14px;
-          height: 14px;
-          opacity: 0.72;
-          transition: transform 140ms ease, opacity 140ms ease;
+          width: 13px;
+          height: 13px;
+          opacity: 0.55;
+          transition: transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 160ms ease;
+          margin-left: 2px;
         }
 
         .admin-user-menu.is-open .admin-user-caret {
           transform: rotate(180deg);
-          opacity: 1;
+          opacity: 0.95;
         }
 
         .admin-user-dropdown {
           position: absolute;
           right: 0;
-          top: calc(100% + 10px);
-          background: var(--admin-surface);
-          border: 1px solid var(--admin-surface-border);
-          border-radius: 12px;
-          padding: 10px;
-          width: min(300px, calc(100vw - 22px));
-          box-shadow: 0 18px 36px rgba(15, 23, 42, 0.2);
+          top: calc(100% + 8px);
+          background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 255, 0.96) 100%);
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          border-radius: 14px;
+          padding: 8px;
+          width: min(310px, calc(100vw - 22px));
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 24px 48px rgba(15, 23, 42, 0.16);
           transform-origin: top right;
         }
 
@@ -2892,26 +2947,36 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
         .admin-user-profile {
           display: flex;
-          align-items: flex-start;
-          gap: 10px;
-          padding: 8px;
-          border-radius: 8px;
-          background: #f8fafc;
+          align-items: center;
+          gap: 12px;
+          padding: 10px;
+          border-radius: 10px;
+          background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(244, 248, 255, 0.6) 100%);
+          border: 1px solid rgba(15, 23, 42, 0.05);
+          margin-bottom: 6px;
         }
 
         .admin-user-profile-avatar {
-          width: 36px;
-          height: 36px;
+          position: relative;
+          width: 40px;
+          height: 40px;
           border-radius: 999px;
-          border: 1px solid var(--admin-surface-border);
-          background: var(--admin-chip-primary-bg);
-          color: var(--admin-chip-primary-text);
-          font-weight: 700;
-          font-size: 13px;
+          border: 1px solid rgba(15, 23, 42, 0.06);
+          background:
+            radial-gradient(120% 120% at 30% 20%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 60%),
+            linear-gradient(135deg, rgba(21, 83, 207, 0.22) 0%, rgba(13, 148, 136, 0.22) 100%);
+          color: #1553cf;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 4px 10px rgba(15, 23, 42, 0.08);
+        }
+
+        .admin-user-profile-avatar svg {
+          width: 22px;
+          height: 22px;
         }
 
         .admin-user-profile-meta {
@@ -2951,25 +3016,35 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
         .admin-user-section {
           display: grid;
-          gap: 2px;
+          gap: 1px;
+          padding: 4px 0;
+        }
+
+        .admin-user-section-label {
+          font-size: 10px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.8px;
+          color: var(--cpp-muted);
+          padding: 6px 10px 4px;
         }
 
         .admin-user-action {
           display: flex;
           align-items: center;
           gap: 10px;
-          padding: 9px 10px;
+          padding: 7px 10px;
           border-radius: 8px;
           color: var(--cpp-ink);
           text-decoration: none;
           font-weight: 600;
-          font-size: 13px;
+          font-size: 12.5px;
           background: transparent;
           border: none;
           width: 100%;
           text-align: left;
           cursor: pointer;
-          transition: background 140ms ease, color 140ms ease;
+          transition: background 140ms ease, color 140ms ease, transform 140ms ease;
         }
 
         .admin-user-action:hover {
@@ -3004,8 +3079,27 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
 
         .admin-user-divider {
           height: 1px;
-          background: var(--admin-surface-border);
-          margin: 8px 4px;
+          background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(15, 23, 42, 0.08) 50%,
+            transparent 100%
+          );
+          margin: 4px 4px;
+        }
+
+        .admin-user-role-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .admin-user-role-badge::before {
+          content: '';
+          width: 5px;
+          height: 5px;
+          border-radius: 999px;
+          background: currentColor;
+          opacity: 0.6;
         }
 
         :root[data-theme="dark"] .admin-user-button:hover,
@@ -3250,9 +3344,16 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                 ref={userMenuButtonRef}
               >
                 <span className="admin-user-avatar" aria-hidden="true">
-                  {initials}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="8.5" r="3.5" />
+                    <path d="M5 20a7 7 0 0 1 14 0" />
+                  </svg>
+                  <span className="admin-user-status-dot" aria-hidden="true" />
                 </span>
-                <span className="admin-user-name">{displayName}</span>
+                <span className="admin-user-meta">
+                  <span className="admin-user-name">{displayName}</span>
+                  <span className="admin-user-role">{userRoleLabel}</span>
+                </span>
                 <svg
                   className="admin-user-caret"
                   viewBox="0 0 20 20"
@@ -3277,7 +3378,11 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                 >
                   <div className="admin-user-profile">
                     <span className="admin-user-profile-avatar" aria-hidden="true">
-                      {initials}
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="8.5" r="3.5" />
+                        <path d="M5 20a7 7 0 0 1 14 0" />
+                      </svg>
+                      <span className="admin-user-status-dot admin-user-status-dot--lg" aria-hidden="true" />
                     </span>
                     <div className="admin-user-profile-meta">
                       <span className="admin-user-profile-name">{displayName}</span>
@@ -3287,8 +3392,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                       <span className="admin-user-role-badge">{userRoleLabel}</span>
                     </div>
                   </div>
-                  <div className="admin-user-divider" />
                   <div className="admin-user-section">
+                    <div className="admin-user-section-label">Account</div>
                     <button
                       type="button"
                       className="admin-user-action"
@@ -3301,15 +3406,133 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
-                        strokeWidth="2"
+                        strokeWidth="1.8"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       >
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                         <circle cx="12" cy="7" r="4" />
                       </svg>
-                      <span>Your Account</span>
+                      <span>Profile</span>
                     </button>
+                    <Link
+                      href="/admin/account"
+                      className="admin-user-action"
+                      role="menuitem"
+                      onClick={closeUserMenu}
+                    >
+                      <svg
+                        className="admin-user-action-icon"
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 5 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 5 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 5a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 5a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15z" />
+                      </svg>
+                      <span>Preferences</span>
+                    </Link>
+                    <Link
+                      href="/admin/collections/notifications"
+                      className="admin-user-action"
+                      role="menuitem"
+                      onClick={closeUserMenu}
+                    >
+                      <svg
+                        className="admin-user-action-icon"
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                      </svg>
+                      <span>Notifications</span>
+                    </Link>
+                  </div>
+                  <div className="admin-user-divider" />
+                  <div className="admin-user-section">
+                    <div className="admin-user-section-label">Workspace</div>
+                    <Link
+                      href="/admin/collections/classrooms"
+                      className="admin-user-action"
+                      role="menuitem"
+                      onClick={closeUserMenu}
+                    >
+                      <svg
+                        className="admin-user-action-icon"
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="8.5" cy="7" r="3.2" />
+                        <path d="M20 8v6" />
+                        <path d="M23 11h-6" />
+                      </svg>
+                      <span>Cohort Settings</span>
+                    </Link>
+                    <Link
+                      href="/admin/student-performance"
+                      className="admin-user-action"
+                      role="menuitem"
+                      onClick={closeUserMenu}
+                    >
+                      <svg
+                        className="admin-user-action-icon"
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M3 3v18h18" />
+                        <rect x="7" y="12" width="3" height="6" rx="0.5" />
+                        <rect x="12" y="8" width="3" height="10" rx="0.5" />
+                        <rect x="17" y="4" width="3" height="14" rx="0.5" />
+                      </svg>
+                      <span>Analytics</span>
+                    </Link>
+                    <Link
+                      href="/admin/site-management"
+                      className="admin-user-action"
+                      role="menuitem"
+                      onClick={closeUserMenu}
+                    >
+                      <svg
+                        className="admin-user-action-icon"
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M2 3h20v18H2z" />
+                        <path d="M2 9h20" />
+                        <path d="M9 21V9" />
+                      </svg>
+                      <span>Admin Tools</span>
+                    </Link>
+                  </div>
+                  <div className="admin-user-divider" />
+                  <div className="admin-user-section">
+                    <div className="admin-user-section-label">System</div>
                     <Link
                       href="/admin/help"
                       className="admin-user-action"
@@ -3322,7 +3545,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
-                        strokeWidth="2"
+                        strokeWidth="1.8"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       >
@@ -3330,11 +3553,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                         <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2-3 4" />
                         <line x1="12" y1="17" x2="12.01" y2="17" />
                       </svg>
-                      <span>Help</span>
+                      <span>Help &amp; Support</span>
                     </Link>
-                  </div>
-                  <div className="admin-user-divider" />
-                  <div className="admin-user-section">
                     <button
                       type="button"
                       className="admin-user-action admin-user-action--danger"
@@ -3347,7 +3567,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
-                        strokeWidth="2"
+                        strokeWidth="1.8"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       >
@@ -3355,7 +3575,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                         <polyline points="16 17 21 12 16 7" />
                         <line x1="21" y1="12" x2="9" y2="12" />
                       </svg>
-                      <span>Log out</span>
+                      <span>Sign Out</span>
                     </button>
                   </div>
                 </div>
