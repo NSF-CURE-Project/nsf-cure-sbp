@@ -173,9 +173,21 @@ export function QuizzesTab({ course }: { course: CourseNode }) {
   )
 }
 
-export function PreviewTab({ course }: { course: CourseNode }) {
+export function PreviewTab({
+  course,
+  publicOrigin,
+}: {
+  course: CourseNode
+  publicOrigin?: string
+}) {
   const slug = course.slug ?? ''
+  const trimmedOrigin = (publicOrigin ?? '').replace(/\/+$/, '')
   const previewPath = slug ? `/classes/${slug}` : null
+  const previewHref = slug
+    ? trimmedOrigin
+      ? `${trimmedOrigin}/classes/${slug}`
+      : `/classes/${slug}`
+    : null
 
   return (
     <div className="grid gap-3">
@@ -183,17 +195,17 @@ export function PreviewTab({ course }: { course: CourseNode }) {
         <div className="text-xs font-semibold uppercase tracking-wider text-[var(--cpp-muted)]">
           Public preview
         </div>
-        {previewPath ? (
+        {previewHref ? (
           <>
             <div className="mt-1 text-sm text-[var(--cpp-ink)]">
               The course is available on the public site at:
             </div>
             <code className="mt-1 inline-block rounded bg-[var(--admin-surface-muted)] px-2 py-0.5 text-xs">
-              {previewPath}
+              {trimmedOrigin ? previewHref : previewPath}
             </code>
             <div className="mt-3">
               <a
-                href={previewPath}
+                href={previewHref}
                 target="_blank"
                 rel="noreferrer"
                 className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white no-underline hover:bg-slate-800"

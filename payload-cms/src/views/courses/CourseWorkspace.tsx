@@ -18,6 +18,7 @@ type WorkspaceTab = 'outline' | 'lessons' | 'quizzes' | 'preview' | 'settings' |
 
 type CourseWorkspaceProps = {
   initialCourse: CourseNode
+  publicOrigin?: string
 }
 
 const tabs: { id: WorkspaceTab; label: string }[] = [
@@ -29,7 +30,7 @@ const tabs: { id: WorkspaceTab; label: string }[] = [
   { id: 'publish', label: 'Publish' },
 ]
 
-export default function CourseWorkspace({ initialCourse }: CourseWorkspaceProps) {
+export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseWorkspaceProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('outline')
   const [course, setCourse] = useState<CourseNode>(initialCourse)
@@ -37,7 +38,12 @@ export default function CourseWorkspace({ initialCourse }: CourseWorkspaceProps)
   const chapterCount = course.chapters.length
   const lessonCount = course.chapters.reduce((sum, chapter) => sum + chapter.lessons.length, 0)
   const status = chapterCount === 0 ? 'Empty' : 'Active'
-  const previewPath = course.slug ? `/classes/${course.slug}` : null
+  const trimmedOrigin = (publicOrigin ?? '').replace(/\/+$/, '')
+  const previewPath = course.slug
+    ? trimmedOrigin
+      ? `${trimmedOrigin}/classes/${course.slug}`
+      : `/classes/${course.slug}`
+    : null
 
   return (
     <div className="grid gap-4">
@@ -132,7 +138,9 @@ export default function CourseWorkspace({ initialCourse }: CourseWorkspaceProps)
         ) : null}
         {activeTab === 'lessons' ? <LessonsTab course={course} /> : null}
         {activeTab === 'quizzes' ? <QuizzesTab course={course} /> : null}
-        {activeTab === 'preview' ? <PreviewTab course={course} /> : null}
+        {activeTab === 'preview' ? (
+          <PreviewTab course={course} publicOrigin={trimmedOrigin} />
+        ) : null}
         {activeTab === 'settings' ? (
           <SettingsTab
             course={course}

@@ -112,10 +112,19 @@ export default async function CourseWorkspacePage({
     notFound()
   }
 
+  const publicOrigin = (
+    process.env.WEB_PREVIEW_URL ??
+    process.env.FRONTEND_URL ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    ''
+  )
+    .trim()
+    .replace(/\/+$/, '')
+
   return (
     <Gutter>
       <div style={{ maxWidth: 1200, margin: '24px auto 80px' }}>
-        <CourseWorkspace initialCourse={courseNode} />
+        <CourseWorkspace initialCourse={courseNode} publicOrigin={publicOrigin} />
       </div>
     </Gutter>
   )
