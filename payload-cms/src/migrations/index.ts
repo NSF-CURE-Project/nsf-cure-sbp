@@ -36,6 +36,7 @@ import * as migration_20260506_140000_add_account_session_tracking from './20260
 import * as migration_20260506_160000_add_concepts from './20260506_160000_add_concepts'
 import * as migration_20260506_180000_add_pre_post_assessments from './20260506_180000_add_pre_post_assessments'
 import * as migration_20260506_200000_add_saved_views from './20260506_200000_add_saved_views'
+import * as migration_20260507_010000_add_locked_documents_rels_columns from './20260507_010000_add_locked_documents_rels_columns'
 
 export const migrations = [
   {
@@ -227,5 +228,10 @@ export const migrations = [
     up: migration_20260506_200000_add_saved_views.up,
     down: migration_20260506_200000_add_saved_views.down,
     name: '20260506_200000_add_saved_views',
+  },
+  {
+    up: migration_20260507_010000_add_locked_documents_rels_columns.up,
+    down: migration_20260507_010000_add_locked_documents_rels_columns.down,
+    name: '20260507_010000_add_locked_documents_rels_columns',
   },
 ]
