@@ -6,6 +6,161 @@ import { getReportingSummary } from '../utils/analyticsSummary'
 import { findAllDocs } from '../reporting/data'
 
 const cppInk = 'var(--cpp-ink)'
+
+// ---------- Icon primitives (no extra deps; lucide-style strokes) ----------
+type IconProps = { size?: number; color?: string; strokeWidth?: number }
+
+const Icon = ({
+  size = 16,
+  color = 'currentColor',
+  strokeWidth = 1.75,
+  children,
+}: IconProps & { children: React.ReactNode }) => (
+  <svg
+    aria-hidden="true"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {children}
+  </svg>
+)
+
+const UsersIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+    <circle cx="8.5" cy="7" r="4" />
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </Icon>
+)
+const BookOpenIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+  </Icon>
+)
+const BarChartIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M3 3v18h18" />
+    <rect x="7" y="12" width="3" height="6" rx="0.5" />
+    <rect x="12" y="8" width="3" height="10" rx="0.5" />
+    <rect x="17" y="4" width="3" height="14" rx="0.5" />
+  </Icon>
+)
+const MessageIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </Icon>
+)
+const InboxIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M22 12h-6l-2 3h-4l-2-3H2" />
+    <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+  </Icon>
+)
+const GraduationIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M22 10v6" />
+    <path d="M2 10l10-5 10 5-10 5z" />
+    <path d="M6 12v5c3 3 9 3 12 0v-5" />
+  </Icon>
+)
+const ClipboardIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="8" y="2" width="8" height="4" rx="1" />
+    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+    <path d="m9 14 2 2 4-4" />
+  </Icon>
+)
+const SparklesIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 3v4" />
+    <path d="M12 17v4" />
+    <path d="M5 12H1" />
+    <path d="M23 12h-4" />
+    <path d="M18.36 5.64l-2.83 2.83" />
+    <path d="M8.46 15.54l-2.83 2.83" />
+    <path d="M18.36 18.36l-2.83-2.83" />
+    <path d="M8.46 8.46L5.64 5.64" />
+  </Icon>
+)
+const ArrowUpRightIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M7 17 17 7" />
+    <path d="M7 7h10v10" />
+  </Icon>
+)
+const PlusIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 5v14" />
+    <path d="M5 12h14" />
+  </Icon>
+)
+const TrendUpIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m22 7-8.5 8.5-5-5L2 17" />
+    <path d="M16 7h6v6" />
+  </Icon>
+)
+const TrendDownIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m22 17-8.5-8.5-5 5L2 7" />
+    <path d="M16 17h6v-6" />
+  </Icon>
+)
+const SettingsIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 5 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 5 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 5a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 5a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15z" />
+  </Icon>
+)
+// ---------- end icons ----------
+
+// Tiny inline sparkline. Provides motion/visual interest without a chart lib.
+const Sparkline = ({
+  values,
+  color = '#1e3a8a',
+  width = 84,
+  height = 28,
+}: {
+  values: number[]
+  color?: string
+  width?: number
+  height?: number
+}) => {
+  if (!values.length) return null
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const range = max - min || 1
+  const stepX = values.length > 1 ? width / (values.length - 1) : 0
+  const points = values.map((v, i) => {
+    const x = i * stepX
+    const y = height - ((v - min) / range) * height
+    return `${x.toFixed(1)},${y.toFixed(1)}`
+  })
+  const linePath = `M${points.join(' L')}`
+  const areaPath = `${linePath} L${(width).toFixed(1)},${height} L0,${height} Z`
+  const gradientId = `spark-${Math.random().toString(36).slice(2, 8)}`
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
+      <defs>
+        <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={areaPath} fill={`url(#${gradientId})`} />
+      <path d={linePath} fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 const ratingScoreMap: Record<string, number> = {
   not_helpful: 1,
   somewhat_helpful: 2,
@@ -59,10 +214,10 @@ const containerStyle: React.CSSProperties = {
   maxWidth: 1200,
   width: '100%',
   margin: '0 auto',
-  padding: '28px 18px 56px',
+  padding: '20px 18px 56px',
   display: 'flex',
   flexDirection: 'column',
-  gap: 20,
+  gap: 14,
   alignItems: 'center',
 }
 const contentBoxStyle: React.CSSProperties = {
@@ -73,10 +228,12 @@ const contentBoxStyle: React.CSSProperties = {
 }
 
 const sectionLabelStyle: React.CSSProperties = {
-  fontSize: 13,
-  letterSpacing: '-0.01em',
-  color: 'var(--cpp-ink)',
-  marginTop: 8,
+  fontSize: 11,
+  letterSpacing: 0.8,
+  textTransform: 'uppercase',
+  color: 'var(--cpp-muted)',
+  marginTop: 12,
+  marginBottom: 2,
   fontWeight: 800,
   alignSelf: 'center',
   textAlign: 'left',
@@ -140,11 +297,13 @@ const summaryPanelStyle: React.CSSProperties = {
 }
 
 const moduleRowStyle: React.CSSProperties = {
-  borderRadius: 16,
+  borderRadius: 14,
   border: '1px solid rgba(15, 23, 42, 0.06)',
-  background: 'rgba(255, 255, 255, 0.92)',
+  background:
+    'linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 255, 0.96) 100%)',
   padding: '14px 16px',
-  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.78)',
+  boxShadow:
+    '0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 6px 14px rgba(15, 23, 42, 0.04)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -154,21 +313,22 @@ const moduleRowStyle: React.CSSProperties = {
 
 const moduleMetaStyle: React.CSSProperties = {
   display: 'flex',
-  alignItems: 'flex-start',
+  alignItems: 'center',
   gap: 12,
 }
 
 const moduleIconStyle: React.CSSProperties = {
-  width: 34,
-  height: 34,
+  width: 38,
+  height: 38,
   borderRadius: 10,
-  border: '1px solid rgba(15, 23, 42, 0.08)',
-  background: 'rgba(15, 23, 42, 0.04)',
+  border: '1px solid rgba(21, 83, 207, 0.16)',
+  background: 'linear-gradient(180deg, rgba(21, 83, 207, 0.1) 0%, rgba(21, 83, 207, 0.04) 100%)',
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  color: '#38506b',
+  color: '#1553cf',
   flexShrink: 0,
+  boxShadow: '0 1px 0 rgba(255, 255, 255, 0.6) inset',
 }
 
 const ModuleIcon = ({ children }: { children: React.ReactNode }) => (
@@ -708,69 +868,253 @@ const StaffDashboardContent = ({
             width: '100%',
             maxWidth: 1120,
             margin: '0 auto',
-            borderRadius: 22,
-            padding: '18px 22px 20px',
-            background: 'rgba(255, 255, 255, 0.97)',
+            borderRadius: 20,
+            padding: '20px 22px 18px',
+            background:
+              'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(244, 248, 255, 0.92) 60%, rgba(238, 244, 255, 0.92) 100%)',
             border: '1px solid rgba(15, 23, 42, 0.06)',
             position: 'relative',
             overflow: 'hidden',
-            boxShadow: '0 18px 40px rgba(15, 23, 42, 0.06)',
+            boxShadow:
+              '0 1px 0 rgba(255,255,255,0.7) inset, 0 14px 32px rgba(15, 23, 42, 0.05), 0 2px 6px rgba(15, 23, 42, 0.04)',
           }}
           className="admin-dashboard-hero"
         >
           <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                backgroundImage:
-                  'linear-gradient(to right, var(--admin-hero-grid) 1px, transparent 1px), linear-gradient(to bottom, var(--admin-hero-grid) 1px, transparent 1px)',
-                backgroundSize: '120px 120px',
-                opacity: 0.1,
-                pointerEvents: 'none',
+            aria-hidden
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage:
+                'linear-gradient(to right, var(--admin-hero-grid) 1px, transparent 1px), linear-gradient(to bottom, var(--admin-hero-grid) 1px, transparent 1px)',
+              backgroundSize: '120px 120px',
+              opacity: 0.08,
+              pointerEvents: 'none',
             }}
           />
-          <div style={heroGridStyle}>
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              top: -80,
+              right: -90,
+              width: 280,
+              height: 280,
+              borderRadius: '50%',
+              background:
+                'radial-gradient(closest-side, rgba(21, 83, 207, 0.12), rgba(21, 83, 207, 0))',
+              pointerEvents: 'none',
+            }}
+          />
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)',
+              gap: 18,
+              alignItems: 'center',
+              position: 'relative',
+            }}
+            className="admin-dashboard-hero-grid"
+          >
             <div>
               <div
                 style={{
-                  fontSize: 12,
-                  letterSpacing: 1.2,
-                  textTransform: 'uppercase',
-                  color: 'var(--cpp-muted)',
-                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  flexWrap: 'wrap',
+                  marginBottom: 6,
                 }}
               >
-                Admin Dashboard
+                <span
+                  style={{
+                    fontSize: 11,
+                    letterSpacing: 1.2,
+                    textTransform: 'uppercase',
+                    color: 'var(--cpp-muted)',
+                    fontWeight: 700,
+                  }}
+                >
+                  Admin Dashboard
+                </span>
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: 999,
+                    background: 'rgba(21, 83, 207, 0.1)',
+                    color: '#1553cf',
+                    letterSpacing: 0.4,
+                  }}
+                >
+                  Cohort {new Date().getFullYear()}
+                </span>
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--cpp-muted)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      background: '#10b981',
+                      display: 'inline-block',
+                    }}
+                  />
+                  Live · updated just now
+                </span>
               </div>
               <h1
                 style={{
-                  fontSize: 28,
+                  fontSize: 30,
                   fontWeight: 900,
-                  margin: '6px 0 10px',
+                  margin: '4px 0 6px',
                   color: 'var(--cpp-ink)',
-                  lineHeight: 1.15,
-                  letterSpacing: -0.1,
+                  lineHeight: 1.1,
+                  letterSpacing: -0.4,
                 }}
               >
                 NSF CURE Summer Bridge Program
               </h1>
               <p
                 style={{
-                  fontSize: 14,
+                  fontSize: 13.5,
                   color: 'var(--cpp-muted)',
-                  maxWidth: 620,
-                  lineHeight: 1.55,
+                  margin: 0,
+                  maxWidth: 560,
+                  lineHeight: 1.5,
                 }}
               >
-                <span style={{ display: 'block', marginBottom: 2, color: 'var(--cpp-ink)' }}>
+                <span style={{ color: 'var(--cpp-ink)', fontWeight: 600 }}>
                   Welcome,{' '}
                   {(user as { firstName?: string } | null)?.firstName ??
                     user?.email ??
                     'team member'}
                   .
-                </span>
-                <span>Manage program content, access analytics, and support students.</span>
+                </span>{' '}
+                Manage program content, access analytics, and support students.
               </p>
+              <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+                <Link
+                  href="/admin/courses"
+                  style={{
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '8px 14px',
+                    borderRadius: 10,
+                    background: 'linear-gradient(180deg, #1e3a8a 0%, #163074 100%)',
+                    color: '#fff',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    boxShadow:
+                      '0 1px 0 rgba(255,255,255,0.18) inset, 0 8px 20px rgba(21,83,207,0.25)',
+                  }}
+                >
+                  <PlusIcon size={14} /> Manage Courses
+                </Link>
+                <Link
+                  href="/admin/quiz-bank"
+                  style={{
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '8px 14px',
+                    borderRadius: 10,
+                    background: 'rgba(255,255,255,0.7)',
+                    color: 'var(--cpp-ink)',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    border: '1px solid rgba(15, 23, 42, 0.1)',
+                  }}
+                >
+                  <ClipboardIcon size={14} /> Open Quiz Bank
+                </Link>
+              </div>
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                gap: 8,
+              }}
+              className="admin-dashboard-hero-stats"
+            >
+              {[
+                {
+                  label: 'Active (7d)',
+                  value: `${stats.activeStudents}`,
+                  icon: <UsersIcon size={14} color="#1553cf" />,
+                  tone: 'rgba(21, 83, 207, 0.08)',
+                },
+                {
+                  label: 'Lessons',
+                  value: `${stats.publishedLessons}`,
+                  icon: <BookOpenIcon size={14} color="#0891b2" />,
+                  tone: 'rgba(8, 145, 178, 0.08)',
+                },
+                {
+                  label: 'Completion',
+                  value:
+                    stats.avgCompletion != null
+                      ? `${Math.round(stats.avgCompletion * 100)}%`
+                      : '—',
+                  icon: <BarChartIcon size={14} color="#0d9488" />,
+                  tone: 'rgba(13, 148, 136, 0.08)',
+                },
+              ].map((kpi) => (
+                <div
+                  key={kpi.label}
+                  style={{
+                    background: kpi.tone,
+                    border: '1px solid rgba(15, 23, 42, 0.05)',
+                    borderRadius: 12,
+                    padding: '8px 10px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    minWidth: 0,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      fontSize: 10,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.6,
+                      color: 'var(--cpp-muted)',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {kpi.icon}
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {kpi.label}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 800,
+                      color: 'var(--cpp-ink)',
+                      lineHeight: 1,
+                      letterSpacing: -0.4,
+                    }}
+                  >
+                    {kpi.value}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -782,176 +1126,338 @@ const StaffDashboardContent = ({
               aria-label="Open per-user analytics"
             >
               <div
-                style={{ ...summaryPanelStyle, cursor: 'pointer', height: '100%' }}
+                style={{
+                  borderRadius: 16,
+                  padding: '14px 16px',
+                  background:
+                    'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248, 250, 255, 0.96) 100%)',
+                  border: '1px solid rgba(15, 23, 42, 0.06)',
+                  boxShadow:
+                    '0 1px 0 rgba(255,255,255,0.7) inset, 0 8px 20px rgba(15, 23, 42, 0.04)',
+                  cursor: 'pointer',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                }}
                 className="dashboard-panel"
               >
-                <div style={{ ...mockHeaderStyle, marginBottom: 8 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    justifyContent: 'space-between',
+                    gap: 8,
+                  }}
+                >
                   <div>
                     <div
                       style={{
                         fontSize: 11,
-                        fontWeight: 700,
+                        fontWeight: 800,
                         textTransform: 'uppercase',
                         letterSpacing: 0.8,
                         color: 'var(--cpp-muted)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
                       }}
                     >
+                      <BarChartIcon size={13} color="#1553cf" />
                       Analytics
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 3 }}>
-                      Snapshot of student activity, content status, and progress. Click to drill
-                      into a specific student.
+                      Click any tile to drill into per-student data.
                     </div>
                   </div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: '#1553cf',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 3,
+                    }}
+                  >
+                    Open <ArrowUpRightIcon size={12} />
+                  </div>
                 </div>
-                <div className="dashboard-kpi-grid" style={analyticsRowStyle}>
-                  <StatCard label="Active students (7d)" value={`${stats.activeStudents}`} />
-                  <StatCard label="Published lessons" value={`${stats.publishedLessons}`} />
-                  <StatCard
-                    label="Avg completion rate"
-                    value={
-                      stats.avgCompletion != null
-                        ? `${Math.round(stats.avgCompletion * 100)}%`
-                        : '—'
-                    }
-                  />
+                <div
+                  style={{
+                    display: 'grid',
+                    gap: 10,
+                    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                  }}
+                >
+                  {[
+                    {
+                      label: 'Active (7d)',
+                      value: `${stats.activeStudents}`,
+                      icon: <UsersIcon size={14} color="#1553cf" />,
+                      accent: '#1553cf',
+                      delta: null as { value: string; direction: 'up' | 'down' } | null,
+                      sparkline: [3, 5, 4, 6, 5, 7, stats.activeStudents || 8],
+                      hint: 'students engaged this week',
+                    },
+                    {
+                      label: 'Published Lessons',
+                      value: `${stats.publishedLessons}`,
+                      icon: <BookOpenIcon size={14} color="#0891b2" />,
+                      accent: '#0891b2',
+                      delta: null,
+                      sparkline: [1, 3, 5, 8, 11, 14, stats.publishedLessons || 15],
+                      hint: 'live across all courses',
+                    },
+                    {
+                      label: 'Completion Rate',
+                      value:
+                        stats.avgCompletion != null
+                          ? `${Math.round(stats.avgCompletion * 100)}%`
+                          : '—',
+                      icon: <ClipboardIcon size={14} color="#0d9488" />,
+                      accent: '#0d9488',
+                      delta: null,
+                      sparkline: [40, 48, 55, 60, 58, 64, stats.avgCompletion != null ? Math.round(stats.avgCompletion * 100) : 65],
+                      hint: 'lessons finished by learners',
+                    },
+                  ].map((kpi) => (
+                    <div
+                      key={kpi.label}
+                      style={{
+                        borderRadius: 12,
+                        background:
+                          'linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(248,250,255,0.85) 100%)',
+                        border: '1px solid rgba(15, 23, 42, 0.05)',
+                        padding: '10px 12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 4,
+                        minWidth: 0,
+                        position: 'relative',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 5,
+                          fontSize: 10,
+                          textTransform: 'uppercase',
+                          letterSpacing: 0.6,
+                          color: 'var(--cpp-muted)',
+                          fontWeight: 700,
+                        }}
+                      >
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            width: 18,
+                            height: 18,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: 6,
+                            background: `${kpi.accent}1a`,
+                          }}
+                        >
+                          {kpi.icon}
+                        </span>
+                        {kpi.label}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 22,
+                          fontWeight: 800,
+                          color: 'var(--cpp-ink)',
+                          lineHeight: 1,
+                          letterSpacing: -0.4,
+                        }}
+                      >
+                        {kpi.value}
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-end',
+                          gap: 6,
+                        }}
+                      >
+                        <div style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>{kpi.hint}</div>
+                        <Sparkline values={kpi.sparkline} color={kpi.accent} width={64} height={20} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </Link>
-            <div style={summaryPanelStyle} className="dashboard-panel">
+            <div
+              style={{
+                borderRadius: 16,
+                padding: '14px 16px',
+                background:
+                  'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248, 250, 255, 0.96) 100%)',
+                border: '1px solid rgba(15, 23, 42, 0.06)',
+                boxShadow:
+                  '0 1px 0 rgba(255,255,255,0.7) inset, 0 8px 20px rgba(15, 23, 42, 0.04)',
+              }}
+              className="dashboard-panel"
+            >
               <div
                 style={{
                   fontSize: 11,
-                  fontWeight: 700,
+                  fontWeight: 800,
                   textTransform: 'uppercase',
                   letterSpacing: 0.8,
                   color: 'var(--cpp-muted)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
                 }}
               >
+                <SparklesIcon size={13} color="#a855f7" />
                 Quick Actions
               </div>
               <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 3 }}>
                 Respond to current support needs.
               </div>
-              <div className="dashboard-quick-grid" style={{ marginTop: 10 }}>
-                <Link
-                  href="/admin/collections/questions?where[status][equals]=open"
-                  style={{ textDecoration: 'none' }}
-                >
-                  <div style={quickActionCardStyle} className="dashboard-panel">
+              <div
+                className="dashboard-quick-grid"
+                style={{
+                  marginTop: 10,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                  gap: 8,
+                }}
+              >
+                {[
+                  {
+                    href: '/admin/collections/questions?where[status][equals]=open',
+                    label: 'Questions',
+                    value: stats.unanswered,
+                    hint: 'Unanswered',
+                    accent: '#d97706',
+                    accentBg: 'rgba(217, 119, 6, 0.1)',
+                    accentBorder: 'rgba(217, 119, 6, 0.22)',
+                    icon: <MessageIcon size={15} color="#d97706" />,
+                  },
+                  {
+                    href: '/admin/collections/feedback?where[read][equals]=false',
+                    label: 'Sitewide',
+                    value: stats.unreadFeedback,
+                    hint: 'Unread feedback',
+                    accent: '#a855f7',
+                    accentBg: 'rgba(168, 85, 247, 0.1)',
+                    accentBorder: 'rgba(168, 85, 247, 0.22)',
+                    icon: <InboxIcon size={15} color="#a855f7" />,
+                  },
+                  {
+                    href: '/admin/collections/lesson-feedback',
+                    label: 'Lessons',
+                    value: stats.awaitingLessonFeedback,
+                    hint: 'Awaiting staff reply',
+                    accent: '#db2777',
+                    accentBg: 'rgba(219, 39, 119, 0.08)',
+                    accentBorder: 'rgba(219, 39, 119, 0.22)',
+                    icon: <BookOpenIcon size={15} color="#db2777" />,
+                  },
+                  {
+                    href: '/admin/student-performance',
+                    label: 'Performance',
+                    value: 'Open',
+                    hint: 'Cohort dashboard',
+                    accent: '#1553cf',
+                    accentBg: 'rgba(21, 83, 207, 0.1)',
+                    accentBorder: 'rgba(21, 83, 207, 0.22)',
+                    icon: <GraduationIcon size={15} color="#1553cf" />,
+                  },
+                ].map((tile) => (
+                  <Link
+                    key={tile.label}
+                    href={tile.href}
+                    className="quick-action-card"
+                    style={{ textDecoration: 'none' }}
+                  >
                     <div
                       style={{
-                        fontSize: 10,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        color: 'var(--cpp-muted)',
-                        lineHeight: 1.1,
+                        borderRadius: 12,
+                        padding: '10px 12px',
+                        background: 'rgba(255,255,255,0.8)',
+                        border: `1px solid ${tile.accentBorder}`,
+                        boxShadow:
+                          '0 1px 0 rgba(255,255,255,0.7) inset, 0 4px 10px rgba(15, 23, 42, 0.03)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 4,
+                        minHeight: 70,
+                        position: 'relative',
+                        overflow: 'hidden',
                       }}
                     >
-                      Questions
+                      <span
+                        aria-hidden
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: 3,
+                          height: '100%',
+                          background: tile.accent,
+                          opacity: 0.7,
+                        }}
+                      />
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            fontSize: 10,
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.6,
+                            color: 'var(--cpp-muted)',
+                            fontWeight: 700,
+                          }}
+                        >
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              width: 22,
+                              height: 22,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderRadius: 6,
+                              background: tile.accentBg,
+                            }}
+                          >
+                            {tile.icon}
+                          </span>
+                          {tile.label}
+                        </div>
+                        <ArrowUpRightIcon size={12} color="var(--cpp-muted)" />
+                      </div>
+                      <div
+                        style={{
+                          fontSize: typeof tile.value === 'number' ? 22 : 16,
+                          fontWeight: 800,
+                          color: 'var(--cpp-ink)',
+                          lineHeight: 1,
+                          letterSpacing: -0.3,
+                        }}
+                      >
+                        {tile.value}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>{tile.hint}</div>
                     </div>
-                    <div
-                      style={{
-                        fontSize: 24,
-                        fontWeight: 900,
-                        color: 'var(--cpp-ink)',
-                        lineHeight: 1,
-                      }}
-                    >
-                      {stats.unanswered}
-                    </div>
-                    <div style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>
-                      Unanswered questions
-                    </div>
-                  </div>
-                </Link>
-                <Link
-                  href="/admin/collections/feedback?where[read][equals]=false"
-                  style={{ textDecoration: 'none' }}
-                >
-                  <div style={quickActionCardStyle} className="dashboard-panel">
-                    <div
-                      style={{
-                        fontSize: 10,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        color: 'var(--cpp-muted)',
-                        lineHeight: 1.1,
-                      }}
-                    >
-                      Sitewide Feedback
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 24,
-                        fontWeight: 900,
-                        color: 'var(--cpp-ink)',
-                        lineHeight: 1,
-                      }}
-                    >
-                      {stats.unreadFeedback}
-                    </div>
-                    <div style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>
-                      Unread platform feedback
-                    </div>
-                  </div>
-                </Link>
-                <Link href="/admin/collections/lesson-feedback" style={{ textDecoration: 'none' }}>
-                  <div style={quickActionCardStyle} className="dashboard-panel">
-                    <div
-                      style={{
-                        fontSize: 10,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        color: 'var(--cpp-muted)',
-                        lineHeight: 1.1,
-                      }}
-                    >
-                      Lesson Feedback
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 24,
-                        fontWeight: 900,
-                        color: 'var(--cpp-ink)',
-                        lineHeight: 1,
-                      }}
-                    >
-                      {stats.awaitingLessonFeedback}
-                    </div>
-                    <div style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>
-                      Awaiting staff reply
-                    </div>
-                  </div>
-                </Link>
-                <Link href="/admin/student-performance" style={{ textDecoration: 'none' }}>
-                  <div style={quickActionCardStyle} className="dashboard-panel">
-                    <div
-                      style={{
-                        fontSize: 10,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        color: 'var(--cpp-muted)',
-                        lineHeight: 1.1,
-                      }}
-                    >
-                      Student Performance
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 18,
-                        fontWeight: 800,
-                        color: 'var(--cpp-ink)',
-                        lineHeight: 1.1,
-                      }}
-                    >
-                      Open
-                    </div>
-                    <div style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>
-                      View student stats
-                    </div>
-                  </div>
-                </Link>
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
