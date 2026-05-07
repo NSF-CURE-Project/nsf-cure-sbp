@@ -2478,9 +2478,14 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         :root[data-theme="dark"] .quick-action-card > div,
         :root[data-theme="dark"] .dashboard-stat-card,
         :root[data-theme="dark"] .dashboard-panel {
-          background: var(--admin-surface);
-          border-color: var(--admin-surface-border);
-          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+          background: var(--admin-surface) !important;
+          border-color: var(--admin-surface-border) !important;
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45) !important;
+        }
+
+        :root[data-theme="dark"] .dashboard-panel .dashboard-fade-in {
+          background: var(--admin-surface-muted) !important;
+          border-color: var(--admin-surface-border) !important;
         }
 
         :root[data-theme="dark"] .dashboard-card div,
