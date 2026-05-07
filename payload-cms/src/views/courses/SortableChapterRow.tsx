@@ -21,8 +21,12 @@ type SortableChapterRowProps = {
   deleting: boolean
   deletingLessonId: EntityId | null
   reorderMode: boolean
+  isSelected: boolean
+  selectedLessonId: EntityId | null
   onDeleteChapter: (chapter: ChapterNode) => void
   onDeleteLesson: (lesson: ChapterNode['lessons'][number]) => void
+  onSelectChapter: (chapter: ChapterNode) => void
+  onSelectLesson: (lesson: ChapterNode['lessons'][number], chapter: ChapterNode) => void
 }
 
 export default function SortableChapterRow({
@@ -34,8 +38,12 @@ export default function SortableChapterRow({
   deleting,
   deletingLessonId,
   reorderMode,
+  isSelected,
+  selectedLessonId,
   onDeleteChapter,
   onDeleteLesson,
+  onSelectChapter,
+  onSelectLesson,
 }: SortableChapterRowProps) {
   const sortable = useSortable({
     id: `chapter:${chapter.id}`,
@@ -65,9 +73,9 @@ export default function SortableChapterRow({
     <div
       ref={sortable.setNodeRef}
       style={style}
-      className={`relative rounded-md border border-[var(--admin-surface-border)] bg-[var(--admin-surface)] ${
-        sortable.isDragging ? 'opacity-60' : ''
-      }`}
+      className={`relative rounded-md border bg-[var(--admin-surface)] ${
+        isSelected ? 'border-sky-400 ring-1 ring-sky-200' : 'border-[var(--admin-surface-border)]'
+      } ${sortable.isDragging ? 'opacity-60' : ''}`}
     >
       <DropIndicator visible={chapterDropTargetId === chapter.id} />
       <div className="group/row grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
@@ -84,14 +92,19 @@ export default function SortableChapterRow({
             attributes={sortable.attributes as unknown as Record<string, unknown>}
           />
         </div>
-        <div className="min-w-0">
+        <button
+          type="button"
+          onClick={() => onSelectChapter(chapter)}
+          className="min-w-0 cursor-pointer rounded-sm bg-transparent px-1 py-0.5 text-left transition hover:bg-[var(--admin-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+          aria-pressed={isSelected}
+        >
           <div className="truncate text-sm font-semibold text-[var(--cpp-ink)]">
             {chapter.title}
           </div>
           <div className="text-xs text-[var(--cpp-muted)]">
             {chapter.lessons.length} lesson{chapter.lessons.length === 1 ? '' : 's'}
           </div>
-        </div>
+        </button>
         {reorderMode ? null : (
           <div className="flex items-center gap-1.5">
             <Link
@@ -142,7 +155,9 @@ export default function SortableChapterRow({
                   isDropTarget={lessonDropTargetId === lesson.id}
                   deleting={deletingLessonId === lesson.id}
                   reorderMode={reorderMode}
+                  isSelected={selectedLessonId === lesson.id}
                   onDelete={onDeleteLesson}
+                  onSelect={(lessonNode) => onSelectLesson(lessonNode, chapter)}
                 />
               ))
             ) : (

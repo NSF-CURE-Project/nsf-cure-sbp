@@ -17,7 +17,9 @@ type SortableLessonRowProps = {
   isDropTarget: boolean
   deleting: boolean
   reorderMode: boolean
+  isSelected: boolean
   onDelete: (lesson: LessonNode) => void
+  onSelect: (lesson: LessonNode) => void
 }
 
 export default function SortableLessonRow({
@@ -28,7 +30,9 @@ export default function SortableLessonRow({
   isDropTarget,
   deleting,
   reorderMode,
+  isSelected,
   onDelete,
+  onSelect,
 }: SortableLessonRowProps) {
   const sortable = useSortable({
     id: `lesson:${lesson.id}`,
@@ -66,9 +70,11 @@ export default function SortableLessonRow({
     <div
       ref={sortable.setNodeRef}
       style={style}
-      className={`group relative grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-[var(--admin-surface-border)] bg-[var(--admin-surface)] px-2 py-1.5 transition ${
-        sortable.isDragging ? 'opacity-60' : 'hover:bg-[var(--admin-surface-muted)]'
-      }`}
+      className={`group relative grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border bg-[var(--admin-surface)] px-2 py-1.5 transition ${
+        isSelected
+          ? 'border-sky-400 ring-1 ring-sky-200'
+          : 'border-[var(--admin-surface-border)]'
+      } ${sortable.isDragging ? 'opacity-60' : 'hover:bg-[var(--admin-surface-muted)]'}`}
     >
       <DropIndicator visible={isDropTarget} />
       <div
@@ -84,12 +90,17 @@ export default function SortableLessonRow({
           attributes={sortable.attributes as unknown as Record<string, unknown>}
         />
       </div>
-      <div className="min-w-0">
+      <button
+        type="button"
+        onClick={() => onSelect(lesson)}
+        className="min-w-0 cursor-pointer rounded-sm bg-transparent px-1 py-0.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+        aria-pressed={isSelected}
+      >
         <div className="truncate text-sm font-medium text-[var(--cpp-ink)]">{lesson.title}</div>
         <div className="truncate text-xs text-[var(--cpp-muted)]">
           Quiz: {lesson.quizTitle || 'Not assigned'}
         </div>
-      </div>
+      </button>
       {reorderMode ? null : (
         <div className="flex items-center gap-1.5">
           <Link

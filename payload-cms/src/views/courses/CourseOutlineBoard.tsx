@@ -23,6 +23,7 @@ import type { ChapterNode, CourseNode, DragMeta, EntityId, SaveStatus } from './
 import SortableChapterRow from './SortableChapterRow'
 import EmptyChapterState from './EmptyChapterState'
 import SaveStatusIndicator from './SaveStatusIndicator'
+import EntityInspector, { type Selection } from './EntityInspector'
 import {
   cloneCourses,
   getCourseByChapterId,
@@ -71,6 +72,25 @@ const findLessonContainer = (course: CourseNode, lessonId: EntityId) => {
 
 const operationFailedMessage = 'Error saving order'
 
+const resolveSelection = (
+  course: CourseNode,
+  selectedKey:
+    | { type: 'chapter'; id: EntityId }
+    | { type: 'lesson'; id: EntityId }
+    | null,
+): Selection => {
+  if (!selectedKey) return null
+  if (selectedKey.type === 'chapter') {
+    const chapter = course.chapters.find((item) => item.id === selectedKey.id)
+    return chapter ? { type: 'chapter', chapter } : null
+  }
+  for (const chapter of course.chapters) {
+    const lesson = chapter.lessons.find((item) => item.id === selectedKey.id)
+    if (lesson) return { type: 'lesson', lesson, chapterTitle: chapter.title }
+  }
+  return null
+}
+
 export default function CourseOutlineBoard({
   initialCourse,
   onCourseChange,
@@ -89,6 +109,9 @@ export default function CourseOutlineBoard({
   const [deletingChapterId, setDeletingChapterId] = useState<EntityId | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [reorderMode, setReorderMode] = useState(false)
+  const [selectedKey, setSelectedKey] = useState<
+    { type: 'chapter'; id: EntityId } | { type: 'lesson'; id: EntityId } | null
+  >(null)
   const deleteErrorRef = useRef<HTMLDivElement | null>(null)
 
   const committedRef = useRef<CourseNode[]>(courses)
@@ -459,8 +482,18 @@ export default function CourseOutlineBoard({
                   deleting={deletingChapterId === chapter.id}
                   deletingLessonId={deletingLessonId}
                   reorderMode={reorderMode}
+                  isSelected={selectedKey?.type === 'chapter' && selectedKey.id === chapter.id}
+                  selectedLessonId={
+                    selectedKey?.type === 'lesson' ? selectedKey.id : null
+                  }
                   onDeleteChapter={handleDeleteChapter}
                   onDeleteLesson={handleDeleteLesson}
+                  onSelectChapter={(node) =>
+                    setSelectedKey({ type: 'chapter', id: node.id })
+                  }
+                  onSelectLesson={(lesson) =>
+                    setSelectedKey({ type: 'lesson', id: lesson.id })
+                  }
                 />
               ))
             ) : (
@@ -477,6 +510,54 @@ export default function CourseOutlineBoard({
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      <EntityInspector
+        selection={resolveSelection(course, selectedKey)}
+        onClose={() => setSelectedKey(null)}
+        onTitleSaved={({ type, id, title }) => {
+          setCourses((prev) =>
+            prev.map((courseItem) => ({
+              ...courseItem,
+              chapters: courseItem.chapters.map((chapter) =>
+                type === 'chapter' && chapter.id === id
+                  ? { ...chapter, title }
+                  : {
+                      ...chapter,
+                      lessons: chapter.lessons.map((lesson) =>
+                        type === 'lesson' && lesson.id === id ? { ...lesson, title } : lesson,
+                      ),
+                    },
+              ),
+            })),
+          )
+          committedRef.current = committedRef.current.map((courseItem) => ({
+            ...courseItem,
+            chapters: courseItem.chapters.map((chapter) =>
+              type === 'chapter' && chapter.id === id
+                ? { ...chapter, title }
+                : {
+                    ...chapter,
+                    lessons: chapter.lessons.map((lesson) =>
+                      type === 'lesson' && lesson.id === id ? { ...lesson, title } : lesson,
+                    ),
+                  },
+            ),
+          }))
+          router.refresh()
+        }}
+        onDeleteChapter={(chapter) => {
+          setSelectedKey(null)
+          handleDeleteChapter(chapter)
+        }}
+        onDeleteLesson={(lesson) => {
+          setSelectedKey(null)
+          handleDeleteLesson(lesson)
+        }}
+        deleting={
+          (selectedKey?.type === 'chapter' && deletingChapterId === selectedKey.id) ||
+          (selectedKey?.type === 'lesson' && deletingLessonId === selectedKey.id)
+        }
+      />
 
       {reorderMode ? (
         <div

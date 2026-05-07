@@ -62,6 +62,14 @@ export const saveLessonPositions = async (lessons: LessonPositionUpdate[]) => {
   await Promise.all(updates)
 }
 
+export const updateChapterTitle = async (chapterId: EntityId, title: string) => {
+  await patch(`/api/chapters/${chapterId}`, { title })
+}
+
+export const updateLessonTitle = async (lessonId: EntityId, title: string) => {
+  await patch(`/api/lessons/${lessonId}`, { title })
+}
+
 export const deleteLesson = async (lessonId: EntityId) => {
   await remove(`/api/lessons/${lessonId}`)
 }
