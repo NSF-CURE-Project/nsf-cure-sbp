@@ -71,7 +71,7 @@ export default function LessonAssignmentDrawer({
   }, [open, tab, searchQuery])
 
   if (!chapter) {
-    return <SidePanel open={false} onClose={onClose} title="" children={null} />
+    return <SidePanel open={false} onClose={onClose} title="" />
   }
 
   const nextOrder = chapter.lessons.length + 1

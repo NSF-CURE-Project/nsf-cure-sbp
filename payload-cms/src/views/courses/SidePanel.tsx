@@ -7,7 +7,7 @@ type SidePanelProps = {
   onClose: () => void
   title: string
   subtitle?: string
-  children: React.ReactNode
+  children?: React.ReactNode
   footer?: React.ReactNode
   width?: 'sm' | 'md' | 'lg'
 }

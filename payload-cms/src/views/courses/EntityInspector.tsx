@@ -42,7 +42,7 @@ export default function EntityInspector({
   }, [selection])
 
   if (!selection) {
-    return <SidePanel open={false} onClose={onClose} title="" children={null} />
+    return <SidePanel open={false} onClose={onClose} title="" />
   }
 
   const isChapter = selection.type === 'chapter'

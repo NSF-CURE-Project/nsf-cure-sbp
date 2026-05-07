@@ -67,7 +67,7 @@ export default function QuizAssignmentDrawer({
   }, [open, searchQuery])
 
   if (!lesson) {
-    return <SidePanel open={false} onClose={onClose} title="" children={null} />
+    return <SidePanel open={false} onClose={onClose} title="" />
   }
 
   const currentQuiz = lesson.quizTitle ?? null
