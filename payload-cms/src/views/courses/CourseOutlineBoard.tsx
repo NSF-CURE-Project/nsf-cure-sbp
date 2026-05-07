@@ -24,6 +24,7 @@ import SortableChapterRow from './SortableChapterRow'
 import EmptyChapterState from './EmptyChapterState'
 import SaveStatusIndicator from './SaveStatusIndicator'
 import EntityInspector, { type Selection } from './EntityInspector'
+import LessonAssignmentDrawer from './LessonAssignmentDrawer'
 import {
   cloneCourses,
   getCourseByChapterId,
@@ -112,6 +113,7 @@ export default function CourseOutlineBoard({
   const [selectedKey, setSelectedKey] = useState<
     { type: 'chapter'; id: EntityId } | { type: 'lesson'; id: EntityId } | null
   >(null)
+  const [addLessonChapterId, setAddLessonChapterId] = useState<EntityId | null>(null)
   const deleteErrorRef = useRef<HTMLDivElement | null>(null)
 
   const committedRef = useRef<CourseNode[]>(courses)
@@ -494,6 +496,7 @@ export default function CourseOutlineBoard({
                   onSelectLesson={(lesson) =>
                     setSelectedKey({ type: 'lesson', id: lesson.id })
                   }
+                  onAddLesson={(node) => setAddLessonChapterId(node.id)}
                 />
               ))
             ) : (
@@ -510,6 +513,51 @@ export default function CourseOutlineBoard({
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      <LessonAssignmentDrawer
+        chapter={
+          addLessonChapterId
+            ? (course.chapters.find((chapter) => chapter.id === addLessonChapterId) ?? null)
+            : null
+        }
+        onClose={() => setAddLessonChapterId(null)}
+        onLessonsAdded={(added) => {
+          setCourses((prev) => {
+            const next = prev.map((courseItem) => ({
+              ...courseItem,
+              chapters: courseItem.chapters.map((chapter) => {
+                const matchingAdds = added.filter((entry) => entry.chapterId === chapter.id)
+                if (!matchingAdds.length) {
+                  return {
+                    ...chapter,
+                    lessons: chapter.lessons.filter(
+                      (lesson) => !added.some((entry) => entry.id === lesson.id),
+                    ),
+                  }
+                }
+                const remainingLessons = chapter.lessons.filter(
+                  (lesson) => !matchingAdds.some((entry) => entry.id === lesson.id),
+                )
+                const appended = matchingAdds.map((entry) => ({
+                  id: entry.id,
+                  title: entry.title,
+                  order: entry.order,
+                  chapterId: entry.chapterId,
+                  quizTitle: null as string | null,
+                }))
+                return {
+                  ...chapter,
+                  lessons: [...remainingLessons, ...appended],
+                }
+              }),
+            }))
+            const normalized = normalizeCourseOrders(next)
+            committedRef.current = normalized
+            return normalized
+          })
+          router.refresh()
+        }}
+      />
 
       <EntityInspector
         selection={resolveSelection(course, selectedKey)}

@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import Link from 'next/link'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { useDroppable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
@@ -27,6 +26,7 @@ type SortableChapterRowProps = {
   onDeleteLesson: (lesson: ChapterNode['lessons'][number]) => void
   onSelectChapter: (chapter: ChapterNode) => void
   onSelectLesson: (lesson: ChapterNode['lessons'][number], chapter: ChapterNode) => void
+  onAddLesson: (chapter: ChapterNode) => void
 }
 
 export default function SortableChapterRow({
@@ -44,6 +44,7 @@ export default function SortableChapterRow({
   onDeleteLesson,
   onSelectChapter,
   onSelectLesson,
+  onAddLesson,
 }: SortableChapterRowProps) {
   const sortable = useSortable({
     id: `chapter:${chapter.id}`,
@@ -107,13 +108,14 @@ export default function SortableChapterRow({
         </button>
         {reorderMode ? null : (
           <div className="flex items-center gap-1.5">
-            <Link
-              href={`/admin/collections/lessons/create?chapter=${chapter.id}`}
-              className="rounded-md bg-slate-900 px-2 py-1 text-xs font-semibold text-white no-underline hover:bg-slate-800"
+            <button
+              type="button"
+              onClick={() => onAddLesson(chapter)}
+              className="rounded-md bg-slate-900 px-2 py-1 text-xs font-semibold text-white hover:bg-slate-800"
               aria-label={`Add lesson to chapter ${chapter.title}`}
             >
               Add lesson
-            </Link>
+            </button>
             <RowOverflowMenu
               ariaLabel={`More actions for chapter ${chapter.title}`}
               actions={
@@ -166,12 +168,13 @@ export default function SortableChapterRow({
           </SortableContext>
 
           {reorderMode ? null : (
-            <Link
-              href={`/admin/collections/lessons/create?chapter=${chapter.id}`}
-              className="inline-flex w-fit rounded-md px-1 py-1 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:underline"
+            <button
+              type="button"
+              onClick={() => onAddLesson(chapter)}
+              className="inline-flex w-fit rounded-md bg-transparent px-1 py-1 text-xs font-semibold text-[var(--cpp-ink)] hover:underline"
             >
               + Add lesson
-            </Link>
+            </button>
           )}
         </div>
       </div>

@@ -34,6 +34,23 @@ const remove = async (path: string) => {
   }
 }
 
+const post = async <T = unknown,>(path: string, body: Record<string, unknown>): Promise<T> => {
+  const response = await fetch(path, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!response.ok) throw new Error(`Request failed (${response.status}) for ${path}`)
+  return response.json() as Promise<T>
+}
+
+const get = async <T = unknown,>(path: string): Promise<T> => {
+  const response = await fetch(path, { method: 'GET', credentials: 'include' })
+  if (!response.ok) throw new Error(`Request failed (${response.status}) for ${path}`)
+  return response.json() as Promise<T>
+}
+
 export const saveCourseOrder = async (courses: CourseNode[]) => {
   const updates = courses.map((course) =>
     patch(`/api/classes/${course.id}`, {
@@ -72,6 +89,110 @@ export const updateLessonTitle = async (lessonId: EntityId, title: string) => {
 
 export const deleteLesson = async (lessonId: EntityId) => {
   await remove(`/api/lessons/${lessonId}`)
+}
+
+type LessonCreatedDoc = {
+  doc?: {
+    id?: string | number
+    title?: string
+    order?: number | null
+    chapter?: string | number | { id?: string | number }
+  }
+}
+
+export const createLesson = async (
+  chapterId: EntityId,
+  title: string,
+  order: number,
+): Promise<{ id: EntityId; title: string; order: number }> => {
+  const result = await post<LessonCreatedDoc>('/api/lessons', {
+    title,
+    chapter: chapterId,
+    order,
+  })
+  const doc = result.doc
+  if (!doc?.id) throw new Error('Lesson create response missing id')
+  return {
+    id: String(doc.id),
+    title: doc.title ?? title,
+    order: typeof doc.order === 'number' ? doc.order : order,
+  }
+}
+
+export const attachLessonToChapter = async (
+  lessonId: EntityId,
+  chapterId: EntityId,
+  order: number,
+) => {
+  await patch(`/api/lessons/${lessonId}`, { chapter: chapterId, order })
+}
+
+type LessonSearchDoc = {
+  id: string | number
+  title?: string
+  chapter?:
+    | string
+    | number
+    | {
+        id?: string | number
+        title?: string
+        class?:
+          | string
+          | number
+          | {
+              id?: string | number
+              title?: string
+            }
+      }
+}
+
+export type LessonSearchResult = {
+  id: EntityId
+  title: string
+  currentChapterId: EntityId | null
+  currentChapterTitle: string | null
+  currentCourseTitle: string | null
+}
+
+const extractChapter = (chapter: LessonSearchDoc['chapter']) => {
+  if (!chapter) return { id: null, title: null, course: null as string | null }
+  if (typeof chapter === 'string' || typeof chapter === 'number') {
+    return { id: String(chapter), title: null, course: null as string | null }
+  }
+  const classValue = chapter.class
+  const courseTitle =
+    typeof classValue === 'object' && classValue !== null
+      ? (classValue.title ?? null)
+      : null
+  return {
+    id: chapter.id != null ? String(chapter.id) : null,
+    title: chapter.title ?? null,
+    course: courseTitle,
+  }
+}
+
+export const searchUnassignedLessons = async (
+  query: string,
+  limit = 25,
+): Promise<LessonSearchResult[]> => {
+  const params = new URLSearchParams()
+  params.set('depth', '2')
+  params.set('limit', String(limit))
+  params.set('sort', '-updatedAt')
+  if (query.trim()) {
+    params.set('where[title][like]', query.trim())
+  }
+  const json = await get<{ docs?: LessonSearchDoc[] }>(`/api/lessons?${params.toString()}`)
+  return (json.docs ?? []).map((doc) => {
+    const chapterInfo = extractChapter(doc.chapter)
+    return {
+      id: String(doc.id),
+      title: doc.title ?? 'Untitled lesson',
+      currentChapterId: chapterInfo.id,
+      currentChapterTitle: chapterInfo.title,
+      currentCourseTitle: chapterInfo.course,
+    }
+  })
 }
 
 export const deleteChapter = async (chapterId: EntityId) => {
