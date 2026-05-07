@@ -6,6 +6,8 @@ export type LessonNode = {
   order: number
   chapterId: EntityId
   quizTitle?: string | null
+  status?: 'draft' | 'published' | null
+  updatedAt?: string | null
 }
 
 export type ChapterNode = {

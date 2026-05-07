@@ -25,10 +25,17 @@ type LessonDoc = {
   id?: string | number
   title?: string
   order?: number | null
+  updatedAt?: string | null
+  _status?: string | null
   layout?: Array<{
     blockType?: string
     quiz?: { id?: string | number; title?: string } | string | number | null
   }>
+}
+
+const normalizeStatus = (value: unknown): 'draft' | 'published' | null => {
+  if (value === 'draft' || value === 'published') return value
+  return null
 }
 
 const buildCourseNode = async (rawCourseId: string): Promise<CourseNode | null> => {
@@ -67,6 +74,8 @@ const buildCourseNode = async (rawCourseId: string): Promise<CourseNode | null> 
                 : lessonIndex + 1,
             chapterId: String(chapterDoc.id ?? chapter),
             quizTitle,
+            status: normalizeStatus(lessonDoc._status),
+            updatedAt: lessonDoc.updatedAt ?? null,
           }
         })
         .sort((a, b) => {
@@ -123,7 +132,7 @@ export default async function CourseWorkspacePage({
 
   return (
     <Gutter>
-      <div style={{ maxWidth: 1200, margin: '24px auto 80px' }}>
+      <div className="course-workspace-shell" style={{ maxWidth: 1400, margin: '24px auto 80px' }}>
         <CourseWorkspace initialCourse={courseNode} publicOrigin={publicOrigin} />
       </div>
     </Gutter>

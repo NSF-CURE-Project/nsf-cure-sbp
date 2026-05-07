@@ -70,53 +70,53 @@ export default function SortableChapterRow({
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(sortable.transform),
     transition: sortable.transition,
+    opacity: sortable.isDragging ? 0.55 : 1,
   }
 
+  const lessonCount = chapter.lessons.length
+
   return (
-    <div
+    <section
       ref={sortable.setNodeRef}
       style={style}
-      className={`relative rounded-md border bg-[var(--admin-surface)] ${
-        isSelected ? 'border-sky-400 ring-1 ring-sky-200' : 'border-[var(--admin-surface-border)]'
-      } ${sortable.isDragging ? 'opacity-60' : ''}`}
+      className={`cw-chapter${isSelected ? ' cw-chapter--selected' : ''}`}
+      data-reorder={reorderMode || undefined}
     >
       <DropIndicator visible={chapterDropTargetId === chapter.id} />
-      <div className="group/row grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
-        <div
-          className={
-            reorderMode
-              ? 'opacity-100'
-              : 'opacity-30 transition group-hover/row:opacity-100 focus-within:opacity-100'
-          }
-        >
+
+      <header className="cw-chapter__header">
+        <div className="cw-chapter__handle">
           <DragHandle
             label={`Reorder chapter ${chapter.title}`}
             listeners={sortable.listeners as Record<string, unknown>}
             attributes={sortable.attributes as unknown as Record<string, unknown>}
           />
         </div>
+
         <button
           type="button"
           onClick={() => onSelectChapter(chapter)}
-          className="min-w-0 cursor-pointer rounded-sm bg-transparent px-1 py-0.5 text-left transition hover:bg-[var(--admin-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+          className="cw-chapter__titlebtn"
           aria-pressed={isSelected}
         >
-          <div className="truncate text-sm font-semibold text-[var(--cpp-ink)]">
-            {chapter.title}
+          <div className="cw-chapter__eyebrow">
+            Chapter {chapter.order}
           </div>
-          <div className="text-xs text-[var(--cpp-muted)]">
-            {chapter.lessons.length} lesson{chapter.lessons.length === 1 ? '' : 's'}
+          <div className="cw-chapter__title">{chapter.title}</div>
+          <div className="cw-chapter__meta">
+            {lessonCount} lesson{lessonCount === 1 ? '' : 's'}
           </div>
         </button>
+
         {reorderMode ? null : (
-          <div className="flex items-center gap-1.5">
+          <div className="cw-chapter__actions">
             <button
               type="button"
               onClick={() => onAddLesson(chapter)}
-              className="rounded-md bg-slate-900 px-2 py-1 text-xs font-semibold text-white hover:bg-slate-800"
+              className="cw-btn cw-btn--ghost"
               aria-label={`Add lesson to chapter ${chapter.title}`}
             >
-              Add lesson
+              + Add lesson
             </button>
             <RowOverflowMenu
               ariaLabel={`More actions for chapter ${chapter.title}`}
@@ -140,47 +140,46 @@ export default function SortableChapterRow({
             />
           </div>
         )}
-      </div>
+      </header>
 
-      <div className="border-t border-[var(--admin-surface-border)] bg-[var(--admin-surface-muted)] px-2 py-2">
-        <div ref={lessonContainer.setNodeRef} className="ml-6 grid gap-1.5">
-          <SortableContext
-            items={chapter.lessons.map((lesson) => `lesson:${lesson.id}`)}
-            strategy={verticalListSortingStrategy}
-          >
-            {chapter.lessons.length ? (
-              chapter.lessons.map((lesson, lessonIndex) => (
-                <SortableLessonRow
-                  key={lesson.id}
-                  lesson={lesson}
-                  chapterId={chapter.id}
-                  courseId={courseId}
-                  index={lessonIndex}
-                  isDropTarget={lessonDropTargetId === lesson.id}
-                  deleting={deletingLessonId === lesson.id}
-                  reorderMode={reorderMode}
-                  isSelected={selectedLessonId === lesson.id}
-                  onDelete={onDeleteLesson}
-                  onSelect={(lessonNode) => onSelectLesson(lessonNode, chapter)}
-                  onAssignQuiz={onAssignQuiz}
-                />
-              ))
-            ) : (
-              <EmptyLessonState />
-            )}
-          </SortableContext>
-
-          {reorderMode ? null : (
-            <button
-              type="button"
-              onClick={() => onAddLesson(chapter)}
-              className="inline-flex w-fit rounded-md bg-transparent px-1 py-1 text-xs font-semibold text-[var(--cpp-ink)] hover:underline"
-            >
-              + Add lesson
-            </button>
+      <div ref={lessonContainer.setNodeRef} className="cw-chapter__lessons">
+        <SortableContext
+          items={chapter.lessons.map((lesson) => `lesson:${lesson.id}`)}
+          strategy={verticalListSortingStrategy}
+        >
+          {chapter.lessons.length ? (
+            chapter.lessons.map((lesson, lessonIndex) => (
+              <SortableLessonRow
+                key={lesson.id}
+                lesson={lesson}
+                chapterId={chapter.id}
+                courseId={courseId}
+                index={lessonIndex}
+                isDropTarget={lessonDropTargetId === lesson.id}
+                deleting={deletingLessonId === lesson.id}
+                reorderMode={reorderMode}
+                isSelected={selectedLessonId === lesson.id}
+                onDelete={onDeleteLesson}
+                onSelect={(lessonNode) => onSelectLesson(lessonNode, chapter)}
+                onAssignQuiz={onAssignQuiz}
+              />
+            ))
+          ) : (
+            <EmptyLessonState />
           )}
-        </div>
+        </SortableContext>
+
+        {reorderMode ? null : (
+          <button
+            type="button"
+            onClick={() => onAddLesson(chapter)}
+            className="cw-chapter__add-inline"
+          >
+            <span aria-hidden="true">+</span>
+            <span>Add lesson</span>
+          </button>
+        )}
       </div>
-    </div>
+    </section>
   )
 }

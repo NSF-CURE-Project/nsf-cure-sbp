@@ -23,6 +23,22 @@ type SortableLessonRowProps = {
   onAssignQuiz: (lesson: LessonNode) => void
 }
 
+const formatRelativeUpdated = (iso: string | null | undefined): string | null => {
+  if (!iso) return null
+  const ts = new Date(iso).getTime()
+  if (!Number.isFinite(ts)) return null
+  const diffMs = Date.now() - ts
+  if (diffMs < 0) return null
+  const minute = 60_000
+  const hour = 60 * minute
+  const day = 24 * hour
+  if (diffMs < minute) return 'Edited just now'
+  if (diffMs < hour) return `Edited ${Math.floor(diffMs / minute)}m ago`
+  if (diffMs < day) return `Edited ${Math.floor(diffMs / hour)}h ago`
+  if (diffMs < 30 * day) return `Edited ${Math.floor(diffMs / day)}d ago`
+  return `Edited ${new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
+}
+
 export default function SortableLessonRow({
   lesson,
   courseId,
@@ -50,6 +66,7 @@ export default function SortableLessonRow({
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(sortable.transform),
     transition: sortable.transition,
+    opacity: sortable.isDragging ? 0.6 : 1,
   }
 
   const overflowActions: OverflowAction[] = [
@@ -68,24 +85,19 @@ export default function SortableLessonRow({
     },
   ]
 
+  const status = lesson.status ?? 'published'
+  const updatedLabel = formatRelativeUpdated(lesson.updatedAt)
+  const hasQuiz = Boolean(lesson.quizTitle)
+
   return (
     <div
       ref={sortable.setNodeRef}
       style={style}
-      className={`group relative grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border bg-[var(--admin-surface)] px-2 py-1.5 transition ${
-        isSelected
-          ? 'border-sky-400 ring-1 ring-sky-200'
-          : 'border-[var(--admin-surface-border)]'
-      } ${sortable.isDragging ? 'opacity-60' : 'hover:bg-[var(--admin-surface-muted)]'}`}
+      className={`cw-lesson${isSelected ? ' cw-lesson--selected' : ''}`}
+      data-reorder={reorderMode || undefined}
     >
       <DropIndicator visible={isDropTarget} />
-      <div
-        className={
-          reorderMode
-            ? 'opacity-100'
-            : 'opacity-30 transition group-hover:opacity-100 focus-within:opacity-100'
-        }
-      >
+      <div className="cw-lesson__handle">
         <DragHandle
           label={`Reorder lesson ${lesson.title}`}
           listeners={sortable.listeners as Record<string, unknown>}
@@ -95,36 +107,52 @@ export default function SortableLessonRow({
       <button
         type="button"
         onClick={() => onSelect(lesson)}
-        className="min-w-0 cursor-pointer rounded-sm bg-transparent px-1 py-0.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+        className="cw-lesson__titlebtn"
         aria-pressed={isSelected}
       >
-        <div className="truncate text-sm font-medium text-[var(--cpp-ink)]">{lesson.title}</div>
+        <div className="cw-lesson__title">{lesson.title}</div>
+        <div className="cw-lesson__meta">
+          <span
+            className={`cw-status ${status === 'published' ? 'cw-status--ok' : 'cw-status--draft'}`}
+          >
+            {status === 'published' ? 'Published' : 'Draft'}
+          </span>
+          {updatedLabel ? (
+            <>
+              <span className="cw-lesson__sep" aria-hidden>
+                •
+              </span>
+              <span>{updatedLabel}</span>
+            </>
+          ) : null}
+        </div>
       </button>
       {reorderMode ? null : (
-        <div className="flex items-center gap-1.5">
+        <div className="cw-lesson__actions">
           <button
             type="button"
             onClick={() => onAssignQuiz(lesson)}
-            className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wider transition ${
-              lesson.quizTitle
-                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
-            }`}
+            className={`cw-quiz-badge ${hasQuiz ? 'cw-quiz-badge--ok' : 'cw-quiz-badge--missing'}`}
             aria-label={
-              lesson.quizTitle
+              hasQuiz
                 ? `Change quiz for lesson ${lesson.title}`
                 : `Assign quiz to lesson ${lesson.title}`
             }
-            title={lesson.quizTitle ? `Quiz: ${lesson.quizTitle}` : 'No quiz assigned'}
+            title={hasQuiz ? `Quiz: ${lesson.quizTitle}` : 'No quiz assigned'}
           >
-            {lesson.quizTitle ? `Quiz: ${lesson.quizTitle}` : 'No quiz'}
+            <span aria-hidden className="cw-quiz-badge__glyph">
+              {hasQuiz ? '✓' : '⚠'}
+            </span>
+            <span className="cw-quiz-badge__label">
+              {hasQuiz ? 'Quiz attached' : 'No quiz'}
+            </span>
           </button>
           <Link
             href={`/admin/collections/lessons/${lesson.id}`}
-            className="rounded-md border border-[var(--admin-surface-border)] px-2 py-1 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:bg-[var(--admin-surface-muted)]"
+            className="cw-btn cw-btn--ghost cw-lesson__edit"
             aria-label={`Edit lesson ${lesson.title}`}
           >
-            Edit lesson
+            Edit
           </Link>
           <RowOverflowMenu
             ariaLabel={`More actions for lesson ${lesson.title}`}

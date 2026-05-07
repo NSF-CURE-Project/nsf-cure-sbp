@@ -415,18 +415,25 @@ export default function CourseOutlineBoard({
   const hasPendingReorder = courses !== committedRef.current
 
   return (
-    <div className="grid gap-3 pb-20">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-xs text-[var(--cpp-muted)]">
-          {counts.chapterCount} chapter{counts.chapterCount === 1 ? '' : 's'} ·{' '}
-          {counts.lessonCount} lesson{counts.lessonCount === 1 ? '' : 's'}
+    <div className="cw-outline">
+      <div className="cw-outline__toolbar">
+        <div className="cw-outline__summary">
+          <span>
+            <strong>{counts.chapterCount}</strong> chapter
+            {counts.chapterCount === 1 ? '' : 's'}
+          </span>
+          <span aria-hidden className="cw-outline__sep">
+            •
+          </span>
+          <span>
+            <strong>{counts.lessonCount}</strong> lesson
+            {counts.lessonCount === 1 ? '' : 's'}
+          </span>
           {reorderMode ? (
-            <span className="ml-2 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-sky-800">
-              Reorder mode
-            </span>
+            <span className="cw-outline__mode-pill">Reorder mode</span>
           ) : null}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="cw-outline__toolbar-actions">
           <SaveStatusIndicator status={status} />
           {reorderMode ? null : (
             <>
@@ -434,15 +441,15 @@ export default function CourseOutlineBoard({
                 type="button"
                 onClick={() => setReorderMode(true)}
                 disabled={counts.chapterCount === 0}
-                className="rounded-md border border-[var(--admin-surface-border)] px-3 py-2 text-xs font-semibold text-[var(--cpp-ink)] hover:bg-[var(--admin-surface-muted)] disabled:cursor-not-allowed disabled:opacity-60"
+                className="cw-btn cw-btn--ghost"
               >
-                Reorder
+                Reorder chapters
               </button>
               <Link
                 href={`/admin/collections/chapters/create?class=${course.id}`}
-                className="rounded-md bg-slate-900 px-3 py-2 text-xs font-semibold text-white no-underline hover:bg-slate-800"
+                className="cw-btn cw-btn--primary"
               >
-                Add chapter
+                + Add chapter
               </Link>
             </>
           )}
@@ -450,14 +457,10 @@ export default function CourseOutlineBoard({
       </div>
 
       {status === 'error' ? (
-        <div className="text-xs text-red-700">{operationFailedMessage}</div>
+        <div className="cw-error-banner">{operationFailedMessage}</div>
       ) : null}
       {deleteError ? (
-        <div
-          ref={deleteErrorRef}
-          className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-          role="alert"
-        >
+        <div ref={deleteErrorRef} className="cw-error-banner" role="alert">
           {deleteError}
         </div>
       ) : null}
@@ -473,7 +476,7 @@ export default function CourseOutlineBoard({
           items={course.chapters.map((chapter) => `chapter:${chapter.id}`)}
           strategy={verticalListSortingStrategy}
         >
-          <div className="grid gap-2">
+          <div className="cw-chapter-list">
             {course.chapters.length ? (
               course.chapters.map((chapter, index) => (
                 <SortableChapterRow
@@ -510,9 +513,7 @@ export default function CourseOutlineBoard({
 
         <DragOverlay>
           {overlayLabel ? (
-            <div className="rounded-md border border-sky-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-lg">
-              {overlayLabel}
-            </div>
+            <div className="cw-drag-overlay">{overlayLabel}</div>
           ) : null}
         </DragOverlay>
       </DndContext>
@@ -642,21 +643,21 @@ export default function CourseOutlineBoard({
 
       {reorderMode ? (
         <div
-          className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--admin-surface-border)] bg-[var(--admin-surface)] px-4 py-3 shadow-[0_-8px_20px_rgba(15,23,42,0.08)]"
+          className="cw-reorder-bar"
           role="region"
           aria-label="Reorder mode toolbar"
         >
-          <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-3">
-            <div className="text-xs text-[var(--cpp-muted)]">
+          <div className="cw-reorder-bar__inner">
+            <div className="cw-reorder-bar__hint">
               Drag chapters and lessons to reorder.{' '}
               {hasPendingReorder ? 'Unsaved changes — Save to apply.' : 'No changes yet.'}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="cw-reorder-bar__actions">
               <button
                 type="button"
                 onClick={handleCancelReorder}
                 disabled={status === 'saving'}
-                className="rounded-md border border-[var(--admin-surface-border)] px-3 py-2 text-xs font-semibold text-[var(--cpp-ink)] hover:bg-[var(--admin-surface-muted)] disabled:cursor-not-allowed disabled:opacity-60"
+                className="cw-btn"
               >
                 Cancel
               </button>
@@ -664,7 +665,7 @@ export default function CourseOutlineBoard({
                 type="button"
                 onClick={handleSaveReorder}
                 disabled={!hasPendingReorder || status === 'saving'}
-                className="rounded-md bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="cw-btn cw-btn--primary"
               >
                 {status === 'saving' ? 'Saving…' : 'Save order'}
               </button>
