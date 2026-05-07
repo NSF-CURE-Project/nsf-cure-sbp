@@ -4,6 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { getReportingSummary } from '../utils/analyticsSummary'
 import { findAllDocs } from '../reporting/data'
+import AnimatedNumber from './dashboard/AnimatedNumber'
 
 const cppInk = 'var(--cpp-ink)'
 
@@ -331,22 +332,74 @@ const moduleIconStyle: React.CSSProperties = {
   boxShadow: '0 1px 0 rgba(255, 255, 255, 0.6) inset',
 }
 
-const ModuleIcon = ({ children }: { children: React.ReactNode }) => (
-  <div style={moduleIconStyle} aria-hidden="true">
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.9"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+type ModuleTone = 'blue' | 'emerald' | 'amber' | 'purple' | 'pink' | 'slate'
+
+const moduleToneStyles: Record<ModuleTone, { color: string; border: string; bg: string }> = {
+  blue: {
+    color: '#1553cf',
+    border: 'rgba(21, 83, 207, 0.18)',
+    bg: 'linear-gradient(180deg, rgba(21, 83, 207, 0.12) 0%, rgba(21, 83, 207, 0.04) 100%)',
+  },
+  emerald: {
+    color: '#047857',
+    border: 'rgba(4, 120, 87, 0.2)',
+    bg: 'linear-gradient(180deg, rgba(4, 120, 87, 0.12) 0%, rgba(4, 120, 87, 0.04) 100%)',
+  },
+  amber: {
+    color: '#b45309',
+    border: 'rgba(180, 83, 9, 0.22)',
+    bg: 'linear-gradient(180deg, rgba(217, 119, 6, 0.14) 0%, rgba(217, 119, 6, 0.05) 100%)',
+  },
+  purple: {
+    color: '#7e22ce',
+    border: 'rgba(126, 34, 206, 0.22)',
+    bg: 'linear-gradient(180deg, rgba(168, 85, 247, 0.14) 0%, rgba(168, 85, 247, 0.05) 100%)',
+  },
+  pink: {
+    color: '#be185d',
+    border: 'rgba(190, 24, 93, 0.22)',
+    bg: 'linear-gradient(180deg, rgba(219, 39, 119, 0.13) 0%, rgba(219, 39, 119, 0.05) 100%)',
+  },
+  slate: {
+    color: '#475569',
+    border: 'rgba(71, 85, 105, 0.2)',
+    bg: 'linear-gradient(180deg, rgba(71, 85, 105, 0.1) 0%, rgba(71, 85, 105, 0.04) 100%)',
+  },
+}
+
+const ModuleIcon = ({
+  children,
+  tone = 'blue',
+}: {
+  children: React.ReactNode
+  tone?: ModuleTone
+}) => {
+  const palette = moduleToneStyles[tone]
+  return (
+    <div
+      style={{
+        ...moduleIconStyle,
+        color: palette.color,
+        border: `1px solid ${palette.border}`,
+        background: palette.bg,
+      }}
+      aria-hidden="true"
     >
-      {children}
-    </svg>
-  </div>
-)
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        {children}
+      </svg>
+    </div>
+  )
+}
 
 const mockHeaderStyle: React.CSSProperties = {
   display: 'flex',
@@ -516,6 +569,7 @@ const StaffDashboardContent = ({
   stats,
   contentHealth,
   reporting,
+  kpiHistory,
 }: {
   user?: AdminViewServerProps['initPageResult']['req']['user']
   stats: {
@@ -527,6 +581,11 @@ const StaffDashboardContent = ({
     activeStudents: number
     publishedLessons: number
     avgCompletion: number | null
+  }
+  kpiHistory?: {
+    activeStudents: number[]
+    publishedLessons: number[]
+    completionRate: number[]
   }
   contentHealth: {
     lowCompletion: { id: string | number; title: string; rate: number }[]
@@ -565,6 +624,16 @@ const StaffDashboardContent = ({
 }) => (
   <Gutter>
     <style>{`
+      @keyframes dashboardFadeUp {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .dashboard-fade-in {
+        animation: dashboardFadeUp 380ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .dashboard-fade-in { animation: none !important; }
+      }
       .quick-action-card > div {
         transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
       }
@@ -1071,9 +1140,10 @@ const StaffDashboardContent = ({
                   icon: <BarChartIcon size={14} color="#0d9488" />,
                   tone: 'rgba(13, 148, 136, 0.08)',
                 },
-              ].map((kpi) => (
+              ].map((kpi, idx) => (
                 <div
                   key={kpi.label}
+                  className="dashboard-fade-in"
                   style={{
                     background: kpi.tone,
                     border: '1px solid rgba(15, 23, 42, 0.05)',
@@ -1083,6 +1153,7 @@ const StaffDashboardContent = ({
                     flexDirection: 'column',
                     gap: 2,
                     minWidth: 0,
+                    animationDelay: `${40 + idx * 50}ms`,
                   }}
                 >
                   <div
@@ -1109,6 +1180,7 @@ const StaffDashboardContent = ({
                       color: 'var(--cpp-ink)',
                       lineHeight: 1,
                       letterSpacing: -0.4,
+                      fontVariantNumeric: 'tabular-nums',
                     }}
                   >
                     {kpi.value}
@@ -1190,40 +1262,86 @@ const StaffDashboardContent = ({
                     gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
                   }}
                 >
-                  {[
-                    {
-                      label: 'Active (7d)',
-                      value: `${stats.activeStudents}`,
-                      icon: <UsersIcon size={14} color="#1553cf" />,
-                      accent: '#1553cf',
-                      delta: null as { value: string; direction: 'up' | 'down' } | null,
-                      sparkline: [3, 5, 4, 6, 5, 7, stats.activeStudents || 8],
-                      hint: 'students engaged this week',
-                    },
-                    {
-                      label: 'Published Lessons',
-                      value: `${stats.publishedLessons}`,
-                      icon: <BookOpenIcon size={14} color="#0891b2" />,
-                      accent: '#0891b2',
-                      delta: null,
-                      sparkline: [1, 3, 5, 8, 11, 14, stats.publishedLessons || 15],
-                      hint: 'live across all courses',
-                    },
-                    {
-                      label: 'Completion Rate',
-                      value:
-                        stats.avgCompletion != null
-                          ? `${Math.round(stats.avgCompletion * 100)}%`
-                          : '—',
-                      icon: <ClipboardIcon size={14} color="#0d9488" />,
-                      accent: '#0d9488',
-                      delta: null,
-                      sparkline: [40, 48, 55, 60, 58, 64, stats.avgCompletion != null ? Math.round(stats.avgCompletion * 100) : 65],
-                      hint: 'lessons finished by learners',
-                    },
-                  ].map((kpi) => (
+                  {(() => {
+                    const activeSeries = (kpiHistory?.activeStudents?.length
+                      ? kpiHistory.activeStudents
+                      : [stats.activeStudents]) as number[]
+                    const lessonsSeries = (kpiHistory?.publishedLessons?.length
+                      ? kpiHistory.publishedLessons
+                      : [stats.publishedLessons]) as number[]
+                    const completionSeries = (kpiHistory?.completionRate?.length
+                      ? kpiHistory.completionRate
+                      : [
+                          stats.avgCompletion != null
+                            ? Math.round(stats.avgCompletion * 100)
+                            : 0,
+                        ]) as number[]
+
+                    const computeDelta = (
+                      series: number[],
+                      formatter: (v: number) => string = (v) =>
+                        `${v >= 0 ? '+' : ''}${v}`,
+                    ) => {
+                      if (series.length < 2) return null
+                      const last = series[series.length - 1]
+                      const prev = series[series.length - 2]
+                      const diff = last - prev
+                      if (!Number.isFinite(diff) || diff === 0) return null
+                      return {
+                        text: formatter(diff),
+                        direction: (diff > 0 ? 'up' : 'down') as 'up' | 'down',
+                      }
+                    }
+                    const computePctDelta = (series: number[]) => {
+                      if (series.length < 2) return null
+                      const last = series[series.length - 1]
+                      const prev = series[series.length - 2]
+                      if (!prev) return null
+                      const pct = Math.round(((last - prev) / prev) * 100)
+                      if (!Number.isFinite(pct) || pct === 0) return null
+                      return {
+                        text: `${pct >= 0 ? '+' : ''}${pct}%`,
+                        direction: (pct > 0 ? 'up' : 'down') as 'up' | 'down',
+                      }
+                    }
+
+                    return [
+                      {
+                        label: 'Active (7d)',
+                        rawValue: stats.activeStudents,
+                        icon: <UsersIcon size={14} color="#1553cf" />,
+                        accent: '#1553cf',
+                        delta: computePctDelta(activeSeries),
+                        sparkline: activeSeries,
+                        hint: 'students engaged this week',
+                      },
+                      {
+                        label: 'Published Lessons',
+                        rawValue: stats.publishedLessons,
+                        icon: <BookOpenIcon size={14} color="#0891b2" />,
+                        accent: '#0891b2',
+                        delta: computeDelta(lessonsSeries),
+                        sparkline: lessonsSeries,
+                        hint: 'live across all courses',
+                      },
+                      {
+                        label: 'Completion Rate',
+                        rawValue:
+                          stats.avgCompletion != null
+                            ? Math.round(stats.avgCompletion * 100)
+                            : null,
+                        suffix: stats.avgCompletion != null ? '%' : '',
+                        icon: <ClipboardIcon size={14} color="#0d9488" />,
+                        accent: '#0d9488',
+                        delta: computeDelta(completionSeries, (v) => `${v >= 0 ? '+' : ''}${v}pp`),
+                        sparkline: completionSeries,
+                        hint: 'weekly avg lessons completed',
+                      },
+                    ]
+                  })().map((kpi, kpiIdx) => (
                     <div
                       key={kpi.label}
+                      className="dashboard-fade-in"
                       style={{
                         borderRadius: 12,
                         background:
@@ -1235,34 +1353,70 @@ const StaffDashboardContent = ({
                         gap: 4,
                         minWidth: 0,
                         position: 'relative',
+                        animationDelay: `${80 + kpiIdx * 60}ms`,
                       }}
                     >
                       <div
                         style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: 5,
-                          fontSize: 10,
-                          textTransform: 'uppercase',
-                          letterSpacing: 0.6,
-                          color: 'var(--cpp-muted)',
-                          fontWeight: 700,
+                          justifyContent: 'space-between',
+                          gap: 6,
                         }}
                       >
-                        <span
+                        <div
                           style={{
-                            display: 'inline-flex',
-                            width: 18,
-                            height: 18,
+                            display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            borderRadius: 6,
-                            background: `${kpi.accent}1a`,
+                            gap: 5,
+                            fontSize: 10,
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.6,
+                            color: 'var(--cpp-muted)',
+                            fontWeight: 700,
                           }}
                         >
-                          {kpi.icon}
-                        </span>
-                        {kpi.label}
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              width: 18,
+                              height: 18,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderRadius: 6,
+                              background: `${kpi.accent}1a`,
+                            }}
+                          >
+                            {kpi.icon}
+                          </span>
+                          {kpi.label}
+                        </div>
+                        {kpi.delta ? (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 2,
+                              fontSize: 10,
+                              fontWeight: 700,
+                              color: kpi.delta.direction === 'up' ? '#127455' : '#b91c1c',
+                              background:
+                                kpi.delta.direction === 'up'
+                                  ? 'rgba(18, 116, 85, 0.1)'
+                                  : 'rgba(185, 28, 28, 0.1)',
+                              padding: '2px 6px',
+                              borderRadius: 999,
+                              letterSpacing: 0.2,
+                            }}
+                          >
+                            {kpi.delta.direction === 'up' ? (
+                              <TrendUpIcon size={10} />
+                            ) : (
+                              <TrendDownIcon size={10} />
+                            )}
+                            {kpi.delta.text}
+                          </span>
+                        ) : null}
                       </div>
                       <div
                         style={{
@@ -1271,9 +1425,17 @@ const StaffDashboardContent = ({
                           color: 'var(--cpp-ink)',
                           lineHeight: 1,
                           letterSpacing: -0.4,
+                          fontVariantNumeric: 'tabular-nums',
                         }}
                       >
-                        {kpi.value}
+                        {kpi.rawValue == null ? (
+                          '—'
+                        ) : (
+                          <AnimatedNumber
+                            value={kpi.rawValue}
+                            suffix={kpi.suffix ?? ''}
+                          />
+                        )}
                       </div>
                       <div
                         style={{
@@ -1284,7 +1446,12 @@ const StaffDashboardContent = ({
                         }}
                       >
                         <div style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>{kpi.hint}</div>
-                        <Sparkline values={kpi.sparkline} color={kpi.accent} width={64} height={20} />
+                        <Sparkline
+                          values={kpi.sparkline}
+                          color={kpi.accent}
+                          width={64}
+                          height={20}
+                        />
                       </div>
                     </div>
                   ))}
@@ -1467,7 +1634,7 @@ const StaffDashboardContent = ({
           <div style={{ display: 'grid', gap: 12 }}>
             <div style={moduleRowStyle}>
               <div style={moduleMetaStyle}>
-                <ModuleIcon>
+                <ModuleIcon tone="blue">
                   <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
                   <path d="M20 22V5a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 5.5v14" />
                 </ModuleIcon>
@@ -1488,7 +1655,7 @@ const StaffDashboardContent = ({
             </div>
             <div style={moduleRowStyle}>
               <div style={moduleMetaStyle}>
-                <ModuleIcon>
+                <ModuleIcon tone="emerald">
                   <path d="M9 6h11" />
                   <path d="M9 12h11" />
                   <path d="M9 18h11" />
@@ -1513,7 +1680,7 @@ const StaffDashboardContent = ({
             </div>
             <div style={moduleRowStyle}>
               <div style={moduleMetaStyle}>
-                <ModuleIcon>
+                <ModuleIcon tone="slate">
                   <circle cx="12" cy="12" r="3" />
                   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 5 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 5 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 5a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 5a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15z" />
                 </ModuleIcon>
@@ -1550,7 +1717,7 @@ const StaffDashboardContent = ({
             </div>
             <div style={moduleRowStyle}>
               <div style={moduleMetaStyle}>
-                <ModuleIcon>
+                <ModuleIcon tone="amber">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                   <circle cx="8.5" cy="7" r="3.2" />
                   <path d="M20 8v6" />
@@ -2141,6 +2308,96 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     }
   }
 
+  // Compute weekly history series so the dashboard sparklines + delta chips
+  // come from real data instead of placeholder series. Anchored to the same
+  // 8-week window as reporting.weeklyEngagement.
+  const HISTORY_WEEKS = 8
+  const computeKpiHistory = async () => {
+    // Build the week-start anchor list from reporting; pad to 8 weeks if needed.
+    const fromReporting = (reporting?.weeklyEngagement ?? [])
+      .map((w) => w.weekStart)
+      .filter((s): s is string => typeof s === 'string')
+
+    const today = new Date()
+    today.setUTCHours(0, 0, 0, 0)
+    const dow = today.getUTCDay()
+    const offset = (dow + 6) % 7
+    today.setUTCDate(today.getUTCDate() - offset)
+    const weekStarts: string[] = []
+    for (let i = HISTORY_WEEKS - 1; i >= 0; i -= 1) {
+      const d = new Date(today)
+      d.setUTCDate(today.getUTCDate() - i * 7)
+      weekStarts.push(d.toISOString().slice(0, 10))
+    }
+    // Prefer reporting's anchors when they cover the window — keeps charts
+    // consistent with the reporting view.
+    const anchors = fromReporting.length >= HISTORY_WEEKS ? fromReporting.slice(-HISTORY_WEEKS) : weekStarts
+
+    const weekIndex = (iso: string | null | undefined): number => {
+      if (!iso) return -1
+      const ts = new Date(iso).getTime()
+      if (Number.isNaN(ts)) return -1
+      for (let i = anchors.length - 1; i >= 0; i -= 1) {
+        if (ts >= new Date(anchors[i]).getTime()) return i
+      }
+      return -1
+    }
+
+    const activeStudents: number[] = anchors.map((anchor) => {
+      const w = (reporting?.weeklyEngagement ?? []).find((x) => x.weekStart === anchor)
+      return w?.activeStudents ?? 0
+    })
+
+    // Cumulative published-lesson count as of each anchor's end-of-week.
+    let publishedLessons: number[] = anchors.map(() => 0)
+    try {
+      const lessonsAll = await findAllDocs(payload, 'lessons')
+      const sorted = (lessonsAll as Array<{ _status?: string; createdAt?: string; publishedAt?: string }>)
+        .filter((l) => (l._status ?? 'published') !== 'draft')
+        .map((l) => l.publishedAt || l.createdAt)
+        .filter((d): d is string => typeof d === 'string' && !!d)
+        .sort()
+      publishedLessons = anchors.map((anchor) => {
+        const cutoff = new Date(anchor).getTime() + 7 * 24 * 60 * 60 * 1000
+        return sorted.filter((d) => new Date(d).getTime() < cutoff).length
+      })
+    } catch {
+      publishedLessons = anchors.map((_, i) => Math.max(0, publishedLessonsCount - (HISTORY_WEEKS - 1 - i)))
+    }
+
+    // Per-week completion ratio over lesson-progress entries that updated in that week.
+    const completionRate: number[] = anchors.map(() => 0)
+    try {
+      const progress = await findAllDocs(payload, 'lesson-progress')
+      const buckets: Array<{ total: number; done: number }> = anchors.map(() => ({ total: 0, done: 0 }))
+      ;(progress as Array<{ updatedAt?: string; completed?: boolean }>).forEach((p) => {
+        const idx = weekIndex(p.updatedAt)
+        if (idx < 0) return
+        buckets[idx].total += 1
+        if (p.completed) buckets[idx].done += 1
+      })
+      buckets.forEach((b, i) => {
+        completionRate[i] = b.total ? Math.round((b.done / b.total) * 100) : 0
+      })
+    } catch {
+      // leave zeros
+    }
+
+    return { activeStudents, publishedLessons, completionRate }
+  }
+
+  const kpiHistory = await (async () => {
+    try {
+      return await computeKpiHistory()
+    } catch {
+      return {
+        activeStudents: Array(HISTORY_WEEKS).fill(0),
+        publishedLessons: Array(HISTORY_WEEKS).fill(0),
+        completionRate: Array(HISTORY_WEEKS).fill(0),
+      }
+    }
+  })()
+
   const stats = {
     accounts: accountsCount,
     unanswered: unansweredCount,
@@ -2158,6 +2415,7 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
       stats={stats}
       contentHealth={contentHealth}
       reporting={reporting}
+      kpiHistory={kpiHistory}
     />
   )
 }
