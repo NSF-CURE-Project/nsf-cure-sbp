@@ -7,6 +7,7 @@ import { CSS } from '@dnd-kit/utilities'
 import type { DragMeta, LessonNode } from './types'
 import DragHandle from './DragHandle'
 import DropIndicator from './DropIndicator'
+import RowOverflowMenu, { type OverflowAction } from './RowOverflowMenu'
 
 type SortableLessonRowProps = {
   lesson: LessonNode
@@ -43,13 +44,27 @@ export default function SortableLessonRow({
     transition: sortable.transition,
   }
 
-  const actionLabel = lesson.quizTitle ? 'Change quiz' : 'Assign quiz'
+  const overflowActions: OverflowAction[] = [
+    {
+      kind: 'link',
+      label: lesson.quizTitle ? 'Change quiz' : 'Assign quiz',
+      href: `/admin/collections/lessons/${lesson.id}`,
+    },
+    {
+      kind: 'button',
+      label: 'Delete lesson',
+      destructive: true,
+      disabled: deleting,
+      pendingLabel: 'Deleting…',
+      onClick: () => onDelete(lesson),
+    },
+  ]
 
   return (
     <div
       ref={sortable.setNodeRef}
       style={style}
-      className={`relative grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-[var(--admin-surface-border)] bg-[var(--admin-surface)] px-2 py-1.5 transition ${
+      className={`group relative grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-[var(--admin-surface-border)] bg-[var(--admin-surface)] px-2 py-1.5 transition ${
         sortable.isDragging ? 'opacity-60' : 'hover:bg-[var(--admin-surface-muted)]'
       }`}
     >
@@ -73,22 +88,10 @@ export default function SortableLessonRow({
         >
           Edit lesson
         </Link>
-        <Link
-          href={`/admin/collections/lessons/${lesson.id}`}
-          className="rounded-md border border-[var(--admin-surface-border)] px-2 py-1 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:bg-[var(--admin-surface-muted)]"
-          aria-label={`${actionLabel} for lesson ${lesson.title}`}
-        >
-          {actionLabel}
-        </Link>
-        <button
-          type="button"
-          onClick={() => onDelete(lesson)}
-          disabled={deleting}
-          className="rounded-md border border-red-300 bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-          aria-label={`Delete lesson ${lesson.title}`}
-        >
-          {deleting ? 'Deleting…' : 'Delete'}
-        </button>
+        <RowOverflowMenu
+          ariaLabel={`More actions for lesson ${lesson.title}`}
+          actions={overflowActions}
+        />
       </div>
     </div>
   )

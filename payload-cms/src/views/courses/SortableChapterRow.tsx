@@ -10,6 +10,7 @@ import DragHandle from './DragHandle'
 import DropIndicator from './DropIndicator'
 import SortableLessonRow from './SortableLessonRow'
 import EmptyLessonState from './EmptyLessonState'
+import RowOverflowMenu, { type OverflowAction } from './RowOverflowMenu'
 
 type SortableChapterRowProps = {
   chapter: ChapterNode
@@ -83,28 +84,32 @@ export default function SortableChapterRow({
         </div>
         <div className="flex items-center gap-1.5">
           <Link
-            href={`/admin/collections/chapters/${chapter.id}`}
-            className="rounded-md border border-[var(--admin-surface-border)] px-2 py-1 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:bg-[var(--admin-surface-muted)]"
-            aria-label={`Edit chapter ${chapter.title}`}
-          >
-            Edit chapter
-          </Link>
-          <Link
             href={`/admin/collections/lessons/create?chapter=${chapter.id}`}
-            className="rounded-md border border-[var(--admin-surface-border)] px-2 py-1 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:bg-[var(--admin-surface-muted)]"
+            className="rounded-md bg-slate-900 px-2 py-1 text-xs font-semibold text-white no-underline hover:bg-slate-800"
             aria-label={`Add lesson to chapter ${chapter.title}`}
           >
             Add lesson
           </Link>
-          <button
-            type="button"
-            onClick={() => onDeleteChapter(chapter)}
-            disabled={deleting}
-            className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-            aria-label={`Delete chapter ${chapter.title}`}
-          >
-            {deleting ? 'Deleting…' : 'Delete'}
-          </button>
+          <RowOverflowMenu
+            ariaLabel={`More actions for chapter ${chapter.title}`}
+            actions={
+              [
+                {
+                  kind: 'link',
+                  label: 'Edit chapter',
+                  href: `/admin/collections/chapters/${chapter.id}`,
+                },
+                {
+                  kind: 'button',
+                  label: 'Delete chapter',
+                  destructive: true,
+                  disabled: deleting,
+                  pendingLabel: 'Deleting…',
+                  onClick: () => onDeleteChapter(chapter),
+                },
+              ] satisfies OverflowAction[]
+            }
+          />
         </div>
       </div>
 
