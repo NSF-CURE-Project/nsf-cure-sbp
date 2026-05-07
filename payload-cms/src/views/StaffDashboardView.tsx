@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { getReportingSummary } from '../utils/analyticsSummary'
 import { findAllDocs } from '../reporting/data'
 import AnimatedNumber from './dashboard/AnimatedNumber'
+import { Sparkline } from './reporting/charts'
 
 const cppInk = 'var(--cpp-ink)'
 
@@ -122,45 +123,6 @@ const SettingsIcon = (p: IconProps) => (
   </Icon>
 )
 // ---------- end icons ----------
-
-// Tiny inline sparkline. Provides motion/visual interest without a chart lib.
-const Sparkline = ({
-  values,
-  color = '#1e3a8a',
-  width = 84,
-  height = 28,
-}: {
-  values: number[]
-  color?: string
-  width?: number
-  height?: number
-}) => {
-  if (!values.length) return null
-  const min = Math.min(...values)
-  const max = Math.max(...values)
-  const range = max - min || 1
-  const stepX = values.length > 1 ? width / (values.length - 1) : 0
-  const points = values.map((v, i) => {
-    const x = i * stepX
-    const y = height - ((v - min) / range) * height
-    return `${x.toFixed(1)},${y.toFixed(1)}`
-  })
-  const linePath = `M${points.join(' L')}`
-  const areaPath = `${linePath} L${(width).toFixed(1)},${height} L0,${height} Z`
-  const gradientId = `spark-${Math.random().toString(36).slice(2, 8)}`
-  return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
-      <defs>
-        <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={areaPath} fill={`url(#${gradientId})`} />
-      <path d={linePath} fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
 
 const ratingScoreMap: Record<string, number> = {
   not_helpful: 1,
@@ -564,180 +526,6 @@ const ContentHealthCard = ({
   )
 }
 
-// ---------- Mini chart primitives for the Reporting module ----------
-const HBar = ({
-  label,
-  numerator,
-  denominator,
-  rate,
-  accent = '#1553cf',
-}: {
-  label: string
-  numerator: number
-  denominator: number
-  rate: number
-  accent?: string
-}) => {
-  const pct = Math.max(0, Math.min(1, rate))
-  return (
-    <div style={{ display: 'grid', gap: 4 }}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'baseline',
-          justifyContent: 'space-between',
-          gap: 8,
-        }}
-      >
-        <span
-          style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: 'var(--cpp-ink)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            minWidth: 0,
-          }}
-          title={label}
-        >
-          {label}
-        </span>
-        <span
-          style={{ fontSize: 11, color: 'var(--cpp-muted)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}
-        >
-          <strong style={{ color: 'var(--cpp-ink)' }}>{Math.round(pct * 100)}%</strong>
-          <span style={{ opacity: 0.7 }}>
-            {' '}
-            · {numerator}/{denominator}
-          </span>
-        </span>
-      </div>
-      <div
-        style={{
-          height: 8,
-          borderRadius: 999,
-          background: 'rgba(15, 23, 42, 0.06)',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            width: `${(pct * 100).toFixed(1)}%`,
-            height: '100%',
-            background: `linear-gradient(90deg, ${accent}aa 0%, ${accent} 100%)`,
-            borderRadius: 999,
-            transition: 'width 600ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-          }}
-        />
-      </div>
-    </div>
-  )
-}
-
-const Donut = ({
-  value,
-  size = 90,
-  stroke = 10,
-  accent = '#1553cf',
-  label,
-  sub,
-}: {
-  value: number
-  size?: number
-  stroke?: number
-  accent?: string
-  label?: string
-  sub?: string
-}) => {
-  const pct = Math.max(0, Math.min(1, value))
-  const radius = (size - stroke) / 2
-  const circumference = 2 * Math.PI * radius
-  const offset = circumference * (1 - pct)
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke="rgba(15, 23, 42, 0.07)"
-          strokeWidth={stroke}
-          fill="none"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={accent}
-          strokeWidth={stroke}
-          fill="none"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          style={{ transition: 'stroke-dashoffset 700ms cubic-bezier(0.22, 0.61, 0.36, 1)' }}
-        />
-        <text
-          x="50%"
-          y="50%"
-          textAnchor="middle"
-          dominantBaseline="central"
-          style={{
-            fontSize: 16,
-            fontWeight: 800,
-            fill: 'var(--cpp-ink)',
-            fontVariantNumeric: 'tabular-nums',
-          }}
-        >
-          {Math.round(pct * 100)}%
-        </text>
-      </svg>
-      <div style={{ minWidth: 0 }}>
-        {label ? (
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--cpp-ink)' }}>{label}</div>
-        ) : null}
-        {sub ? (
-          <div style={{ fontSize: 11, color: 'var(--cpp-muted)', marginTop: 2 }}>{sub}</div>
-        ) : null}
-      </div>
-    </div>
-  )
-}
-
-const ReportingPanel = ({
-  title,
-  hint,
-  children,
-}: {
-  title: string
-  hint?: string
-  children: React.ReactNode
-}) => (
-  <div
-    style={{
-      borderRadius: 14,
-      border: '1px solid rgba(15, 23, 42, 0.06)',
-      background:
-        'linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 255, 0.92) 100%)',
-      padding: '14px 16px',
-      boxShadow: '0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 6px 14px rgba(15, 23, 42, 0.04)',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 10,
-      minHeight: 180,
-    }}
-  >
-    <div>
-      <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--cpp-ink)' }}>{title}</div>
-      {hint ? (
-        <div style={{ fontSize: 11, color: 'var(--cpp-muted)', marginTop: 2 }}>{hint}</div>
-      ) : null}
-    </div>
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>{children}</div>
-  </div>
-)
-
 const formatRelativeTime = (iso: string | null): string | null => {
   if (!iso) return null
   const ts = new Date(iso).getTime()
@@ -1013,6 +801,7 @@ const StaffDashboardContent = ({
   reporting,
   kpiHistory,
   managementCounts,
+  reportingGateway,
 }: {
   user?: AdminViewServerProps['initPageResult']['req']['user']
   stats: {
@@ -1073,6 +862,25 @@ const StaffDashboardContent = ({
       activeStudents: number
       weekOverWeekChange: number | null
     }[]
+  }
+  reportingGateway: {
+    activePeriod: {
+      id: string | number
+      label: string
+      reportType: string
+      startDate: string | null
+      endDate: string | null
+    } | null
+    latestSnapshot: {
+      id: string | number
+      label: string
+      createdAt: string
+      versionLabel: string | null
+    } | null
+    rpprDraftCount: number
+    snapshotCount: number
+    savedViewCount: number
+    productCount: number
   }
 }) => (
   <Gutter>
@@ -1217,52 +1025,6 @@ const StaffDashboardContent = ({
         font-weight: 600;
       }
 
-      .dashboard-reporting-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-        gap: 12px;
-      }
-      @media (max-width: 960px) {
-        .dashboard-reporting-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-      .dashboard-reporting-main {
-        border-radius: 16px;
-        border: 1px solid rgba(15, 23, 42, 0.06);
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(248, 250, 255, 0.94) 100%);
-        padding: 16px;
-        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 8px 20px rgba(15, 23, 42, 0.04);
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-      }
-      .dashboard-reporting-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        flex-wrap: wrap;
-      }
-      .dashboard-reporting-charts {
-        display: grid;
-        gap: 12px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-      @media (max-width: 720px) {
-        .dashboard-reporting-charts {
-          grid-template-columns: 1fr;
-        }
-      }
-      .dashboard-reporting-export-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        align-items: center;
-        padding-top: 10px;
-        border-top: 1px solid rgba(15, 23, 42, 0.06);
-      }
       .dashboard-export-pill {
         display: inline-flex;
         align-items: center;
@@ -1290,6 +1052,161 @@ const StaffDashboardContent = ({
         display: flex;
         flex-direction: column;
         height: 100%;
+      }
+
+      .reporting-gateway {
+        position: relative;
+        overflow: hidden;
+        border-radius: 18px;
+        border: 1px solid rgba(21, 83, 207, 0.16);
+        background:
+          radial-gradient(120% 140% at 0% 0%, rgba(21, 83, 207, 0.10) 0%, rgba(21, 83, 207, 0) 55%),
+          radial-gradient(120% 140% at 100% 100%, rgba(168, 85, 247, 0.10) 0%, rgba(168, 85, 247, 0) 55%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 255, 0.94) 100%);
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 14px 32px rgba(15, 23, 42, 0.06);
+        padding: 18px 20px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+        gap: 18px;
+        align-items: stretch;
+      }
+      @media (max-width: 880px) {
+        .reporting-gateway { grid-template-columns: 1fr; }
+      }
+      .reporting-gateway-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 10.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.9px;
+        color: #1553cf;
+        background: rgba(21, 83, 207, 0.08);
+        border: 1px solid rgba(21, 83, 207, 0.16);
+        padding: 4px 9px;
+        border-radius: 999px;
+      }
+      .reporting-gateway-title {
+        font-size: 19px;
+        font-weight: 800;
+        color: var(--cpp-ink);
+        letter-spacing: -0.01em;
+        margin-top: 10px;
+      }
+      .reporting-gateway-sub {
+        font-size: 12.5px;
+        color: var(--cpp-muted);
+        margin-top: 4px;
+        line-height: 1.5;
+        max-width: 520px;
+      }
+      .reporting-gateway-cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin-top: 14px;
+      }
+      .reporting-gateway-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 14px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #ffffff;
+        text-decoration: none;
+        background: linear-gradient(180deg, #1d63e3 0%, #1553cf 100%);
+        box-shadow: 0 6px 14px rgba(21, 83, 207, 0.24), 0 1px 0 rgba(255, 255, 255, 0.18) inset;
+        transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+      }
+      .reporting-gateway-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px rgba(21, 83, 207, 0.28), 0 1px 0 rgba(255, 255, 255, 0.18) inset;
+        filter: brightness(1.04);
+      }
+      .reporting-gateway-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--cpp-ink);
+        text-decoration: none;
+        background: rgba(15, 23, 42, 0.04);
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        transition: background 140ms ease, border-color 140ms ease;
+      }
+      .reporting-gateway-secondary:hover {
+        background: rgba(15, 23, 42, 0.07);
+        border-color: rgba(15, 23, 42, 0.14);
+      }
+      .reporting-gateway-stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        align-content: start;
+      }
+      .reporting-gateway-stat {
+        border-radius: 12px;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        background: rgba(255, 255, 255, 0.85);
+        padding: 11px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+      .reporting-gateway-stat-label {
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        color: var(--cpp-muted);
+      }
+      .reporting-gateway-stat-value {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--cpp-ink);
+        font-variant-numeric: tabular-nums;
+        line-height: 1.15;
+      }
+      .reporting-gateway-stat-meta {
+        font-size: 11px;
+        color: var(--cpp-muted);
+        font-weight: 600;
+        line-height: 1.35;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .reporting-gateway-period {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 8px;
+        font-size: 11px;
+        font-weight: 700;
+        border-radius: 999px;
+      }
+      .reporting-gateway-period--active {
+        color: #127455;
+        background: rgba(20, 131, 92, 0.12);
+        border: 1px solid rgba(20, 131, 92, 0.22);
+      }
+      .reporting-gateway-period--draft {
+        color: #b45309;
+        background: rgba(217, 119, 6, 0.12);
+        border: 1px solid rgba(217, 119, 6, 0.24);
+      }
+      .reporting-gateway-period--none {
+        color: var(--cpp-muted);
+        background: rgba(15, 23, 42, 0.06);
+        border: 1px solid rgba(15, 23, 42, 0.1);
       }
       .dashboard-attention-row {
         display: flex;
@@ -2403,262 +2320,167 @@ const StaffDashboardContent = ({
         </div>
         <div style={sectionLabelStyle}>NSF Reporting</div>
         <div style={{ ...contentBoxStyle }}>
-          <div className="dashboard-reporting-grid">
-            <div className="dashboard-reporting-main">
-              <div className="dashboard-reporting-head">
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--cpp-ink)' }}>
-                    Operational reporting suite
+          {(() => {
+            const period = reportingGateway.activePeriod
+            const periodChipClass = period
+              ? 'reporting-gateway-period reporting-gateway-period--active'
+              : 'reporting-gateway-period reporting-gateway-period--none'
+            const fmtRange = (start: string | null, end: string | null) => {
+              if (!start || !end) return null
+              const s = new Date(start)
+              const e = new Date(end)
+              const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }
+              const sameYear = s.getUTCFullYear() === e.getUTCFullYear()
+              return sameYear
+                ? `${s.toLocaleDateString('en-US', opts)} – ${e.toLocaleDateString('en-US', { ...opts, year: 'numeric' })}`
+                : `${s.toLocaleDateString('en-US', { ...opts, year: 'numeric' })} – ${e.toLocaleDateString('en-US', { ...opts, year: 'numeric' })}`
+            }
+            const fmtRelative = (iso: string) => {
+              const ts = new Date(iso).getTime()
+              if (Number.isNaN(ts)) return ''
+              const days = Math.floor((Date.now() - ts) / (1000 * 60 * 60 * 24))
+              if (days <= 0) return 'today'
+              if (days === 1) return 'yesterday'
+              if (days < 7) return `${days}d ago`
+              if (days < 30) return `${Math.floor(days / 7)}w ago`
+              if (days < 365) return `${Math.floor(days / 30)}mo ago`
+              return `${Math.floor(days / 365)}y ago`
+            }
+            const lastWeekActive =
+              reporting.weeklyEngagement[reporting.weeklyEngagement.length - 1]?.activeStudents ??
+              0
+            return (
+              <div className="reporting-gateway">
+                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                  <span className="reporting-gateway-eyebrow">
+                    <svg
+                      aria-hidden="true"
+                      width="11"
+                      height="11"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M3 3v18h18" />
+                      <path d="M7 14l3-3 3 3 5-5" />
+                    </svg>
+                    Reporting Suite
+                  </span>
+                  <div className="reporting-gateway-title">
+                    NSF institutional analytics &amp; RPPR workspace
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--cpp-muted)', marginTop: 2 }}>
-                    Period-based RPPR exports, completion analytics, and engagement signals.
+                  <div className="reporting-gateway-sub">
+                    Period-scoped cohort analytics, snapshot-backed RPPR drafts, and
+                    audit-grade exports — purpose-built for federal reporting and program
+                    review at Cal Poly Pomona.
                   </div>
-                </div>
-                <Link
-                  href="/admin/reporting"
-                  className="dashboard-module-primary"
-                  style={{ background: '#1553cf' }}
-                >
-                  Open Reporting
-                  <svg
-                    aria-hidden="true"
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M5 12h14" />
-                    <path d="m13 5 7 7-7 7" />
-                  </svg>
-                </Link>
-              </div>
-              <div className="dashboard-reporting-charts">
-                <ReportingPanel
-                  title="Completion by class"
-                  hint="% of enrolled learners who finished each course"
-                >
-                  {reporting.classCompletion.length === 0 ? (
-                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                      No class completion data yet.
-                    </div>
-                  ) : (
-                    reporting.classCompletion
-                      .slice(0, 4)
-                      .map((item) => (
-                        <HBar
-                          key={item.id}
-                          label={item.title}
-                          numerator={item.uniqueLearnersCompleted}
-                          denominator={item.uniqueLearnersStarted || 1}
-                          rate={item.completionRate}
-                          accent="#1553cf"
-                        />
-                      ))
-                  )}
-                </ReportingPanel>
-                <ReportingPanel
-                  title="Completion by chapter"
-                  hint="Top 4 chapters by completion rate"
-                >
-                  {reporting.chapterCompletion.length === 0 ? (
-                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                      No chapter completion data yet.
-                    </div>
-                  ) : (
-                    [...reporting.chapterCompletion]
-                      .sort((a, b) => b.completionRate - a.completionRate)
-                      .slice(0, 4)
-                      .map((item) => (
-                        <HBar
-                          key={item.id}
-                          label={item.title}
-                          numerator={item.uniqueLearnersCompleted}
-                          denominator={item.uniqueLearnersStarted || 1}
-                          rate={item.completionRate}
-                          accent="#0d9488"
-                        />
-                      ))
-                  )}
-                </ReportingPanel>
-                <ReportingPanel
-                  title="Quiz mastery"
-                  hint="Share of attempts that hit ≥80% mastery"
-                >
-                  {(() => {
-                    const attempted = reporting.quizPerformance.reduce(
-                      (sum, q) => sum + q.uniqueLearnersAttempted,
-                      0,
-                    )
-                    const mastered = reporting.quizPerformance.reduce(
-                      (sum, q) => sum + q.uniqueLearnersMastered,
-                      0,
-                    )
-                    const rate = attempted ? mastered / attempted : 0
-                    if (attempted === 0) {
-                      return (
-                        <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                          No quiz attempts yet.
-                        </div>
-                      )
-                    }
-                    const top = [...reporting.quizPerformance]
-                      .sort((a, b) => b.masteryRate - a.masteryRate)
-                      .slice(0, 3)
-                    return (
-                      <>
-                        <Donut
-                          value={rate}
-                          accent="#a855f7"
-                          label={`${mastered}/${attempted} mastered`}
-                          sub={`across ${reporting.quizPerformance.length} quizzes`}
-                        />
-                        <div style={{ display: 'grid', gap: 6, marginTop: 4 }}>
-                          {top.map((q) => (
-                            <div
-                              key={q.quizId}
-                              style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                fontSize: 12,
-                                gap: 8,
-                              }}
-                            >
-                              <span
-                                style={{
-                                  color: 'var(--cpp-ink)',
-                                  fontWeight: 600,
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  minWidth: 0,
-                                }}
-                                title={q.title}
-                              >
-                                {q.title}
-                              </span>
-                              <span
-                                style={{
-                                  color: 'var(--cpp-muted)',
-                                  fontVariantNumeric: 'tabular-nums',
-                                  flexShrink: 0,
-                                }}
-                              >
-                                {Math.round(q.masteryRate * 100)}%
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    )
-                  })()}
-                </ReportingPanel>
-                <ReportingPanel
-                  title="Week-over-week engagement"
-                  hint={`Past ${Math.min(reporting.weeklyEngagement.length, 8)} weeks of active learners`}
-                >
-                  {reporting.weeklyEngagement.length === 0 ? (
-                    <div style={{ fontSize: 12, color: 'var(--cpp-muted)' }}>
-                      No engagement data yet.
-                    </div>
-                  ) : (
-                    <>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'baseline',
-                          justifyContent: 'space-between',
-                        }}
+                  <div className="reporting-gateway-cta-row">
+                    <Link href="/admin/reporting" className="reporting-gateway-primary">
+                      Open Reporting Suite
+                      <svg
+                        aria-hidden="true"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       >
-                        <div>
-                          <div
-                            style={{
-                              fontSize: 22,
-                              fontWeight: 800,
-                              color: 'var(--cpp-ink)',
-                              fontVariantNumeric: 'tabular-nums',
-                            }}
-                          >
-                            {reporting.weeklyEngagement[reporting.weeklyEngagement.length - 1]
-                              ?.activeStudents ?? 0}
-                          </div>
-                          <div style={{ fontSize: 11, color: 'var(--cpp-muted)' }}>
-                            active students this week
-                          </div>
-                        </div>
-                        {(() => {
-                          const last =
-                            reporting.weeklyEngagement[reporting.weeklyEngagement.length - 1]
-                          if (last?.weekOverWeekChange == null) return null
-                          const pct = Math.round(last.weekOverWeekChange * 100)
-                          if (pct === 0) return null
-                          const up = pct > 0
-                          return (
-                            <span
-                              style={{
-                                fontSize: 11,
-                                fontWeight: 700,
-                                color: up ? '#127455' : '#b91c1c',
-                                background: up ? 'rgba(18,116,85,0.1)' : 'rgba(185,28,28,0.1)',
-                                padding: '3px 8px',
-                                borderRadius: 999,
-                              }}
-                            >
-                              {up ? '↑' : '↓'} {Math.abs(pct)}% WoW
-                            </span>
-                          )
-                        })()}
-                      </div>
-                      <Sparkline
-                        values={reporting.weeklyEngagement.map((w) => w.activeStudents)}
-                        color="#1553cf"
-                        width={260}
-                        height={56}
-                      />
-                    </>
-                  )}
-                </ReportingPanel>
-              </div>
-              <div className="dashboard-reporting-export-row">
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.6,
-                    color: 'var(--cpp-muted)',
-                    marginRight: 6,
-                  }}
-                >
-                  Exports
+                        <path d="M5 12h14" />
+                        <path d="m13 5 7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/admin/collections/reporting-periods"
+                      className="reporting-gateway-secondary"
+                    >
+                      Reporting periods
+                    </Link>
+                    <Link
+                      href="/admin/collections/rppr-reports"
+                      className="reporting-gateway-secondary"
+                    >
+                      RPPR drafts
+                    </Link>
+                    <Link
+                      href="/admin/collections/reporting-snapshots"
+                      className="reporting-gateway-secondary"
+                    >
+                      Snapshots
+                    </Link>
+                  </div>
                 </div>
-                <Link href="/api/analytics/reporting-summary?format=csv" className="dashboard-export-pill">
-                  Summary CSV
-                </Link>
-                <Link
-                  href="/api/analytics/reporting-summary?format=csv&type=class-completion"
-                  className="dashboard-export-pill"
-                >
-                  Class completion CSV
-                </Link>
-                <Link
-                  href="/api/analytics/reporting-summary?format=csv&type=quiz-performance"
-                  className="dashboard-export-pill"
-                >
-                  Quiz performance CSV
-                </Link>
+                <div className="reporting-gateway-stats">
+                  <div className="reporting-gateway-stat">
+                    <div className="reporting-gateway-stat-label">Active period</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                      <span className={periodChipClass}>
+                        {period ? 'Active' : 'None'}
+                      </span>
+                    </div>
+                    <div
+                      className="reporting-gateway-stat-meta"
+                      title={period?.label ?? 'No active reporting period'}
+                      style={{ marginTop: 4 }}
+                    >
+                      {period?.label ?? 'No active reporting period'}
+                    </div>
+                    <div className="reporting-gateway-stat-meta">
+                      {period ? fmtRange(period.startDate, period.endDate) ?? '—' : '—'}
+                    </div>
+                  </div>
+                  <div className="reporting-gateway-stat">
+                    <div className="reporting-gateway-stat-label">RPPR drafts</div>
+                    <div className="reporting-gateway-stat-value">
+                      {reportingGateway.rpprDraftCount}
+                    </div>
+                    <div className="reporting-gateway-stat-meta">
+                      {reportingGateway.rpprDraftCount === 0
+                        ? 'No drafts in flight'
+                        : reportingGateway.rpprDraftCount === 1
+                          ? '1 narrative in progress'
+                          : `${reportingGateway.rpprDraftCount} narratives in progress`}
+                    </div>
+                  </div>
+                  <div className="reporting-gateway-stat">
+                    <div className="reporting-gateway-stat-label">Latest snapshot</div>
+                    <div
+                      className="reporting-gateway-stat-value"
+                      style={{ fontSize: 14, fontWeight: 700 }}
+                    >
+                      {reportingGateway.latestSnapshot
+                        ? reportingGateway.latestSnapshot.versionLabel ||
+                          reportingGateway.latestSnapshot.label
+                        : 'None yet'}
+                    </div>
+                    <div className="reporting-gateway-stat-meta">
+                      {reportingGateway.latestSnapshot
+                        ? `Captured ${fmtRelative(reportingGateway.latestSnapshot.createdAt)}`
+                        : `${reportingGateway.snapshotCount} historical snapshots`}
+                    </div>
+                  </div>
+                  <div className="reporting-gateway-stat">
+                    <div className="reporting-gateway-stat-label">Active learners</div>
+                    <div className="reporting-gateway-stat-value">
+                      <AnimatedNumber value={lastWeekActive} durationMs={900} />
+                    </div>
+                    <div className="reporting-gateway-stat-meta">
+                      this week (rolling 7-day)
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="dashboard-reporting-side">
-              <NeedsAttentionPanel
-                stats={stats}
-                managementCounts={managementCounts}
-              />
-            </div>
-          </div>
+            )
+          })()}
+        </div>
+        <div style={sectionLabelStyle}>Operational Signals</div>
+        <div style={{ ...contentBoxStyle }}>
+          <NeedsAttentionPanel stats={stats} managementCounts={managementCounts} />
         </div>
         <div style={{ ...contentBoxStyle }}>
           <div className="content-health-heading">
@@ -3067,6 +2889,96 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     }
   }
 
+  // Reporting Suite gateway: a tiny set of headline numbers + the active period
+  // and most recent snapshot. Keeps the dashboard slim while letting users
+  // assess "where are we right now?" in one glance before opening /admin/reporting.
+  const reportingGateway: {
+    activePeriod: {
+      id: string | number
+      label: string
+      reportType: string
+      startDate: string | null
+      endDate: string | null
+    } | null
+    latestSnapshot: {
+      id: string | number
+      label: string
+      createdAt: string
+      versionLabel: string | null
+    } | null
+    rpprDraftCount: number
+    snapshotCount: number
+    savedViewCount: number
+    productCount: number
+  } = {
+    activePeriod: null,
+    latestSnapshot: null,
+    rpprDraftCount: 0,
+    snapshotCount: 0,
+    savedViewCount: 0,
+    productCount: 0,
+  }
+  try {
+    const [periodRes, snapshotRes, rpprRes, savedViewsRes, productsRes] = await Promise.all([
+      payload.find({
+        collection: 'reporting-periods',
+        where: { status: { equals: 'active' } },
+        sort: '-startDate',
+        limit: 1,
+        depth: 0,
+      }),
+      payload.find({
+        collection: 'reporting-snapshots',
+        sort: '-createdAt',
+        limit: 1,
+        depth: 0,
+      }),
+      payload.count({ collection: 'rppr-reports' }),
+      payload.count({ collection: 'reporting-saved-views' }),
+      payload.count({ collection: 'reporting-product-records' }),
+    ])
+    const period = periodRes.docs[0] as
+      | {
+          id: string | number
+          label?: string
+          reportType?: string
+          startDate?: string | null
+          endDate?: string | null
+        }
+      | undefined
+    if (period) {
+      reportingGateway.activePeriod = {
+        id: period.id,
+        label: period.label ?? '(untitled period)',
+        reportType: period.reportType ?? 'annual',
+        startDate: period.startDate ?? null,
+        endDate: period.endDate ?? null,
+      }
+    }
+    const snap = snapshotRes.docs[0] as
+      | {
+          id: string | number
+          label?: string
+          versionLabel?: string | null
+          createdAt?: string
+        }
+      | undefined
+    if (snap?.createdAt) {
+      reportingGateway.latestSnapshot = {
+        id: snap.id,
+        label: snap.label ?? '(untitled snapshot)',
+        createdAt: snap.createdAt,
+        versionLabel: snap.versionLabel ?? null,
+      }
+    }
+    reportingGateway.snapshotCount = snapshotRes.totalDocs ?? 0
+    reportingGateway.rpprDraftCount = rpprRes.totalDocs ?? 0
+    reportingGateway.savedViewCount = savedViewsRes.totalDocs ?? 0
+    reportingGateway.productCount = productsRes.totalDocs ?? 0
+  } catch {
+    // leave defaults; dashboard still renders
+  }
+
   // Compute weekly history series so the dashboard sparklines + delta chips
   // come from real data instead of placeholder series. Anchored to the same
   // 8-week window as reporting.weeklyEngagement.
@@ -3187,6 +3099,7 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
       reporting={reporting}
       kpiHistory={kpiHistory}
       managementCounts={managementCounts}
+      reportingGateway={reportingGateway}
     />
   )
 }

@@ -6,8 +6,7 @@ import { resolveChapterForClass } from "@/lib/payloadSdk/resolvers";
 import type { ChapterDoc } from "@/lib/payloadSdk/types";
 import { buildMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "default-no-store";
+export const revalidate = 60;
 
 type RouteParams = { classSlug: string; chapterSlug: string };
 type PageProps = {

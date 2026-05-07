@@ -1,18 +1,25 @@
-import { ForgotPasswordForm } from "./ForgotPasswordForm";
+import { ResetPasswordForm } from "./ResetPasswordForm";
 import { buildMetadata } from "@/lib/seo";
 import { LoginLink } from "@/components/auth/LoginLink";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "default-no-store";
-
 export const metadata = buildMetadata({
-  title: "Forgot Password",
-  description: "Reset your NSF CURE SBP account password.",
-  path: "/forgot-password",
+  title: "Reset Password",
+  description: "Choose a new password for your NSF CURE SBP account.",
+  path: "/reset-password",
   noIndex: true,
 });
 
-export default function ForgotPasswordPage() {
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+export default async function ResetPasswordPage({
+  searchParams,
+}: {
+  searchParams?: SearchParams;
+}) {
+  const sp = (await searchParams) ?? {};
+  const rawToken = sp.token;
+  const token = Array.isArray(rawToken) ? rawToken[0] : rawToken;
+
   return (
     <main className="min-h-[70vh] px-6 py-16">
       <div className="mx-auto w-full max-w-xl rounded-lg border border-border/60 bg-card/80 p-10 shadow-lg">
@@ -21,19 +28,25 @@ export default function ForgotPasswordPage() {
             Student Access
           </p>
           <h1 className="text-3xl font-bold text-foreground">
-            Reset your password
+            Choose a new password
           </h1>
           <p className="text-muted-foreground">
-            We’ll email you a link to reset your password.
+            Enter a new password to finish resetting your account.
           </p>
         </div>
 
         <div className="mt-8">
-          <ForgotPasswordForm />
+          {token ? (
+            <ResetPasswordForm token={token} />
+          ) : (
+            <p className="text-sm text-red-700">
+              Reset token missing. Please request a new reset link.
+            </p>
+          )}
         </div>
 
         <p className="mt-6 text-sm text-muted-foreground">
-          Remembered your password?{" "}
+          Back to{" "}
           <LoginLink
             className="font-semibold text-primary underline underline-offset-4"
           >

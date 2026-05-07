@@ -319,16 +319,15 @@ export function PageLayout({
   lessonId?: string;
 }) {
   if (!blocks?.length) return null;
-  let heroLogoRendered = false;
+  const firstHeroIndex = blocks.findIndex(
+    (block) => block.blockType === "heroBlock"
+  );
 
   return (
     <div className={className}>
       {blocks.map((block, idx) => {
         if (block.blockType === "heroBlock") {
-          const shouldShowLogo = heroLogo && !heroLogoRendered;
-          if (shouldShowLogo) {
-            heroLogoRendered = true;
-          }
+          const shouldShowLogo = !!heroLogo && idx === firstHeroIndex;
           return (
             <section key={block.id ?? idx} className="space-y-4">
               <div className="flex items-center gap-3">

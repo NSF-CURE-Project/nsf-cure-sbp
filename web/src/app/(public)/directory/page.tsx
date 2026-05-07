@@ -11,8 +11,7 @@ export const metadata = buildMetadata({
   path: "/directory",
 });
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "default-no-store";
+export const revalidate = 300;
 
 type ChapterLike = ChapterDoc & { lessons?: LessonDoc[] };
 

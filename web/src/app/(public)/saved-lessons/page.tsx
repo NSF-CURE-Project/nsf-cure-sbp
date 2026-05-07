@@ -48,7 +48,18 @@ export default async function SavedLessonsPage() {
   if (!bookmarksRes.ok) throw new Error("Unable to load saved lessons.");
 
   const payload = (await bookmarksRes.json()) as { docs?: BookmarkDoc[] };
-  const groupedMap = new Map<string, { className: string; items: any[] }>();
+  type GroupedItem = {
+    id: string;
+    title: string;
+    className: string;
+    chapterName: string;
+    href: string;
+    bookmarkedAt: string | null;
+  };
+  const groupedMap = new Map<
+    string,
+    { className: string; items: GroupedItem[] }
+  >();
 
   for (const bookmark of payload.docs ?? []) {
     const classValue =

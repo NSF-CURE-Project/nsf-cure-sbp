@@ -1,28 +1,15 @@
-import { ResetPasswordForm } from "./ResetPasswordForm";
+import { RegisterForm } from "./RegisterForm";
 import { buildMetadata } from "@/lib/seo";
 import { LoginLink } from "@/components/auth/LoginLink";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "default-no-store";
-
 export const metadata = buildMetadata({
-  title: "Reset Password",
-  description: "Choose a new password for your NSF CURE SBP account.",
-  path: "/reset-password",
+  title: "Register",
+  description: "Create a student account for NSF CURE SBP.",
+  path: "/register",
   noIndex: true,
 });
 
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-
-export default async function ResetPasswordPage({
-  searchParams,
-}: {
-  searchParams?: SearchParams;
-}) {
-  const sp = (await searchParams) ?? {};
-  const rawToken = sp.token;
-  const token = Array.isArray(rawToken) ? rawToken[0] : rawToken;
-
+export default function RegisterPage() {
   return (
     <main className="min-h-[70vh] px-6 py-16">
       <div className="mx-auto w-full max-w-xl rounded-lg border border-border/60 bg-card/80 p-10 shadow-lg">
@@ -31,25 +18,19 @@ export default async function ResetPasswordPage({
             Student Access
           </p>
           <h1 className="text-3xl font-bold text-foreground">
-            Choose a new password
+            Create your account
           </h1>
           <p className="text-muted-foreground">
-            Enter a new password to finish resetting your account.
+            Register to access program content and lessons.
           </p>
         </div>
 
         <div className="mt-8">
-          {token ? (
-            <ResetPasswordForm token={token} />
-          ) : (
-            <p className="text-sm text-red-700">
-              Reset token missing. Please request a new reset link.
-            </p>
-          )}
+          <RegisterForm />
         </div>
 
         <p className="mt-6 text-sm text-muted-foreground">
-          Back to{" "}
+          Already have an account?{" "}
           <LoginLink
             className="font-semibold text-primary underline underline-offset-4"
           >

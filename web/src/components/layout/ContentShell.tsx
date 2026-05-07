@@ -1,80 +1,52 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import Footer from "@/components/Footer";
-import { isAuthRoute, shouldHideSidebar } from "@/lib/routes/authRoutes";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { useStore } from "@/hooks/use-store";
 import { cn } from "@/lib/utils";
 
-type PublicLayoutShellProps = {
+const SIDEBAR_COOKIE = "sidebar_state";
+
+const readSidebarCookie = (): boolean | null => {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${SIDEBAR_COOKIE}=`));
+  if (!match) return null;
+  const value = match.slice(SIDEBAR_COOKIE.length + 1);
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return null;
+};
+
+type ContentShellProps = {
   children: React.ReactNode;
-  defaultOpen: boolean;
   sidebarSlot?: React.ReactNode;
   mobileSidebarSlot?: React.ReactNode;
 };
 
-export default function PublicLayoutShell({
+export default function ContentShell({
   children,
-  defaultOpen,
   sidebarSlot,
   mobileSidebarSlot,
-}: PublicLayoutShellProps) {
-  const pathname = usePathname();
-  const router = useRouter();
+}: ContentShellProps) {
+  // Default to collapsed during the first paint to avoid layout shift on
+  // narrow screens; hydrate from the cookie once we're on the client.
+  const [defaultOpen, setDefaultOpen] = useState<boolean | null>(null);
+  useEffect(() => {
+    const cookie = readSidebarCookie();
+    setDefaultOpen(cookie ?? true);
+  }, []);
+
   const sidebarStore = useStore(useSidebar, (s) => s);
-  const sidebarOpen = sidebarStore?.getOpenState() ?? defaultOpen;
-  const authOnly = isAuthRoute(pathname);
-  const isLoginRoute = pathname === "/login";
-  const hideSidebar = shouldHideSidebar(pathname);
-
-  if (authOnly) {
-    const handleBack = () => {
-      if (typeof window !== "undefined" && window.history.length > 1) {
-        router.back();
-      } else {
-        router.push("/");
-      }
-    };
-
-    return (
-      <div className="min-h-dvh bg-background text-foreground">
-        <div className="sticky top-4 z-40 px-6 pt-4">
-          <button
-            type="button"
-            onClick={handleBack}
-            className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition hover:bg-muted/60"
-          >
-            <span aria-hidden="true">←</span>
-            Back
-          </button>
-        </div>
-        <div className="flex min-h-[calc(100dvh-5rem)] items-center justify-center px-6 py-10">
-          <div
-            className={cn("w-full", isLoginRoute ? "max-w-[90rem]" : "max-w-2xl")}
-          >
-            {children}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (hideSidebar) {
-    return (
-      <div className="min-h-dvh bg-background text-foreground">
-        <div className="mx-auto w-full max-w-4xl px-6 pt-6 pb-10">
-          {children}
-        </div>
-      </div>
-    );
-  }
+  const sidebarOpen = sidebarStore?.getOpenState() ?? defaultOpen ?? true;
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
+    <SidebarProvider defaultOpen={defaultOpen ?? true}>
       <div className="relative min-h-[calc(100dvh-var(--nav-h,4rem))] bg-background text-foreground flex flex-col">
         <div
           className={cn(

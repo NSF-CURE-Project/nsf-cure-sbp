@@ -2,8 +2,7 @@
 import Image from "next/image";
 import { buildMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "default-no-store";
+export const revalidate = 3600;
 
 export const metadata = buildMetadata({
   title: "Contacts",

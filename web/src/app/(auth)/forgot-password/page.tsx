@@ -1,18 +1,15 @@
-import { RegisterForm } from "./RegisterForm";
+import { ForgotPasswordForm } from "./ForgotPasswordForm";
 import { buildMetadata } from "@/lib/seo";
 import { LoginLink } from "@/components/auth/LoginLink";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "default-no-store";
-
 export const metadata = buildMetadata({
-  title: "Register",
-  description: "Create a student account for NSF CURE SBP.",
-  path: "/register",
+  title: "Forgot Password",
+  description: "Reset your NSF CURE SBP account password.",
+  path: "/forgot-password",
   noIndex: true,
 });
 
-export default function RegisterPage() {
+export default function ForgotPasswordPage() {
   return (
     <main className="min-h-[70vh] px-6 py-16">
       <div className="mx-auto w-full max-w-xl rounded-lg border border-border/60 bg-card/80 p-10 shadow-lg">
@@ -21,19 +18,19 @@ export default function RegisterPage() {
             Student Access
           </p>
           <h1 className="text-3xl font-bold text-foreground">
-            Create your account
+            Reset your password
           </h1>
           <p className="text-muted-foreground">
-            Register to access program content and lessons.
+            We’ll email you a link to reset your password.
           </p>
         </div>
 
         <div className="mt-8">
-          <RegisterForm />
+          <ForgotPasswordForm />
         </div>
 
         <p className="mt-6 text-sm text-muted-foreground">
-          Already have an account?{" "}
+          Remembered your password?{" "}
           <LoginLink
             className="font-semibold text-primary underline underline-offset-4"
           >
