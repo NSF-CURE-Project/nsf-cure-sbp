@@ -101,20 +101,52 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           gap: 16px;
           padding-bottom: 0;
         }
+        /* Sticky topbar — same shape as .lse-topbar in the lesson editor so
+         * the two screens feel like a single product. Action buttons live
+         * here so they stay visible while authors scroll through chapters. */
+        .course-workspace-topbar {
+          position: sticky;
+          top: 0;
+          z-index: 30;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 16px;
+          padding: 10px 18px;
+          margin: 0 -18px;
+          background: var(--admin-surface, var(--cw-surface));
+          border-bottom: 1px solid var(--admin-surface-border, var(--cw-border));
+        }
+        :root[data-theme='dark'] .course-workspace-topbar {
+          background: var(--cw-surface);
+          border-bottom-color: var(--cw-border);
+        }
         .course-workspace-breadcrumb {
           display: flex;
           align-items: center;
+          flex-wrap: wrap;
           gap: 6px;
-          font-size: 13px;
+          font-size: 12px;
           color: var(--cpp-muted);
         }
         .course-workspace-breadcrumb a {
-          color: var(--cpp-muted);
+          color: var(--cw-accent);
+          font-weight: 600;
           text-decoration: none;
           transition: color 120ms ease;
         }
         .course-workspace-breadcrumb a:hover {
+          text-decoration: underline;
+        }
+        .course-workspace-breadcrumb__current {
           color: var(--cw-accent);
+          font-weight: 600;
+        }
+        .course-workspace-topbar-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
         }
         .course-workspace-titlebar {
           display: flex;
@@ -147,9 +179,9 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 4px 10px;
-          font-size: 11px;
-          font-weight: 600;
+          padding: 1px 8px;
+          font-size: 10px;
+          font-weight: 700;
           letter-spacing: 0.04em;
           text-transform: uppercase;
           border-radius: 999px;
@@ -694,24 +726,52 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         }
       `}</style>
 
-      <header className="course-workspace-header">
+      <div className="course-workspace-topbar">
         <div className="course-workspace-breadcrumb">
           <Link href="/admin/courses">Courses</Link>
-          <span aria-hidden>/</span>
-          <span style={{ color: 'var(--cw-accent)' }}>{course.title}</span>
+          <span aria-hidden>›</span>
+          <span className="course-workspace-breadcrumb__current">{course.title}</span>
+          <span
+            className="course-workspace-status-pill"
+            data-tone={status === 'Active' ? 'active' : 'empty'}
+          >
+            {status}
+          </span>
         </div>
+        <div className="course-workspace-topbar-actions">
+          <HelpLink topic="courses" />
+          <Link
+            href={`/admin/collections/classes/${course.id}`}
+            className="cw-btn cw-btn--ghost"
+          >
+            Edit Course
+          </Link>
+          {previewHref ? (
+            <a
+              href={previewHref}
+              target="_blank"
+              rel="noreferrer"
+              className="cw-btn cw-btn--primary"
+            >
+              Preview
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setActiveTab('settings')}
+              className="cw-btn cw-btn--primary"
+              title="Set a slug to enable public preview"
+            >
+              Preview
+            </button>
+          )}
+        </div>
+      </div>
 
+      <header className="course-workspace-header">
         <div className="course-workspace-titlebar">
           <div className="course-workspace-title-block">
-            <div className="course-workspace-title-row">
-              <h1 className="course-workspace-title">{course.title}</h1>
-              <span
-                className="course-workspace-status-pill"
-                data-tone={status === 'Active' ? 'active' : 'empty'}
-              >
-                {status}
-              </span>
-            </div>
+            <h1 className="course-workspace-title">{course.title}</h1>
             <div className="course-workspace-progress">
               <span>
                 <strong>{stats.lessonCount}</strong> lesson{stats.lessonCount === 1 ? '' : 's'}
@@ -736,35 +796,6 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
                 <strong>{stats.coverage}%</strong> quiz coverage
               </span>
             </div>
-          </div>
-
-          <div className="course-workspace-actions">
-            <HelpLink topic="courses" />
-            <Link
-              href={`/admin/collections/classes/${course.id}`}
-              className="cw-btn cw-btn--ghost"
-            >
-              Edit Course
-            </Link>
-            {previewHref ? (
-              <a
-                href={previewHref}
-                target="_blank"
-                rel="noreferrer"
-                className="cw-btn cw-btn--primary"
-              >
-                Preview
-              </a>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setActiveTab('settings')}
-                className="cw-btn cw-btn--primary"
-                title="Set a slug to enable public preview"
-              >
-                Preview
-              </button>
-            )}
           </div>
         </div>
 
