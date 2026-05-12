@@ -178,7 +178,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
     { label: 'Manage Courses', href: '/admin/courses' },
     { label: props.courseTitle, href: `/admin/courses/${props.courseId}` },
     {
-      label: isCreate ? 'New lesson' : 'Edit lesson',
+      label: isCreate ? 'New lesson' : (props.initialTitle || 'Edit lesson'),
       href: null,
     },
   ])
@@ -250,6 +250,10 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
   // Currently-selected block key. Drives which block's settings the right
   // inspector shows; nothing selected → inspector renders its empty state.
   const [selectedBlockKey, setSelectedBlockKey] = useState<string | null>(null)
+  // Phase-3 split-preview mode. When true the outline + inspector rails
+  // collapse and the canvas shares its space with a docked preview iframe.
+  // Only meaningful in edit mode (create mode has no row to preview).
+  const [previewMode, setPreviewMode] = useState(false)
   // Auto-deselect if the selected block was removed.
   useEffect(() => {
     if (selectedBlockKey && !blocks.some((b) => b._key === selectedBlockKey)) {
@@ -524,7 +528,73 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         @media (min-width: 1440px) {
           .lse-body { grid-template-columns: 260px minmax(0, 1fr) 340px; }
         }
+        /* Split-preview mode collapses outline + inspector and shares the
+         * available width between the canvas and the preview iframe. */
+        .lse-body--preview {
+          grid-template-columns: minmax(0, 1fr) !important;
+        }
+        @media (min-width: 1024px) {
+          .lse-body--preview {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+          }
+        }
         .lse-canvas { display: grid; gap: 18px; }
+
+        /* === Active toggle button (e.g. Preview while engaged) === */
+        .lse-btn--active {
+          background: rgba(14, 165, 233, 0.12);
+          border-color: rgba(14, 165, 233, 0.45);
+          color: #0369a1;
+        }
+        :root[data-theme='dark'] .lse-btn--active {
+          background: rgba(56, 189, 248, 0.18);
+          border-color: rgba(56, 189, 248, 0.5);
+          color: #7dd3fc;
+        }
+
+        /* === Preview pane === */
+        .lse-preview-pane {
+          display: none;
+          position: sticky;
+          top: 76px;
+          align-self: start;
+          max-height: calc(100vh - 96px);
+          padding: 12px 12px 16px 12px;
+          background: var(--admin-surface, #fff);
+          border: 1px solid var(--admin-surface-border, #d6dce5);
+          border-radius: 10px;
+          display: grid;
+          grid-template-rows: auto minmax(0, 1fr);
+          gap: 10px;
+        }
+        :root[data-theme='dark'] .lse-preview-pane {
+          background: var(--admin-surface, #1e2330);
+          border-color: var(--admin-surface-border, #2a3140);
+        }
+        .lse-preview-pane__title {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: var(--cpp-muted, #5d6b80);
+        }
+        .lse-preview-pane__iframe {
+          width: 100%;
+          height: 100%;
+          min-height: 600px;
+          border: 1px solid var(--admin-surface-border, #d6dce5);
+          border-radius: 8px;
+          background: #fff;
+        }
+        :root[data-theme='dark'] .lse-preview-pane__iframe {
+          border-color: var(--admin-surface-border, #2a3140);
+        }
+        .lse-preview-pane__empty {
+          padding: 24px 12px;
+          font-size: 12px;
+          color: var(--cpp-muted, #5d6b80);
+          text-align: center;
+        }
 
         /* === Outline (left rail) === */
         .lse-outline {
@@ -1067,6 +1137,17 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
               <AutoSaveIndicator status={autoSaveStatus} savedAt={autoSaveAt} />
             </span>
           ) : null}
+          {!isCreate && (props as EditModeProps).previewUrl ? (
+            <button
+              type="button"
+              onClick={() => setPreviewMode((prev) => !prev)}
+              aria-pressed={previewMode}
+              className={`lse-btn${previewMode ? ' lse-btn--active' : ''}`}
+              title={previewMode ? 'Exit split preview' : 'Show split preview'}
+            >
+              {previewMode ? '◧ Editor' : '◨ Preview'}
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={handleCancel}
@@ -1098,12 +1179,14 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         </div>
       </div>
 
-      <div className="lse-body">
-        <OutlinePanel
-          blocks={blocks}
-          selectedKey={selectedBlockKey}
-          onSelect={setSelectedBlockKey}
-        />
+      <div className={`lse-body${previewMode ? ' lse-body--preview' : ''}`}>
+        {previewMode ? null : (
+          <OutlinePanel
+            blocks={blocks}
+            selectedKey={selectedBlockKey}
+            onSelect={setSelectedBlockKey}
+          />
+        )}
 
         <div className="lse-canvas">
           <header className="lse-canvas__intro">
@@ -1165,10 +1248,29 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           ) : null}
         </div>
 
-        <InspectorPanel
-          selectedBlock={selectedBlock}
-          onChange={updateSelectedBlock}
-        />
+        {previewMode ? (
+          <aside className="lse-preview-pane" aria-label="Live preview">
+            <div className="lse-preview-pane__title">Live preview</div>
+            {!isCreate && (props as EditModeProps).previewUrl ? (
+              <iframe
+                title="Lesson preview"
+                src={`${(props as EditModeProps).previewUrl}${
+                  (props as EditModeProps).previewUrl!.includes('?') ? '&' : '?'
+                }_t=${autoSaveAt ?? 0}`}
+                className="lse-preview-pane__iframe"
+              />
+            ) : (
+              <div className="lse-preview-pane__empty">
+                Live preview becomes available once the lesson is saved at least once.
+              </div>
+            )}
+          </aside>
+        ) : (
+          <InspectorPanel
+            selectedBlock={selectedBlock}
+            onChange={updateSelectedBlock}
+          />
+        )}
       </div>
 
       <PublishReviewModal
