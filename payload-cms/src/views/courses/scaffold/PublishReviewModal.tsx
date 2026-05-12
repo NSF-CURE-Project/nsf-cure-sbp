@@ -1,8 +1,12 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { BLOCK_TYPE_LABELS, type ScaffoldBlock } from './types'
-import { getLastPublishedLessonVersion } from '../courses-order-api'
+import { BLOCK_TYPE_LABELS, toPersistedLayout, type ScaffoldBlock } from './types'
+import {
+  getLastPublishedLessonVersion,
+  getLessonVersion,
+} from '../courses-order-api'
+import { describeChange, diffLessonLayouts, type LessonDiff } from './lessonDiff'
 
 type PublishReviewModalProps = {
   open: boolean
@@ -211,25 +215,59 @@ export default function PublishReviewModal({
   const warnCount = checks.filter((c) => c.status === 'warn').length
   const canPublish = !busy && errorCount === 0
 
-  // Fetch last-published metadata when the modal opens (edit mode only).
-  const [lastPublished, setLastPublished] = useState<{ updatedAt: string | null } | null>(null)
+  // Fetch last-published metadata + its full layout when the modal opens
+  // (edit mode only). The layout drives the "Changes in this version" diff.
+  const [lastPublished, setLastPublished] = useState<{
+    updatedAt: string | null
+    versionId: string | null
+  } | null>(null)
+  const [previousSnapshot, setPreviousSnapshot] = useState<
+    { title: string; layout: unknown } | null
+  >(null)
+  const [diffLoading, setDiffLoading] = useState(false)
   useEffect(() => {
     if (!open || mode !== 'edit' || !lessonId) {
       setLastPublished(null)
+      setPreviousSnapshot(null)
+      setDiffLoading(false)
       return
     }
     let cancelled = false
-    getLastPublishedLessonVersion(lessonId)
-      .then((doc) => {
-        if (!cancelled) setLastPublished(doc)
-      })
-      .catch(() => {
-        if (!cancelled) setLastPublished(null)
-      })
+    setDiffLoading(true)
+    ;(async () => {
+      try {
+        const meta = await getLastPublishedLessonVersion(lessonId)
+        if (cancelled) return
+        if (!meta) {
+          setLastPublished(null)
+          setPreviousSnapshot(null)
+          return
+        }
+        setLastPublished({ updatedAt: meta.updatedAt, versionId: meta.versionId })
+        const snapshot = await getLessonVersion(meta.versionId)
+        if (cancelled) return
+        setPreviousSnapshot(snapshot)
+      } catch {
+        if (!cancelled) {
+          setLastPublished(null)
+          setPreviousSnapshot(null)
+        }
+      } finally {
+        if (!cancelled) setDiffLoading(false)
+      }
+    })()
     return () => {
       cancelled = true
     }
   }, [open, mode, lessonId])
+
+  const diff: LessonDiff | null = useMemo(() => {
+    if (mode !== 'edit' || !previousSnapshot) return null
+    return diffLessonLayouts(
+      previousSnapshot,
+      { title, layout: toPersistedLayout(blocks) },
+    )
+  }, [mode, previousSnapshot, title, blocks])
 
   const [device, setDevice] = useState<DeviceMode>('desktop')
 
@@ -257,6 +295,12 @@ export default function PublishReviewModal({
     ? `${previewUrl}${previewUrl.includes('?') ? '&' : '?'}_t=${previewRefreshKey ?? 0}`
     : null
   const deviceWidth = DEVICE_WIDTHS[device]
+  // Show the diff row when we have a previous published snapshot to compare
+  // against (edit mode, not first publish). The contents may still report
+  // "No changes" — that's useful confirmation, so we still render it.
+  const showDiff = mode === 'edit' && previousSnapshot != null
+  // When the diff section is mounted the panel needs an extra row.
+  const panelClass = showDiff ? 'prm-panel prm-panel--with-diff' : 'prm-panel'
 
   return (
     <div className="prm-overlay" role="dialog" aria-modal="true" aria-labelledby="prm-title">
@@ -282,6 +326,10 @@ export default function PublishReviewModal({
           border-radius: 14px;
           box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
           overflow: hidden;
+        }
+        /* Extra row for the "Changes in this version" diff section. */
+        .prm-panel--with-diff {
+          grid-template-rows: auto auto auto 1fr auto;
         }
         :root[data-theme='dark'] .prm-panel {
           background: var(--admin-surface, #1e2330);
@@ -389,6 +437,104 @@ export default function PublishReviewModal({
         }
         .prm-version strong { color: var(--cpp-ink, #1b1f24); font-weight: 600; }
         :root[data-theme='dark'] .prm-version strong { color: var(--cpp-ink, #e6e8eb); }
+
+        /* === Diff row ("Changes in this version") === */
+        .prm-diff {
+          padding: 10px 20px;
+          background: var(--admin-surface, #fff);
+          border-bottom: 1px solid var(--admin-surface-border, #d6dce5);
+        }
+        :root[data-theme='dark'] .prm-diff {
+          background: var(--admin-surface, #1e2330);
+          border-color: var(--admin-surface-border, #2a3140);
+        }
+        .prm-diff__details summary {
+          list-style: none;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: var(--cpp-muted, #5d6b80);
+          padding: 4px 0;
+        }
+        .prm-diff__details summary::-webkit-details-marker { display: none; }
+        .prm-diff__chevron {
+          display: inline-block;
+          transition: transform 120ms ease;
+        }
+        .prm-diff__details[open] .prm-diff__chevron { transform: rotate(90deg); }
+        .prm-diff__count {
+          padding: 1px 8px;
+          font-size: 10px;
+          font-weight: 700;
+          border-radius: 999px;
+          background: var(--admin-surface-muted, #f5f7fa);
+          color: var(--cpp-ink, #1b1f24);
+          letter-spacing: 0;
+          text-transform: none;
+        }
+        :root[data-theme='dark'] .prm-diff__count {
+          background: var(--admin-surface-muted, #232938);
+          color: var(--cpp-ink, #e6e8eb);
+        }
+        .prm-diff__count--zero {
+          background: rgba(16, 185, 129, 0.16);
+          color: #047857;
+        }
+        .prm-diff__list {
+          margin: 8px 0 4px 0;
+          padding: 0;
+          list-style: none;
+          display: grid;
+          gap: 4px;
+          max-height: 140px;
+          overflow-y: auto;
+        }
+        .prm-diff__item {
+          display: grid;
+          grid-template-columns: 18px minmax(0, 1fr);
+          gap: 8px;
+          font-size: 12px;
+          color: var(--cpp-ink, #1b1f24);
+          align-items: start;
+        }
+        .prm-diff__glyph {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 16px;
+          height: 16px;
+          margin-top: 1px;
+          font-size: 11px;
+          font-weight: 700;
+          border-radius: 4px;
+        }
+        .prm-diff__glyph--add {
+          color: #047857;
+          background: rgba(16, 185, 129, 0.16);
+        }
+        .prm-diff__glyph--remove {
+          color: #b91c1c;
+          background: rgba(239, 68, 68, 0.18);
+        }
+        .prm-diff__glyph--edit {
+          color: #1d4ed8;
+          background: rgba(59, 130, 246, 0.16);
+        }
+        .prm-diff__empty {
+          margin-top: 6px;
+          font-size: 12px;
+          color: var(--cpp-muted, #5d6b80);
+        }
+        .prm-diff__loading {
+          font-size: 11px;
+          color: var(--cpp-muted, #5d6b80);
+          font-style: italic;
+        }
 
         /* === Body grid: validation + preview === */
         .prm-body {
@@ -552,7 +698,7 @@ export default function PublishReviewModal({
         .prm-footer__summary--err { color: #b91c1c; }
       `}</style>
 
-      <div className="prm-panel">
+      <div className={panelClass}>
         {/* ---- Header ---- */}
         <header className="prm-header">
           <div>
@@ -631,6 +777,64 @@ export default function PublishReviewModal({
             )}
           </div>
         </section>
+
+        {/* ---- Diff: "Changes in this version" ---- */}
+        {showDiff ? (
+          <section className="prm-diff" aria-label="Changes since last publish">
+            <details
+              className="prm-diff__details"
+              open={(diff?.changes.length ?? 0) > 0}
+            >
+              <summary>
+                <span className="prm-diff__chevron" aria-hidden>▸</span>
+                <span>Changes in this version</span>
+                <span
+                  className={`prm-diff__count${diff && diff.changes.length === 0 ? ' prm-diff__count--zero' : ''}`}
+                >
+                  {diffLoading
+                    ? '…'
+                    : diff
+                      ? diff.changes.length === 0
+                        ? 'no changes'
+                        : String(diff.changes.length)
+                      : '…'}
+                </span>
+              </summary>
+              {diffLoading ? (
+                <div className="prm-diff__loading">Comparing against last published version…</div>
+              ) : diff && diff.changes.length === 0 ? (
+                <div className="prm-diff__empty">
+                  This draft is identical to the last published version.
+                </div>
+              ) : diff ? (
+                <ul className="prm-diff__list">
+                  {diff.changes.map((change, i) => {
+                    const glyph =
+                      change.kind === 'block-added'
+                        ? 'add'
+                        : change.kind === 'block-removed'
+                          ? 'remove'
+                          : 'edit'
+                    const sym =
+                      change.kind === 'block-added'
+                        ? '+'
+                        : change.kind === 'block-removed'
+                          ? '−'
+                          : '~'
+                    return (
+                      <li key={i} className="prm-diff__item">
+                        <span className={`prm-diff__glyph prm-diff__glyph--${glyph}`} aria-hidden>
+                          {sym}
+                        </span>
+                        <span>{describeChange(change)}</span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              ) : null}
+            </details>
+          </section>
+        ) : null}
 
         {/* ---- Body: validation + preview ---- */}
         <div className="prm-body">
