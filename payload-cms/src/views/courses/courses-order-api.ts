@@ -34,6 +34,24 @@ const remove = async (path: string) => {
   }
 }
 
+const extractErrorMessage = async (response: Response, path: string): Promise<string> => {
+  try {
+    const data = (await response.clone().json()) as {
+      message?: string
+      errors?: Array<{ message?: string; field?: string }>
+    }
+    const fieldErrors = (data.errors ?? [])
+      .map((err) => (err.field ? `${err.field}: ${err.message}` : err.message))
+      .filter(Boolean)
+      .join('; ')
+    if (fieldErrors) return fieldErrors
+    if (data.message) return data.message
+  } catch {
+    // body wasn't JSON; fall through
+  }
+  return `Request failed (${response.status}) for ${path}`
+}
+
 const post = async <T = unknown,>(path: string, body: Record<string, unknown>): Promise<T> => {
   const response = await fetch(path, {
     method: 'POST',
@@ -41,7 +59,7 @@ const post = async <T = unknown,>(path: string, body: Record<string, unknown>): 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
-  if (!response.ok) throw new Error(`Request failed (${response.status}) for ${path}`)
+  if (!response.ok) throw new Error(await extractErrorMessage(response, path))
   return response.json() as Promise<T>
 }
 

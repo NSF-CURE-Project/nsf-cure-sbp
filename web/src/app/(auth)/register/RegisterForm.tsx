@@ -41,9 +41,7 @@ export function RegisterForm() {
       }
 
       setStatus("success");
-      setMessage(
-        "Account created. Check your email for a confirmation link before signing in."
-      );
+      setMessage("Account created. You can sign in now.");
     } catch (error) {
       setStatus("error");
       setMessage(

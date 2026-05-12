@@ -16,7 +16,6 @@ type AccountUser = {
   email: string;
   fullName?: string;
   role?: string;
-  emailVerified?: boolean;
 };
 
 type ClassroomMembership = {
@@ -44,11 +43,6 @@ export default function ProfilePage() {
   >("idle");
   const [signingOut, setSigningOut] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(false);
-  const [confirmStatus, setConfirmStatus] = useState<
-    "idle" | "sending" | "sent" | "error"
-  >("idle");
-  const [confirmMessage, setConfirmMessage] = useState("");
-  const [confirmCooldown, setConfirmCooldown] = useState(0);
   const [logoutAllStatus, setLogoutAllStatus] = useState<
     "idle" | "loading" | "error"
   >("idle");
@@ -135,35 +129,6 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSendConfirmation = async () => {
-    setConfirmStatus("sending");
-    setConfirmMessage("");
-    try {
-      const res = await fetch(
-        `${PAYLOAD_URL}/api/accounts/request-email-confirmation`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.message ?? "Unable to send confirmation link.");
-      }
-      const data = (await res.json()) as { message?: string };
-      setConfirmStatus("sent");
-      setConfirmMessage(data?.message ?? "Confirmation link sent.");
-      setConfirmCooldown(60);
-    } catch (error) {
-      setConfirmStatus("error");
-      setConfirmMessage(
-        error instanceof Error
-          ? error.message
-          : "Unable to send confirmation link."
-      );
-    }
-  };
-
   const handleLogoutAll = async () => {
     setLogoutAllStatus("loading");
     setLogoutAllMessage("");
@@ -188,14 +153,6 @@ export default function ProfilePage() {
       setLogoutAllStatus("idle");
     }
   };
-
-  useEffect(() => {
-    if (confirmCooldown <= 0) return;
-    const timer = window.setInterval(() => {
-      setConfirmCooldown((value) => Math.max(0, value - 1));
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [confirmCooldown]);
 
   const progressSummary = classrooms.reduce(
     (summary, membership) => {
@@ -291,15 +248,6 @@ export default function ProfilePage() {
                       • <span className="capitalize">{user.role}</span>
                     </span>
                   ) : null}
-                  <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
-                      user.emailVerified
-                        ? "bg-emerald-500/15 text-emerald-300"
-                        : "bg-amber-500/15 text-amber-300"
-                    }`}
-                  >
-                    {user.emailVerified ? "Verified" : "Unverified"}
-                  </span>
                   <button
                     type="button"
                     onClick={() => handleCopyEmail(user.email)}
@@ -324,51 +272,6 @@ export default function ProfilePage() {
                 <span className="text-base font-medium text-foreground">
                   Cal Poly Pomona
                 </span>
-              </div>
-            </div>
-          ) : null}
-
-          {status === "ready" && user ? (
-            <div className="rounded-md border border-border/60 bg-background/80 p-6 text-[15px] space-y-3">
-              <div>
-                <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Email confirmation
-                </span>
-                <p className="text-[15px] text-muted-foreground">
-                  {user.emailVerified
-                    ? "Your email address is verified."
-                    : "Send a confirmation link to verify this email address."}
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  type="button"
-                  onClick={handleSendConfirmation}
-                  disabled={
-                    confirmStatus === "sending" ||
-                    confirmCooldown > 0 ||
-                    user.emailVerified
-                  }
-                  variant="outline"
-                  className="px-5"
-                >
-                  {confirmStatus === "sending"
-                    ? "Sending..."
-                    : confirmCooldown > 0
-                      ? `Resend in ${confirmCooldown}s`
-                      : "Send confirmation link"}
-                </Button>
-                {confirmMessage ? (
-                  <span
-                    className={`text-sm ${
-                      confirmStatus === "error"
-                        ? "text-red-300"
-                        : "text-emerald-400"
-                    }`}
-                  >
-                    {confirmMessage}
-                  </span>
-                ) : null}
               </div>
             </div>
           ) : null}

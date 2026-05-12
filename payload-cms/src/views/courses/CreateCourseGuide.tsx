@@ -92,8 +92,9 @@ export default function CreateCourseGuide() {
         setProgress(`Creating chapter ${i} of ${filledChapters.length}…`)
         try {
           await createChapterInCourse(created.id, chapter.title.trim(), i)
-        } catch {
-          throw new Error(`Could not create chapter “${chapter.title.trim()}”.`)
+        } catch (chapterErr) {
+          const detail = chapterErr instanceof Error ? chapterErr.message : String(chapterErr)
+          throw new Error(`Could not create chapter “${chapter.title.trim()}”: ${detail}`)
         }
       }
 

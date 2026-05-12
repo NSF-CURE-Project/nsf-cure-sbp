@@ -55,7 +55,6 @@ import {
   regenerateClassroomCodeHandler,
 } from './endpoints/classroomEndpoints'
 import { previewUrlHandler } from './endpoints/previewUrl'
-import { confirmEmailHandler, requestEmailConfirmationHandler } from './endpoints/emailConfirmation'
 import { logoutAllSessionsHandler } from './endpoints/logoutAll'
 import { accountsMeHandler } from './endpoints/accountsMe'
 import { accountsHeartbeatHandler } from './endpoints/accountsHeartbeat'
@@ -617,16 +616,6 @@ export default buildConfig({
       path: '/demo/quiz-formats',
       method: 'get',
       handler: demoQuizFormatsHandler,
-    },
-    {
-      path: '/accounts/request-email-confirmation',
-      method: 'post',
-      handler: requestEmailConfirmationHandler,
-    },
-    {
-      path: '/accounts/confirm-email',
-      method: 'post',
-      handler: confirmEmailHandler,
     },
     {
       path: '/accounts/logout-all',

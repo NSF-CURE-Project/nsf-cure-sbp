@@ -7,8 +7,9 @@
   "scripts": {
     "prebuild": "pnpm generate:types && pnpm generate:importmap",
     "build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=8000\" next build",
-    "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev -H admin.sbp.local -p 3000",
-    "devsafe": "rm -rf .next && cross-env NODE_OPTIONS=--no-deprecation next dev -H admin.sbp.local -p 3000",
+    "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev --turbopack -H admin.sbp.local -p 3000",
+    "dev:webpack": "cross-env NODE_OPTIONS=--no-deprecation next dev -H admin.sbp.local -p 3000",
+    "devsafe": "rm -rf .next && cross-env NODE_OPTIONS=--no-deprecation next dev --turbopack -H admin.sbp.local -p 3000",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
     "lint": "cross-env NODE_OPTIONS=--no-deprecation next lint",
@@ -72,7 +73,6 @@
     "node": "^18.20.2 || >=20.9.0",
     "pnpm": "^9 || ^10"
   },
-  "packageManager": "pnpm@10.33.4",
   "pnpm": {
     "overrides": {
       "@img/sharp-libvips-darwin-arm64": "1.2.4"

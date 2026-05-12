@@ -85,43 +85,6 @@ export const Accounts: CollectionConfig = {
         }
       },
     ],
-    afterChange: [
-      async ({ doc, operation, req }) => {
-        if (operation !== 'create') return doc
-        if (!req?.payload?.sendEmail || !doc?.email) return doc
-
-        const { buildEmailConfirmation } = await import('../utils/emailConfirmation')
-        const { confirmUrl, expiresAt, tokenHash } = buildEmailConfirmation()
-
-        await req.payload.update({
-          collection: 'accounts',
-          id: doc.id,
-          data: {
-            emailVerificationTokenHash: tokenHash,
-            emailVerificationExpiresAt: expiresAt,
-            emailVerified: false,
-            emailVerifiedAt: null,
-          },
-          overrideAccess: true,
-        })
-
-        const message = buildAuthEmail({
-          heading: 'Confirm your NSF CURE account email',
-          intro: 'Please confirm your email address to activate your account.',
-          actionLabel: 'Confirm email address',
-          actionUrl: confirmUrl,
-          securityNote: 'If you did not create this account, no further action is needed.',
-        })
-
-        await req.payload.sendEmail({
-          to: doc.email,
-          subject: 'Confirm your NSF CURE account email',
-          ...message,
-        })
-
-        return doc
-      },
-    ],
     beforeOperation: [
       async ({ args, operation, req }) => {
         if (operation === 'forgotPassword' && req?.payload?.config?.email) {
@@ -152,41 +115,6 @@ export const Accounts: CollectionConfig = {
     delete: ({ req }) => req.user?.collection === 'users' && req.user?.role === 'admin',
   },
   fields: [
-    {
-      name: 'emailVerified',
-      label: 'Email verified',
-      type: 'checkbox',
-      defaultValue: false,
-      admin: {
-        readOnly: true,
-        position: 'sidebar',
-      },
-    },
-    {
-      name: 'emailVerifiedAt',
-      label: 'Email verified at',
-      type: 'date',
-      admin: {
-        readOnly: true,
-        position: 'sidebar',
-      },
-    },
-    {
-      name: 'emailVerificationTokenHash',
-      label: 'Email verification token hash',
-      type: 'text',
-      admin: {
-        hidden: true,
-      },
-    },
-    {
-      name: 'emailVerificationExpiresAt',
-      label: 'Email verification expires at',
-      type: 'date',
-      admin: {
-        hidden: true,
-      },
-    },
     {
       name: 'role',
       type: 'select',
