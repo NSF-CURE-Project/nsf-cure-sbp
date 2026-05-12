@@ -889,7 +889,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
     const rawRole = String(user?.role ?? '')
       .trim()
       .toLowerCase()
-    if (rawRole === 'admin') return 'SBP Admin'
+    if (rawRole === 'admin') return 'Admin'
     if (rawRole === 'professor') return 'Professor'
     if (rawRole === 'staff') return 'Staff'
     if (!rawRole) return 'Team Member'
@@ -900,15 +900,6 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
   const closeUserMenu = useCallback(() => {
     setIsUserMenuOpen(false)
   }, [])
-  const handleAccountClick = useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.preventDefault()
-      if (typeof window === 'undefined') return
-      closeUserMenu()
-      window.location.assign('/admin/account')
-    },
-    [closeUserMenu],
-  )
   const handleAdminLogout = useCallback(
     async (event: React.MouseEvent<HTMLButtonElement>) => {
       event.preventDefault()
@@ -4071,27 +4062,6 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                   </div>
                   <div className="admin-user-section">
                     <div className="admin-user-section-label">Account</div>
-                    <button
-                      type="button"
-                      className="admin-user-action"
-                      onClick={handleAccountClick}
-                      role="menuitem"
-                    >
-                      <svg
-                        className="admin-user-action-icon"
-                        aria-hidden="true"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                      </svg>
-                      <span>Profile</span>
-                    </button>
                     <Link
                       href="/admin/account"
                       className="admin-user-action"
