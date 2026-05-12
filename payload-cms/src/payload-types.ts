@@ -93,7 +93,6 @@ export interface Config {
     'quiz-questions': QuizQuestion;
     quizzes: Quiz;
     'quiz-attempts': QuizAttempt;
-    'engineering-figures': EngineeringFigure;
     problems: Problem;
     'problem-sets': ProblemSet;
     'problem-attempts': ProblemAttempt;
@@ -134,7 +133,6 @@ export interface Config {
     'quiz-questions': QuizQuestionsSelect<false> | QuizQuestionsSelect<true>;
     quizzes: QuizzesSelect<false> | QuizzesSelect<true>;
     'quiz-attempts': QuizAttemptsSelect<false> | QuizAttemptsSelect<true>;
-    'engineering-figures': EngineeringFiguresSelect<false> | EngineeringFiguresSelect<true>;
     problems: ProblemsSelect<false> | ProblemsSelect<true>;
     'problem-sets': ProblemSetsSelect<false> | ProblemSetsSelect<true>;
     'problem-attempts': ProblemAttemptsSelect<false> | ProblemAttemptsSelect<true>;
@@ -1571,41 +1569,6 @@ export interface QuizAttempt {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "engineering-figures".
- */
-export interface EngineeringFigure {
-  id: number;
-  title: string;
-  type: 'fbd' | 'truss' | 'beam' | 'moment-diagram';
-  description?: string | null;
-  figureData:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  width?: number | null;
-  height?: number | null;
-  axes?: {
-    show?: boolean | null;
-    x?: number | null;
-    y?: number | null;
-    length?: number | null;
-    xLabel?: string | null;
-    yLabel?: string | null;
-  };
-  /**
-   * Mark as a reusable template. Templates appear in the template picker.
-   */
-  isTemplate?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "problem-attempts".
  */
 export interface ProblemAttempt {
@@ -1873,10 +1836,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'quiz-attempts';
         value: number | QuizAttempt;
-      } | null)
-    | ({
-        relationTo: 'engineering-figures';
-        value: number | EngineeringFigure;
       } | null)
     | ({
         relationTo: 'problems';
@@ -2690,31 +2649,6 @@ export interface QuizAttemptsSelect<T extends boolean = true> {
   maxScore?: T;
   correctCount?: T;
   questionCount?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "engineering-figures_select".
- */
-export interface EngineeringFiguresSelect<T extends boolean = true> {
-  title?: T;
-  type?: T;
-  description?: T;
-  figureData?: T;
-  width?: T;
-  height?: T;
-  axes?:
-    | T
-    | {
-        show?: T;
-        x?: T;
-        y?: T;
-        length?: T;
-        xLabel?: T;
-        yLabel?: T;
-      };
-  isTemplate?: T;
   updatedAt?: T;
   createdAt?: T;
 }

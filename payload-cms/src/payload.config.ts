@@ -24,7 +24,6 @@ import { PrePostAssessments } from './collections/PrePostAssessments'
 import { SavedViews } from './collections/SavedViews'
 import { Quizzes } from './collections/Quizzes'
 import { QuizAttempts } from './collections/QuizAttempts'
-import { EngineeringFigures } from './collections/EngineeringFigures'
 import { Problems } from './collections/Problems'
 import { ProblemSets } from './collections/ProblemSets'
 import { ProblemAttempts } from './collections/ProblemAttempts'
@@ -414,7 +413,6 @@ export default buildConfig({
     QuizQuestions,
     Quizzes,
     QuizAttempts,
-    EngineeringFigures,
     Problems,
     ProblemSets,
     ProblemAttempts,

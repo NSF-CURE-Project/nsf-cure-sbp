@@ -34,7 +34,6 @@ const sanitizeProblem = (problem: unknown): unknown => {
   delete next.parameterDefinitions
   delete next.derivedValues
   delete next.parameterSeed
-  delete next.figure
   delete next.resultPlots
 
   return next

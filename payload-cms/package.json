@@ -21,9 +21,7 @@
     "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts",
     "sync:admin-help": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/sync-admin-help-from-handbook.ts",
     "snapshot:reporting": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/create-reporting-snapshot.ts",
-    "test:unit:node": "node --experimental-strip-types --test tests/unit-node/**/*.test.mjs",
-    "seed:statics-example": "cross-env NODE_OPTIONS=--no-deprecation payload run src/seed/staticsFundamentalsExample.ts",
-    "seed:engineering-library": "cross-env NODE_OPTIONS=--no-deprecation payload run src/seed/engineeringInteractiveLibrary.ts"
+    "test:unit:node": "node --experimental-strip-types --test tests/unit-node/**/*.test.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

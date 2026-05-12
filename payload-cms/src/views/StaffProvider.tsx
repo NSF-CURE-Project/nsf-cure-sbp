@@ -166,7 +166,6 @@ const collectionSectionOverrides: Record<
   'quiz-questions': { sectionLabel: 'Assessments' },
   problems: { sectionLabel: 'Assessments' },
   'problem-sets': { sectionLabel: 'Assessments' },
-  'engineering-figures': { sectionLabel: 'Assessments' },
   questions: { sectionLabel: 'Student Support' },
   feedback: { sectionLabel: 'Student Support' },
   'lesson-feedback': { sectionLabel: 'Student Support' },
