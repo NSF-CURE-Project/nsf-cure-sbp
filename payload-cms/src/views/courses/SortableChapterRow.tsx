@@ -97,33 +97,25 @@ export default function SortableChapterRow({
             attributes={sortable.attributes as unknown as Record<string, unknown>}
           />
         </div>
-
+        <span className="cw-chapter__badge">Chapter</span>
+        <span className="cw-chapter__index">#{chapter.order}</span>
         <button
           type="button"
           onClick={() => onSelectChapter(chapter)}
           className="cw-chapter__titlebtn"
           aria-pressed={isSelected}
         >
-          <div className="cw-chapter__eyebrow">
-            Chapter {chapter.order}
-          </div>
-          <div className="cw-chapter__title">{chapter.title}</div>
-          <div className="cw-chapter__meta">
-            {lessonCount} lesson{lessonCount === 1 ? '' : 's'}
-          </div>
+          <span className="cw-chapter__title">{chapter.title}</span>
         </button>
-
+        <span className="cw-chapter__meta">
+          {lessonCount} lesson{lessonCount === 1 ? '' : 's'}
+        </span>
         {reorderMode ? null : (
           <div className="cw-chapter__actions">
             <RowOverflowMenu
               ariaLabel={`More actions for chapter ${chapter.title}`}
               actions={
                 [
-                  {
-                    kind: 'link',
-                    label: 'Edit chapter',
-                    href: `/admin/collections/chapters/${chapter.id}`,
-                  },
                   {
                     kind: 'button',
                     label: 'Delete chapter',

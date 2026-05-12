@@ -1429,8 +1429,8 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           --admin-block-alert-edge: #fde68a;
           --admin-block-generic-icon: #64748b;
           --admin-block-generic-edge: #cbd5e1;
-          /* Standard transition for hover/active state changes. Applied
-             via shorthand `transition: var(--admin-transition);` on
+          /* Standard transition for hover/active state changes. Apply
+             via shorthand 'transition: var(--admin-transition);' on
              interactive surfaces. */
           --admin-transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, color 150ms ease;
           --admin-hero-bg: #ffffff;

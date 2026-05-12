@@ -381,67 +381,94 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           flex-direction: column;
           gap: 16px;
         }
+        /* Chapter card chrome mirrors the lesson editor's BlockCard:
+         * persistent header bar (drag, badge, index, title, count, overflow)
+         * over a body of lesson rows. Same visual grammar across screens. */
         .course-workspace .cw-chapter {
           position: relative;
-          border-radius: 14px;
-          background: var(--cw-surface-muted);
+          border-radius: 10px;
+          background: var(--cw-surface);
           border: 1px solid var(--cw-border);
-          padding: 8px;
-          transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+          overflow: hidden;
+          transition: border-color 140ms ease, box-shadow 140ms ease;
         }
         .course-workspace .cw-chapter:hover {
           border-color: var(--cw-border-strong);
         }
         .course-workspace .cw-chapter--selected {
-          border-color: rgba(14, 165, 233, 0.45);
-          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+          border-color: rgba(14, 165, 233, 0.55);
+          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
         }
         :root[data-theme='dark'] .course-workspace .cw-chapter {
-          background: var(--cw-surface);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        :root[data-theme='dark'] .course-workspace .cw-chapter--selected {
+          border-color: rgba(56, 189, 248, 0.6);
+          box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
         }
         .course-workspace .cw-chapter__header {
           display: grid;
-          grid-template-columns: auto minmax(0, 1fr) auto;
+          grid-template-columns: auto auto auto minmax(0, 1fr) auto auto;
           align-items: center;
-          gap: 12px;
-          padding: 14px 16px 14px 12px;
+          gap: 10px;
+          padding: 8px 10px;
+          background: var(--cw-surface-muted);
+          border-bottom: 1px solid var(--cw-border);
+        }
+        :root[data-theme='dark'] .course-workspace .cw-chapter__header {
+          background: var(--cw-surface-tinted, var(--cw-surface-muted));
         }
         .course-workspace .cw-chapter__handle {
-          opacity: 0.35;
+          opacity: 0.5;
           transition: opacity 140ms ease;
         }
         .course-workspace .cw-chapter:hover .cw-chapter__handle,
         .course-workspace .cw-chapter[data-reorder] .cw-chapter__handle {
           opacity: 1;
         }
+        .course-workspace .cw-chapter__badge {
+          display: inline-flex;
+          align-items: center;
+          padding: 2px 8px;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: #334155;
+          background: rgba(148, 163, 184, 0.18);
+          border-radius: 999px;
+        }
+        :root[data-theme='dark'] .course-workspace .cw-chapter__badge {
+          color: #cbd5e1;
+          background: rgba(148, 163, 184, 0.22);
+        }
+        .course-workspace .cw-chapter__index {
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--cpp-muted);
+        }
         .course-workspace .cw-chapter__titlebtn {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-          padding: 0;
+          padding: 4px 6px;
           margin: 0;
           background: transparent;
           border: 0;
           text-align: left;
           cursor: pointer;
           min-width: 0;
+          border-radius: 4px;
+        }
+        .course-workspace .cw-chapter__titlebtn:hover {
+          background: var(--cw-surface);
         }
         .course-workspace .cw-chapter__titlebtn:focus-visible {
           outline: 2px solid rgba(14, 165, 233, 0.45);
-          outline-offset: 4px;
-          border-radius: 6px;
-        }
-        .course-workspace .cw-chapter__eyebrow {
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: var(--cpp-muted);
+          outline-offset: 1px;
         }
         .course-workspace .cw-chapter__title {
-          font-size: 20px;
+          display: block;
+          font-size: 15px;
           font-weight: 600;
-          letter-spacing: -0.015em;
           color: var(--cw-accent);
           line-height: 1.3;
           overflow: hidden;
@@ -449,8 +476,9 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           white-space: nowrap;
         }
         .course-workspace .cw-chapter__meta {
-          font-size: 13px;
+          font-size: 12px;
           color: var(--cpp-muted);
+          white-space: nowrap;
         }
         .course-workspace .cw-chapter__actions {
           display: flex;
@@ -460,8 +488,8 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         .course-workspace .cw-chapter__lessons {
           display: flex;
           flex-direction: column;
-          gap: 6px;
-          padding: 0 4px 8px 36px;
+          gap: 4px;
+          padding: 10px 12px 12px 12px;
         }
 
         .course-workspace .cw-chapter__add-inline {
@@ -483,25 +511,22 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           background: var(--cw-accent-soft);
         }
 
-        /* === Lesson card === */
+        /* === Lesson row === */
         .course-workspace .cw-lesson {
           position: relative;
           display: grid;
           grid-template-columns: auto minmax(0, 1fr) auto;
           align-items: center;
-          gap: 12px;
-          padding: 12px 14px;
+          gap: 10px;
+          padding: 8px 12px;
           background: var(--cw-surface);
           border: 1px solid var(--cw-border);
-          border-radius: 10px;
-          transition: border-color 140ms ease, background 140ms ease, transform 140ms ease,
-            box-shadow 140ms ease;
+          border-radius: 8px;
+          transition: border-color 140ms ease, background 140ms ease;
         }
         .course-workspace .cw-lesson:hover {
-          background: var(--cw-surface-muted);
           border-color: var(--cw-border-strong);
-          transform: translateY(-1px);
-          box-shadow: var(--cw-shadow-sm);
+          background: var(--cw-surface-muted);
         }
         .course-workspace .cw-lesson--selected {
           border-color: rgba(14, 165, 233, 0.55);
