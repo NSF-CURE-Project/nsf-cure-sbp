@@ -254,6 +254,12 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
   // collapse and the canvas shares its space with a docked preview iframe.
   // Only meaningful in edit mode (create mode has no row to preview).
   const [previewMode, setPreviewMode] = useState(false)
+  // Viewport simulation for the preview iframe. Desktop = fill pane;
+  // tablet/phone clamp width + center so authors can sanity-check responsive
+  // layout without leaving the editor.
+  const [previewViewport, setPreviewViewport] = useState<'desktop' | 'tablet' | 'phone'>(
+    'desktop',
+  )
   // Auto-deselect if the selected block was removed.
   useEffect(() => {
     if (selectedBlockKey && !blocks.some((b) => b._key === selectedBlockKey)) {
@@ -586,26 +592,71 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           grid-template-rows: auto minmax(0, 1fr);
           gap: 10px;
         }
+        .lse-preview-pane__head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding-bottom: 10px;
+          border-bottom: 1px solid var(--admin-surface-border, #d7dfea);
+        }
         .lse-preview-pane__title {
           font-size: 11px;
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
           color: var(--cpp-ink, #0f172a);
-          padding-bottom: 10px;
-          border-bottom: 1px solid var(--admin-surface-border, #d7dfea);
+        }
+        .lse-preview-pane__viewport {
+          display: inline-flex;
+          padding: 2px;
+          background: var(--admin-surface-muted, #f3f6fb);
+          border: 1px solid var(--admin-surface-border, #d7dfea);
+          border-radius: 7px;
+        }
+        .lse-preview-pane__viewport-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 26px;
+          height: 22px;
+          padding: 0;
+          font-size: 12px;
+          border: 0;
+          border-radius: 5px;
+          background: transparent;
+          color: var(--cpp-muted, #475569);
+          cursor: pointer;
+          transition: var(--admin-transition);
+        }
+        .lse-preview-pane__viewport-btn:hover {
+          color: var(--cpp-ink, #0f172a);
+        }
+        .lse-preview-pane__viewport-btn[aria-pressed='true'] {
+          background: var(--admin-surface, #fff);
+          color: var(--cpp-ink, #0f172a);
+          box-shadow: var(--admin-shadow-soft);
+        }
+        /* Frame wraps the iframe so we can clamp width + center it for
+         * tablet/phone viewports without losing the pane's own padding. */
+        .lse-preview-pane__frame {
+          display: flex;
+          justify-content: center;
+          align-items: stretch;
+          min-height: 600px;
+          overflow: auto;
         }
         .lse-preview-pane__iframe {
           width: 100%;
           height: 100%;
           min-height: 600px;
-          border: 1px solid var(--admin-surface-border, #d6dce5);
+          border: 1px solid var(--admin-surface-border, #d7dfea);
           border-radius: 8px;
           background: #fff;
+          transition: max-width 200ms ease;
         }
-        :root[data-theme='dark'] .lse-preview-pane__iframe {
-          border-color: var(--admin-surface-border, #2a3140);
-        }
+        .lse-preview-pane__iframe--tablet { max-width: 768px; }
+        .lse-preview-pane__iframe--phone { max-width: 390px; }
         .lse-preview-pane__empty {
           padding: 24px 12px;
           font-size: 12px;
@@ -1314,15 +1365,72 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
 
         {previewMode ? (
           <aside className="lse-preview-pane" aria-label="Live preview">
-            <div className="lse-preview-pane__title">Live preview</div>
+            <div className="lse-preview-pane__head">
+              <div className="lse-preview-pane__title">Live preview</div>
+              <div
+                className="lse-preview-pane__viewport"
+                role="group"
+                aria-label="Preview viewport size"
+              >
+                {(
+                  [
+                    {
+                      id: 'desktop',
+                      label: 'Desktop',
+                      icon: (
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+                          <rect x="1.5" y="3" width="13" height="8.5" rx="1.2" stroke="currentColor" strokeWidth="1.4" />
+                          <path d="M6 14.5h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                          <path d="M8 11.5v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                        </svg>
+                      ),
+                    },
+                    {
+                      id: 'tablet',
+                      label: 'Tablet',
+                      icon: (
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+                          <rect x="3.5" y="1.5" width="9" height="13" rx="1.4" stroke="currentColor" strokeWidth="1.4" />
+                          <circle cx="8" cy="12.5" r="0.7" fill="currentColor" />
+                        </svg>
+                      ),
+                    },
+                    {
+                      id: 'phone',
+                      label: 'Phone',
+                      icon: (
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+                          <rect x="5" y="1.5" width="6" height="13" rx="1.2" stroke="currentColor" strokeWidth="1.4" />
+                          <path d="M7 13h2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                        </svg>
+                      ),
+                    },
+                  ] as const
+                ).map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    className="lse-preview-pane__viewport-btn"
+                    aria-pressed={previewViewport === option.id}
+                    aria-label={`Preview at ${option.label} width`}
+                    title={`${option.label} preview`}
+                    onClick={() => setPreviewViewport(option.id)}
+                  >
+                    {option.icon}
+                  </button>
+                ))}
+              </div>
+            </div>
             {!isCreate && (props as EditModeProps).previewUrl ? (
-              <iframe
-                title="Lesson preview"
-                src={`${(props as EditModeProps).previewUrl}${
-                  (props as EditModeProps).previewUrl!.includes('?') ? '&' : '?'
-                }_t=${autoSaveAt ?? 0}`}
-                className="lse-preview-pane__iframe"
-              />
+              <div className="lse-preview-pane__frame">
+                <iframe
+                  title="Lesson preview"
+                  src={`${(props as EditModeProps).previewUrl}${
+                    (props as EditModeProps).previewUrl!.includes('?') ? '&' : '?'
+                  }_t=${autoSaveAt ?? 0}`}
+                  className={`lse-preview-pane__iframe lse-preview-pane__iframe--${previewViewport}`}
+                />
+              </div>
             ) : (
               <div className="lse-preview-pane__empty">
                 Live preview becomes available once the lesson is saved at least once.
