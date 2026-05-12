@@ -5,6 +5,7 @@ import Link from 'next/link'
 import NextImage from 'next/image'
 import type { AdminViewServerProps } from 'payload'
 import { useAuth } from '@payloadcms/ui'
+import { BreadcrumbProvider, type BreadcrumbOverride } from './admin/breadcrumbTitle'
 
 type ThemeMode = 'light' | 'dark'
 type AdminUser = {
@@ -119,6 +120,21 @@ const collectionSectionOverrides: Record<
   string,
   { sectionLabel: string; sectionHref?: string | null; collectionLabel?: string }
 > = {
+  // Lessons and chapters are both hidden from the default admin nav — they're
+  // edited via the custom Course Workspace. If someone still lands on the
+  // hidden Payload route (stale link, external bookmark, hand-crafted URL),
+  // anchor the breadcrumb back at Manage Courses so the page doesn't look
+  // orphaned ("Dashboard / Collections / Lessons / Edit").
+  lessons: {
+    sectionLabel: 'Manage Courses',
+    sectionHref: '/admin/courses',
+    collectionLabel: 'Lesson',
+  },
+  chapters: {
+    sectionLabel: 'Manage Courses',
+    sectionHref: '/admin/courses',
+    collectionLabel: 'Chapter',
+  },
   classrooms: { sectionLabel: 'Classrooms', sectionHref: '/admin/collections/classrooms' },
   'classroom-memberships': {
     sectionLabel: 'Classrooms',
@@ -167,7 +183,16 @@ const getCollectionSectionBreadcrumbs = (pathname: string): BreadcrumbItem[] | n
   const collectionLabel =
     config.collectionLabel ?? collectionLabelOverrides[collectionSlug] ?? formatSegmentLabel(collectionSlug)
 
-  if (!primarySegment || collectionSlug !== 'classrooms') {
+  // Collections whose listing view is hidden (lessons/chapters/classrooms)
+  // collapse to 3 segments when viewing a specific record — the middle
+  // "Lessons" label would link nowhere, so we substitute the entity label
+  // for the trailing "Edit" instead.
+  const collectionHasHiddenListing =
+    collectionSlug === 'classrooms' ||
+    collectionSlug === 'lessons' ||
+    collectionSlug === 'chapters'
+
+  if (!primarySegment || !collectionHasHiddenListing) {
     breadcrumbs.push({
       label: collectionLabel,
       href: primarySegment ? `/admin/collections/${collectionSlug}` : null,
@@ -175,8 +200,14 @@ const getCollectionSectionBreadcrumbs = (pathname: string): BreadcrumbItem[] | n
   }
 
   if (primarySegment) {
+    const trailing =
+      primarySegment === 'create'
+        ? `New ${collectionLabel.toLowerCase()}`
+        : collectionHasHiddenListing
+          ? collectionLabel
+          : 'Edit'
     breadcrumbs.push({
-      label: primarySegment === 'create' ? 'Create' : 'Edit',
+      label: trailing,
       href: primarySegment === 'create' ? null : `${pathname.split('/').slice(0, 5).join('/')}`,
     })
   }
@@ -195,7 +226,11 @@ const getCollectionSectionBreadcrumbs = (pathname: string): BreadcrumbItem[] | n
   return breadcrumbs
 }
 
-const getAdminBreadcrumbs = (pathname: string, previousPath?: string | null): BreadcrumbItem[] => {
+const getAdminBreadcrumbs = (
+  pathname: string,
+  previousPath?: string | null,
+  entityTitle?: string | null,
+): BreadcrumbItem[] => {
   if (!pathname.startsWith('/admin')) return []
   if (previousPath === '/admin/courses') {
     const courseWorkspaceBreadcrumbs = getCourseWorkspaceBreadcrumbs(pathname)
@@ -254,7 +289,12 @@ const getAdminBreadcrumbs = (pathname: string, previousPath?: string | null): Br
   for (let i = 1; i < parts.length; i += 1) {
     href += `/${parts[i]}`
     const isLast = i === parts.length - 1
-    const label = isLikelyRecordId(parts[i]) ? 'Details' : formatSegmentLabel(parts[i])
+    const isRecordId = isLikelyRecordId(parts[i])
+    const fallback = isRecordId ? 'Details' : formatSegmentLabel(parts[i])
+    // The page itself knows the best label for its trailing breadcrumb (course
+    // title, "New lesson · ChapterX", etc.). When the page has registered one
+    // via useBreadcrumbTitle, prefer it over the URL-derived fallback.
+    const label = isLast && entityTitle ? entityTitle : fallback
     breadcrumbs.push({
       label,
       href: isLast ? null : href,
@@ -328,11 +368,14 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
   const userMenuRef = useRef<HTMLDivElement | null>(null)
   const userMenuButtonRef = useRef<HTMLButtonElement | null>(null)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [breadcrumbOverride, setBreadcrumbOverride] = useState<BreadcrumbOverride>(null)
   const breadcrumbPath = currentPath || '/admin'
-  const breadcrumbs = useMemo(
-    () => getAdminBreadcrumbs(breadcrumbPath, backHref),
-    [backHref, breadcrumbPath],
-  )
+  const breadcrumbs = useMemo(() => {
+    if (breadcrumbOverride?.kind === 'chain') return breadcrumbOverride.items
+    const titleOverride =
+      breadcrumbOverride?.kind === 'title' ? breadcrumbOverride.title : null
+    return getAdminBreadcrumbs(breadcrumbPath, backHref, titleOverride)
+  }, [backHref, breadcrumbPath, breadcrumbOverride])
 
   const expandPageLayout = useCallback(() => {
     if (typeof document === 'undefined') return
@@ -4224,7 +4267,9 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           </div>
         </div>
       ) : null}
-      {props.children}
+      <BreadcrumbProvider setOverride={setBreadcrumbOverride}>
+        {props.children}
+      </BreadcrumbProvider>
       <footer className="admin-global-footer">
         © 2025 Cal Poly Pomona Engineering — NSF CURE Summer Bridge Program
       </footer>

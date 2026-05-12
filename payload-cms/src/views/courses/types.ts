@@ -8,6 +8,10 @@ export type LessonNode = {
   quizTitle?: string | null
   status?: 'draft' | 'published' | null
   updatedAt?: string | null
+  // True if this lesson lives only in client state + sessionStorage and has no
+  // DB row yet. Staged lessons render with a "Not saved yet" pill and a
+  // Set-up action that takes the staff member to the scaffold/editor page.
+  staged?: boolean
 }
 
 export type ChapterNode = {

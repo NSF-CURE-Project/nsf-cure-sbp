@@ -6,6 +6,13 @@ type LessonPositionUpdate = {
   order: number
 }
 
+// Payload's relationship validator rejects numeric strings when the target
+// collection uses integer IDs (every collection here is Postgres `serial`).
+// Internally we hold IDs as strings (EntityId = string) for React-key safety,
+// but every value sent over the wire as a relationship needs to be a number.
+const relId = (id: EntityId): number | string =>
+  /^\d+$/.test(id) ? Number(id) : id
+
 const patch = async (path: string, body: Record<string, unknown>) => {
   // Integration boundary: replace fetch calls here with Payload local API/actions
   // if you want server-side batching or transactional persistence.
@@ -34,17 +41,39 @@ const remove = async (path: string) => {
   }
 }
 
+type PayloadFieldError = { message?: string; field?: string; label?: string; path?: string }
+type PayloadErrorEntry = {
+  message?: string
+  field?: string
+  data?: { errors?: PayloadFieldError[] } | PayloadFieldError[]
+}
+
 const extractErrorMessage = async (response: Response, path: string): Promise<string> => {
   try {
     const data = (await response.clone().json()) as {
       message?: string
-      errors?: Array<{ message?: string; field?: string }>
+      errors?: PayloadErrorEntry[]
     }
-    const fieldErrors = (data.errors ?? [])
+    // Payload's ValidationError nests per-field detail inside errors[].data.errors
+    // (e.g. { field: 'class', message: 'This relationship field has invalid...' }).
+    // Prefer those over the top-level "The following field is invalid: <Label>" wrapper.
+    const detailed: string[] = []
+    for (const entry of data.errors ?? []) {
+      const inner = Array.isArray(entry.data)
+        ? entry.data
+        : (entry.data?.errors ?? [])
+      for (const fe of inner) {
+        const key = fe.field ?? fe.path ?? fe.label
+        if (fe.message) detailed.push(key ? `${key}: ${fe.message}` : fe.message)
+      }
+    }
+    if (detailed.length > 0) return detailed.join('; ')
+
+    const topLevel = (data.errors ?? [])
       .map((err) => (err.field ? `${err.field}: ${err.message}` : err.message))
       .filter(Boolean)
       .join('; ')
-    if (fieldErrors) return fieldErrors
+    if (topLevel) return topLevel
     if (data.message) return data.message
   } catch {
     // body wasn't JSON; fall through
@@ -90,7 +119,7 @@ export const saveChapterOrder = async (chapters: ChapterNode[]) => {
 export const saveLessonPositions = async (lessons: LessonPositionUpdate[]) => {
   const updates = lessons.map((lesson) =>
     patch(`/api/lessons/${lesson.id}`, {
-      chapter: lesson.chapterId,
+      chapter: relId(lesson.chapterId),
       order: lesson.order,
     }),
   )
@@ -132,7 +161,7 @@ export const createChapterInCourse = async (
     CreatedDoc<{ title?: string; chapterNumber?: number }>
   >('/api/chapters', {
     title,
-    class: courseId,
+    class: relId(courseId),
     chapterNumber,
   })
   const doc = result.doc
@@ -155,6 +184,123 @@ export const updateLessonTitle = async (lessonId: EntityId, title: string) => {
   await patch(`/api/lessons/${lessonId}`, { title })
 }
 
+export type LessonVersionSummary = {
+  id: EntityId
+  status: 'draft' | 'published'
+  autosave: boolean
+  updatedAt: string | null
+  // Author name/email when available (depth>=1 hydrates `version.author`).
+  authorLabel: string | null
+}
+
+type LessonVersionDoc = {
+  id: string | number
+  updatedAt?: string
+  autosave?: boolean
+  parent?: string | number
+  version?: {
+    _status?: string
+    title?: string
+    layout?: unknown
+    author?:
+      | string
+      | number
+      | { id?: string | number; firstName?: string; lastName?: string; email?: string }
+  }
+}
+
+type AuthorValue = NonNullable<NonNullable<LessonVersionDoc['version']>['author']>
+
+const formatAuthor = (author: AuthorValue | undefined): string | null => {
+  if (!author) return null
+  if (typeof author === 'string' || typeof author === 'number') return null
+  const { firstName, lastName, email } = author
+  const parts = [firstName, lastName].filter(Boolean) as string[]
+  if (parts.length > 0) return parts.join(' ')
+  if (typeof email === 'string') return email
+  return null
+}
+
+export const listLessonVersions = async (
+  lessonId: EntityId,
+  limit = 20,
+): Promise<LessonVersionSummary[]> => {
+  const params = new URLSearchParams()
+  params.set('where[parent][equals]', String(lessonId))
+  params.set('sort', '-updatedAt')
+  params.set('depth', '1')
+  params.set('limit', String(limit))
+  const json = await get<{ docs?: LessonVersionDoc[] }>(
+    `/api/lessons/versions?${params.toString()}`,
+  )
+  return (json.docs ?? []).map((doc) => ({
+    id: String(doc.id),
+    status: doc.version?._status === 'published' ? 'published' : 'draft',
+    autosave: Boolean(doc.autosave),
+    updatedAt: doc.updatedAt ?? null,
+    authorLabel: formatAuthor(doc.version?.author),
+  }))
+}
+
+// Fetch one version's full snapshot for restore — depth=1 so relationship ids
+// inside the layout come back as objects (matches the create/edit hydrate
+// path; `fromPersistedLayout` extracts ids either way).
+export const getLessonVersion = async (
+  versionId: EntityId,
+): Promise<{ title: string; layout: unknown }> => {
+  const json = await get<{ version?: { title?: string; layout?: unknown } }>(
+    `/api/lessons/versions/${versionId}?depth=1`,
+  )
+  return {
+    title: json.version?.title ?? '',
+    layout: json.version?.layout ?? [],
+  }
+}
+
+// Full lesson update from the custom editor: title + layout atomically.
+// `intent` chooses how Payload routes the save:
+//   * 'publish' → no query params, sets _status='published', overwrites live
+//     doc and bumps the current version.
+//   * 'draft'   → ?draft=true. Writes a new draft version; if the doc was
+//     already published the live row keeps its content + 'published' status.
+//   * 'autosave'→ ?draft=true&autosave=true. Same as 'draft' but tells Payload
+//     this came from background autosave (used for i18n and analytics; doesn't
+//     change persistence behavior).
+// Picking the right intent matters: saving 'draft' on a published lesson with
+// _status='draft' in the body would silently demote it, which is exactly the
+// surprise we don't want from background saves.
+export const updateLesson = async (
+  lessonId: EntityId,
+  data: {
+    title: string
+    layout: Record<string, unknown>[]
+    intent: 'draft' | 'publish' | 'autosave'
+  },
+) => {
+  const body: Record<string, unknown> = {
+    title: data.title,
+    layout: data.layout,
+  }
+  const params = new URLSearchParams()
+  if (data.intent === 'publish') {
+    body._status = 'published'
+  } else {
+    params.set('draft', 'true')
+    if (data.intent === 'autosave') params.set('autosave', 'true')
+  }
+
+  const url = `/api/lessons/${lessonId}${params.toString() ? `?${params.toString()}` : ''}`
+  const response = await fetch(url, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!response.ok) {
+    throw new Error(await extractErrorMessage(response, url))
+  }
+}
+
 export const deleteLesson = async (lessonId: EntityId) => {
   await remove(`/api/lessons/${lessonId}`)
 }
@@ -172,12 +318,22 @@ export const createLesson = async (
   chapterId: EntityId,
   title: string,
   order: number,
+  options?: {
+    layout?: Record<string, unknown>[]
+    status?: 'draft' | 'published'
+  },
 ): Promise<{ id: EntityId; title: string; order: number }> => {
-  const result = await post<LessonCreatedDoc>('/api/lessons', {
+  const body: Record<string, unknown> = {
     title,
-    chapter: chapterId,
+    chapter: relId(chapterId),
     order,
-  })
+  }
+  if (options?.layout && options.layout.length > 0) body.layout = options.layout
+  // Payload treats _status absence as draft; set explicitly only when the
+  // caller asks for publish so we don't accidentally publish a stub.
+  if (options?.status === 'published') body._status = 'published'
+
+  const result = await post<LessonCreatedDoc>('/api/lessons', body)
   const doc = result.doc
   if (!doc?.id) throw new Error('Lesson create response missing id')
   return {
@@ -192,7 +348,7 @@ export const attachLessonToChapter = async (
   chapterId: EntityId,
   order: number,
 ) => {
-  await patch(`/api/lessons/${lessonId}`, { chapter: chapterId, order })
+  await patch(`/api/lessons/${lessonId}`, { chapter: relId(chapterId), order })
 }
 
 type LessonSearchDoc = {
@@ -277,6 +433,97 @@ export type QuizSearchResult = {
   updatedAt: string | null
 }
 
+export type MediaSearchResult = {
+  id: EntityId
+  filename: string | null
+  alt: string | null
+  mimeType: string | null
+  url: string | null
+}
+
+const mediaResultFromDoc = (doc: {
+  id: string | number
+  filename?: string
+  alt?: string
+  mimeType?: string
+  url?: string
+}): MediaSearchResult => ({
+  id: String(doc.id),
+  filename: doc.filename ?? null,
+  alt: doc.alt ?? null,
+  mimeType: doc.mimeType ?? null,
+  url: doc.url ?? null,
+})
+
+export const searchMedia = async (
+  query: string,
+  limit = 25,
+): Promise<MediaSearchResult[]> => {
+  const params = new URLSearchParams()
+  params.set('depth', '0')
+  params.set('limit', String(limit))
+  params.set('sort', '-updatedAt')
+  if (query.trim()) {
+    params.set('where[filename][like]', query.trim())
+  }
+  const json = await get<{ docs?: Parameters<typeof mediaResultFromDoc>[0][] }>(
+    `/api/media?${params.toString()}`,
+  )
+  return (json.docs ?? []).map(mediaResultFromDoc)
+}
+
+// Upload a file to the `media` collection. Returns the created doc summary so
+// the picker can immediately show the upload as the selected value.
+export const uploadMedia = async (file: File): Promise<MediaSearchResult> => {
+  const form = new FormData()
+  form.append('file', file)
+  const response = await fetch('/api/media', {
+    method: 'POST',
+    credentials: 'include',
+    body: form,
+  })
+  if (!response.ok) {
+    throw new Error(await extractErrorMessage(response, '/api/media'))
+  }
+  const json = (await response.json()) as { doc?: Parameters<typeof mediaResultFromDoc>[0] }
+  if (!json.doc?.id) throw new Error('Media upload response missing id')
+  return mediaResultFromDoc(json.doc)
+}
+
+export type ProblemSetSearchResult = {
+  id: EntityId
+  title: string
+  status: string | null
+  updatedAt: string | null
+}
+
+export const searchProblemSets = async (
+  query: string,
+  limit = 25,
+): Promise<ProblemSetSearchResult[]> => {
+  const params = new URLSearchParams()
+  params.set('depth', '0')
+  params.set('limit', String(limit))
+  params.set('sort', '-updatedAt')
+  if (query.trim()) {
+    params.set('where[title][like]', query.trim())
+  }
+  const json = await get<{
+    docs?: {
+      id: string | number
+      title?: string
+      _status?: string
+      updatedAt?: string
+    }[]
+  }>(`/api/problem-sets?${params.toString()}`)
+  return (json.docs ?? []).map((doc) => ({
+    id: String(doc.id),
+    title: doc.title ?? 'Untitled problem set',
+    status: doc._status ?? null,
+    updatedAt: doc.updatedAt ?? null,
+  }))
+}
+
 export const searchQuizzes = async (
   query: string,
   limit = 25,
@@ -309,10 +556,11 @@ const fetchLessonLayout = async (lessonId: EntityId): Promise<LessonLayoutBlock[
 export const assignQuizToLesson = async (lessonId: EntityId, quizId: EntityId) => {
   const layout = await fetchLessonLayout(lessonId)
   const existingIndex = layout.findIndex((block) => block.blockType === 'quizBlock')
+  const quizRef = relId(quizId)
   const quizBlock: LessonLayoutBlock =
     existingIndex >= 0
-      ? { ...layout[existingIndex], blockType: 'quizBlock', quiz: quizId }
-      : { blockType: 'quizBlock', quiz: quizId, showTitle: true }
+      ? { ...layout[existingIndex], blockType: 'quizBlock', quiz: quizRef }
+      : { blockType: 'quizBlock', quiz: quizRef, showTitle: true }
   const nextLayout =
     existingIndex >= 0
       ? layout.map((block, index) => (index === existingIndex ? quizBlock : block))

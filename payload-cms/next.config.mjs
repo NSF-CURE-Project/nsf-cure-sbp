@@ -18,17 +18,24 @@ const nextConfig = {
       permanent: false,
     },
   ],
-  headers: async () => [
-    {
-      source: '/:path*',
-      headers: [
-        {
-          key: 'Strict-Transport-Security',
-          value: 'max-age=63072000; includeSubDomains; preload',
-        },
-      ],
-    },
-  ],
+  // HSTS only in production. In dev the admin host (admin.sbp.local) is
+  // served over HTTP, and emitting HSTS poisons the browser's cache so any
+  // later http://*.sbp.local load (live-preview iframe to the web app) is
+  // rejected as "refused to connect" until the cache is cleared.
+  headers: async () =>
+    process.env.NODE_ENV === 'production'
+      ? [
+          {
+            source: '/:path*',
+            headers: [
+              {
+                key: 'Strict-Transport-Security',
+                value: 'max-age=63072000; includeSubDomains; preload',
+              },
+            ],
+          },
+        ]
+      : [],
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {
       '.cjs': ['.cts', '.cjs'],

@@ -10,6 +10,7 @@ import DropIndicator from './DropIndicator'
 import SortableLessonRow from './SortableLessonRow'
 import EmptyLessonState from './EmptyLessonState'
 import RowOverflowMenu, { type OverflowAction } from './RowOverflowMenu'
+import InlineLessonInput from './InlineLessonInput'
 
 type SortableChapterRowProps = {
   chapter: ChapterNode
@@ -26,7 +27,9 @@ type SortableChapterRowProps = {
   onDeleteLesson: (lesson: ChapterNode['lessons'][number]) => void
   onSelectChapter: (chapter: ChapterNode) => void
   onSelectLesson: (lesson: ChapterNode['lessons'][number], chapter: ChapterNode) => void
-  onAddLesson: (chapter: ChapterNode) => void
+  onCreateLesson: (chapter: ChapterNode, title: string) => void
+  onAttachLesson: (chapter: ChapterNode) => void
+  onSetUpLesson: (lesson: ChapterNode['lessons'][number]) => void
   onAssignQuiz: (lesson: ChapterNode['lessons'][number]) => void
 }
 
@@ -45,7 +48,9 @@ export default function SortableChapterRow({
   onDeleteLesson,
   onSelectChapter,
   onSelectLesson,
-  onAddLesson,
+  onCreateLesson,
+  onAttachLesson,
+  onSetUpLesson,
   onAssignQuiz,
 }: SortableChapterRowProps) {
   const sortable = useSortable({
@@ -110,14 +115,6 @@ export default function SortableChapterRow({
 
         {reorderMode ? null : (
           <div className="cw-chapter__actions">
-            <button
-              type="button"
-              onClick={() => onAddLesson(chapter)}
-              className="cw-btn cw-btn--ghost"
-              aria-label={`Add lesson to chapter ${chapter.title}`}
-            >
-              + Add lesson
-            </button>
             <RowOverflowMenu
               ariaLabel={`More actions for chapter ${chapter.title}`}
               actions={
@@ -161,6 +158,7 @@ export default function SortableChapterRow({
                 isSelected={selectedLessonId === lesson.id}
                 onDelete={onDeleteLesson}
                 onSelect={(lessonNode) => onSelectLesson(lessonNode, chapter)}
+                onSetUp={onSetUpLesson}
                 onAssignQuiz={onAssignQuiz}
               />
             ))
@@ -170,14 +168,10 @@ export default function SortableChapterRow({
         </SortableContext>
 
         {reorderMode ? null : (
-          <button
-            type="button"
-            onClick={() => onAddLesson(chapter)}
-            className="cw-chapter__add-inline"
-          >
-            <span aria-hidden="true">+</span>
-            <span>Add lesson</span>
-          </button>
+          <InlineLessonInput
+            onSubmit={(title) => onCreateLesson(chapter, title)}
+            onAttachExisting={() => onAttachLesson(chapter)}
+          />
         )}
       </div>
     </section>

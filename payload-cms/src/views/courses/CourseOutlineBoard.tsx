@@ -19,7 +19,7 @@ import {
   verticalListSortingStrategy,
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable'
-import type { ChapterNode, CourseNode, DragMeta, EntityId, SaveStatus } from './types'
+import type { ChapterNode, CourseNode, DragMeta, EntityId, LessonNode, SaveStatus } from './types'
 import SortableChapterRow from './SortableChapterRow'
 import EmptyChapterState from './EmptyChapterState'
 import SaveStatusIndicator from './SaveStatusIndicator'
@@ -114,7 +114,7 @@ export default function CourseOutlineBoard({
   const [selectedKey, setSelectedKey] = useState<
     { type: 'chapter'; id: EntityId } | { type: 'lesson'; id: EntityId } | null
   >(null)
-  const [addLessonChapterId, setAddLessonChapterId] = useState<EntityId | null>(null)
+  const [attachLessonChapterId, setAttachLessonChapterId] = useState<EntityId | null>(null)
   const [quizAssignLessonId, setQuizAssignLessonId] = useState<EntityId | null>(null)
   const deleteErrorRef = useRef<HTMLDivElement | null>(null)
 
@@ -143,6 +143,119 @@ export default function CourseOutlineBoard({
   useEffect(() => {
     onCourseChange?.(course)
   }, [course, onCourseChange])
+
+  // --- Staged (unsaved) lessons -------------------------------------------
+  // Lessons typed into the inline add-row live only in client state +
+  // sessionStorage until the user explicitly enters the custom editor and
+  // hits Save. They're identified by `staged: true` and a "staged-..." id.
+  const stagedStorageKey = `staged-lessons:${course.id}`
+
+  type StagedRecord = {
+    id: EntityId
+    chapterId: EntityId
+    title: string
+    order: number
+  }
+
+  // Hydrate sessionStorage staged lessons into the visible course on mount.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    let stored: StagedRecord[] = []
+    try {
+      const raw = window.sessionStorage.getItem(stagedStorageKey)
+      stored = raw ? (JSON.parse(raw) as StagedRecord[]) : []
+    } catch {
+      stored = []
+    }
+    if (!stored.length) return
+    setCourses((prev) =>
+      prev.map((courseItem) => ({
+        ...courseItem,
+        chapters: courseItem.chapters.map((chapter) => {
+          const ownStaged = stored.filter((entry) => entry.chapterId === chapter.id)
+          if (!ownStaged.length) return chapter
+          const appended: LessonNode[] = ownStaged.map((entry) => ({
+            id: entry.id,
+            title: entry.title,
+            order: entry.order,
+            chapterId: chapter.id,
+            quizTitle: null,
+            status: 'draft',
+            staged: true,
+          }))
+          return {
+            ...chapter,
+            lessons: [...chapter.lessons, ...appended].sort((a, b) => a.order - b.order),
+          }
+        }),
+      })),
+    )
+    // committedRef intentionally NOT updated: staged lessons aren't committed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stagedStorageKey])
+
+  // Persist whatever staged lessons currently live in state. Runs on every
+  // state change so adds, edits, and discards stay durable across refresh.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const staged: StagedRecord[] = course.chapters.flatMap((chapter) =>
+      chapter.lessons
+        .filter((lesson) => lesson.staged)
+        .map((lesson) => ({
+          id: lesson.id,
+          chapterId: chapter.id,
+          title: lesson.title,
+          order: lesson.order,
+        })),
+    )
+    if (staged.length === 0) {
+      window.sessionStorage.removeItem(stagedStorageKey)
+    } else {
+      window.sessionStorage.setItem(stagedStorageKey, JSON.stringify(staged))
+    }
+  }, [course, stagedStorageKey])
+
+  const handleCreateLesson = (chapter: ChapterNode, title: string) => {
+    const stagedId = `staged-${Math.random().toString(36).slice(2, 10)}`
+    const nextOrder =
+      chapter.lessons.reduce((max, lesson) => Math.max(max, lesson.order), 0) + 1
+    setCourses((prev) =>
+      prev.map((courseItem) => ({
+        ...courseItem,
+        chapters: courseItem.chapters.map((item) =>
+          item.id === chapter.id
+            ? {
+                ...item,
+                lessons: [
+                  ...item.lessons,
+                  {
+                    id: stagedId,
+                    title,
+                    order: nextOrder,
+                    chapterId: chapter.id,
+                    quizTitle: null,
+                    status: 'draft',
+                    staged: true,
+                  },
+                ],
+              }
+            : item,
+        ),
+      })),
+    )
+    // committedRef left untouched: nothing has been persisted.
+  }
+
+  const handleSetUpLesson = (lesson: LessonNode) => {
+    if (!lesson.staged) return
+    const params = new URLSearchParams({
+      chapterId: lesson.chapterId,
+      title: lesson.title,
+      order: String(lesson.order),
+      stagedId: lesson.id,
+    })
+    router.push(`/admin/courses/${course.id}/lessons/new?${params.toString()}`)
+  }
 
   const counts = useMemo(
     () => ({
@@ -194,6 +307,21 @@ export default function CourseOutlineBoard({
   }
 
   const handleDeleteLesson = async (lesson: ChapterNode['lessons'][number]) => {
+    // Staged lessons live only in client state — no DB row, no API call, no
+    // confirm prompt (discarding an unsaved title isn't destructive).
+    if (lesson.staged) {
+      setCourses((prev) =>
+        prev.map((courseItem) => ({
+          ...courseItem,
+          chapters: courseItem.chapters.map((chapter) => ({
+            ...chapter,
+            lessons: chapter.lessons.filter((item) => item.id !== lesson.id),
+          })),
+        })),
+      )
+      return
+    }
+
     if (deletingLessonId) return
 
     if (typeof window !== 'undefined') {
@@ -501,7 +629,9 @@ export default function CourseOutlineBoard({
                   onSelectLesson={(lesson) =>
                     setSelectedKey({ type: 'lesson', id: lesson.id })
                   }
-                  onAddLesson={(node) => setAddLessonChapterId(node.id)}
+                  onCreateLesson={handleCreateLesson}
+                  onAttachLesson={(node) => setAttachLessonChapterId(node.id)}
+                  onSetUpLesson={handleSetUpLesson}
                   onAssignQuiz={(lesson) => setQuizAssignLessonId(lesson.id)}
                 />
               ))
@@ -546,11 +676,11 @@ export default function CourseOutlineBoard({
 
       <LessonAssignmentDrawer
         chapter={
-          addLessonChapterId
-            ? (course.chapters.find((chapter) => chapter.id === addLessonChapterId) ?? null)
+          attachLessonChapterId
+            ? (course.chapters.find((chapter) => chapter.id === attachLessonChapterId) ?? null)
             : null
         }
-        onClose={() => setAddLessonChapterId(null)}
+        onClose={() => setAttachLessonChapterId(null)}
         onLessonsAdded={(added) => {
           setCourses((prev) => {
             const next = prev.map((courseItem) => ({
@@ -591,6 +721,7 @@ export default function CourseOutlineBoard({
 
       <EntityInspector
         selection={resolveSelection(course, selectedKey)}
+        courseId={course.id}
         onClose={() => setSelectedKey(null)}
         onAssignQuiz={(lesson) => {
           setSelectedKey(null)

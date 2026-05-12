@@ -86,7 +86,7 @@ export function LessonsTab({ course }: { course: CourseNode }) {
                   {lesson.quizTitle ? 'Quiz' : 'No quiz'}
                 </span>
                 <Link
-                  href={`/admin/collections/lessons/${lesson.id}`}
+                  href={`/admin/courses/${course.id}/lessons/${lesson.id}/edit`}
                   className="rounded-md border border-[var(--admin-surface-border)] px-2 py-1 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:bg-[var(--admin-surface-muted)]"
                 >
                   Edit
@@ -160,7 +160,7 @@ export function QuizzesTab({ course }: { course: CourseNode }) {
                 )}
               </div>
               <Link
-                href={`/admin/collections/lessons/${lesson.id}`}
+                href={`/admin/courses/${course.id}/lessons/${lesson.id}/edit`}
                 className="rounded-md border border-[var(--admin-surface-border)] px-2 py-1 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:bg-[var(--admin-surface-muted)]"
               >
                 Edit lesson

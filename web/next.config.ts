@@ -133,10 +133,17 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: [
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=63072000; includeSubDomains; preload",
-          },
+          // HSTS only in production. Dev serves http://app.sbp.local; emitting
+          // HSTS there poisons the browser cache and breaks subsequent http
+          // loads (e.g. admin live-preview iframe → "refused to connect").
+          ...(isProd
+            ? [
+                {
+                  key: "Strict-Transport-Security",
+                  value: "max-age=63072000; includeSubDomains; preload",
+                },
+              ]
+            : []),
           { key: "X-Content-Type-Options", value: "nosniff" },
           // X-Frame-Options is intentionally omitted; CSP frame-ancestors is
           // the modern equivalent and supports per-origin allow-listing for

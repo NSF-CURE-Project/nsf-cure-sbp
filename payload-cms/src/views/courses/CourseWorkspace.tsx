@@ -13,6 +13,7 @@ import {
   SettingsTab,
 } from './WorkspaceTabs'
 import { HelpLink } from '../admin/HelpLink'
+import { useBreadcrumbTitle } from '../admin/breadcrumbTitle'
 
 type WorkspaceTab = 'outline' | 'lessons' | 'quizzes' | 'preview' | 'settings' | 'publish'
 
@@ -34,6 +35,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('outline')
   const [course, setCourse] = useState<CourseNode>(initialCourse)
+  useBreadcrumbTitle(course.title)
 
   const stats = useMemo(() => {
     const allLessons = course.chapters.flatMap((chapter) => chapter.lessons)
@@ -555,6 +557,60 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         :root[data-theme='dark'] .course-workspace .cw-status--draft {
           background: rgba(148, 163, 184, 0.18);
           color: #cbd5e1;
+        }
+        .course-workspace .cw-status--staged {
+          background: rgba(245, 158, 11, 0.14);
+          color: #b45309;
+          border-color: rgba(245, 158, 11, 0.22);
+        }
+        :root[data-theme='dark'] .course-workspace .cw-status--staged {
+          background: rgba(245, 158, 11, 0.2);
+          color: #fcd34d;
+        }
+        .course-workspace .cw-lesson--staged {
+          border-style: dashed;
+        }
+        .course-workspace .cw-lesson--staged .cw-lesson__title {
+          font-style: italic;
+          color: var(--cpp-muted);
+        }
+        .course-workspace .cw-chapter__add-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-top: 4px;
+        }
+        .course-workspace .cw-chapter__add-row--expanded {
+          gap: 8px;
+        }
+        .course-workspace .cw-chapter__add-input {
+          flex: 1;
+          padding: 8px 12px;
+          font-size: 14px;
+          color: var(--cpp-ink);
+          background: var(--cw-surface);
+          border: 1px solid var(--cw-border-strong);
+          border-radius: 8px;
+        }
+        .course-workspace .cw-chapter__add-input:focus {
+          outline: 2px solid rgba(14, 165, 233, 0.45);
+          outline-offset: 1px;
+          border-color: rgba(14, 165, 233, 0.55);
+        }
+        .course-workspace .cw-chapter__attach-link {
+          padding: 4px 8px;
+          font-size: 12px;
+          font-weight: 500;
+          color: var(--cpp-muted);
+          background: transparent;
+          border: 0;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: color 140ms ease, background 140ms ease;
+        }
+        .course-workspace .cw-chapter__attach-link:hover {
+          color: var(--cw-accent);
+          background: var(--cw-accent-soft);
         }
         .course-workspace .cw-quiz-badge {
           display: inline-flex;

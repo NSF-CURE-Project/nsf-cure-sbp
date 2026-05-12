@@ -13,6 +13,10 @@ export type Selection =
 
 type EntityInspectorProps = {
   selection: Selection
+  // Used to build the "Open full editor" link for lessons, which lives at
+  // /admin/courses/[courseId]/lessons/[lessonId]/edit (chapters still use
+  // Payload's hidden default route since there's no custom editor for them).
+  courseId: string
   onClose: () => void
   onTitleSaved: (entity: { type: 'chapter' | 'lesson'; id: string; title: string }) => void
   onDeleteChapter?: (chapter: ChapterNode) => void
@@ -23,6 +27,7 @@ type EntityInspectorProps = {
 
 export default function EntityInspector({
   selection,
+  courseId,
   onClose,
   onTitleSaved,
   onDeleteChapter,
@@ -160,7 +165,7 @@ export default function EntityInspector({
             href={
               isChapter
                 ? `/admin/collections/chapters/${entityId}`
-                : `/admin/collections/lessons/${entityId}`
+                : `/admin/courses/${courseId}/lessons/${entityId}/edit`
             }
             className="rounded-md border border-[var(--admin-surface-border)] px-3 py-2 text-center text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:bg-[var(--admin-surface-muted)]"
           >

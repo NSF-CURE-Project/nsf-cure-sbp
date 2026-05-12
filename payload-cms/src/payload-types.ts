@@ -1002,10 +1002,6 @@ export interface ClassroomMembership {
  */
 export interface Account {
   id: number;
-  emailVerified?: boolean | null;
-  emailVerifiedAt?: string | null;
-  emailVerificationTokenHash?: string | null;
-  emailVerificationExpiresAt?: string | null;
   /**
    * Student role for learner accounts.
    */
@@ -2441,10 +2437,6 @@ export interface ApiKeysSelect<T extends boolean = true> {
  * via the `definition` "accounts_select".
  */
 export interface AccountsSelect<T extends boolean = true> {
-  emailVerified?: T;
-  emailVerifiedAt?: T;
-  emailVerificationTokenHash?: T;
-  emailVerificationExpiresAt?: T;
   role?: T;
   fullName?: T;
   loginCount?: T;
@@ -2975,7 +2967,7 @@ export interface AdminHelp {
   title: string;
   subtitle?: string | null;
   /**
-   * JSON array: [{ "label": string, "desc": string, "href": string }].
+   * JSON array: [{ "label": string, "desc": string, "href": string }]. Reserved — not currently rendered on the help page.
    */
   quickActions?:
     | {
@@ -2987,7 +2979,7 @@ export interface AdminHelp {
     | boolean
     | null;
   /**
-   * JSON array of strings for topic tags.
+   * JSON array of strings. Reserved — not currently rendered on the help page.
    */
   topicChips?:
     | {
@@ -3017,7 +3009,7 @@ export interface AdminHelp {
    */
   supportRequestHref?: string | null;
   /**
-   * JSON array: [{ "label": string, "desc": string, "href": string }].
+   * JSON array: [{ "label": string, "desc": string, "href": string }]. Reserved — not currently rendered on the help page.
    */
   resources?:
     | {
@@ -3028,6 +3020,9 @@ export interface AdminHelp {
     | number
     | boolean
     | null;
+  /**
+   * Reserved — not currently rendered on the help page.
+   */
   body?: {
     root: {
       type: string;
@@ -3054,6 +3049,9 @@ export interface AdminHelp {
           | 'quizzes'
           | 'student-support'
           | 'classrooms'
+          | 'concepts'
+          | 'pre-post'
+          | 'analytics'
           | 'reporting'
           | 'site-management'
           | 'troubleshooting';

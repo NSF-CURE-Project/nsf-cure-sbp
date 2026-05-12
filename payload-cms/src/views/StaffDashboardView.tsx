@@ -2214,7 +2214,7 @@ const StaffDashboardContent = ({
                 id: item.id,
                 title: item.title,
                 metric: `${Math.round(item.rate * 100)}% complete`,
-                href: `/admin/collections/lessons/${item.id}`,
+                href: `/admin/lessons/${item.id}/edit`,
               }))}
             />
             <ContentHealthCard
@@ -2233,7 +2233,7 @@ const StaffDashboardContent = ({
                 id: item.id,
                 title: item.title,
                 metric: `${item.count} questions`,
-                href: `/admin/collections/lessons/${item.id}`,
+                href: `/admin/lessons/${item.id}/edit`,
               }))}
             />
             <ContentHealthCard
@@ -2252,7 +2252,7 @@ const StaffDashboardContent = ({
                 id: item.id,
                 title: item.title,
                 metric: `${item.rating.toFixed(1)} / 4 helpfulness`,
-                href: `/admin/collections/lessons/${item.id}`,
+                href: `/admin/lessons/${item.id}/edit`,
               }))}
             />
           </div>
