@@ -1388,37 +1388,75 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         :root {
           --cpp-green: #0f4fd6;
           --cpp-gold: #0b7bbf;
-          --cpp-cream: #edf4ff;
-          --cpp-ink: #0f2040;
-          --cpp-muted: #516889;
-          --admin-surface: #f8fbff;
-          --admin-surface-muted: #ebf3ff;
-          --admin-surface-soft: #f3f8ff;
-          --admin-surface-border: rgba(23, 78, 177, 0.2);
-          --admin-surface-border-strong: rgba(23, 78, 177, 0.28);
-          --admin-hero-bg: #f8fbff;
+          --cpp-cream: #f3f6fb;
+          /* Type ramp. Single source of truth for admin text contrast.
+             ink = primary (h1/h2/values), muted = secondary (labels/meta),
+             subtle = helper/disabled-feeling copy. Tuned for >= 7:1 ink
+             on page surface and >= 4.5:1 muted on card surface. */
+          --cpp-ink: #0f172a;
+          --cpp-muted: #475569;
+          --cpp-subtle: #64748b;
+          /* Three surface levels. Page < card < elevated, each clearly
+             distinguishable so panels don't disappear into the canvas. */
+          --admin-page-bg: #f3f6fb;
+          --admin-surface: #ffffff;
+          --admin-surface-elevated: #fcfdff;
+          --admin-surface-muted: #f3f6fb;
+          --admin-surface-soft: #f7faff;
+          /* Borders — visible structure rather than near-invisible hints. */
+          --admin-surface-border: #d7dfea;
+          --admin-surface-border-strong: #c2ccda;
+          /* Accent / active+selected state. Use these together: tinted bg
+             + stronger border + shifted text color. */
+          --admin-accent: #3b82f6;
+          --admin-accent-hover: #2563eb;
+          --admin-accent-bg: #eef4ff;
+          --admin-accent-bg-strong: #dbe7ff;
+          --admin-accent-border: #3b82f6;
+          --admin-accent-text: #1d4ed8;
+          --admin-accent-ring: rgba(59, 130, 246, 0.32);
+          /* Per-block identity. Render as a left-edge stripe + icon tint;
+             do NOT use as full block backgrounds — too noisy. */
+          --admin-block-rich-icon: #2563eb;
+          --admin-block-rich-edge: #93c5fd;
+          --admin-block-video-icon: #9333ea;
+          --admin-block-video-edge: #d8b4fe;
+          --admin-block-quiz-icon: #059669;
+          --admin-block-quiz-edge: #6ee7b7;
+          --admin-block-equation-icon: #d97706;
+          --admin-block-equation-edge: #fcd34d;
+          --admin-block-alert-icon: #ca8a04;
+          --admin-block-alert-edge: #fde68a;
+          --admin-block-generic-icon: #64748b;
+          --admin-block-generic-edge: #cbd5e1;
+          /* Standard transition for hover/active state changes. Applied
+             via shorthand `transition: var(--admin-transition);` on
+             interactive surfaces. */
+          --admin-transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, color 150ms ease;
+          --admin-hero-bg: #ffffff;
           --admin-hero-border: var(--admin-surface-border);
-          --admin-hero-grid: rgba(28, 100, 242, 0.14);
-          --admin-chip-bg: rgba(28, 100, 242, 0.1);
-          --admin-chip-primary-bg: #1553cf;
+          --admin-hero-grid: rgba(59, 130, 246, 0.12);
+          --admin-chip-bg: #eef4ff;
+          --admin-chip-border: var(--admin-surface-border);
+          --admin-chip-primary-bg: #0f172a;
           --admin-chip-primary-text: #ffffff;
-          --admin-panel-bg: rgba(255, 255, 255, 0.96);
-          --admin-panel-bg-muted: rgba(255, 255, 255, 0.86);
-          --admin-panel-accent-bg: rgba(21, 83, 207, 0.08);
-          --admin-form-card-bg: rgba(255, 255, 255, 0.99);
-          --admin-meta-card-bg: rgba(248, 251, 255, 0.97);
-          --admin-info-card-bg: rgba(241, 247, 255, 0.98);
-          --admin-shadow: 0 18px 34px rgba(18, 65, 147, 0.16);
-          --admin-shadow-soft: 0 12px 24px rgba(18, 65, 147, 0.09);
-          --admin-shadow-deep: 0 22px 42px rgba(18, 65, 147, 0.14);
-          --theme-bg: #edf4ff;
-          --theme-text: #0f2040;
+          --admin-panel-bg: #ffffff;
+          --admin-panel-bg-muted: #fcfdff;
+          --admin-panel-accent-bg: var(--admin-accent-bg);
+          --admin-form-card-bg: #ffffff;
+          --admin-meta-card-bg: #fcfdff;
+          --admin-info-card-bg: var(--admin-accent-bg);
+          --admin-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+          --admin-shadow-soft: 0 4px 12px rgba(15, 23, 42, 0.05);
+          --admin-shadow-deep: 0 18px 40px rgba(15, 23, 42, 0.12);
+          --theme-bg: #f3f6fb;
+          --theme-text: #0f172a;
           --theme-input-bg: #ffffff;
-          --theme-elevation-0: #edf4ff;
-          --theme-elevation-50: #e5efff;
-          --theme-elevation-100: #d4e5ff;
-          --theme-elevation-150: #c2d8ff;
-          --theme-elevation-200: #afcbfc;
+          --theme-elevation-0: #ffffff;
+          --theme-elevation-50: #f3f6fb;
+          --theme-elevation-100: #e8eef7;
+          --theme-elevation-150: #d7dfea;
+          --theme-elevation-200: #c2ccda;
           --theme-elevation-800: #0f172a;
           --theme-elevation-900: #0b1220;
           --theme-elevation-1000: #05080f;
@@ -1426,50 +1464,73 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         }
 
         :root[data-theme="light"] {
-          --cpp-cream: #edf4ff;
-          --theme-bg: #edf4ff;
-          --theme-elevation-0: #edf4ff;
+          --cpp-cream: #f3f6fb;
+          --theme-bg: #f3f6fb;
+          --theme-elevation-0: #ffffff;
         }
 
         :root[data-theme="dark"] {
-          /* Deep navy/slate dark palette tuned for an academic SaaS feel. */
-          --cpp-cream: #08111f;
-          --cpp-ink: #f1f5fb;
-          --cpp-muted: #94a3b8;
-          --cpp-subtle: #64748b;
-          --admin-surface: #111c2e;
-          --admin-surface-muted: #0f1828;
+          /* Deep navy/slate dark palette tuned for an academic SaaS feel.
+             Mirrors the light token shape: page < card < elevated, with
+             borders strong enough to define structure on dark surfaces. */
+          --cpp-cream: #0b1322;
+          --cpp-ink: #f1f5f9;
+          --cpp-muted: #cbd5e1;
+          --cpp-subtle: #94a3b8;
+          --admin-page-bg: #0b1322;
+          --admin-surface: #131c2e;
+          --admin-surface-elevated: #18223a;
+          --admin-surface-muted: #0f1827;
           --admin-surface-soft: #131e33;
-          --admin-surface-elevated: #172033;
           --admin-surface-elevated-strong: #1c2740;
-          --admin-surface-border: rgba(148, 163, 184, 0.16);
-          --admin-surface-border-strong: rgba(148, 163, 184, 0.28);
-          --admin-hero-bg: linear-gradient(160deg, #111c2e 0%, #131f35 60%, #16294a 100%);
+          --admin-surface-border: rgba(148, 163, 184, 0.20);
+          --admin-surface-border-strong: rgba(148, 163, 184, 0.34);
+          --admin-accent: #3b82f6;
+          --admin-accent-hover: #60a5fa;
+          --admin-accent-bg: rgba(59, 130, 246, 0.14);
+          --admin-accent-bg-strong: rgba(59, 130, 246, 0.24);
+          --admin-accent-border: #3b82f6;
+          --admin-accent-text: #93c5fd;
+          --admin-accent-ring: rgba(96, 165, 250, 0.45);
+          --admin-block-rich-icon: #60a5fa;
+          --admin-block-rich-edge: rgba(96, 165, 250, 0.45);
+          --admin-block-video-icon: #c084fc;
+          --admin-block-video-edge: rgba(192, 132, 252, 0.45);
+          --admin-block-quiz-icon: #34d399;
+          --admin-block-quiz-edge: rgba(52, 211, 153, 0.45);
+          --admin-block-equation-icon: #fbbf24;
+          --admin-block-equation-edge: rgba(251, 191, 36, 0.45);
+          --admin-block-alert-icon: #facc15;
+          --admin-block-alert-edge: rgba(250, 204, 21, 0.45);
+          --admin-block-generic-icon: #94a3b8;
+          --admin-block-generic-edge: rgba(148, 163, 184, 0.45);
+          --admin-transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, color 150ms ease;
+          --admin-hero-bg: linear-gradient(160deg, #131c2e 0%, #161f35 60%, #16294a 100%);
           --admin-hero-border: rgba(96, 138, 220, 0.28);
-          --admin-panel-bg: #111c2e;
-          --admin-panel-bg-muted: rgba(20, 30, 50, 0.86);
-          --admin-panel-accent-bg: rgba(80, 130, 220, 0.14);
-          --admin-form-card-bg: #131e33;
-          --admin-meta-card-bg: #131e33;
-          --admin-info-card-bg: #15213a;
+          --admin-panel-bg: #131c2e;
+          --admin-panel-bg-muted: #18223a;
+          --admin-panel-accent-bg: var(--admin-accent-bg);
+          --admin-form-card-bg: #18223a;
+          --admin-meta-card-bg: #18223a;
+          --admin-info-card-bg: var(--admin-accent-bg);
           --admin-hero-grid: rgba(148, 163, 184, 0.10);
           --admin-chip-bg: rgba(148, 163, 184, 0.14);
-          --admin-chip-border: rgba(148, 163, 184, 0.22);
-          --admin-chip-primary-bg: #2563eb;
-          --admin-chip-primary-text: #f8fafc;
+          --admin-chip-border: rgba(148, 163, 184, 0.26);
+          --admin-chip-primary-bg: #f1f5f9;
+          --admin-chip-primary-text: #0f172a;
           --admin-primary: #3b82f6;
           --admin-primary-hover: #5191f3;
           --admin-focus-ring: rgba(96, 165, 250, 0.45);
           --admin-shadow: 0 22px 48px rgba(2, 6, 18, 0.55);
           --admin-shadow-soft: 0 14px 28px rgba(2, 6, 18, 0.40);
           --admin-shadow-deep: 0 26px 60px rgba(2, 6, 18, 0.62);
-          --theme-bg: #08111f;
-          --theme-text: #f1f5fb;
-          --theme-input-bg: #131e33;
-          --theme-elevation-0: #08111f;
-          --theme-elevation-50: #0b1422;
-          --theme-elevation-100: #111c2e;
-          --theme-elevation-150: #16223a;
+          --theme-bg: #0b1322;
+          --theme-text: #f1f5f9;
+          --theme-input-bg: #18223a;
+          --theme-elevation-0: #0b1322;
+          --theme-elevation-50: #0e1729;
+          --theme-elevation-100: #131c2e;
+          --theme-elevation-150: #18223a;
           --theme-elevation-200: #1c2942;
           --theme-elevation-800: #e7edf6;
           --theme-elevation-900: #f3f6fb;
@@ -1482,36 +1543,43 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           background:
             radial-gradient(70% 80% at 0% 0%, rgba(37, 99, 235, 0.10) 0%, rgba(37, 99, 235, 0) 60%),
             radial-gradient(70% 80% at 100% 100%, rgba(168, 85, 247, 0.08) 0%, rgba(168, 85, 247, 0) 60%),
-            linear-gradient(135deg, #08111f 0%, #0b1322 48%, #0d1d3a 100%);
+            linear-gradient(135deg, #0b1322 0%, #0e1729 48%, #131c2e 100%);
           background-attachment: fixed;
         }
 
         @media (prefers-color-scheme: dark) {
           :root:not([data-theme]) {
-            --cpp-cream: #08111f;
-            --cpp-ink: #f1f5fb;
-            --cpp-muted: #94a3b8;
-            --admin-surface: #111c2e;
-            --admin-surface-muted: #0f1828;
-            --admin-surface-elevated: #172033;
-            --admin-surface-border: rgba(148, 163, 184, 0.16);
-            --admin-hero-bg: linear-gradient(160deg, #111c2e 0%, #131f35 60%, #16294a 100%);
+            --cpp-cream: #0b1322;
+            --cpp-ink: #f1f5f9;
+            --cpp-muted: #cbd5e1;
+            --cpp-subtle: #94a3b8;
+            --admin-page-bg: #0b1322;
+            --admin-surface: #131c2e;
+            --admin-surface-elevated: #18223a;
+            --admin-surface-muted: #0f1827;
+            --admin-surface-border: rgba(148, 163, 184, 0.20);
+            --admin-surface-border-strong: rgba(148, 163, 184, 0.34);
+            --admin-accent: #3b82f6;
+            --admin-accent-bg: rgba(59, 130, 246, 0.14);
+            --admin-accent-border: #3b82f6;
+            --admin-accent-text: #93c5fd;
+            --admin-hero-bg: linear-gradient(160deg, #131c2e 0%, #161f35 60%, #16294a 100%);
             --admin-hero-border: rgba(96, 138, 220, 0.28);
-            --admin-panel-bg: #111c2e;
-            --admin-panel-bg-muted: rgba(20, 30, 50, 0.86);
-            --admin-panel-accent-bg: rgba(80, 130, 220, 0.14);
+            --admin-panel-bg: #131c2e;
+            --admin-panel-bg-muted: #18223a;
+            --admin-panel-accent-bg: var(--admin-accent-bg);
             --admin-hero-grid: rgba(148, 163, 184, 0.10);
             --admin-chip-bg: rgba(148, 163, 184, 0.14);
-            --admin-chip-primary-bg: #2563eb;
-            --admin-chip-primary-text: #f8fafc;
+            --admin-chip-primary-bg: #f1f5f9;
+            --admin-chip-primary-text: #0f172a;
             --admin-shadow: 0 22px 48px rgba(2, 6, 18, 0.55);
-            --theme-bg: #08111f;
-            --theme-text: #f1f5fb;
-            --theme-input-bg: #131e33;
-            --theme-elevation-0: #08111f;
-            --theme-elevation-50: #0b1422;
-            --theme-elevation-100: #111c2e;
-            --theme-elevation-150: #16223a;
+            --theme-bg: #0b1322;
+            --theme-text: #f1f5f9;
+            --theme-input-bg: #18223a;
+            --theme-elevation-0: #0b1322;
+            --theme-elevation-50: #0e1729;
+            --theme-elevation-100: #131c2e;
+            --theme-elevation-150: #18223a;
             --theme-elevation-200: #1c2942;
             --theme-elevation-800: #e7edf6;
             --theme-elevation-900: #f3f6fb;
