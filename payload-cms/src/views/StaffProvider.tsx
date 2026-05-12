@@ -155,7 +155,14 @@ const collectionSectionOverrides: Record<
     sectionHref: '/admin/site-management',
     collectionHref: '/admin/site-management?tab=navigation',
   },
-  quizzes: { sectionLabel: 'Assessments' },
+  // Quizzes are hidden from /admin/collections — canonical surfaces are
+  // /admin/quiz-bank (list) + /admin/quizzes/[id]/edit (settings). The
+  // fallback redirects stale URLs back to the Quiz Bank.
+  quizzes: {
+    sectionLabel: 'Quiz Bank',
+    sectionHref: '/admin/quiz-bank',
+    collectionLabel: 'Quiz',
+  },
   'quiz-questions': { sectionLabel: 'Assessments' },
   problems: { sectionLabel: 'Assessments' },
   'problem-sets': { sectionLabel: 'Assessments' },
@@ -203,7 +210,8 @@ const getCollectionSectionBreadcrumbs = (pathname: string): BreadcrumbItem[] | n
   const collectionHasHiddenListing =
     collectionSlug === 'classrooms' ||
     collectionSlug === 'lessons' ||
-    collectionSlug === 'chapters'
+    collectionSlug === 'chapters' ||
+    collectionSlug === 'quizzes'
 
   if (!primarySegment || !collectionHasHiddenListing) {
     breadcrumbs.push({

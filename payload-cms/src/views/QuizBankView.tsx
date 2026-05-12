@@ -909,7 +909,7 @@ export default function QuizBankView({ initialQuizzes, courses, chapters }: Quiz
                     flexWrap: 'wrap',
                   }}
                 >
-                  <Link href={`/admin/collections/quizzes/${quiz.id}`} style={{ textDecoration: 'none' }}>
+                  <Link href={`/admin/quizzes/${quiz.id}/edit`} style={{ textDecoration: 'none' }}>
                     <div
                       style={{
                         padding: '6px 10px',

@@ -16,6 +16,11 @@ const getId = (value: unknown): string | null => {
 export const Quizzes: CollectionConfig = {
   slug: 'quizzes',
   admin: {
+    // Hidden from /admin/collections — the canonical authoring surface is
+    // /admin/quiz-bank (list) + /admin/quizzes/[id]/edit (settings). The
+    // REST API + lifecycle hooks still run; this only suppresses the nav
+    // entry and the default form. See the `payload-collection-hide` skill.
+    hidden: true,
     useAsTitle: 'title',
     group: 'Assessments',
     defaultColumns: ['title', 'updatedAt'],

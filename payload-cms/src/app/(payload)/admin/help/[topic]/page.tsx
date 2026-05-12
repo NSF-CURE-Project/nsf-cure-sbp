@@ -366,7 +366,7 @@ function QuizzesContent() {
 
       <DocSection id="quiz-editor" title="Quiz Editor">
         <p style={{ color: 'var(--cpp-muted)', fontSize: 13, lineHeight: 1.6, marginBottom: 8 }}>
-          Open a quiz at <InlineLink href="/admin/collections/quizzes">All Quizzes</InlineLink> or from the Quiz Bank.
+          Open a quiz from the <InlineLink href="/admin/quiz-bank">Quiz Bank</InlineLink>.
         </p>
         <BulletList
           items={[
@@ -796,7 +796,7 @@ function TroubleshootingContent() {
               items={[
                 <><InlineLink href="/admin/collections/pages">Pages</InlineLink></>,
                 <><InlineLink href="/admin/collections/lessons">Lessons</InlineLink></>,
-                <><InlineLink href="/admin/collections/quizzes">Quizzes</InlineLink></>,
+                <><InlineLink href="/admin/quiz-bank">Quizzes</InlineLink></>,
                 <><InlineLink href="/admin/collections/quiz-questions">Quiz Questions</InlineLink></>,
                 <><InlineLink href="/admin/collections/problems">Problems</InlineLink></>,
                 <><InlineLink href="/admin/collections/problem-sets">Problem Sets</InlineLink></>,

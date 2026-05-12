@@ -190,7 +190,7 @@ export default function QuizStatsView({ quizId }: { quizId: string }) {
             {data ? `${data.attemptCount} attempts · ${data.uniqueStudentCount} unique students` : ''}
           </span>
           <Link
-            href="/admin/collections/quizzes"
+            href="/admin/quiz-bank"
             style={{
               fontSize: 12,
               padding: '6px 10px',
@@ -206,7 +206,7 @@ export default function QuizStatsView({ quizId }: { quizId: string }) {
           </Link>
           {data ? (
             <Link
-              href={`/admin/collections/quizzes/${data.quiz.id}`}
+              href={`/admin/quizzes/${data.quiz.id}/edit`}
               style={{
                 fontSize: 12,
                 padding: '6px 10px',
