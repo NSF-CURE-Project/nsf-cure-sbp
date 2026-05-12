@@ -59,7 +59,7 @@ export default async function NewLessonScaffoldPage({
 
   return (
     <Gutter>
-      <div style={{ maxWidth: 880, margin: '24px auto 80px' }}>
+      <div style={{ maxWidth: 1500, margin: '0 auto 80px' }}>
         <LessonScaffoldEditor
           mode="create"
           courseId={courseId}

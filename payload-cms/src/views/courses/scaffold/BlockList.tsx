@@ -13,17 +13,15 @@ import {
 import {
   SortableContext,
   sortableKeyboardCoordinates,
-  useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
 import {
   BLOCK_TYPE_LABELS,
   type AuthorableBlockTypeSlug,
   emptyBlockFor,
   type ScaffoldBlock,
 } from './types'
-import BlockEditor from './BlockEditor'
+import BlockCard from './BlockCard'
 
 type BlockListProps = {
   blocks: ScaffoldBlock[]
@@ -42,60 +40,87 @@ const blockTypeOrder: AuthorableBlockTypeSlug[] = [
   'problemSetBlock',
 ]
 
-function SortableBlock({
-  block,
-  onChange,
-  onRemove,
+// Hover-revealed insertion point between blocks. When the user clicks, the
+// inline picker opens at this index; submitting inserts the new block at
+// position `index` (i.e. above the block currently rendered at that index,
+// or at the end when `index === blocks.length`).
+function InsertionPoint({
+  isOpen,
+  onOpen,
+  onClose,
+  onPick,
+  firstButtonRef,
 }: {
-  block: ScaffoldBlock
-  onChange: (next: ScaffoldBlock) => void
-  onRemove: () => void
+  isOpen: boolean
+  onOpen: () => void
+  onClose: () => void
+  onPick: (type: AuthorableBlockTypeSlug) => void
+  firstButtonRef?: React.RefObject<HTMLButtonElement | null>
 }) {
-  const sortable = useSortable({ id: block._key })
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(sortable.transform),
-    transition: sortable.transition,
-    opacity: sortable.isDragging ? 0.55 : 1,
-  }
-  return (
-    <div
-      ref={sortable.setNodeRef}
-      style={style}
-      className="grid gap-2 rounded-md border border-[var(--admin-surface-border)] bg-[var(--admin-surface)] p-3"
-    >
-      <div className="flex items-center justify-between gap-2">
+  if (isOpen) {
+    return (
+      <div
+        role="menu"
+        aria-label="Insert block at this position"
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            event.preventDefault()
+            onClose()
+          }
+        }}
+        className="lse-insert lse-insert--open"
+      >
+        {blockTypeOrder.map((type, idx) => (
+          <button
+            key={type}
+            ref={idx === 0 ? firstButtonRef : null}
+            type="button"
+            role="menuitem"
+            onClick={() => onPick(type)}
+            className="lse-insert__option"
+          >
+            {BLOCK_TYPE_LABELS[type]}
+          </button>
+        ))}
         <button
           type="button"
-          {...sortable.attributes}
-          {...sortable.listeners}
-          aria-label={`Reorder ${BLOCK_TYPE_LABELS[block.blockType]} block`}
-          className="cursor-grab rounded p-1 text-xs text-[var(--cpp-muted)] hover:bg-[var(--admin-surface-muted)] active:cursor-grabbing"
+          onClick={onClose}
+          className="lse-insert__option lse-insert__option--cancel"
         >
-          ⋮⋮
-        </button>
-        <div className="grow text-xs font-semibold uppercase tracking-wider text-[var(--cpp-muted)]">
-          {BLOCK_TYPE_LABELS[block.blockType]}
-        </div>
-        <button
-          type="button"
-          onClick={onRemove}
-          className="rounded-md border border-[var(--admin-surface-border)] px-2 py-1 text-xs text-[var(--cpp-muted)] hover:bg-[var(--admin-surface-muted)]"
-        >
-          Remove
+          Cancel
         </button>
       </div>
-      <BlockEditor block={block} onChange={onChange} />
+    )
+  }
+
+  return (
+    <div className="lse-insert lse-insert--closed">
+      <button
+        type="button"
+        aria-label="Insert block here"
+        onClick={onOpen}
+        className="lse-insert__trigger"
+      >
+        <span aria-hidden className="lse-insert__line" />
+        <span className="lse-insert__plus">+</span>
+        <span aria-hidden className="lse-insert__line" />
+      </button>
     </div>
   )
 }
 
 export default function BlockList({ blocks, onChange }: BlockListProps) {
-  const [pickerOpen, setPickerOpen] = useState(false)
-  const pickerFirstButtonRef = useRef<HTMLButtonElement | null>(null)
-  const addBlockTriggerRef = useRef<HTMLButtonElement | null>(null)
+  // `openInsertion === null`     → no insertion point is open.
+  // `openInsertion === <number>` → the gap at that index is showing the picker.
+  // `openInsertion === 'end'`    → the bottom "+ Add block" is open.
+  const [openInsertion, setOpenInsertion] = useState<number | 'end' | null>(null)
+  const insertionFirstButtonRef = useRef<HTMLButtonElement | null>(null)
+  const endTriggerRef = useRef<HTMLButtonElement | null>(null)
+
   useEffect(() => {
-    if (pickerOpen) pickerFirstButtonRef.current?.focus()
-  }, [pickerOpen])
+    if (openInsertion !== null) insertionFirstButtonRef.current?.focus()
+  }, [openInsertion])
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -113,9 +138,17 @@ export default function BlockList({ blocks, onChange }: BlockListProps) {
     onChange(next)
   }
 
-  const addBlock = (type: AuthorableBlockTypeSlug) => {
+  const insertAt = (index: number, type: AuthorableBlockTypeSlug) => {
+    const fresh = emptyBlockFor(type)
+    const next = blocks.slice()
+    next.splice(index, 0, fresh)
+    onChange(next)
+    setOpenInsertion(null)
+  }
+
+  const appendBlock = (type: AuthorableBlockTypeSlug) => {
     onChange([...blocks, emptyBlockFor(type)])
-    setPickerOpen(false)
+    setOpenInsertion(null)
   }
 
   const updateBlock = (key: string, next: ScaffoldBlock) => {
@@ -127,14 +160,12 @@ export default function BlockList({ blocks, onChange }: BlockListProps) {
   }
 
   return (
-    <section className="grid gap-3">
-      <div className="text-xs font-semibold uppercase tracking-wide text-[var(--cpp-muted)]">
-        Blocks
-      </div>
+    <section className="lse-blocks">
+      <div className="lse-blocks__title">Blocks</div>
       {blocks.length === 0 ? (
-        <div className="rounded-md border border-dashed border-[var(--admin-surface-border)] bg-[var(--admin-surface-muted)] px-3 py-4 text-center text-xs text-[var(--cpp-muted)]">
-          No blocks yet. A lesson without blocks is allowed (you can add content later from the
-          lesson edit view), or pick a block type below to start.
+        <div className="lse-blocks__empty">
+          No blocks yet. A lesson without blocks is allowed — you can add content later from the
+          lesson edit view, or pick a block type below to start.
         </div>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -142,41 +173,52 @@ export default function BlockList({ blocks, onChange }: BlockListProps) {
             items={blocks.map((block) => block._key)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="grid gap-2">
-              {blocks.map((block) => (
-                <SortableBlock
-                  key={block._key}
-                  block={block}
-                  onChange={(next) => updateBlock(block._key, next)}
-                  onRemove={() => removeBlock(block._key)}
-                />
+            <div className="lse-blocks__list">
+              {blocks.map((block, index) => (
+                <React.Fragment key={block._key}>
+                  <InsertionPoint
+                    isOpen={openInsertion === index}
+                    onOpen={() => setOpenInsertion(index)}
+                    onClose={() => setOpenInsertion(null)}
+                    onPick={(type) => insertAt(index, type)}
+                    firstButtonRef={
+                      openInsertion === index ? insertionFirstButtonRef : undefined
+                    }
+                  />
+                  <BlockCard
+                    block={block}
+                    index={index}
+                    onChange={(next) => updateBlock(block._key, next)}
+                    onRemove={() => removeBlock(block._key)}
+                  />
+                </React.Fragment>
               ))}
             </div>
           </SortableContext>
         </DndContext>
       )}
 
-      {pickerOpen ? (
+      {openInsertion === 'end' ? (
         <div
           role="menu"
           aria-label="Add a block"
           onKeyDown={(event) => {
             if (event.key === 'Escape') {
               event.preventDefault()
-              setPickerOpen(false)
-              addBlockTriggerRef.current?.focus()
+              setOpenInsertion(null)
+              endTriggerRef.current?.focus()
             }
           }}
-          className="grid gap-1 rounded-md border border-[var(--admin-surface-border)] bg-[var(--admin-surface)] p-2"
+          className="lse-end-picker"
         >
-          {blockTypeOrder.map((type, index) => (
+          {blockTypeOrder.map((type, idx) => (
             <button
               key={type}
-              ref={index === 0 ? pickerFirstButtonRef : null}
+              ref={idx === 0 ? insertionFirstButtonRef : null}
               type="button"
               role="menuitem"
-              onClick={() => addBlock(type)}
-              className="rounded-md px-2 py-1.5 text-left text-sm text-[var(--cpp-ink)] hover:bg-[var(--admin-surface-muted)] focus:bg-[var(--admin-surface-muted)] focus:outline-none"
+              onClick={() => appendBlock(type)}
+              className="lse-end-picker__option"
             >
               {BLOCK_TYPE_LABELS[type]}
             </button>
@@ -184,22 +226,22 @@ export default function BlockList({ blocks, onChange }: BlockListProps) {
           <button
             type="button"
             onClick={() => {
-              setPickerOpen(false)
-              addBlockTriggerRef.current?.focus()
+              setOpenInsertion(null)
+              endTriggerRef.current?.focus()
             }}
-            className="rounded-md px-2 py-1.5 text-left text-xs text-[var(--cpp-muted)] hover:bg-[var(--admin-surface-muted)] focus:bg-[var(--admin-surface-muted)] focus:outline-none"
+            className="lse-end-picker__option lse-end-picker__option--cancel"
           >
             Cancel
           </button>
         </div>
       ) : (
         <button
-          ref={addBlockTriggerRef}
+          ref={endTriggerRef}
           type="button"
-          onClick={() => setPickerOpen(true)}
+          onClick={() => setOpenInsertion('end')}
           aria-haspopup="menu"
-          aria-expanded={pickerOpen}
-          className="inline-flex w-fit rounded-md border border-dashed border-[var(--admin-surface-border)] px-3 py-1.5 text-xs font-semibold text-[var(--cpp-ink)] hover:bg-[var(--admin-surface-muted)]"
+          aria-expanded={false}
+          className="lse-add-block"
         >
           + Add block
         </button>

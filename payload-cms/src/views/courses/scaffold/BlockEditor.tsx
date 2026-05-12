@@ -34,16 +34,32 @@ export default function BlockEditor({ block, onChange }: BlockEditorProps) {
   switch (block.blockType) {
     case 'sectionTitle': {
       return (
-        <div className="grid gap-2">
-          <label className="grid gap-1">
-            <span className={labelCls}>Title *</span>
-            <input
-              type="text"
-              value={block.title}
-              onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
-              className={inputCls}
-            />
-          </label>
+        <div className="grid gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_140px]">
+            <label className="grid gap-1">
+              <span className={labelCls}>Title *</span>
+              <input
+                type="text"
+                value={block.title}
+                onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
+                className={inputCls}
+              />
+            </label>
+            <label className="grid gap-1">
+              <span className={labelCls}>Size</span>
+              <select
+                value={block.size ?? 'md'}
+                onChange={(event) =>
+                  onChange(patchBlock(block, { size: event.target.value as 'sm' | 'md' | 'lg' }))
+                }
+                className={inputCls}
+              >
+                <option value="sm">Small</option>
+                <option value="md">Medium</option>
+                <option value="lg">Large</option>
+              </select>
+            </label>
+          </div>
           <label className="grid gap-1">
             <span className={labelCls}>Subtitle</span>
             <textarea
@@ -53,27 +69,13 @@ export default function BlockEditor({ block, onChange }: BlockEditorProps) {
               className={inputCls}
             />
           </label>
-          <label className="grid gap-1">
-            <span className={labelCls}>Size</span>
-            <select
-              value={block.size ?? 'md'}
-              onChange={(event) =>
-                onChange(patchBlock(block, { size: event.target.value as 'sm' | 'md' | 'lg' }))
-              }
-              className={inputCls}
-            >
-              <option value="sm">Small</option>
-              <option value="md">Medium</option>
-              <option value="lg">Large</option>
-            </select>
-          </label>
         </div>
       )
     }
 
     case 'videoBlock': {
       return (
-        <div className="grid gap-2">
+        <div className="grid gap-3">
           <div className="grid gap-1">
             <span className={labelCls}>Uploaded video</span>
             <MediaPicker
@@ -86,25 +88,27 @@ export default function BlockEditor({ block, onChange }: BlockEditorProps) {
               Optional. Provide either an upload, an external URL below, or both.
             </span>
           </div>
-          <label className="grid gap-1">
-            <span className={labelCls}>External video URL</span>
-            <input
-              type="url"
-              value={block.url ?? ''}
-              onChange={(event) => onChange(patchBlock(block, { url: event.target.value }))}
-              placeholder="https://…"
-              className={inputCls}
-            />
-          </label>
-          <label className="grid gap-1">
-            <span className={labelCls}>Caption</span>
-            <input
-              type="text"
-              value={block.caption ?? ''}
-              onChange={(event) => onChange(patchBlock(block, { caption: event.target.value }))}
-              className={inputCls}
-            />
-          </label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1">
+              <span className={labelCls}>External video URL</span>
+              <input
+                type="url"
+                value={block.url ?? ''}
+                onChange={(event) => onChange(patchBlock(block, { url: event.target.value }))}
+                placeholder="https://…"
+                className={inputCls}
+              />
+            </label>
+            <label className="grid gap-1">
+              <span className={labelCls}>Caption</span>
+              <input
+                type="text"
+                value={block.caption ?? ''}
+                onChange={(event) => onChange(patchBlock(block, { caption: event.target.value }))}
+                className={inputCls}
+              />
+            </label>
+          </div>
         </div>
       )
     }
@@ -139,29 +143,31 @@ export default function BlockEditor({ block, onChange }: BlockEditorProps) {
       const items = block.items ?? []
       const updateItems = (next: ListBlockData['items']) => onChange(patchBlock(block, { items: next }))
       return (
-        <div className="grid gap-2">
-          <label className="grid gap-1">
-            <span className={labelCls}>Title</span>
-            <input
-              type="text"
-              value={block.title ?? ''}
-              onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
-              className={inputCls}
-            />
-          </label>
-          <label className="grid gap-1">
-            <span className={labelCls}>Style</span>
-            <select
-              value={block.listStyle ?? 'unordered'}
-              onChange={(event) =>
-                onChange(patchBlock(block, { listStyle: event.target.value as 'unordered' | 'ordered' }))
-              }
-              className={inputCls}
-            >
-              <option value="unordered">Unordered (bullets)</option>
-              <option value="ordered">Ordered (numbered)</option>
-            </select>
-          </label>
+        <div className="grid gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_200px]">
+            <label className="grid gap-1">
+              <span className={labelCls}>Title</span>
+              <input
+                type="text"
+                value={block.title ?? ''}
+                onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
+                className={inputCls}
+              />
+            </label>
+            <label className="grid gap-1">
+              <span className={labelCls}>Style</span>
+              <select
+                value={block.listStyle ?? 'unordered'}
+                onChange={(event) =>
+                  onChange(patchBlock(block, { listStyle: event.target.value as 'unordered' | 'ordered' }))
+                }
+                className={inputCls}
+              >
+                <option value="unordered">Unordered (bullets)</option>
+                <option value="ordered">Ordered (numbered)</option>
+              </select>
+            </label>
+          </div>
           <div className="grid gap-1.5">
             <span className={labelCls}>Items</span>
             {items.map((item, index) => (

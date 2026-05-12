@@ -371,9 +371,436 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
     router.push(`/admin/courses/${props.courseId}`)
   }
 
+  const statusChipLabel =
+    props.mode === 'create'
+      ? 'Draft (unsaved)'
+      : props.initialStatus === 'published'
+        ? 'Published'
+        : 'Draft'
+  const statusChipClass =
+    props.mode === 'create' || props.initialStatus === 'draft' ? 'lse-chip--draft' : 'lse-chip--ok'
+
   return (
-    <div className="grid gap-5">
+    <div className="lse-shell">
       <style>{`
+        /* === Shell + sticky toolbar === */
+        .lse-shell {
+          display: grid;
+          gap: 16px;
+        }
+        .lse-topbar {
+          position: sticky;
+          top: 0;
+          z-index: 40;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 16px;
+          padding: 10px 18px;
+          background: var(--admin-surface, #fff);
+          border-bottom: 1px solid var(--admin-surface-border, #d6dce5);
+          margin: 0 -18px 0 -18px;
+        }
+        :root[data-theme='dark'] .lse-topbar {
+          background: var(--admin-surface, #161a23);
+          border-color: var(--admin-surface-border, #2a3140);
+        }
+        .lse-topbar__breadcrumb {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
+          color: var(--cpp-muted, #5d6b80);
+        }
+        .lse-topbar__breadcrumb a {
+          color: var(--cpp-ink, #1b1f24);
+          text-decoration: none;
+          font-weight: 600;
+        }
+        .lse-topbar__breadcrumb a:hover { text-decoration: underline; }
+        .lse-topbar__current { color: var(--cpp-ink, #1b1f24); font-weight: 600; }
+        .lse-chip {
+          display: inline-flex;
+          align-items: center;
+          padding: 1px 8px;
+          margin-left: 8px;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          border-radius: 999px;
+          border: 1px solid transparent;
+        }
+        .lse-chip--ok {
+          background: rgba(16, 185, 129, 0.12);
+          color: #047857;
+          border-color: rgba(16, 185, 129, 0.22);
+        }
+        .lse-chip--draft {
+          background: rgba(100, 116, 139, 0.14);
+          color: #475569;
+          border-color: rgba(100, 116, 139, 0.22);
+        }
+        :root[data-theme='dark'] .lse-chip--ok { color: #6ee7b7; }
+        :root[data-theme='dark'] .lse-chip--draft { color: #cbd5e1; }
+        .lse-topbar__actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .lse-topbar__autosave {
+          font-size: 11px;
+          color: var(--cpp-muted, #5d6b80);
+          min-width: 110px;
+          text-align: right;
+        }
+        .lse-btn {
+          display: inline-flex;
+          align-items: center;
+          height: 32px;
+          padding: 0 12px;
+          font-size: 12px;
+          font-weight: 600;
+          border-radius: 6px;
+          border: 1px solid var(--admin-surface-border, #d6dce5);
+          background: var(--admin-surface, #fff);
+          color: var(--cpp-ink, #1b1f24);
+          cursor: pointer;
+          transition: background 120ms ease, border-color 120ms ease;
+        }
+        .lse-btn:hover { background: var(--admin-surface-muted, #f5f7fa); }
+        .lse-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+        .lse-btn--primary {
+          background: #0f172a;
+          color: #fff;
+          border-color: #0f172a;
+        }
+        .lse-btn--primary:hover { background: #1e293b; }
+        :root[data-theme='dark'] .lse-btn {
+          background: var(--admin-surface, #1e2330);
+          border-color: var(--admin-surface-border, #2a3140);
+          color: var(--cpp-ink, #e6e8eb);
+        }
+        :root[data-theme='dark'] .lse-btn:hover { background: var(--admin-surface-muted, #232938); }
+        :root[data-theme='dark'] .lse-btn--primary {
+          background: #e2e8f0;
+          color: #0f172a;
+          border-color: #e2e8f0;
+        }
+        :root[data-theme='dark'] .lse-btn--primary:hover { background: #cbd5e1; }
+
+        /* === Body / canvas === */
+        .lse-body {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr);
+          gap: 24px;
+          padding: 16px 4px;
+        }
+        @media (min-width: 1280px) {
+          /* Phase-2 hook: a sibling .lse-inspector slot will land here. */
+          .lse-body { grid-template-columns: minmax(0, 1fr); }
+        }
+        .lse-canvas { display: grid; gap: 18px; }
+        .lse-canvas__intro {
+          display: grid;
+          gap: 4px;
+        }
+        .lse-canvas__intro h1 {
+          margin: 0;
+          font-size: 24px;
+          font-weight: 700;
+          letter-spacing: -0.01em;
+          color: var(--cpp-ink, #1b1f24);
+        }
+        .lse-canvas__intro p {
+          margin: 0;
+          font-size: 13px;
+          color: var(--cpp-muted, #5d6b80);
+        }
+        .lse-section {
+          display: grid;
+          gap: 12px;
+          padding: 16px 18px;
+          border-radius: 10px;
+          background: var(--admin-surface, #fff);
+          border: 1px solid var(--admin-surface-border, #d6dce5);
+        }
+        :root[data-theme='dark'] .lse-section {
+          background: var(--admin-surface, #1e2330);
+          border-color: var(--admin-surface-border, #2a3140);
+        }
+        .lse-label {
+          display: grid;
+          gap: 4px;
+        }
+        .lse-label__text {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: var(--cpp-muted, #5d6b80);
+        }
+        .lse-input {
+          width: 100%;
+          padding: 8px 12px;
+          font-size: 14px;
+          color: var(--cpp-ink, #1b1f24);
+          background: var(--admin-surface, #fff);
+          border: 1px solid var(--admin-surface-border, #d6dce5);
+          border-radius: 8px;
+        }
+        .lse-input:focus {
+          outline: 2px solid rgba(14, 165, 233, 0.4);
+          outline-offset: 1px;
+          border-color: rgba(14, 165, 233, 0.55);
+        }
+        :root[data-theme='dark'] .lse-input {
+          background: var(--admin-surface-muted, #232938);
+          border-color: var(--admin-surface-border, #2a3140);
+          color: var(--cpp-ink, #e6e8eb);
+        }
+        .lse-hint {
+          font-size: 11px;
+          color: var(--cpp-muted, #5d6b80);
+        }
+        .lse-error {
+          font-size: 12px;
+          color: #b91c1c;
+          padding: 8px 12px;
+          background: rgba(239, 68, 68, 0.08);
+          border: 1px solid rgba(239, 68, 68, 0.25);
+          border-radius: 8px;
+        }
+
+        /* === Block list + cards === */
+        .lse-blocks { display: grid; gap: 6px; }
+        .lse-blocks__title {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: var(--cpp-muted, #5d6b80);
+          padding: 0 2px;
+        }
+        .lse-blocks__empty {
+          padding: 28px 16px;
+          font-size: 13px;
+          color: var(--cpp-muted, #5d6b80);
+          background: var(--admin-surface-muted, #f5f7fa);
+          border: 1px dashed var(--admin-surface-border, #d6dce5);
+          border-radius: 10px;
+          text-align: center;
+        }
+        .lse-blocks__list { display: grid; gap: 0; }
+        .lse-block {
+          border: 1px solid var(--admin-surface-border, #d6dce5);
+          background: var(--admin-surface, #fff);
+          border-radius: 10px;
+          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+          overflow: hidden;
+          transition: border-color 120ms ease, box-shadow 120ms ease;
+        }
+        .lse-block:hover { border-color: var(--admin-surface-border-strong, #b9c2d0); }
+        .lse-block--dragging { box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12); }
+        :root[data-theme='dark'] .lse-block {
+          background: var(--admin-surface, #1e2330);
+          border-color: var(--admin-surface-border, #2a3140);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        .lse-block__header {
+          display: grid;
+          grid-template-columns: auto auto auto auto minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 10px;
+          background: var(--admin-surface-muted, #f5f7fa);
+          border-bottom: 1px solid var(--admin-surface-border, #d6dce5);
+        }
+        .lse-block--collapsed .lse-block__header { border-bottom-color: transparent; }
+        :root[data-theme='dark'] .lse-block__header {
+          background: var(--admin-surface-muted, #232938);
+          border-color: var(--admin-surface-border, #2a3140);
+        }
+        .lse-block__handle,
+        .lse-block__chevron {
+          width: 22px;
+          height: 22px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          color: var(--cpp-muted, #5d6b80);
+          background: transparent;
+          border: 0;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+        .lse-block__handle { cursor: grab; }
+        .lse-block__handle:active { cursor: grabbing; }
+        .lse-block__handle:hover,
+        .lse-block__chevron:hover { background: var(--admin-surface, #fff); }
+        .lse-block__badge {
+          display: inline-flex;
+          align-items: center;
+          padding: 2px 8px;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: #334155;
+          background: rgba(148, 163, 184, 0.18);
+          border-radius: 999px;
+        }
+        :root[data-theme='dark'] .lse-block__badge {
+          color: #cbd5e1;
+          background: rgba(148, 163, 184, 0.22);
+        }
+        .lse-block__index {
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--cpp-muted, #5d6b80);
+        }
+        .lse-block__preview {
+          background: transparent;
+          border: 0;
+          padding: 4px 6px;
+          border-radius: 4px;
+          text-align: left;
+          font-size: 13px;
+          color: var(--cpp-ink, #1b1f24);
+          cursor: pointer;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .lse-block__preview:hover { background: var(--admin-surface, #fff); }
+        .lse-block__remove {
+          background: transparent;
+          border: 1px solid transparent;
+          padding: 2px 8px;
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--cpp-muted, #5d6b80);
+          border-radius: 4px;
+          cursor: pointer;
+        }
+        .lse-block__remove:hover {
+          color: #b91c1c;
+          border-color: rgba(239, 68, 68, 0.3);
+          background: rgba(239, 68, 68, 0.08);
+        }
+        .lse-block__body { padding: 14px 16px 16px 16px; }
+
+        /* === Inline insertion point + bottom +Add === */
+        .lse-insert {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+        }
+        .lse-insert--closed {
+          height: 14px;
+          opacity: 0;
+          transition: opacity 120ms ease;
+        }
+        .lse-blocks__list:hover .lse-insert--closed,
+        .lse-insert--closed:focus-within { opacity: 1; }
+        .lse-insert--open { padding: 6px 0; }
+        .lse-insert__trigger {
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          padding: 4px 0;
+          background: transparent;
+          border: 0;
+          cursor: pointer;
+          color: var(--cpp-muted, #5d6b80);
+        }
+        .lse-insert__line {
+          height: 1px;
+          background: var(--admin-surface-border-strong, #b9c2d0);
+        }
+        .lse-insert__plus {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 22px;
+          height: 22px;
+          font-size: 14px;
+          font-weight: 700;
+          border-radius: 999px;
+          background: var(--admin-surface, #fff);
+          border: 1px solid var(--admin-surface-border-strong, #b9c2d0);
+        }
+        .lse-insert__trigger:hover .lse-insert__plus {
+          background: #0f172a;
+          color: #fff;
+          border-color: #0f172a;
+        }
+        .lse-insert--open,
+        .lse-end-picker {
+          display: grid;
+          gap: 4px;
+          padding: 8px;
+          background: var(--admin-surface, #fff);
+          border: 1px solid var(--admin-surface-border, #d6dce5);
+          border-radius: 8px;
+        }
+        :root[data-theme='dark'] .lse-insert--open,
+        :root[data-theme='dark'] .lse-end-picker {
+          background: var(--admin-surface, #1e2330);
+          border-color: var(--admin-surface-border, #2a3140);
+        }
+        .lse-insert__option,
+        .lse-end-picker__option {
+          background: transparent;
+          border: 0;
+          text-align: left;
+          padding: 6px 10px;
+          font-size: 13px;
+          color: var(--cpp-ink, #1b1f24);
+          border-radius: 4px;
+          cursor: pointer;
+        }
+        .lse-insert__option:hover,
+        .lse-end-picker__option:hover,
+        .lse-insert__option:focus,
+        .lse-end-picker__option:focus {
+          background: var(--admin-surface-muted, #f5f7fa);
+          outline: none;
+        }
+        :root[data-theme='dark'] .lse-insert__option:hover,
+        :root[data-theme='dark'] .lse-end-picker__option:hover,
+        :root[data-theme='dark'] .lse-insert__option:focus,
+        :root[data-theme='dark'] .lse-end-picker__option:focus {
+          background: var(--admin-surface-muted, #232938);
+        }
+        .lse-insert__option--cancel,
+        .lse-end-picker__option--cancel {
+          font-size: 11px;
+          color: var(--cpp-muted, #5d6b80);
+        }
+        .lse-add-block {
+          align-self: start;
+          padding: 8px 12px;
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--cpp-ink, #1b1f24);
+          background: transparent;
+          border: 1px dashed var(--admin-surface-border-strong, #b9c2d0);
+          border-radius: 8px;
+          cursor: pointer;
+        }
+        .lse-add-block:hover {
+          background: var(--admin-surface-muted, #f5f7fa);
+          border-style: solid;
+        }
+        :root[data-theme='dark'] .lse-add-block { color: var(--cpp-ink, #e6e8eb); }
+
+        /* === Original Lexical editor styles (unchanged) === */
         .cw-rt {
           display: grid;
           grid-template-rows: auto 1fr;
@@ -444,115 +871,36 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           text-decoration: underline;
         }
       `}</style>
-      <header className="grid gap-1">
-        <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--cpp-muted)]">
-          <Link
-            href="/admin/courses"
-            className="font-semibold text-[var(--cpp-ink)] no-underline hover:underline"
-          >
-            Courses
-          </Link>
+      <div className="lse-topbar">
+        <div className="lse-topbar__breadcrumb">
+          <Link href="/admin/courses">Courses</Link>
           <span aria-hidden>›</span>
-          <Link
-            href={`/admin/courses/${props.courseId}`}
-            className="font-semibold text-[var(--cpp-ink)] no-underline hover:underline"
-          >
-            {props.courseTitle}
-          </Link>
+          <Link href={`/admin/courses/${props.courseId}`}>{props.courseTitle}</Link>
           <span aria-hidden>›</span>
-          <span>
-            {isCreate
-              ? `New lesson · ${props.chapterTitle}`
-              : `Edit · ${props.initialTitle || 'Lesson'}`}
+          <span className="lse-topbar__current">
+            {isCreate ? `New lesson · ${props.chapterTitle}` : (props.initialTitle || 'Lesson')}
           </span>
+          <span className={`lse-chip ${statusChipClass}`}>{statusChipLabel}</span>
         </div>
-        <h1 className="m-0 text-2xl font-semibold text-[var(--cpp-ink)]">
-          {isCreate ? 'New lesson' : 'Edit lesson'}
-        </h1>
-        <p className="text-sm text-[var(--cpp-muted)]">
-          {isCreate
-            ? 'Nothing is saved until you press Save draft or Publish. Cancel keeps your work staged on the course outline.'
-            : 'Changes apply when you press Save draft or Publish. Cancel discards unsaved edits.'}
-        </p>
-      </header>
-
-      <section className="grid max-w-3xl gap-3">
-        <label className="grid gap-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-[var(--cpp-muted)]">
-            Lesson title <span className="text-red-600">*</span>
-          </span>
-          <input
-            autoFocus
-            type="text"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            placeholder="e.g. Vector Operations"
-            className="rounded-md border border-[var(--admin-surface-border)] bg-[var(--admin-surface)] px-3 py-2 text-sm text-[var(--cpp-ink)] focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
-          />
-          {isCreate ? (
-            <span className="text-xs text-[var(--cpp-muted)]">
-              Position {props.initialOrder} in {props.chapterTitle}.
+        <div className="lse-topbar__actions">
+          {!isCreate ? (
+            <span className="lse-topbar__autosave">
+              <AutoSaveIndicator status={autoSaveStatus} savedAt={autoSaveAt} />
             </span>
-          ) : (
-            <span className="text-xs text-[var(--cpp-muted)]">
-              Currently {props.initialStatus === 'published' ? 'published' : 'draft'} in{' '}
-              {props.chapterTitle}.
-            </span>
-          )}
-        </label>
-      </section>
-
-      <div className="max-w-3xl">
-        <BlockList blocks={blocks} onChange={setBlocks} />
-      </div>
-
-      {props.mode === 'edit' ? (
-        <div className="max-w-3xl">
-          <VersionsPanel
-            lessonId={props.lessonId}
-            onRestore={(snapshot) => {
-              setTitle(snapshot.title)
-              setBlocks(fromPersistedLayout(snapshot.layout))
-              // Resetting the saved-snapshot ref ensures the very next
-              // change triggers an auto-save — the restored state hasn't
-              // been committed yet, only loaded into the editor.
-              lastSavedSnapshotRef.current = ''
-              setError(null)
-            }}
-          />
-        </div>
-      ) : null}
-
-      {error ? (
-        <div
-          role="alert"
-          aria-live="assertive"
-          className="max-w-3xl text-xs text-red-700"
-        >
-          {error}
-        </div>
-      ) : null}
-
-      <div className="flex max-w-3xl flex-wrap items-center justify-between gap-2 border-t border-[var(--admin-surface-border)] pt-3">
-        <div className="flex items-center gap-3">
+          ) : null}
           <button
             type="button"
             onClick={handleCancel}
             disabled={busy !== null}
-            className="rounded-md border border-[var(--admin-surface-border)] px-3 py-1.5 text-xs font-semibold text-[var(--cpp-ink)] hover:bg-[var(--admin-surface-muted)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="lse-btn"
           >
             Cancel
           </button>
-          {!isCreate ? (
-            <AutoSaveIndicator status={autoSaveStatus} savedAt={autoSaveAt} />
-          ) : null}
-        </div>
-        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => save('draft')}
             disabled={busy !== null || !title.trim()}
-            className="rounded-md border border-[var(--admin-surface-border)] px-3 py-1.5 text-xs font-semibold text-[var(--cpp-ink)] hover:bg-[var(--admin-surface-muted)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="lse-btn"
           >
             {busy === 'draft' ? 'Saving…' : 'Save draft'}
           </button>
@@ -560,7 +908,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
             type="button"
             onClick={handlePublishClick}
             disabled={busy !== null || preparingReview || !title.trim()}
-            className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="lse-btn lse-btn--primary"
           >
             {busy === 'publish'
               ? 'Publishing…'
@@ -568,6 +916,63 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
                 ? 'Saving latest…'
                 : 'Publish'}
           </button>
+        </div>
+      </div>
+
+      <div className="lse-body">
+        <div className="lse-canvas">
+          <header className="lse-canvas__intro">
+            <h1>{isCreate ? 'New lesson' : (props.initialTitle || 'Edit lesson')}</h1>
+            <p>
+              {isCreate
+                ? 'Nothing is saved until you press Save draft or Publish. Cancel keeps your work staged on the course outline.'
+                : 'Auto-saves every couple of seconds as a draft. Use Publish to promote the latest version to students.'}
+            </p>
+          </header>
+
+          <section className="lse-section">
+            <label className="lse-label">
+              <span className="lse-label__text">
+                Lesson title <span style={{ color: '#b91c1c' }}>*</span>
+              </span>
+              <input
+                autoFocus
+                type="text"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder="e.g. Vector Operations"
+                className="lse-input"
+              />
+              <span className="lse-hint">
+                {isCreate
+                  ? `Position ${props.initialOrder} in ${props.chapterTitle}.`
+                  : `In ${props.chapterTitle}.`}
+              </span>
+            </label>
+          </section>
+
+          <BlockList blocks={blocks} onChange={setBlocks} />
+
+          {props.mode === 'edit' ? (
+            <VersionsPanel
+              lessonId={props.lessonId}
+              onRestore={(snapshot) => {
+                setTitle(snapshot.title)
+                setBlocks(fromPersistedLayout(snapshot.layout))
+                // Resetting the saved-snapshot ref ensures the very next
+                // change triggers an auto-save — the restored state hasn't
+                // been committed yet, only loaded into the editor.
+                lastSavedSnapshotRef.current = ''
+                setError(null)
+              }}
+            />
+          ) : null}
+
+          {error ? (
+            <div className="lse-error" role="alert" aria-live="assertive">
+              {error}
+            </div>
+          ) : null}
         </div>
       </div>
 
