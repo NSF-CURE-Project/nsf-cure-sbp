@@ -17,7 +17,6 @@ const PROTECTED_PREFIXES = [
   "/profile",
   "/settings",
   "/saved-lessons",
-  "/problem-attempts",
   "/quiz-attempts",
   "/classrooms",
   "/notifications",

@@ -304,12 +304,12 @@ export default function SidebarClient({ classes }: Props) {
                 <Link
                   href={`/classes/${cSlug}`}
                   className={cn(
-                    "relative block rounded-md border-l-2 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em]",
-                    "transition-[background-color,border-color,color,transform] duration-200",
+                    "relative block rounded-md border-l-[3px] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em]",
+                    "transition-[background-color,border-color,color,transform,box-shadow] duration-200",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                    "hover:-translate-y-[2px] hover:border-primary/60 hover:bg-muted/25 hover:text-foreground",
+                    "hover:-translate-y-[1px] hover:border-primary/60 hover:bg-muted/30 hover:text-foreground",
                     classIsActive
-                      ? "border-primary bg-primary/20 text-foreground ring-1 ring-inset ring-primary/25"
+                      ? "border-primary bg-primary/25 text-foreground shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
                       : "border-transparent text-muted-foreground/90"
                   )}
                 >
@@ -318,11 +318,11 @@ export default function SidebarClient({ classes }: Props) {
               ) : (
                 <div
                   className={cn(
-                    "group flex w-full items-center justify-between gap-2 rounded-md border-l-2 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em]",
-                    "transition-[background-color,border-color,color,transform] duration-200",
-                    "hover:-translate-y-[2px] hover:border-primary/60 hover:bg-muted/25 hover:text-foreground",
+                    "group flex w-full items-center justify-between gap-2 rounded-md border-l-[3px] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em]",
+                    "transition-[background-color,border-color,color,transform,box-shadow] duration-200",
+                    "hover:-translate-y-[1px] hover:border-primary/60 hover:bg-muted/30 hover:text-foreground",
                     classIsActive
-                      ? "border-primary bg-primary/20 text-foreground ring-1 ring-inset ring-primary/25"
+                      ? "border-primary bg-primary/25 text-foreground shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
                       : "border-transparent text-muted-foreground/90"
                   )}
                 >
@@ -393,33 +393,52 @@ export default function SidebarClient({ classes }: Props) {
                       const chapterBarActive =
                         chapterOverviewActive || chapterHasActiveLesson;
 
+                      const chapterPercent = lessons.length
+                        ? Math.round(
+                            (chapterCompleted / lessons.length) * 100
+                          )
+                        : 0;
+                      const chapterIsComplete =
+                        lessons.length > 0 &&
+                        chapterCompleted === lessons.length;
+
                       return (
                         <li key={chSlug}>
                           <div className="relative pl-3">
                             <div
                               className={cn(
-                                "group -ml-3 flex w-[calc(100%+0.75rem)] items-center justify-between gap-2 rounded-md border-l-2 py-1 pl-4 pr-2 text-left",
-                                "transition-[background-color,border-color,color,transform] duration-200",
-                                "hover:-translate-y-[2px]",
+                                "group -ml-3 flex w-[calc(100%+0.75rem)] flex-col gap-1 rounded-md border-l-[3px] py-1.5 pl-4 pr-2 text-left",
+                                "transition-[background-color,border-color,color,transform,box-shadow] duration-200",
+                                "hover:-translate-y-[1px]",
                                 chapterBarActive
-                                  ? "border-primary bg-primary/20 text-foreground pl-1 ring-1 ring-inset ring-primary/25"
-                                  : "border-transparent text-muted-foreground/80 hover:border-primary/40 hover:bg-muted/20 hover:text-foreground"
+                                  ? "border-primary bg-primary/25 text-foreground pl-1 shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
+                                  : "border-transparent text-muted-foreground/85 hover:border-primary/45 hover:bg-muted/25 hover:text-foreground"
                               )}
                             >
-                              <Link
-                                href={`/classes/${cSlug}/chapters/${chSlug}`}
-                                className="flex flex-1 items-center justify-between gap-2 text-left text-inherit focus-visible:outline-none"
-                              >
-                                <span>
-                                  {cleanTitle(
-                                    getChapterLabel(ch),
-                                    "Untitled chapter"
-                                  )}
-                                </span>
-                                <span className="shrink-0 rounded-full bg-muted/60 px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                                  {chapterCompleted}/{lessons.length || 0}
-                                </span>
-                              </Link>
+                              <div className="flex items-center justify-between gap-2">
+                                <Link
+                                  href={`/classes/${cSlug}/chapters/${chSlug}`}
+                                  className="flex flex-1 items-center justify-between gap-2 text-left text-inherit focus-visible:outline-none"
+                                >
+                                  <span className="truncate">
+                                    {cleanTitle(
+                                      getChapterLabel(ch),
+                                      "Untitled chapter"
+                                    )}
+                                  </span>
+                                  <span
+                                    className={cn(
+                                      "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold tabular-nums uppercase tracking-wide",
+                                      chapterIsComplete
+                                        ? "bg-primary/20 text-primary"
+                                        : chapterCompleted > 0
+                                          ? "bg-blue-500/15 text-blue-600 dark:text-blue-400"
+                                          : "bg-muted/60 text-muted-foreground"
+                                    )}
+                                  >
+                                    {chapterCompleted}/{lessons.length || 0}
+                                  </span>
+                                </Link>
                               <button
                                 type="button"
                                 aria-expanded={chOpen}
@@ -444,6 +463,27 @@ export default function SidebarClient({ classes }: Props) {
                                   aria-hidden="true"
                                 />
                               </button>
+                              </div>
+                              {lessons.length > 0 ? (
+                                <div
+                                  className="ml-1 h-1 overflow-hidden rounded-full bg-muted/70"
+                                  aria-hidden="true"
+                                >
+                                  <div
+                                    className={cn(
+                                      "h-full rounded-full transition-[width] duration-500 ease-out",
+                                      chapterIsComplete
+                                        ? "bg-primary"
+                                        : chapterCompleted > 0
+                                          ? "bg-gradient-to-r from-primary/60 to-primary"
+                                          : "bg-primary/35"
+                                    )}
+                                    style={{
+                                      width: `${Math.max(chapterPercent, chapterPercent > 0 ? 6 : 0)}%`,
+                                    }}
+                                  />
+                                </div>
+                              ) : null}
                             </div>
 
                             {/* Lessons */}

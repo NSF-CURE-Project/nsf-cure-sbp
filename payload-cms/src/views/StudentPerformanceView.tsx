@@ -238,13 +238,10 @@ export default function StudentPerformanceView() {
                   accent="#b45309"
                 />
                 <MetricCard
-                  eyebrow="Attempts"
+                  eyebrow="Quiz attempts"
                   value={formatNumber(state.data.summary.averageAttemptsPerStudent, 'No attempts yet')}
                   title={formatPercent(state.data.summary.averageQuizScore, 'Quiz avg unavailable')}
-                  detail={`Problem avg ${formatPercent(
-                    state.data.summary.averageProblemScore,
-                    'unavailable',
-                  )}.`}
+                  detail="Avg quizzes taken per student."
                   accent="#047857"
                 />
               </div>

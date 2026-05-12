@@ -15,7 +15,7 @@ type IconProps = { size?: number; color?: string; strokeWidth?: number }
 const Icon = ({
   size = 16,
   color = 'currentColor',
-  strokeWidth = 1.75,
+  strokeWidth = 2,
   children,
 }: IconProps & { children: React.ReactNode }) => (
   <svg
@@ -1916,6 +1916,7 @@ const StaffDashboardContent = ({
                           color={kpi.accent}
                           width={64}
                           height={20}
+                          label={kpi.label}
                         />
                       </div>
                     </div>

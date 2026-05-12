@@ -90,8 +90,8 @@ describe('lesson scaffold layout — hydration round-trip', () => {
   it('coerces numeric-string relationship ids to numbers on save', () => {
     const persisted = [
       {
-        blockType: 'problemSetBlock',
-        problemSet: '12', // stored as string somehow (e.g. from a stale form)
+        blockType: 'quizBlock',
+        quiz: '12', // stored as string somehow (e.g. from a stale form)
         showTitle: true,
         showAnswers: true,
         maxAttempts: 5,
@@ -99,8 +99,8 @@ describe('lesson scaffold layout — hydration round-trip', () => {
     ]
     const out = toPersistedLayout(fromPersistedLayout(persisted))
     expect(out[0]).toMatchObject({
-      blockType: 'problemSetBlock',
-      problemSet: 12,
+      blockType: 'quizBlock',
+      quiz: 12,
       maxAttempts: 5,
     })
   })

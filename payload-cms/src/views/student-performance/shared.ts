@@ -89,7 +89,7 @@ const getDaysSinceActivity = (value: string | null) => {
 
 export const getStudentStatus = (student: StudentPerformanceStudent): StudentStatus => {
   const daysSinceActivity = getDaysSinceActivity(student.lastActivityAt)
-  const totalAttempts = student.quizAttempts + student.problemAttempts
+  const totalAttempts = student.quizAttempts
   const completion = clampPercent(student.lessonCompletionRate)
   const average = student.overallAverage
 
@@ -140,7 +140,7 @@ export const getInsightItems = (data: StudentPerformancePayload): InsightItem[] 
   const inactiveStudents = data.students.filter((student) => getStudentStatus(student) === 'inactive')
   const atRiskStudents = data.students.filter((student) => getStudentStatus(student) === 'at-risk')
   const noAssessmentStudents = data.students.filter(
-    (student) => student.quizAttempts + student.problemAttempts === 0,
+    (student) => student.quizAttempts === 0,
   )
   const lowCompletionStudents = data.students.filter(
     (student) => clampPercent(student.lessonCompletionRate) < 50,
@@ -182,7 +182,7 @@ export const getInsightItems = (data: StudentPerformancePayload): InsightItem[] 
       title: 'No assessment data',
       description:
         noAssessmentStudents.length > 0
-          ? 'These students have not submitted any quiz or problem-set attempts yet.'
+          ? 'These students have not submitted any quiz attempts yet.'
           : 'Every tracked student has at least one assessment attempt.',
       count: noAssessmentStudents.length,
       tone: noAssessmentStudents.length > 0 ? 'neutral' : 'positive',

@@ -121,7 +121,7 @@ const sanitizeNotificationPreferencesBody = (body: NotificationPreferencesPayloa
 
 const countDocuments = async (
   payload: Payload,
-  collection: 'lesson-progress' | 'quiz-attempts' | 'problem-attempts',
+  collection: 'lesson-progress' | 'quiz-attempts',
   where: Record<string, unknown>,
 ) => {
   const result = await payload.find({
@@ -202,15 +202,12 @@ export const accountDataSummaryHandler: PayloadHandler = async (req) => {
     longestStreak?: number
   }
 
-  const [lessonsCompleted, quizAttempts, problemAttempts] = await Promise.all([
+  const [lessonsCompleted, quizAttempts] = await Promise.all([
     countDocuments(req.payload, 'lesson-progress', {
       user: { equals: user.id },
       completed: { equals: true },
     }),
     countDocuments(req.payload, 'quiz-attempts', {
-      user: { equals: user.id },
-    }),
-    countDocuments(req.payload, 'problem-attempts', {
       user: { equals: user.id },
     }),
   ])
@@ -238,7 +235,6 @@ export const accountDataSummaryHandler: PayloadHandler = async (req) => {
     counts: {
       lessonsCompleted,
       quizAttempts,
-      problemAttempts,
     },
   })
 }

@@ -16,14 +16,6 @@ const QuizBlockComponent = dynamic(
     })),
   { ssr: false }
 );
-const ProblemSetBlockComponent = dynamic(
-  () =>
-    import("@/components/problemSet/ProblemSetBlock").then((m) => ({
-      default: m.ProblemSetBlock,
-    })),
-  { ssr: false }
-);
-
 const CMS_URL = getPayloadBaseUrl();
 
 const resolveMediaUrl = (media?: unknown): string | null => {
@@ -709,16 +701,6 @@ export function PageLayout({
         if (block.blockType === "quizBlock") {
           return (
             <QuizBlockComponent
-              key={block.id ?? idx}
-              block={block}
-              lessonId={lessonId}
-            />
-          );
-        }
-
-        if (block.blockType === "problemSetBlock") {
-          return (
-            <ProblemSetBlockComponent
               key={block.id ?? idx}
               block={block}
               lessonId={lessonId}

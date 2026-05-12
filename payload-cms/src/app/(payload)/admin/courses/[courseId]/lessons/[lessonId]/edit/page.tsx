@@ -23,7 +23,7 @@ export default async function EditLessonPage({
       collection: 'lessons',
       id: lessonId,
       // depth 1 hydrates the chapter relationship enough to read its title
-      // and parent class; deeper would also populate quizzes/problem-sets,
+      // and parent class; deeper would also populate any quiz relationships,
       // which is fine — `fromPersistedLayout` extracts ids either way.
       depth: 1,
       overrideAccess: true,

@@ -35,8 +35,6 @@ function summarize(block: ScaffoldBlock): string {
     }
     case 'quizBlock':
       return block.title || 'Quiz'
-    case 'problemSetBlock':
-      return block.title || 'Problem set'
     case '__passthrough':
       return (block.data.blockType as string) ?? 'Unsupported block'
   }

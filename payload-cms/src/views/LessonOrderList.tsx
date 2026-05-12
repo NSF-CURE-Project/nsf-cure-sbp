@@ -22,28 +22,48 @@ type LessonOrderListProps = {
   onOrderChange?: (orderedLessonIds: string[]) => void
 }
 
+const GripIcon = ({ size = 14 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 16 16"
+    fill="none"
+    aria-hidden="true"
+  >
+    <circle cx="6" cy="3" r="1.25" fill="currentColor" />
+    <circle cx="10" cy="3" r="1.25" fill="currentColor" />
+    <circle cx="6" cy="8" r="1.25" fill="currentColor" />
+    <circle cx="10" cy="8" r="1.25" fill="currentColor" />
+    <circle cx="6" cy="13" r="1.25" fill="currentColor" />
+    <circle cx="10" cy="13" r="1.25" fill="currentColor" />
+  </svg>
+)
+
 const baseItemStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
-  gap: 8,
-  padding: '8px 10px',
+  gap: 10,
+  padding: '10px 12px',
   borderRadius: 10,
-  background: 'rgba(0, 80, 48, 0.06)',
+  background: 'rgba(0, 80, 48, 0.05)',
+  border: '1px solid rgba(0, 80, 48, 0.08)',
   color: 'var(--cpp-ink, #0b3d27)',
+  transition: 'background-color 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease',
 }
 
 const baseHandleStyle: React.CSSProperties = {
-  width: 28,
-  height: 28,
+  width: 30,
+  height: 30,
   borderRadius: 8,
-  border: '1px solid rgba(0, 80, 48, 0.16)',
-  background: 'rgba(255, 255, 255, 0.8)',
+  border: '1px solid rgba(0, 80, 48, 0.18)',
+  background: 'rgba(255, 255, 255, 0.85)',
   cursor: 'grab',
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  fontSize: 14,
   color: 'rgba(11, 61, 39, 0.7)',
+  transition: 'background-color 150ms ease, border-color 150ms ease, color 150ms ease',
+  flexShrink: 0,
 }
 
 export default function LessonOrderList({
@@ -60,6 +80,7 @@ export default function LessonOrderList({
   const [lessons, setLessons] = useState<LessonLink[]>([])
   const [loading, setLoading] = useState(true)
   const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [hoverTargetId, setHoverTargetId] = useState<string | null>(null)
   const [isSavingOrder, setIsSavingOrder] = useState(false)
   const [pendingIndex, setPendingIndex] = useState<number | null>(null)
 
@@ -189,9 +210,19 @@ export default function LessonOrderList({
 
   return (
     <div>
+      <style>{`
+        .lesson-order-row { background: rgba(0, 80, 48, 0.05); }
+        .lesson-order-row:hover { background: rgba(0, 80, 48, 0.09); border-color: rgba(0, 80, 48, 0.18); }
+        .lesson-order-row:hover .lesson-order-handle { color: rgba(11, 61, 39, 1); border-color: rgba(0, 80, 48, 0.32); background: #fff; }
+        .lesson-order-row.is-dragging { opacity: 0.45; transform: scale(0.99); }
+        .lesson-order-row.is-drop-target { box-shadow: inset 0 2px 0 0 rgba(0, 80, 48, 0.55); border-color: rgba(0, 80, 48, 0.35); }
+        .lesson-order-edit { transition: background-color 150ms ease, color 150ms ease; }
+        .lesson-order-edit:hover { background: rgba(0, 80, 48, 0.14); color: #003820; }
+        .lesson-order-handle:active { cursor: grabbing; }
+      `}</style>
       <div
         style={{
-          fontSize: compact ? 12 : 14,
+          fontSize: compact ? 12 : 13,
           textTransform: 'uppercase',
           letterSpacing: '0.12em',
           color: 'var(--cpp-muted, #5b6f66)',
@@ -203,21 +234,45 @@ export default function LessonOrderList({
       {showHint ? (
         <div
           style={{
-            fontSize: 11,
+            fontSize: 12,
             color: 'var(--cpp-muted, #5b6f66)',
             marginTop: 6,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
           }}
         >
           Drag lessons to reorder.
-          {isSavingOrder ? ' Saving…' : ''}
+          {isSavingOrder ? (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '2px 8px',
+                borderRadius: 999,
+                background: 'rgba(0, 80, 48, 0.12)',
+                color: 'var(--cpp-ink, #0b3d27)',
+                fontWeight: 600,
+                fontSize: 11,
+                letterSpacing: '0.04em',
+              }}
+            >
+              Saving…
+            </span>
+          ) : null}
         </div>
       ) : null}
       {!chapterId ? (
         <div
           style={{
-            fontSize: 12,
+            fontSize: 13,
             color: 'var(--cpp-muted, #5b6f66)',
-            padding: '6px 8px',
+            padding: '12px 14px',
+            marginTop: 12,
+            borderRadius: 10,
+            border: '1px dashed rgba(0, 80, 48, 0.22)',
+            background: 'rgba(0, 80, 48, 0.03)',
           }}
         >
           Select a chapter to reorder its lessons.
@@ -228,15 +283,15 @@ export default function LessonOrderList({
             display: 'flex',
             flexDirection: 'column',
             gap: compact ? 6 : 8,
-            paddingTop: 8,
+            paddingTop: 10,
           }}
         >
           {loading ? (
             <div
               style={{
-                fontSize: 12,
+                fontSize: 13,
                 color: 'var(--cpp-muted, #5b6f66)',
-                padding: '4px 8px',
+                padding: '6px 8px',
               }}
             >
               Loading lessons…
@@ -244,52 +299,86 @@ export default function LessonOrderList({
           ) : listItems.length ? (
             listItems.map((item) => {
               const isPending = item.id === '__pending__'
+              const isDragging = draggingId === item.id
+              const isDropTarget =
+                draggingId !== null && draggingId !== item.id && hoverTargetId === item.id
+              const rowClass = [
+                'lesson-order-row',
+                isDragging ? 'is-dragging' : '',
+                isDropTarget ? 'is-drop-target' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')
               return (
                 <div
                   key={item.id}
+                  className={rowClass}
                   style={{
                     ...baseItemStyle,
-                    padding: compact ? '6px 8px' : baseItemStyle.padding,
-                    opacity: isPending ? 0.85 : 1,
-                    border: isPending ? '1px dashed rgba(0, 80, 48, 0.35)' : 'none',
+                    padding: compact ? '8px 10px' : baseItemStyle.padding,
+                    fontSize: compact ? 13 : 14,
+                    ...(isPending
+                      ? {
+                          border: '1px dashed rgba(180, 120, 0, 0.42)',
+                          background: 'rgba(255, 184, 28, 0.07)',
+                        }
+                      : {}),
                   }}
                   draggable
                   onDragStart={() => setDraggingId(item.id)}
-                  onDragEnd={() => setDraggingId(null)}
+                  onDragEnd={() => {
+                    setDraggingId(null)
+                    setHoverTargetId(null)
+                  }}
+                  onDragEnter={() => setHoverTargetId(item.id)}
+                  onDragLeave={(event) => {
+                    if (event.currentTarget === event.target) {
+                      setHoverTargetId((current) => (current === item.id ? null : current))
+                    }
+                  }}
                   onDragOver={(event) => event.preventDefault()}
-                  onDrop={() => handleDrop(item.id)}
+                  onDrop={() => {
+                    setHoverTargetId(null)
+                    handleDrop(item.id)
+                  }}
                 >
                   <span
+                    className="lesson-order-handle"
                     style={{
                       ...baseHandleStyle,
-                      width: compact ? 24 : baseHandleStyle.width,
-                      height: compact ? 24 : baseHandleStyle.height,
-                      fontSize: compact ? 12 : baseHandleStyle.fontSize,
-                      cursor: baseHandleStyle.cursor,
+                      width: compact ? 26 : baseHandleStyle.width,
+                      height: compact ? 26 : baseHandleStyle.height,
                     }}
-                    aria-hidden="true"
+                    aria-label="Drag handle"
                   >
-                    ⋮⋮
+                    <GripIcon size={compact ? 12 : 14} />
                   </span>
-                  <span style={{ flex: 1, fontWeight: 600 }}>
+                  <span style={{ flex: 1, fontWeight: 600, minWidth: 0 }}>
                     {item.title || item.slug || 'Untitled Lesson'}
                   </span>
                   {isPending ? (
                     <span
                       style={{
                         fontSize: 11,
-                        color: 'var(--cpp-muted, #5b6f66)',
-                        fontWeight: 600,
+                        color: '#8a5a00',
+                        fontWeight: 700,
+                        letterSpacing: '0.06em',
+                        textTransform: 'uppercase',
+                        background: 'rgba(255, 184, 28, 0.18)',
+                        border: '1px solid rgba(180, 120, 0, 0.32)',
+                        padding: '2px 8px',
+                        borderRadius: 999,
                       }}
                     >
                       Not saved
                     </span>
                   ) : showEditLinks ? (
                     <Link
+                      className="lesson-order-edit"
                       href={`/admin/collections/lessons/${item.id}`}
                       style={{
                         display: 'block',
-                        padding: compact ? '4px 8px' : '6px 10px',
+                        padding: compact ? '4px 10px' : '6px 12px',
                         borderRadius: 8,
                         background: 'rgba(0, 80, 48, 0.08)',
                         color: 'var(--cpp-ink, #0b3d27)',
@@ -307,12 +396,16 @@ export default function LessonOrderList({
           ) : (
             <div
               style={{
-                fontSize: 12,
+                fontSize: 13,
                 color: 'var(--cpp-muted, #5b6f66)',
-                padding: '4px 8px',
+                padding: '12px 14px',
+                borderRadius: 10,
+                border: '1px dashed rgba(0, 80, 48, 0.22)',
+                background: 'rgba(0, 80, 48, 0.03)',
+                textAlign: 'center',
               }}
             >
-              No lessons yet.
+              No lessons yet. Add the first lesson above.
             </div>
           )}
         </div>

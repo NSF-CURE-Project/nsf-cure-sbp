@@ -163,18 +163,6 @@ const compareFields = (
         out.push(`Time limit: ${prev.timeLimitSec ?? '—'}s → ${next.timeLimitSec ?? '—'}s`)
       break
     }
-    case 'problemSetBlock': {
-      if (asString(prev.title) !== asString(next.title)) out.push('Title updated')
-      if (normRel(prev.problemSet) !== normRel(next.problemSet))
-        out.push('Problem set selection changed')
-      if (Boolean(prev.showTitle) !== Boolean(next.showTitle))
-        out.push(`Show title: ${Boolean(prev.showTitle)} → ${Boolean(next.showTitle)}`)
-      if (Boolean(prev.showAnswers) !== Boolean(next.showAnswers))
-        out.push(`Show answers: ${Boolean(prev.showAnswers)} → ${Boolean(next.showAnswers)}`)
-      if ((prev.maxAttempts ?? null) !== (next.maxAttempts ?? null))
-        out.push(`Max attempts: ${prev.maxAttempts ?? '—'} → ${next.maxAttempts ?? '—'}`)
-      break
-    }
     default: {
       // Unknown block type — fall back to JSON equality.
       if (JSON.stringify(prev) !== JSON.stringify(next)) {

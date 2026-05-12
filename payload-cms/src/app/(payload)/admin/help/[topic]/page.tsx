@@ -296,7 +296,7 @@ function CoursesContent() {
 
       <DocSection id="lesson-editor" title="Lesson Editor">
         <p style={{ color: 'var(--cpp-muted)', fontSize: 13, lineHeight: 1.6, marginBottom: 8 }}>
-          Lessons render a single <strong>Content</strong> tab. Lesson body, quizzes, and problem sets all live inside the <Code>Page Layout</Code> blocks field — there is no separate Assessment tab.
+          Lessons render a single <strong>Content</strong> tab. Lesson body and quizzes all live inside the <Code>Page Layout</Code> blocks field — there is no separate Assessment tab.
         </p>
         <div style={{ display: 'grid', gap: 9 }}>
           <div style={card}>
@@ -317,16 +317,6 @@ function CoursesContent() {
                 <>Pick a quiz in the <Code>quiz</Code> relationship field.</>,
                 <>Set <Code>showAnswers</Code> (after submit) and <Code>maxAttempts</Code> on the block — these override the quiz defaults for this lesson.</>,
                 <>Save draft, preview, then publish when ready.</>,
-              ]}
-            />
-          </div>
-          <div style={card}>
-            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Attaching a problem set to a lesson</div>
-            <StepList
-              items={[
-                <>Add a <strong>Problem Set</strong> block to <Code>Page Layout</Code>.</>,
-                <>Pick the set in the <Code>problemSet</Code> relationship field.</>,
-                <>Override <Code>showAnswers</Code> / <Code>maxAttempts</Code> at the block level if you need different behavior than the set&apos;s defaults.</>,
               ]}
             />
           </div>
@@ -376,29 +366,6 @@ function QuizzesContent() {
             'Quizzes support drafts and publishing.',
           ]}
         />
-      </DocSection>
-
-      <DocSection id="interactive-problem-creator" title="Interactive Problem Creator">
-        <p style={{ color: 'var(--cpp-muted)', fontSize: 13, lineHeight: 1.6, marginBottom: 8 }}>
-          Use <InlineLink href="/admin/collections/problems">Problems</InlineLink> and{' '}
-          <InlineLink href="/admin/collections/problem-sets">Problem Sets</InlineLink> to build interactive assessment flows for lessons.
-        </p>
-        <StepList
-          items={[
-            <>Create a problem at <InlineLink href="/admin/collections/problems/create">Create Problem</InlineLink>.</>,
-            'In the Problem tab, add title, prompt, topic/tags, and one or more parts.',
-            <>For each part, choose a supported <Code>partType</Code>: <Code>numeric</Code> or <Code>symbolic</Code>.</>,
-            <>Configure grading fields for that part type (for example, tolerance/scoring mode for numeric or the expected expression for symbolic).</>,
-            <>Publish the problem when ready (or keep as draft while iterating).</>,
-            <>Create a set at <InlineLink href="/admin/collections/problem-sets/create">Create Problem Set</InlineLink> and select one or more problems in the <Code>problems</Code> relationship field.</>,
-            <>Configure set behavior: <Code>showAnswers</Code>, <Code>maxAttempts</Code>, and <Code>shuffleProblems</Code>.</>,
-            <>Open a lesson in <InlineLink href="/admin/collections/lessons">Lessons</InlineLink>, add a <strong>Problem Set</strong> content block, and select the set.</>,
-            'Save draft and use preview to validate rendering and grading behavior before publishing.',
-          ]}
-        />
-        <Note>
-          The lesson block can override attempt and answer-display behavior per lesson instance even if the problem set has defaults.
-        </Note>
       </DocSection>
 
       <DocSection id="csv-import" title="CSV Import Format">
@@ -798,8 +765,6 @@ function TroubleshootingContent() {
                 <><InlineLink href="/admin/collections/lessons">Lessons</InlineLink></>,
                 <><InlineLink href="/admin/quiz-bank">Quizzes</InlineLink></>,
                 <><InlineLink href="/admin/collections/quiz-questions">Quiz Questions</InlineLink></>,
-                <><InlineLink href="/admin/collections/problems">Problems</InlineLink></>,
-                <><InlineLink href="/admin/collections/problem-sets">Problem Sets</InlineLink></>,
                 <>Globals: <InlineLink href="/admin/globals/footer">Footer</InlineLink>, <InlineLink href="/admin/globals/site-branding">Site Branding</InlineLink></>,
               ]}
             />
@@ -924,7 +889,7 @@ function AnalyticsContent() {
             {
               label: 'User Analytics',
               href: '/admin/user-analytics',
-              desc: 'Per-student drill-down: pick a student, see their recent quiz and problem-set attempts and timestamps.',
+              desc: 'Per-student drill-down: pick a student, see their recent quiz attempts and timestamps.',
             },
             {
               label: 'Question Bank',
@@ -962,7 +927,7 @@ function AnalyticsContent() {
           items={[
             <>Open <InlineLink href="/admin/user-analytics">User Analytics</InlineLink>.</>,
             'Filter the student list by name or email; the count badge shows filtered / total.',
-            'Click into a student to see recent quiz attempts and recent problem-set attempts side by side.',
+            'Click into a student to see recent quiz attempts.',
             <>Use this when investigating a specific student&apos;s flag or a parent/professor escalation.</>,
           ]}
         />

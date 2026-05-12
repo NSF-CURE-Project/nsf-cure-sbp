@@ -93,9 +93,6 @@ export interface Config {
     'quiz-questions': QuizQuestion;
     quizzes: Quiz;
     'quiz-attempts': QuizAttempt;
-    problems: Problem;
-    'problem-sets': ProblemSet;
-    'problem-attempts': ProblemAttempt;
     notifications: Notification;
     'lesson-progress': LessonProgress;
     'lesson-bookmarks': LessonBookmark;
@@ -133,9 +130,6 @@ export interface Config {
     'quiz-questions': QuizQuestionsSelect<false> | QuizQuestionsSelect<true>;
     quizzes: QuizzesSelect<false> | QuizzesSelect<true>;
     'quiz-attempts': QuizAttemptsSelect<false> | QuizAttemptsSelect<true>;
-    problems: ProblemsSelect<false> | ProblemsSelect<true>;
-    'problem-sets': ProblemSetsSelect<false> | ProblemSetsSelect<true>;
-    'problem-attempts': ProblemAttemptsSelect<false> | ProblemAttemptsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'lesson-progress': LessonProgressSelect<false> | LessonProgressSelect<true>;
     'lesson-bookmarks': LessonBookmarksSelect<false> | LessonBookmarksSelect<true>;
@@ -414,16 +408,6 @@ export interface Lesson {
             blockName?: string | null;
             blockType: 'quizBlock';
           }
-        | {
-            problemSet: number | ProblemSet;
-            title?: string | null;
-            showTitle?: boolean | null;
-            maxAttempts?: number | null;
-            showAnswers?: boolean | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'problemSetBlock';
-          }
       )[]
     | null;
   updatedAt: string;
@@ -591,152 +575,6 @@ export interface Concept {
   prerequisiteConcepts?: (number | Concept)[] | null;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "problem-sets".
- */
-export interface ProblemSet {
-  id: number;
-  title: string;
-  description?: string | null;
-  problems: (number | Problem)[];
-  showAnswers?: boolean | null;
-  maxAttempts?: number | null;
-  shuffleProblems?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "problems".
- */
-export interface Problem {
-  id: number;
-  title: string;
-  prompt: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
-  difficulty?: ('intro' | 'easy' | 'medium' | 'hard') | null;
-  topic?: string | null;
-  tags?: string[] | null;
-  parts: {
-    label: string;
-    prompt?: {
-      root: {
-        type: string;
-        children: {
-          type: any;
-          version: number;
-          [k: string]: unknown;
-        }[];
-        direction: ('ltr' | 'rtl') | null;
-        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-        indent: number;
-        version: number;
-      };
-      [k: string]: unknown;
-    } | null;
-    unit?: string | null;
-    partType?: ('numeric' | 'symbolic') | null;
-    correctAnswer?: number | null;
-    /**
-     * Optional formula for template-enabled problems. Example: "w * L / 2". If present, this overrides the static numeric answer during grading.
-     */
-    correctAnswerExpression?: string | null;
-    tolerance?: number | null;
-    toleranceType?: ('absolute' | 'relative') | null;
-    significantFigures?: number | null;
-    scoringMode?: ('threshold' | 'linear-decay' | 'stepped') | null;
-    scoringSteps?:
-      | {
-          errorBound: number;
-          score: number;
-          id?: string | null;
-        }[]
-      | null;
-    symbolicAnswer?: string | null;
-    /**
-     * Auto-populated by Formula Helper. Keep variable names aligned with the symbolic expression.
-     */
-    symbolicVariables?:
-      | {
-          variable: string;
-          testMin?: number | null;
-          testMax?: number | null;
-          id?: string | null;
-        }[]
-      | null;
-    symbolicTolerance?: number | null;
-    explanation?: {
-      root: {
-        type: string;
-        children: {
-          type: any;
-          version: number;
-          [k: string]: unknown;
-        }[];
-        direction: ('ltr' | 'rtl') | null;
-        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-        indent: number;
-        version: number;
-      };
-      [k: string]: unknown;
-    } | null;
-    id?: string | null;
-  }[];
-  /**
-   * Enable deterministic template variables so one authored problem can be previewed across many generated variants.
-   */
-  parameterizationEnabled?: boolean | null;
-  /**
-   * Default seed used by the admin preview to reproduce the same generated variant.
-   */
-  parameterSeed?: string | null;
-  /**
-   * Author independent variables here. The preview will sample values from each defined range using the chosen seed.
-   */
-  parameterDefinitions?:
-    | {
-        name: string;
-        label?: string | null;
-        unit?: string | null;
-        defaultValue?: number | null;
-        min?: number | null;
-        max?: number | null;
-        step?: number | null;
-        precision?: number | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Derived values are evaluated in order and may reference previously defined parameters and derived values.
-   */
-  derivedValues?:
-    | {
-        name: string;
-        label?: string | null;
-        expression: string;
-        unit?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1569,62 +1407,6 @@ export interface QuizAttempt {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "problem-attempts".
- */
-export interface ProblemAttempt {
-  id: number;
-  problemSet: number | ProblemSet;
-  lesson?: (number | null) | Lesson;
-  attemptNumber?: number | null;
-  attemptScopeKey?: string | null;
-  user: number | Account;
-  startedAt?: string | null;
-  completedAt?: string | null;
-  durationSec?: number | null;
-  answers?:
-    | {
-        problem: number | Problem;
-        variantSeed?: string | null;
-        variantSignature?: string | null;
-        variantScope?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        generatedVariant?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        parts?:
-          | {
-              partIndex: number;
-              studentAnswer?: number | null;
-              studentExpression?: string | null;
-              isCorrect?: boolean | null;
-              score?: number | null;
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-      }[]
-    | null;
-  score?: number | null;
-  maxScore?: number | null;
-  correctCount?: number | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "notifications".
  */
 export interface Notification {
@@ -1838,18 +1620,6 @@ export interface PayloadLockedDocument {
         value: number | QuizAttempt;
       } | null)
     | ({
-        relationTo: 'problems';
-        value: number | Problem;
-      } | null)
-    | ({
-        relationTo: 'problem-sets';
-        value: number | ProblemSet;
-      } | null)
-    | ({
-        relationTo: 'problem-attempts';
-        value: number | ProblemAttempt;
-      } | null)
-    | ({
         relationTo: 'notifications';
         value: number | Notification;
       } | null)
@@ -2040,17 +1810,6 @@ export interface LessonsSelect<T extends boolean = true> {
               showAnswers?: T;
               maxAttempts?: T;
               timeLimitSec?: T;
-              id?: T;
-              blockName?: T;
-            };
-        problemSetBlock?:
-          | T
-          | {
-              problemSet?: T;
-              title?: T;
-              showTitle?: T;
-              maxAttempts?: T;
-              showAnswers?: T;
               id?: T;
               blockName?: T;
             };
@@ -2649,131 +2408,6 @@ export interface QuizAttemptsSelect<T extends boolean = true> {
   maxScore?: T;
   correctCount?: T;
   questionCount?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "problems_select".
- */
-export interface ProblemsSelect<T extends boolean = true> {
-  title?: T;
-  prompt?: T;
-  difficulty?: T;
-  topic?: T;
-  tags?: T;
-  parts?:
-    | T
-    | {
-        label?: T;
-        prompt?: T;
-        unit?: T;
-        partType?: T;
-        correctAnswer?: T;
-        correctAnswerExpression?: T;
-        tolerance?: T;
-        toleranceType?: T;
-        significantFigures?: T;
-        scoringMode?: T;
-        scoringSteps?:
-          | T
-          | {
-              errorBound?: T;
-              score?: T;
-              id?: T;
-            };
-        symbolicAnswer?: T;
-        symbolicVariables?:
-          | T
-          | {
-              variable?: T;
-              testMin?: T;
-              testMax?: T;
-              id?: T;
-            };
-        symbolicTolerance?: T;
-        explanation?: T;
-        id?: T;
-      };
-  parameterizationEnabled?: T;
-  parameterSeed?: T;
-  parameterDefinitions?:
-    | T
-    | {
-        name?: T;
-        label?: T;
-        unit?: T;
-        defaultValue?: T;
-        min?: T;
-        max?: T;
-        step?: T;
-        precision?: T;
-        id?: T;
-      };
-  derivedValues?:
-    | T
-    | {
-        name?: T;
-        label?: T;
-        expression?: T;
-        unit?: T;
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "problem-sets_select".
- */
-export interface ProblemSetsSelect<T extends boolean = true> {
-  title?: T;
-  description?: T;
-  problems?: T;
-  showAnswers?: T;
-  maxAttempts?: T;
-  shuffleProblems?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "problem-attempts_select".
- */
-export interface ProblemAttemptsSelect<T extends boolean = true> {
-  problemSet?: T;
-  lesson?: T;
-  attemptNumber?: T;
-  attemptScopeKey?: T;
-  user?: T;
-  startedAt?: T;
-  completedAt?: T;
-  durationSec?: T;
-  answers?:
-    | T
-    | {
-        problem?: T;
-        variantSeed?: T;
-        variantSignature?: T;
-        variantScope?: T;
-        generatedVariant?: T;
-        parts?:
-          | T
-          | {
-              partIndex?: T;
-              studentAnswer?: T;
-              studentExpression?: T;
-              isCorrect?: T;
-              score?: T;
-              id?: T;
-            };
-        id?: T;
-      };
-  score?: T;
-  maxScore?: T;
-  correctCount?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -2,7 +2,15 @@
 
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  FileQuestion,
+  Video,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import { PageLayout } from "@/components/page-layout";
 import type { LessonDoc, PageLayoutBlock } from "@/lib/payloadSdk/types";
 import { usePayloadLivePreview } from "./usePayloadLivePreview";
@@ -20,12 +28,20 @@ type Props = {
     currentSlug?: string;
     hrefPrefix: string;
   };
+  breadcrumb?: {
+    classTitle?: string | null;
+    classSlug?: string | null;
+    chapterTitle?: string | null;
+    chapterSlug?: string | null;
+    chapterNumber?: number | null;
+  };
 };
 
 export function LivePreviewLesson({
   initialData,
   className,
   lessonNav,
+  breadcrumb,
 }: Props) {
   const data = usePayloadLivePreview(initialData, {
     collectionSlug: "lessons",
@@ -80,6 +96,90 @@ export function LivePreviewLesson({
     };
   }, [lessonNav, lessonSlug]);
 
+  const chapterInfo = useMemo(() => {
+    const chapter = data?.chapter;
+    const chapterRecord =
+      typeof chapter === "object" && chapter !== null
+        ? (chapter as {
+            title?: string;
+            slug?: string;
+            chapterNumber?: number | null;
+            class?: unknown;
+          })
+        : null;
+    const classValue = chapterRecord?.class;
+    const classRecord =
+      typeof classValue === "object" && classValue !== null
+        ? (classValue as { title?: string; slug?: string })
+        : null;
+
+    const chapterTitle =
+      breadcrumb?.chapterTitle ??
+      (typeof chapterRecord?.title === "string" && chapterRecord.title.trim()
+        ? chapterRecord.title
+        : null);
+    const chapterSlug =
+      breadcrumb?.chapterSlug ??
+      (typeof chapterRecord?.slug === "string" ? chapterRecord.slug : null);
+    const chapterNumber =
+      breadcrumb?.chapterNumber ??
+      (typeof chapterRecord?.chapterNumber === "number"
+        ? chapterRecord.chapterNumber
+        : null);
+    const classTitle =
+      breadcrumb?.classTitle ??
+      (classRecord && typeof classRecord.title === "string"
+        ? classRecord.title
+        : null);
+    const classSlug =
+      breadcrumb?.classSlug ??
+      (classRecord && typeof classRecord.slug === "string"
+        ? classRecord.slug
+        : null);
+
+    if (!chapterTitle && !classTitle) return null;
+
+    return {
+      chapterTitle,
+      chapterSlug,
+      chapterNumber,
+      classTitle,
+      classSlug,
+    };
+  }, [data?.chapter, breadcrumb]);
+
+  const lessonType: "Reading" | "Video" | "Quiz" = useMemo(() => {
+    if (blocks.some((block) => block.blockType === "quizBlock") || assessmentQuiz) {
+      return "Quiz";
+    }
+    if (blocks.some((block) => block.blockType === "videoBlock")) return "Video";
+    return "Reading";
+  }, [blocks, assessmentQuiz]);
+
+  const estimatedMinutes =
+    lessonType === "Quiz" ? 12 : lessonType === "Video" ? 10 : 8;
+
+  const lessonTypeStyle = {
+    Reading: {
+      iconBg: "bg-primary/10",
+      ring: "ring-primary/15",
+      iconText: "text-primary",
+    },
+    Video: {
+      iconBg: "bg-blue-500/10",
+      ring: "ring-blue-500/15",
+      iconText: "text-blue-600 dark:text-blue-400",
+    },
+    Quiz: {
+      iconBg: "bg-amber-500/10",
+      ring: "ring-amber-500/15",
+      iconText: "text-amber-600 dark:text-amber-400",
+    },
+  }[lessonType];
+
+  const LessonIcon =
+    lessonType === "Video" ? Video : lessonType === "Quiz" ? FileQuestion : BookOpen;
+
   const navTop = normalizedNav ? (
     <LessonNavSimple
       lessons={normalizedNav.lessons}
@@ -108,12 +208,71 @@ export function LivePreviewLesson({
   return (
     <article className={className}>
       {navTop}
-      <h1 className="text-3xl font-bold mb-6">{title}</h1>
-      {updatedAt && (
-        <p className="text-sm text-muted-foreground mb-6">
-          Last updated {formatDate(updatedAt)}
-        </p>
-      )}
+      <header className="mb-8">
+        {chapterInfo &&
+        (chapterInfo.classTitle || chapterInfo.chapterTitle) ? (
+          <nav
+            aria-label="Breadcrumb"
+            className="mb-3 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground"
+          >
+            {chapterInfo.classTitle && chapterInfo.classSlug ? (
+              <>
+                <Link
+                  href={`/classes/${chapterInfo.classSlug}`}
+                  className="rounded-md px-1 py-0.5 font-medium transition-colors hover:text-foreground"
+                >
+                  {chapterInfo.classTitle}
+                </Link>
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60" />
+              </>
+            ) : null}
+            {chapterInfo.chapterTitle &&
+            chapterInfo.chapterSlug &&
+            chapterInfo.classSlug ? (
+              <Link
+                href={`/classes/${chapterInfo.classSlug}/chapters/${chapterInfo.chapterSlug}`}
+                className="rounded-md px-1 py-0.5 font-medium transition-colors hover:text-foreground"
+              >
+                {chapterInfo.chapterNumber
+                  ? `Ch ${chapterInfo.chapterNumber} · `
+                  : ""}
+                {chapterInfo.chapterTitle}
+              </Link>
+            ) : null}
+          </nav>
+        ) : null}
+        <div className="flex items-start gap-3">
+          <span
+            className={cn(
+              "mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ring-1",
+              lessonTypeStyle.iconBg,
+              lessonTypeStyle.ring
+            )}
+            aria-hidden="true"
+          >
+            <LessonIcon className={cn("h-5 w-5", lessonTypeStyle.iconText)} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              {lessonType}
+            </p>
+            <h1 className="mt-1 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              {title}
+            </h1>
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5" />~{estimatedMinutes} min read
+              </span>
+              {updatedAt ? (
+                <>
+                  <span className="text-border">·</span>
+                  <span>Updated {formatDate(updatedAt)}</span>
+                </>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </header>
       {blocks.length > 0 ? (
         <PageLayout
           blocks={blocks}

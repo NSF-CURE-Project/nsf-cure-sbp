@@ -18,8 +18,6 @@ type AttemptRow = {
   id: string | number
   quizId?: string | number | null
   quizTitle?: string | null
-  problemSetId?: string | number | null
-  problemSetTitle?: string | null
   score: number | null
   maxScore: number | null
   durationSec: number | null
@@ -45,14 +43,10 @@ type DetailPayload = {
     quizAttemptCount: number
     quizDurationSec: number
     quizAveragePercent: number | null
-    problemAttemptCount: number
-    problemDurationSec: number
-    problemAveragePercent: number | null
     lessonsCompleted: number
     lessonsTouched: number
   }
   quizAttempts: AttemptRow[]
-  problemAttempts: AttemptRow[]
 }
 
 const shellStyle: React.CSSProperties = {
@@ -361,11 +355,6 @@ export default function UserAnalyticsView() {
                   hint={`${detail.totals.quizAttemptCount} attempts · avg ${formatPercent(detail.totals.quizAveragePercent)}`}
                 />
                 <Stat
-                  label="Time on problems"
-                  value={formatSeconds(detail.totals.problemDurationSec)}
-                  hint={`${detail.totals.problemAttemptCount} attempts · avg ${formatPercent(detail.totals.problemAveragePercent)}`}
-                />
-                <Stat
                   label="Lessons completed"
                   value={`${detail.totals.lessonsCompleted}`}
                   hint={`${detail.totals.lessonsTouched} touched`}
@@ -376,11 +365,6 @@ export default function UserAnalyticsView() {
                 title="Recent quiz attempts"
                 rows={detail.quizAttempts}
                 titleAccessor={(r) => r.quizTitle ?? `Quiz #${r.quizId ?? '?'}`}
-              />
-              <AttemptsTable
-                title="Recent problem-set attempts"
-                rows={detail.problemAttempts}
-                titleAccessor={(r) => r.problemSetTitle ?? `Set #${r.problemSetId ?? '?'}`}
               />
             </div>
           ) : null}

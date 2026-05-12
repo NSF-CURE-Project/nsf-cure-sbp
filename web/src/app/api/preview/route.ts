@@ -86,12 +86,6 @@ export async function GET(req: NextRequest) {
     case "quiz":
       redirect = `/preview/quiz/${slug}`;
       break;
-    case "problem-set":
-      redirect = `/preview/problem-set/${slug}`;
-      break;
-    case "problem-library":
-      redirect = `/preview/problem-library`;
-      break;
     case "home":
       redirect = `/`;
       break;

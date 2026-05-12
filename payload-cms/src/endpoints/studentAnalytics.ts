@@ -29,7 +29,7 @@ export const studentAnalyticsHandler: PayloadHandler = async (req) => {
 
   const userId = req.user.id
 
-  const [lessonProgressRes, quizAttemptsRes, problemAttemptsRes, membershipsRes, account] =
+  const [lessonProgressRes, quizAttemptsRes, membershipsRes, account] =
     await Promise.all([
       req.payload.find({
         collection: 'lesson-progress',
@@ -40,13 +40,6 @@ export const studentAnalyticsHandler: PayloadHandler = async (req) => {
       }),
       req.payload.find({
         collection: 'quiz-attempts',
-        where: { user: { equals: userId } },
-        depth: 0,
-        limit: 500,
-        overrideAccess: true,
-      }),
-      req.payload.find({
-        collection: 'problem-attempts',
         where: { user: { equals: userId } },
         depth: 0,
         limit: 500,
@@ -69,46 +62,16 @@ export const studentAnalyticsHandler: PayloadHandler = async (req) => {
 
   const lessonDocs = Array.isArray(lessonProgressRes.docs) ? lessonProgressRes.docs : []
   const quizDocs = Array.isArray(quizAttemptsRes.docs) ? quizAttemptsRes.docs : []
-  const problemDocs = Array.isArray(problemAttemptsRes.docs) ? problemAttemptsRes.docs : []
   const membershipDocs = Array.isArray(membershipsRes.docs) ? membershipsRes.docs : []
 
   const totalLessonsCompleted = lessonDocs.filter((doc) => Boolean((doc as { completed?: boolean }).completed)).length
 
-  const totalTimeSpentSec =
-    quizDocs.reduce((sum, doc) => {
-      const duration = (doc as { durationSec?: number }).durationSec
-      return sum + (typeof duration === 'number' && Number.isFinite(duration) ? duration : 0)
-    }, 0) +
-    problemDocs.reduce((sum, doc) => {
-      const duration = (doc as { durationSec?: number }).durationSec
-      return sum + (typeof duration === 'number' && Number.isFinite(duration) ? duration : 0)
-    }, 0)
+  const totalTimeSpentSec = quizDocs.reduce((sum, doc) => {
+    const duration = (doc as { durationSec?: number }).durationSec
+    return sum + (typeof duration === 'number' && Number.isFinite(duration) ? duration : 0)
+  }, 0)
 
   const quizScoreHistory = quizDocs
-    .map((doc) => {
-      const score = (doc as { score?: number }).score
-      const maxScore = (doc as { maxScore?: number }).maxScore
-      const completedAt =
-        (doc as { completedAt?: string; createdAt?: string }).completedAt ??
-        (doc as { createdAt?: string }).createdAt
-      const scorePercent =
-        typeof score === 'number' &&
-        typeof maxScore === 'number' &&
-        Number.isFinite(score) &&
-        Number.isFinite(maxScore) &&
-        maxScore > 0
-          ? Number(((score / maxScore) * 100).toFixed(1))
-          : 0
-      return {
-        date: completedAt ?? null,
-        scorePercent,
-        attemptId: String((doc as { id?: string | number }).id ?? ''),
-      }
-    })
-    .filter((item) => Boolean(item.date))
-    .sort((a, b) => new Date(a.date ?? 0).getTime() - new Date(b.date ?? 0).getTime())
-
-  const problemScoreHistory = problemDocs
     .map((doc) => {
       const score = (doc as { score?: number }).score
       const maxScore = (doc as { maxScore?: number }).maxScore
@@ -135,12 +98,12 @@ export const studentAnalyticsHandler: PayloadHandler = async (req) => {
   const recentThreshold = daysAgo(30).getTime()
   const dayMap = new Map<
     string,
-    { date: string; lessonsCompleted: number; quizzesTaken: number; problemSetsTaken: number }
+    { date: string; lessonsCompleted: number; quizzesTaken: number }
   >()
 
   const bump = (
     dateKey: string | null,
-    key: 'lessonsCompleted' | 'quizzesTaken' | 'problemSetsTaken',
+    key: 'lessonsCompleted' | 'quizzesTaken',
   ) => {
     if (!dateKey) return
     const dateTs = new Date(`${dateKey}T00:00:00.000Z`).getTime()
@@ -150,7 +113,6 @@ export const studentAnalyticsHandler: PayloadHandler = async (req) => {
         date: dateKey,
         lessonsCompleted: 0,
         quizzesTaken: 0,
-        problemSetsTaken: 0,
       })
     }
     const entry = dayMap.get(dateKey)
@@ -171,13 +133,6 @@ export const studentAnalyticsHandler: PayloadHandler = async (req) => {
         (quiz as { createdAt?: string }).createdAt,
     )
     bump(dateKey, 'quizzesTaken')
-  }
-  for (const problem of problemDocs) {
-    const dateKey = toDateKey(
-      (problem as { completedAt?: string; createdAt?: string }).completedAt ??
-        (problem as { createdAt?: string }).createdAt,
-    )
-    bump(dateKey, 'problemSetsTaken')
   }
 
   const recentActivity = [...dayMap.values()].sort((a, b) => a.date.localeCompare(b.date))
@@ -219,7 +174,6 @@ export const studentAnalyticsHandler: PayloadHandler = async (req) => {
     totalLessonsCompleted,
     totalTimeSpentSec,
     quizScoreHistory,
-    problemScoreHistory,
     recentActivity,
     currentStreak:
       typeof (account as { currentStreak?: number }).currentStreak === 'number'

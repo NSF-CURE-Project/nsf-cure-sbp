@@ -1,20 +1,46 @@
 import React from 'react'
 
-// Tiny inline sparkline.
+// Tiny inline sparkline with end-point marker, empty state, and accessible label.
 export const Sparkline = ({
   values,
   color = '#1e3a8a',
   width = 84,
   height = 28,
+  label,
 }: {
   values: number[]
   color?: string
   width?: number
   height?: number
+  label?: string
 }) => {
-  if (!values.length) return null
+  if (!values.length) {
+    // Empty state: a faint flat line so the KPI tile keeps its visual rhythm.
+    return (
+      <svg
+        width={width}
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label={label ? `${label}: no data yet` : 'No trend data yet'}
+      >
+        <line
+          x1="2"
+          x2={width - 2}
+          y1={height / 2}
+          y2={height / 2}
+          stroke="rgba(15, 23, 42, 0.18)"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeDasharray="3 4"
+        />
+      </svg>
+    )
+  }
+
   const min = Math.min(...values)
   const max = Math.max(...values)
+  const last = values[values.length - 1]
   const range = max - min || 1
   const stepX = values.length > 1 ? width / (values.length - 1) : 0
   const points = values.map((v, i) => {
@@ -25,11 +51,26 @@ export const Sparkline = ({
   const linePath = `M${points.join(' L')}`
   const areaPath = `${linePath} L${width.toFixed(1)},${height} L0,${height} Z`
   const gradientId = `spark-${Math.random().toString(36).slice(2, 8)}`
+
+  const lastX = values.length > 1 ? width : width / 2
+  const lastY = height - ((last - min) / range) * height
+  const direction = values.length >= 2 ? last - values[values.length - 2] : 0
+  const trendWord = direction > 0 ? 'trending up' : direction < 0 ? 'trending down' : 'steady'
+  const accessibleLabel = label
+    ? `${label} — ${trendWord}, range ${min.toFixed(1)} to ${max.toFixed(1)}, latest ${last.toFixed(1)}`
+    : `Trend ${trendWord}, latest ${last.toFixed(1)}`
+
   return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
+    <svg
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      role="img"
+      aria-label={accessibleLabel}
+    >
       <defs>
         <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="0%" stopColor={color} stopOpacity="0.32" />
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
@@ -38,10 +79,12 @@ export const Sparkline = ({
         d={linePath}
         fill="none"
         stroke={color}
-        strokeWidth="1.6"
+        strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      <circle cx={lastX} cy={lastY} r="2.4" fill={color} />
+      <circle cx={lastX} cy={lastY} r="3.6" fill={color} fillOpacity="0.22" />
     </svg>
   )
 }

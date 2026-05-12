@@ -19,7 +19,7 @@ type RelationshipPickerProps = {
   emptyLabel?: string // e.g. "No quiz attached"
 }
 
-// Search-and-pick UI shared by QuizPicker / ProblemSetPicker. Closed state
+// Search-and-pick UI used by QuizPicker. Closed state
 // renders a small chip + change button; open state shows a search field and
 // up to `limit` results. The currently-selected id is cached client-side so
 // the chip can show the resource title even when it's not in the latest

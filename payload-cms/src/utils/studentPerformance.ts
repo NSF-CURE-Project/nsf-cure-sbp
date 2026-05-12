@@ -15,9 +15,6 @@ export type StudentPerformanceStudent = {
   quizAttempts: number
   quizAverage: number | null
   quizStdDev: number | null
-  problemAttempts: number
-  problemAverage: number | null
-  problemStdDev: number | null
   overallAverage: number | null
   overallStdDev: number | null
   currentStreak: number
@@ -32,7 +29,6 @@ export type StudentPerformanceSummary = {
   medianScore: number | null
   scoreStdDev: number | null
   averageQuizScore: number | null
-  averageProblemScore: number | null
   averageLessonCompletionRate: number | null
   averageAttemptsPerStudent: number
   publishedLessonCount: number
@@ -42,7 +38,6 @@ export type StudentPerformanceTrendPoint = {
   weekStart: string
   activeStudents: number
   averageQuizScore: number | null
-  averageProblemScore: number | null
 }
 
 export type StudentPerformancePayload = {
@@ -131,7 +126,6 @@ const buildEmptyPayload = (): StudentPerformancePayload => ({
     medianScore: null,
     scoreStdDev: null,
     averageQuizScore: null,
-    averageProblemScore: null,
     averageLessonCompletionRate: null,
     averageAttemptsPerStudent: 0,
     publishedLessonCount: 0,
@@ -178,21 +172,19 @@ export const getStudentPerformancePayload = async (
     if (!scopedStudentIds.size) return buildEmptyPayload()
   }
 
-  const [accounts, lessons, lessonProgress, quizAttempts, problemAttempts, memberships] =
-    await Promise.all([
-      findAllDocs(payload, 'accounts'),
-      findAllDocs(payload, 'lessons', {
-        where: {
-          _status: {
-            equals: 'published',
-          },
+  const [accounts, lessons, lessonProgress, quizAttempts, memberships] = await Promise.all([
+    findAllDocs(payload, 'accounts'),
+    findAllDocs(payload, 'lessons', {
+      where: {
+        _status: {
+          equals: 'published',
         },
-      }),
-      findAllDocs(payload, 'lesson-progress'),
-      findAllDocs(payload, 'quiz-attempts'),
-      findAllDocs(payload, 'problem-attempts'),
-      findAllDocs(payload, 'classroom-memberships', { depth: 2 }),
-    ])
+      },
+    }),
+    findAllDocs(payload, 'lesson-progress'),
+    findAllDocs(payload, 'quiz-attempts'),
+    findAllDocs(payload, 'classroom-memberships', { depth: 2 }),
+  ])
 
   const publishedLessonCount = lessons.length
   const studentIds = scopedStudentIds
@@ -250,13 +242,11 @@ export const getStudentPerformancePayload = async (
   })
 
   const quizScoresByStudent = new Map<string, number[]>()
-  const problemScoresByStudent = new Map<string, number[]>()
   const weeklyTrendMap = new Map<
     string,
     {
       activeStudents: Set<string>
       quizScores: number[]
-      problemScores: number[]
     }
   >()
 
@@ -264,17 +254,15 @@ export const getStudentPerformancePayload = async (
     studentId: string,
     dateValue: unknown,
     score: number | null,
-    scoreType: 'quizScores' | 'problemScores',
   ) => {
     const weekStart = getWeekStart(dateValue)
     if (!weekStart) return
     const current = weeklyTrendMap.get(weekStart) ?? {
       activeStudents: new Set<string>(),
       quizScores: [],
-      problemScores: [],
     }
     current.activeStudents.add(studentId)
-    if (score != null) current[scoreType].push(score)
+    if (score != null) current.quizScores.push(score)
     weeklyTrendMap.set(weekStart, current)
   }
 
@@ -293,25 +281,7 @@ export const getStudentPerformancePayload = async (
       (attempt as { completedAt?: unknown; createdAt?: unknown }).completedAt ??
       (attempt as { createdAt?: unknown }).createdAt
     lastActivityByStudent.set(studentId, maxIsoDate(lastActivityByStudent.get(studentId) ?? null, activityDate))
-    recordTrend(studentId, activityDate, score, 'quizScores')
-  })
-
-  problemAttempts.forEach((attempt) => {
-    const studentId = getId((attempt as { user?: unknown }).user)
-    if (!studentId || !isRelevantStudent(studentId)) return
-
-    const score = normalizeScorePercent(attempt as { score?: unknown; maxScore?: unknown })
-    if (score != null) {
-      const current = problemScoresByStudent.get(studentId) ?? []
-      current.push(score)
-      problemScoresByStudent.set(studentId, current)
-    }
-
-    const activityDate =
-      (attempt as { completedAt?: unknown; createdAt?: unknown }).completedAt ??
-      (attempt as { createdAt?: unknown }).createdAt
-    lastActivityByStudent.set(studentId, maxIsoDate(lastActivityByStudent.get(studentId) ?? null, activityDate))
-    recordTrend(studentId, activityDate, score, 'problemScores')
+    recordTrend(studentId, activityDate, score)
   })
 
   const students: StudentPerformanceStudent[] = accounts
@@ -320,8 +290,7 @@ export const getStudentPerformancePayload = async (
       if (!accountId || !isRelevantStudent(accountId)) return null
 
       const quizScores = quizScoresByStudent.get(accountId) ?? []
-      const problemScores = problemScoresByStudent.get(accountId) ?? []
-      const overallScores = [...quizScores, ...problemScores]
+      const overallScores = quizScores
       const membershipCompletionRates = completionRatesByStudent.get(accountId) ?? []
       const completedLessons = completedLessonsByStudent.get(accountId)?.size ?? 0
       const completionRate =
@@ -357,9 +326,6 @@ export const getStudentPerformancePayload = async (
         quizAttempts: quizScores.length,
         quizAverage: roundMetric(average(quizScores)),
         quizStdDev: roundMetric(standardDeviation(quizScores)),
-        problemAttempts: problemScores.length,
-        problemAverage: roundMetric(average(problemScores)),
-        problemStdDev: roundMetric(standardDeviation(problemScores)),
         overallAverage: roundMetric(average(overallScores)),
         overallStdDev: roundMetric(standardDeviation(overallScores)),
         currentStreak: toNumber((account as { currentStreak?: unknown }).currentStreak) ?? 0,
@@ -383,14 +349,8 @@ export const getStudentPerformancePayload = async (
   const quizAverages = students
     .map((student) => student.quizAverage)
     .filter((value): value is number => value != null)
-  const problemAverages = students
-    .map((student) => student.problemAverage)
-    .filter((value): value is number => value != null)
   const completionRates = students.map((student) => student.lessonCompletionRate)
-  const totalAttempts = students.reduce(
-    (sum, student) => sum + student.quizAttempts + student.problemAttempts,
-    0,
-  )
+  const totalAttempts = students.reduce((sum, student) => sum + student.quizAttempts, 0)
 
   const weeklyTrend = [...weeklyTrendMap.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
@@ -399,7 +359,6 @@ export const getStudentPerformancePayload = async (
       weekStart,
       activeStudents: entry.activeStudents.size,
       averageQuizScore: roundMetric(average(entry.quizScores)),
-      averageProblemScore: roundMetric(average(entry.problemScores)),
     }))
 
   return {
@@ -413,7 +372,6 @@ export const getStudentPerformancePayload = async (
       medianScore: roundMetric(median(overallScores)),
       scoreStdDev: roundMetric(standardDeviation(overallScores)),
       averageQuizScore: roundMetric(average(quizAverages)),
-      averageProblemScore: roundMetric(average(problemAverages)),
       averageLessonCompletionRate: roundMetric(average(completionRates)),
       averageAttemptsPerStudent: students.length ? Math.round((totalAttempts / students.length) * 10) / 10 : 0,
       publishedLessonCount,

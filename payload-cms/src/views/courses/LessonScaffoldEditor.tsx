@@ -223,9 +223,6 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
       if (block.blockType === 'quizBlock' && block.quiz == null) {
         return `Block ${i + 1} (quiz) needs a quiz selected.`
       }
-      if (block.blockType === 'problemSetBlock' && block.problemSet == null) {
-        return `Block ${i + 1} (problem set) needs a problem set selected.`
-      }
     }
     if (intent === 'publish' && blocks.length === 0) {
       return 'Add at least one block before publishing.'
@@ -806,8 +803,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         .lse-inspector[data-block-type="videoBlock"] .lse-inspector__heading-badge {
           color: var(--admin-block-video-icon);
         }
-        .lse-inspector[data-block-type="quizBlock"] .lse-inspector__heading-badge,
-        .lse-inspector[data-block-type="problemSetBlock"] .lse-inspector__heading-badge {
+        .lse-inspector[data-block-type="quizBlock"] .lse-inspector__heading-badge {
           color: var(--admin-block-quiz-icon);
         }
         .lse-inspector__heading-hint {
@@ -940,7 +936,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
          * Mapping:
          *   rich    — richTextBlock, textSection, sectionTitle
          *   video   — videoBlock
-         *   quiz    — quizBlock, problemSetBlock
+         *   quiz    — quizBlock
          *   generic — buttonBlock, listBlock, stepsList, __passthrough
          */
         .lse-block { position: relative; }
@@ -964,8 +960,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         .lse-block[data-block-type="videoBlock"]::before {
           background: var(--admin-block-video-edge);
         }
-        .lse-block[data-block-type="quizBlock"]::before,
-        .lse-block[data-block-type="problemSetBlock"]::before {
+        .lse-block[data-block-type="quizBlock"]::before {
           background: var(--admin-block-quiz-edge);
         }
         .lse-block[data-block-type="richTextBlock"] .lse-block__badge,
@@ -976,8 +971,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         .lse-block[data-block-type="videoBlock"] .lse-block__badge {
           color: var(--admin-block-video-icon);
         }
-        .lse-block[data-block-type="quizBlock"] .lse-block__badge,
-        .lse-block[data-block-type="problemSetBlock"] .lse-block__badge {
+        .lse-block[data-block-type="quizBlock"] .lse-block__badge {
           color: var(--admin-block-quiz-icon);
         }
         .lse-block[data-block-type="buttonBlock"] .lse-block__badge,

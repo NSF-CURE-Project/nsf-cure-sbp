@@ -11,12 +11,10 @@ type AnalyticsPayload = {
   totalLessonsCompleted: number;
   totalTimeSpentSec: number;
   quizScoreHistory: { date: string | null; scorePercent: number; attemptId: string }[];
-  problemScoreHistory: { date: string | null; scorePercent: number; attemptId: string }[];
   recentActivity: {
     date: string;
     lessonsCompleted: number;
     quizzesTaken: number;
-    problemSetsTaken: number;
   }[];
   currentStreak: number;
   longestStreak: number;

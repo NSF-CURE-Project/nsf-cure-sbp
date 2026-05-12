@@ -91,17 +91,9 @@ export const userAnalyticsDetailHandler: PayloadHandler = async (req) => {
     .catch(() => null)
   if (!account) return jsonResponse({ error: 'Account not found' }, 404)
 
-  const [quizAttempts, problemAttempts, lessonProgress] = await Promise.all([
+  const [quizAttempts, lessonProgress] = await Promise.all([
     req.payload.find({
       collection: 'quiz-attempts',
-      where: { user: { equals: userId } },
-      depth: 1,
-      limit: 500,
-      sort: '-completedAt',
-      overrideAccess: true,
-    }),
-    req.payload.find({
-      collection: 'problem-attempts',
       where: { user: { equals: userId } },
       depth: 1,
       limit: 500,
@@ -120,15 +112,6 @@ export const userAnalyticsDetailHandler: PayloadHandler = async (req) => {
   const quizDocs = quizAttempts.docs as Array<{
     id: string | number
     quiz?: unknown
-    score?: number | null
-    maxScore?: number | null
-    durationSec?: number | null
-    startedAt?: string | null
-    completedAt?: string | null
-  }>
-  const problemDocs = problemAttempts.docs as Array<{
-    id: string | number
-    problemSet?: unknown
     score?: number | null
     maxScore?: number | null
     durationSec?: number | null
@@ -165,14 +148,6 @@ export const userAnalyticsDetailHandler: PayloadHandler = async (req) => {
 
   const totalQuizScore = quizDocs.reduce((sum, d) => sum + (typeof d.score === 'number' ? d.score : 0), 0)
   const totalQuizMax = quizDocs.reduce((sum, d) => sum + (typeof d.maxScore === 'number' ? d.maxScore : 0), 0)
-  const totalProblemScore = problemDocs.reduce(
-    (sum, d) => sum + (typeof d.score === 'number' ? d.score : 0),
-    0,
-  )
-  const totalProblemMax = problemDocs.reduce(
-    (sum, d) => sum + (typeof d.maxScore === 'number' ? d.maxScore : 0),
-    0,
-  )
 
   return jsonResponse({
     account: {
@@ -193,12 +168,6 @@ export const userAnalyticsDetailHandler: PayloadHandler = async (req) => {
       quizDurationSec: sumDuration(quizDocs),
       quizAveragePercent:
         totalQuizMax > 0 ? Number(((totalQuizScore / totalQuizMax) * 100).toFixed(1)) : null,
-      problemAttemptCount: problemDocs.length,
-      problemDurationSec: sumDuration(problemDocs),
-      problemAveragePercent:
-        totalProblemMax > 0
-          ? Number(((totalProblemScore / totalProblemMax) * 100).toFixed(1))
-          : null,
       lessonsCompleted: lessonDocs.filter((d) => Boolean(d.completed)).length,
       lessonsTouched: lessonDocs.length,
     },
@@ -208,21 +177,6 @@ export const userAnalyticsDetailHandler: PayloadHandler = async (req) => {
       quizTitle:
         typeof d.quiz === 'object' && d.quiz !== null && 'title' in (d.quiz as { title?: unknown })
           ? (d.quiz as { title?: string }).title ?? null
-          : null,
-      score: d.score ?? null,
-      maxScore: d.maxScore ?? null,
-      durationSec: d.durationSec ?? null,
-      startedAt: d.startedAt ?? null,
-      completedAt: d.completedAt ?? null,
-    })),
-    problemAttempts: problemDocs.slice(0, 100).map((d) => ({
-      id: d.id,
-      problemSetId: getId(d.problemSet),
-      problemSetTitle:
-        typeof d.problemSet === 'object' &&
-        d.problemSet !== null &&
-        'title' in (d.problemSet as { title?: unknown })
-          ? (d.problemSet as { title?: string }).title ?? null
           : null,
       score: d.score ?? null,
       maxScore: d.maxScore ?? null,

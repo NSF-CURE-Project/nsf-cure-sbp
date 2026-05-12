@@ -65,9 +65,6 @@ function runChecks(title: string, blocks: ScaffoldBlock[]): ValidationCheck[] {
     if (block.blockType === 'quizBlock' && block.quiz == null) {
       blockProblems.push(`${pos} has no quiz attached`)
     }
-    if (block.blockType === 'problemSetBlock' && block.problemSet == null) {
-      blockProblems.push(`${pos} has no problem set attached`)
-    }
     if (block.blockType === 'stepsList') {
       const steps = block.steps ?? []
       for (const [si, step] of steps.entries()) {
@@ -91,18 +88,14 @@ function runChecks(title: string, blocks: ScaffoldBlock[]): ValidationCheck[] {
   }
 
   // Quiz coverage is a recommendation, not a blocker.
-  const hasQuiz = blocks.some(
-    (b) =>
-      (b.blockType === 'quizBlock' && b.quiz != null) ||
-      (b.blockType === 'problemSetBlock' && b.problemSet != null),
-  )
+  const hasQuiz = blocks.some((b) => b.blockType === 'quizBlock' && b.quiz != null)
   checks.push({
     id: 'quiz',
-    label: hasQuiz ? 'Has quiz or problem set' : 'No quiz or problem set attached',
+    label: hasQuiz ? 'Has a quiz attached' : 'No quiz attached',
     status: hasQuiz ? 'ok' : 'warn',
     detail: hasQuiz
       ? undefined
-      : 'Lessons without quizzes/problem sets can still publish, but students get no comprehension check.',
+      : 'Lessons without a quiz can still publish, but students get no comprehension check.',
   })
 
   return checks
@@ -160,7 +153,6 @@ function estimateMinutes(title: string, blocks: ScaffoldBlock[]): number {
           )
         break
       case 'quizBlock':
-      case 'problemSetBlock':
         words += countString(block.title) + 60 // assume one-minute interaction
         break
       case '__passthrough':
@@ -204,11 +196,7 @@ export default function PublishReviewModal({
   const readMinutes = useMemo(() => estimateMinutes(title, blocks), [title, blocks])
   const quizCount = useMemo(
     () =>
-      blocks.filter(
-        (b) =>
-          (b.blockType === 'quizBlock' && b.quiz != null) ||
-          (b.blockType === 'problemSetBlock' && b.problemSet != null),
-      ).length,
+      blocks.filter((b) => b.blockType === 'quizBlock' && b.quiz != null).length,
     [blocks],
   )
   const errorCount = checks.filter((c) => c.status === 'error').length
@@ -739,8 +727,7 @@ export default function PublishReviewModal({
               </span>
               <span aria-hidden>•</span>
               <span>
-                <strong>{quizCount}</strong> quiz/problem set
-                {quizCount === 1 ? '' : 's'}
+                <strong>{quizCount}</strong> quiz{quizCount === 1 ? '' : 'zes'}
               </span>
               <span aria-hidden>•</span>
               <span>

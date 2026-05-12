@@ -64,7 +64,7 @@ export default function SortableLessonRow({
   // prematurely. Use the same sortable hook but disable dragging while staged.
   const sortable = useSortable({
     id: `lesson:${lesson.id}`,
-    disabled: isStaged,
+    disabled: isStaged || !reorderMode,
     data: {
       type: 'lesson',
       lessonId: lesson.id,
@@ -153,13 +153,15 @@ export default function SortableLessonRow({
       data-reorder={reorderMode || undefined}
     >
       <DropIndicator visible={isDropTarget} />
-      <div className="cw-lesson__handle">
-        <DragHandle
-          label={`Reorder lesson ${lesson.title}`}
-          listeners={sortable.listeners as Record<string, unknown>}
-          attributes={sortable.attributes as unknown as Record<string, unknown>}
-        />
-      </div>
+      {reorderMode ? (
+        <div className="cw-lesson__handle">
+          <DragHandle
+            label={`Reorder lesson ${lesson.title}`}
+            listeners={sortable.listeners as Record<string, unknown>}
+            attributes={sortable.attributes as unknown as Record<string, unknown>}
+          />
+        </div>
+      ) : null}
       {isStaged ? (
         <button
           type="button"

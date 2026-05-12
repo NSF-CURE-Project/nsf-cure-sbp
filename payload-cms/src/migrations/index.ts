@@ -38,6 +38,7 @@ import * as migration_20260506_180000_add_pre_post_assessments from './20260506_
 import * as migration_20260506_200000_add_saved_views from './20260506_200000_add_saved_views'
 import * as migration_20260507_010000_add_locked_documents_rels_columns from './20260507_010000_add_locked_documents_rels_columns'
 import * as migration_20260512_120000_drop_engineering_figures from './20260512_120000_drop_engineering_figures'
+import * as migration_20260512_130000_drop_problem_sets from './20260512_130000_drop_problem_sets'
 
 export const migrations = [
   {
@@ -239,5 +240,10 @@ export const migrations = [
     up: migration_20260512_120000_drop_engineering_figures.up,
     down: migration_20260512_120000_drop_engineering_figures.down,
     name: '20260512_120000_drop_engineering_figures',
+  },
+  {
+    up: migration_20260512_130000_drop_problem_sets.up,
+    down: migration_20260512_130000_drop_problem_sets.down,
+    name: '20260512_130000_drop_problem_sets',
   },
 ]

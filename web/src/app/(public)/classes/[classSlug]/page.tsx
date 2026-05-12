@@ -3,6 +3,7 @@ import { getClassBySlug } from "@/lib/payloadSdk/classes";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 import type { ChapterDoc, LessonDoc } from "@/lib/payloadSdk/types";
+import { BookOpen, Clock, Layers } from "lucide-react";
 import { ClassProgressSummary } from "@/components/progress/ClassProgressSummary";
 import { ClassChapterBrowser } from "@/components/classes/ClassChapterBrowser";
 
@@ -126,9 +127,6 @@ export default async function ClassPage(props: {
           const hasQuizBlock = layout.some(
             (block) => block.blockType === "quizBlock"
           );
-          const hasProblemBlock = layout.some(
-            (block) => block.blockType === "problemSetBlock"
-          );
           const hasVideoBlock = layout.some(
             (block) => block.blockType === "videoBlock"
           );
@@ -137,21 +135,83 @@ export default async function ClassPage(props: {
             slug: lesson.slug ?? "",
             title: cleanTitle(lesson.title, "Untitled lesson"),
             hasQuiz: hasQuizBlock || Boolean(lesson.assessment?.quiz),
-            hasProblemSet: hasProblemBlock,
             hasVideo: hasVideoBlock,
           };
         }),
     };
   });
 
+  const lessonTimeSum = chapterCards.reduce((sum, chapter) => {
+    return (
+      sum +
+      chapter.lessons.reduce((chapterSum, lesson) => {
+        if (lesson.hasQuiz) return chapterSum + 12;
+        if (lesson.hasVideo) return chapterSum + 10;
+        return chapterSum + 8;
+      }, 0)
+    );
+  }, 0);
+
+  const formatTotalTime = (mins: number) => {
+    if (mins <= 0) return "—";
+    if (mins < 60) return `~${mins} min`;
+    const hours = Math.floor(mins / 60);
+    const remainder = mins % 60;
+    if (remainder === 0) return `~${hours}h`;
+    return `~${hours}h ${remainder}m`;
+  };
+
   return (
     <main className="min-w-0 overflow-x-hidden">
       <div className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 sm:px-6 lg:px-8 py-6">
         <article className="space-y-8">
           <div>
-            <h1 className="text-3xl font-bold">{c.title}</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              Course
+            </p>
+            <h1 className="mt-1 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              {c.title}
+            </h1>
             {c.description ? (
-              <p className="mt-2 text-muted-foreground">{c.description}</p>
+              <p className="mt-2 max-w-3xl text-muted-foreground">
+                {c.description}
+              </p>
+            ) : null}
+            {chapters.length > 0 ? (
+              <dl className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                <div className="inline-flex items-center gap-2 text-muted-foreground">
+                  <Layers className="h-4 w-4 text-primary/70" />
+                  <dt className="sr-only">Chapters</dt>
+                  <dd>
+                    <span className="font-semibold tabular-nums text-foreground">
+                      {chapters.length}
+                    </span>{" "}
+                    {chapters.length === 1 ? "chapter" : "chapters"}
+                  </dd>
+                </div>
+                <div className="inline-flex items-center gap-2 text-muted-foreground">
+                  <BookOpen className="h-4 w-4 text-primary/70" />
+                  <dt className="sr-only">Lessons</dt>
+                  <dd>
+                    <span className="font-semibold tabular-nums text-foreground">
+                      {totalLessons}
+                    </span>{" "}
+                    {totalLessons === 1 ? "lesson" : "lessons"}
+                  </dd>
+                </div>
+                {lessonTimeSum > 0 ? (
+                  <div className="inline-flex items-center gap-2 text-muted-foreground">
+                    <Clock className="h-4 w-4 text-primary/70" />
+                    <dt className="sr-only">Estimated time</dt>
+                    <dd>
+                      <span className="font-semibold tabular-nums text-foreground">
+                        {formatTotalTime(lessonTimeSum)}
+                      </span>{" "}
+                      total
+                    </dd>
+                  </div>
+                ) : null}
+              </dl>
             ) : null}
             <ClassProgressSummary
               classId={c.id}

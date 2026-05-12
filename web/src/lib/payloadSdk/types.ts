@@ -223,127 +223,6 @@ export type QuizBlock = {
   timeLimitSec?: number | null;
 };
 
-export type ProblemPart = {
-  id?: string;
-  label: string;
-  prompt?: unknown;
-  unit?: string;
-  partType?: "numeric" | "symbolic";
-  correctAnswer?: number;
-  correctAnswerExpression?: string;
-  tolerance?: number;
-  toleranceType?: "absolute" | "relative";
-  significantFigures?: number | null;
-  scoringMode?: "threshold" | "linear-decay" | "stepped";
-  scoringSteps?: { id?: string; errorBound: number; score: number }[];
-  symbolicAnswer?: string;
-  symbolicVariables?: {
-    id?: string;
-    variable: string;
-    testMin?: number;
-    testMax?: number;
-  }[];
-  symbolicTolerance?: number;
-  explanation?: unknown;
-};
-
-export type ProblemResultPlotSegment = {
-  id?: string;
-  xStart: string;
-  xEnd: string;
-  formula: string;
-};
-
-export type ProblemResultPlotCriticalPoint = {
-  id?: string;
-  x: string;
-  label?: string;
-};
-
-export type ProblemResultPlot = {
-  id?: string;
-  plotType: "shear" | "moment" | "deflection" | "custom";
-  title?: string;
-  xLabel?: string;
-  yLabel?: string;
-  xMin?: number;
-  xMax?: string;
-  segments?: ProblemResultPlotSegment[];
-  criticalPoints?: ProblemResultPlotCriticalPoint[];
-};
-
-export type ProblemVariantValue = {
-  key: string;
-  label: string;
-  unit?: string | null;
-  value: number;
-};
-
-export type ProblemDoc = {
-  id: string | number;
-  title?: string;
-  prompt?: unknown;
-  difficulty?: "intro" | "easy" | "medium" | "hard" | string;
-  topic?: string;
-  tags?: string[];
-  variant?: {
-    seed: string;
-    signature: string;
-    parameters: ProblemVariantValue[];
-    derived: ProblemVariantValue[];
-  };
-  parts?: ProblemPart[];
-};
-
-export type ProblemSetDoc = {
-  id: string | number;
-  title?: string;
-  description?: string;
-  problems?: (ProblemDoc | string | number)[];
-  showAnswers?: boolean;
-  maxAttempts?: number | null;
-  shuffleProblems?: boolean;
-};
-
-export type ProblemAttemptPartAnswer = {
-  id?: string;
-  partIndex: number;
-  studentAnswer?: number | null;
-  studentExpression?: string | null;
-  isCorrect?: boolean;
-  score?: number;
-};
-
-export type ProblemAttemptAnswer = {
-  id?: string;
-  problem: ProblemDoc | string | number;
-  parts?: ProblemAttemptPartAnswer[];
-};
-
-export type ProblemAttemptDoc = {
-  id: string | number;
-  problemSet: ProblemSetDoc | string | number;
-  lesson?: LessonDoc | string | number;
-  user?: string | number | { id?: string | number };
-  startedAt?: string;
-  completedAt?: string;
-  durationSec?: number | null;
-  answers?: ProblemAttemptAnswer[];
-  score?: number | null;
-  maxScore?: number | null;
-  correctCount?: number | null;
-};
-
-export type ProblemSetBlock = {
-  id?: string;
-  blockType: "problemSetBlock";
-  title?: string;
-  problemSet?: ProblemSetDoc | string | number;
-  showTitle?: boolean;
-  maxAttempts?: number | null;
-  showAnswers?: boolean;
-};
-
 export type PageLayoutBlock =
   | HeroBlock
   | SectionTitleBlock
@@ -357,7 +236,6 @@ export type PageLayoutBlock =
   | ButtonBlock
   | ResourcesListBlock
   | ContactsListBlock
-  | QuizBlock
-  | ProblemSetBlock;
+  | QuizBlock;
 
 export type LessonBlock = PageLayoutBlock;

@@ -24,7 +24,6 @@ type DataTransparencyShellProps = {
     counts: {
       lessonsCompleted: number;
       quizAttempts: number;
-      problemAttempts: number;
     };
   };
 };
@@ -88,7 +87,6 @@ export function DataTransparencyShell({ data }: DataTransparencyShellProps) {
           <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
             <div>Lessons completed: {data.counts.lessonsCompleted}</div>
             <div>Quiz attempts: {data.counts.quizAttempts}</div>
-            <div>Problem attempts: {data.counts.problemAttempts}</div>
             <div>Current streak: {data.activity.currentStreak}</div>
             <div>Longest streak: {data.activity.longestStreak}</div>
           </div>

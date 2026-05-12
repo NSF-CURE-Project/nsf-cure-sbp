@@ -39,7 +39,6 @@ const blockTypeOrder: AuthorableBlockTypeSlug[] = [
   'listBlock',
   'stepsList',
   'quizBlock',
-  'problemSetBlock',
 ]
 
 // Hover-revealed insertion point between blocks. When the user clicks, the

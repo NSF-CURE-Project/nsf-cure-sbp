@@ -87,15 +87,6 @@ export type QuizBlockData = {
   timeLimitSec?: number | null
 }
 
-export type ProblemSetBlockData = {
-  blockType: 'problemSetBlock'
-  title?: string
-  problemSet: string | number | null
-  showTitle?: boolean
-  showAnswers?: boolean
-  maxAttempts?: number | null
-}
-
 // Opaque carrier for block types the custom editor doesn't (yet) know how to
 // render. On hydrate we stash the raw record here; on serialize we expand it
 // back to its original shape. The discriminator `__passthrough` is what makes
@@ -115,7 +106,6 @@ export type ScaffoldBlockData =
   | TextSectionData
   | RichTextBlockData
   | QuizBlockData
-  | ProblemSetBlockData
   | PassthroughBlockData
 
 // In-memory block: a Stage-1 block payload plus a stable client-side key
@@ -138,7 +128,6 @@ export const BLOCK_TYPE_LABELS: Record<BlockTypeSlug, string> = {
   textSection: 'Text section',
   richTextBlock: 'Rich text',
   quizBlock: 'Quiz',
-  problemSetBlock: 'Problem set',
   __passthrough: 'Unsupported',
 }
 
@@ -173,14 +162,6 @@ export const emptyBlockFor = (type: AuthorableBlockTypeSlug): ScaffoldBlock => {
         showTitle: true,
         showAnswers: true,
       }
-    case 'problemSetBlock':
-      return {
-        _key: newKey(),
-        blockType: 'problemSetBlock',
-        problemSet: null,
-        showTitle: true,
-        showAnswers: true,
-      }
   }
 }
 
@@ -206,9 +187,6 @@ export const toPersistedLayout = (blocks: ScaffoldBlock[]): Record<string, unkno
     }
     if (rest.blockType === 'quizBlock') {
       return { ...rest, quiz: toRelId(rest.quiz) }
-    }
-    if (rest.blockType === 'problemSetBlock') {
-      return { ...rest, problemSet: toRelId(rest.problemSet) }
     }
     if (rest.blockType === 'videoBlock' && rest.video != null) {
       return { ...rest, video: toRelId(rest.video) }
@@ -359,17 +337,6 @@ export const fromPersistedLayout = (
           showAnswers: asBoolean(block.showAnswers, true),
           maxAttempts: asNumberOrNull(block.maxAttempts),
           timeLimitSec: asNumberOrNull(block.timeLimitSec),
-        })
-        break
-      case 'problemSetBlock':
-        out.push({
-          _key: newKey(),
-          blockType: 'problemSetBlock',
-          title: asOptionalString(block.title),
-          problemSet: extractRelId(block.problemSet),
-          showTitle: asBoolean(block.showTitle, true),
-          showAnswers: asBoolean(block.showAnswers, true),
-          maxAttempts: asNumberOrNull(block.maxAttempts),
         })
         break
       // Unknown block type — keep as opaque passthrough so we don't lose

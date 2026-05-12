@@ -22,6 +22,7 @@ import type { ChapterNode, CourseNode, DragMeta, EntityId, LessonNode, SaveStatu
 import SortableChapterRow from './SortableChapterRow'
 import EmptyChapterState from './EmptyChapterState'
 import SaveStatusIndicator from './SaveStatusIndicator'
+import ConfirmDialog from './ConfirmDialog'
 import EntityInspector, { type Selection } from './EntityInspector'
 import LessonAssignmentDrawer from './LessonAssignmentDrawer'
 import QuizAssignmentDrawer from './QuizAssignmentDrawer'
@@ -118,6 +119,11 @@ export default function CourseOutlineBoard({
   >(null)
   const [attachLessonChapterId, setAttachLessonChapterId] = useState<EntityId | null>(null)
   const [quizAssignLessonId, setQuizAssignLessonId] = useState<EntityId | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<
+    | { kind: 'lesson'; lesson: LessonNode }
+    | { kind: 'chapter'; chapter: ChapterNode }
+    | null
+  >(null)
   // Inline chapter create — replaces the legacy Link to the now-hidden
   // /admin/collections/chapters/create route. Press the toolbar button to
   // expand a title input; Enter commits via createChapterInCourse and keeps
@@ -387,13 +393,10 @@ export default function CourseOutlineBoard({
 
     if (deletingLessonId) return
 
-    if (typeof window !== 'undefined') {
-      const confirmed = window.confirm(
-        `Delete "${lesson.title}"? This removes the lesson from the chapter and cannot be undone.`,
-      )
-      if (!confirmed) return
-    }
+    setPendingDelete({ kind: 'lesson', lesson })
+  }
 
+  const performDeleteLesson = async (lesson: LessonNode) => {
     setDeleteError(null)
     setDeletingLessonId(lesson.id)
 
@@ -411,8 +414,10 @@ export default function CourseOutlineBoard({
       setCourses(next)
       committedRef.current = next
       router.refresh()
+      setPendingDelete(null)
     } catch (_error) {
       setDeleteError(`Unable to delete "${lesson.title}".`)
+      setPendingDelete(null)
     } finally {
       setDeletingLessonId(null)
     }
@@ -471,11 +476,10 @@ export default function CourseOutlineBoard({
       return
     }
 
-    if (typeof window !== 'undefined') {
-      const confirmed = window.confirm(`Delete chapter "${chapter.title}"? This cannot be undone.`)
-      if (!confirmed) return
-    }
+    setPendingDelete({ kind: 'chapter', chapter })
+  }
 
+  const performDeleteChapter = async (chapter: ChapterNode) => {
     setDeleteError(null)
     setDeletingChapterId(chapter.id)
 
@@ -490,8 +494,10 @@ export default function CourseOutlineBoard({
       setCourses(next)
       committedRef.current = next
       router.refresh()
+      setPendingDelete(null)
     } catch (_error) {
       setDeleteError(`Unable to delete chapter "${chapter.title}".`)
+      setPendingDelete(null)
     } finally {
       setDeletingChapterId(null)
     }
@@ -925,6 +931,56 @@ export default function CourseOutlineBoard({
           (selectedKey?.type === 'chapter' && deletingChapterId === selectedKey.id) ||
           (selectedKey?.type === 'lesson' && deletingLessonId === selectedKey.id)
         }
+      />
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        destructive
+        busy={
+          pendingDelete?.kind === 'lesson'
+            ? deletingLessonId === pendingDelete.lesson.id
+            : pendingDelete?.kind === 'chapter'
+              ? deletingChapterId === pendingDelete.chapter.id
+              : false
+        }
+        title={
+          pendingDelete?.kind === 'lesson'
+            ? `Delete "${pendingDelete.lesson.title}"?`
+            : pendingDelete?.kind === 'chapter'
+              ? `Delete chapter "${pendingDelete.chapter.title}"?`
+              : 'Confirm delete'
+        }
+        message={
+          pendingDelete?.kind === 'lesson'
+            ? 'This removes the lesson from the chapter and cannot be undone.'
+            : pendingDelete?.kind === 'chapter'
+              ? 'This permanently deletes the chapter. This action cannot be undone.'
+              : ''
+        }
+        confirmLabel="Delete"
+        onCancel={() => {
+          if (
+            pendingDelete?.kind === 'lesson' &&
+            deletingLessonId === pendingDelete.lesson.id
+          ) {
+            return
+          }
+          if (
+            pendingDelete?.kind === 'chapter' &&
+            deletingChapterId === pendingDelete.chapter.id
+          ) {
+            return
+          }
+          setPendingDelete(null)
+        }}
+        onConfirm={() => {
+          if (!pendingDelete) return
+          if (pendingDelete.kind === 'lesson') {
+            void performDeleteLesson(pendingDelete.lesson)
+          } else {
+            void performDeleteChapter(pendingDelete.chapter)
+          }
+        }}
       />
 
       {reorderMode ? (

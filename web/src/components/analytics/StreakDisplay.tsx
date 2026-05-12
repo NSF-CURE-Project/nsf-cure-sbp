@@ -2,7 +2,6 @@ type RecentActivityEntry = {
   date: string;
   lessonsCompleted: number;
   quizzesTaken: number;
-  problemSetsTaken: number;
 };
 
 type StreakDisplayProps = {
@@ -20,14 +19,12 @@ export function StreakDisplay({ activity }: StreakDisplayProps) {
     const key = toKey(day);
     const entry = activityMap.get(key);
     const total =
-      (entry?.lessonsCompleted ?? 0) +
-      (entry?.quizzesTaken ?? 0) +
-      (entry?.problemSetsTaken ?? 0);
+      (entry?.lessonsCompleted ?? 0) + (entry?.quizzesTaken ?? 0);
     return {
       key,
       total,
       title: entry
-        ? `${key}: ${entry.lessonsCompleted} lessons, ${entry.quizzesTaken} quizzes, ${entry.problemSetsTaken} problem sets`
+        ? `${key}: ${entry.lessonsCompleted} lessons, ${entry.quizzesTaken} quizzes`
         : `${key}: no activity`,
     };
   });

@@ -33,10 +33,6 @@ function previewText(block: ScaffoldBlock): string {
     }
     case 'quizBlock':
       return block.quiz != null ? `Quiz #${block.quiz}` : 'Quiz — not selected'
-    case 'problemSetBlock':
-      return block.problemSet != null
-        ? `Problem set #${block.problemSet}`
-        : 'Problem set — not selected'
     case '__passthrough':
       return (block.data.blockType as string) ?? 'Unsupported block'
   }

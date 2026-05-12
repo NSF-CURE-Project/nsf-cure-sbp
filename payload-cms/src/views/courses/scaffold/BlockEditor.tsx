@@ -10,7 +10,6 @@ import type {
 } from './types'
 import LexicalRichTextEditor from './LexicalRichTextEditor'
 import QuizPicker from './QuizPicker'
-import ProblemSetPicker from './ProblemSetPicker'
 import MediaPicker from './MediaPicker'
 
 // view='canvas'    → editable content stream (titles, rich text, items —
@@ -368,74 +367,6 @@ export default function BlockEditor({ block, view, onChange }: BlockEditorProps)
             placeholder="Write the rich text content…"
           />
         </div>
-      )
-    }
-
-    case 'problemSetBlock': {
-      if (view === 'inspector') {
-        return (
-          <div className="grid gap-3">
-            <div className="grid gap-1">
-              <span className={labelCls}>Problem set *</span>
-              <ProblemSetPicker
-                value={block.problemSet ?? null}
-                onChange={(problemSet) => onChange(patchBlock(block, { problemSet }))}
-              />
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={block.showTitle ?? true}
-                  onChange={(event) =>
-                    onChange(patchBlock(block, { showTitle: event.target.checked }))
-                  }
-                />
-                Show title
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={block.showAnswers ?? true}
-                  onChange={(event) =>
-                    onChange(patchBlock(block, { showAnswers: event.target.checked }))
-                  }
-                />
-                Show answers
-              </label>
-            </div>
-            <label className="grid gap-1">
-              <span className={labelCls}>Max attempts</span>
-              <input
-                type="number"
-                min={0}
-                value={block.maxAttempts ?? ''}
-                onChange={(event) => {
-                  const raw = event.target.value
-                  onChange(
-                    patchBlock(block, {
-                      maxAttempts: raw === '' ? null : Number(raw),
-                    }),
-                  )
-                }}
-                placeholder="Unlimited"
-                className={inputCls}
-              />
-            </label>
-          </div>
-        )
-      }
-      return (
-        <label className="grid gap-1">
-          <span className={labelCls}>Title</span>
-          <input
-            type="text"
-            value={block.title ?? ''}
-            onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
-            placeholder="Optional override of the problem set title"
-            className={inputCls}
-          />
-        </label>
       )
     }
 

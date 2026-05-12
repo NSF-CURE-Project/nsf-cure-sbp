@@ -1,4 +1,4 @@
-import type { Block, CollectionConfig, PayloadRequest } from 'payload'
+import type { CollectionConfig, PayloadRequest } from 'payload'
 import { lessonBlocks } from '../blocks/pageBlocks'
 import { canReceiveNotification } from '../utils/notificationPreferences'
 import { ensureUniqueSlug, slugify } from '../utils/slug'
@@ -85,36 +85,6 @@ const buildLegacyAssessmentQuizBlock = (assessment: LegacyAssessment): QuizLayou
         ? assessment.timeLimitSec
         : (assessment.timeLimitSec ?? null),
   }
-}
-
-const problemSetBlock: Block = {
-  slug: 'problemSetBlock',
-  fields: [
-    {
-      name: 'problemSet',
-      type: 'relationship',
-      relationTo: 'problem-sets',
-      required: true,
-    },
-    {
-      name: 'title',
-      type: 'text',
-    },
-    {
-      name: 'showTitle',
-      type: 'checkbox',
-      defaultValue: true,
-    },
-    {
-      name: 'maxAttempts',
-      type: 'number',
-    },
-    {
-      name: 'showAnswers',
-      type: 'checkbox',
-      defaultValue: true,
-    },
-  ],
 }
 
 export const Lessons: CollectionConfig = {
@@ -588,7 +558,7 @@ export const Lessons: CollectionConfig = {
                 singular: 'Section',
                 plural: 'Sections',
               },
-              blocks: [...lessonBlocks, problemSetBlock],
+              blocks: lessonBlocks,
               admin: {
                 description: 'Build the lesson by adding and reordering content blocks.',
               },

@@ -38,6 +38,25 @@ export default async function LessonPage({ params, searchParams }: PageProps) {
                 : lessonSlug,
             hrefPrefix: `/classes/${classSlug}/lessons`,
           }}
+          breadcrumb={{
+            classTitle:
+              typeof resolved.class.title === "string"
+                ? resolved.class.title
+                : null,
+            classSlug,
+            chapterTitle:
+              typeof resolved.chapter.title === "string"
+                ? resolved.chapter.title
+                : null,
+            chapterSlug:
+              typeof resolved.chapter.slug === "string"
+                ? resolved.chapter.slug
+                : null,
+            chapterNumber:
+              typeof resolved.chapter.chapterNumber === "number"
+                ? resolved.chapter.chapterNumber
+                : null,
+          }}
         />
       </div>
     </main>

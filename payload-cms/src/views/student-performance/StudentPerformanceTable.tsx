@@ -33,7 +33,7 @@ const StudentTableRow = ({
   publishedLessonCount: number
 }) => {
   const status = getStudentStatus(student)
-  const totalAttempts = student.quizAttempts + student.problemAttempts
+  const totalAttempts = student.quizAttempts
 
   return (
     <tr style={{ borderTop: rowBorder }}>
@@ -68,7 +68,6 @@ const StudentTableRow = ({
             {formatPercent(student.overallAverage, 'No scores yet')}
           </div>
           <div style={emptyFieldStyle}>{metricText(student.quizAverage, 'Quiz avg')}</div>
-          <div style={emptyFieldStyle}>{metricText(student.problemAverage, 'Problem avg')}</div>
           <div style={emptyFieldStyle}>
             {student.overallStdDev == null
               ? 'Consistency unavailable'
@@ -90,7 +89,7 @@ const StudentTableRow = ({
             {totalAttempts > 0 ? `${totalAttempts} total attempts` : 'No attempts yet'}
           </div>
           <div style={emptyFieldStyle}>
-            {student.quizAttempts} quizzes, {student.problemAttempts} problem sets
+            {student.quizAttempts} quiz{student.quizAttempts === 1 ? '' : 'zes'} taken
           </div>
           <div style={emptyFieldStyle}>
             Streak {student.currentStreak} current, {student.longestStreak} best

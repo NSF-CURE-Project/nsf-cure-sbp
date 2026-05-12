@@ -553,40 +553,6 @@ export const uploadMedia = async (file: File): Promise<MediaSearchResult> => {
   return mediaResultFromDoc(json.doc)
 }
 
-export type ProblemSetSearchResult = {
-  id: EntityId
-  title: string
-  status: string | null
-  updatedAt: string | null
-}
-
-export const searchProblemSets = async (
-  query: string,
-  limit = 25,
-): Promise<ProblemSetSearchResult[]> => {
-  const params = new URLSearchParams()
-  params.set('depth', '0')
-  params.set('limit', String(limit))
-  params.set('sort', '-updatedAt')
-  if (query.trim()) {
-    params.set('where[title][like]', query.trim())
-  }
-  const json = await get<{
-    docs?: {
-      id: string | number
-      title?: string
-      _status?: string
-      updatedAt?: string
-    }[]
-  }>(`/api/problem-sets?${params.toString()}`)
-  return (json.docs ?? []).map((doc) => ({
-    id: String(doc.id),
-    title: doc.title ?? 'Untitled problem set',
-    status: doc._status ?? null,
-    updatedAt: doc.updatedAt ?? null,
-  }))
-}
-
 export const searchQuizzes = async (
   query: string,
   limit = 25,

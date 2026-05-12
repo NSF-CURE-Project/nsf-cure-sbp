@@ -8,13 +8,8 @@ const chartHeight = 200
 const chartWidth = 720
 const chartPadding = { top: 18, right: 18, bottom: 28, left: 28 }
 
-const averagePointScore = (point: StudentPerformancePayload['weeklyTrend'][number]) => {
-  const values = [point.averageQuizScore, point.averageProblemScore].filter(
-    (value): value is number => value != null,
-  )
-  if (!values.length) return null
-  return values.reduce((sum, value) => sum + value, 0) / values.length
-}
+const averagePointScore = (point: StudentPerformancePayload['weeklyTrend'][number]) =>
+  point.averageQuizScore ?? null
 
 export const TrendChart = ({
   data,

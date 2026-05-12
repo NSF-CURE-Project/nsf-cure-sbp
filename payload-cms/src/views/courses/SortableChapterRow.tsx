@@ -74,6 +74,7 @@ export default function SortableChapterRow({
 }: SortableChapterRowProps) {
   const sortable = useSortable({
     id: `chapter:${chapter.id}`,
+    disabled: !reorderMode,
     data: {
       type: 'chapter',
       courseId,
@@ -136,13 +137,15 @@ export default function SortableChapterRow({
       <DropIndicator visible={chapterDropTargetId === chapter.id} />
 
       <header className="cw-chapter__header">
-        <div className="cw-chapter__handle">
-          <DragHandle
-            label={`Reorder chapter ${chapter.title}`}
-            listeners={sortable.listeners as Record<string, unknown>}
-            attributes={sortable.attributes as unknown as Record<string, unknown>}
-          />
-        </div>
+        {reorderMode ? (
+          <div className="cw-chapter__handle">
+            <DragHandle
+              label={`Reorder chapter ${chapter.title}`}
+              listeners={sortable.listeners as Record<string, unknown>}
+              attributes={sortable.attributes as unknown as Record<string, unknown>}
+            />
+          </div>
+        ) : null}
         <button
           type="button"
           onClick={toggleCollapsed}

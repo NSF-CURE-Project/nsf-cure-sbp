@@ -11,16 +11,10 @@ type AnalyticsPayload = {
     scorePercent: number;
     attemptId: string;
   }[];
-  problemScoreHistory: {
-    date: string | null;
-    scorePercent: number;
-    attemptId: string;
-  }[];
   recentActivity: {
     date: string;
     lessonsCompleted: number;
     quizzesTaken: number;
-    problemSetsTaken: number;
   }[];
   currentStreak: number;
   longestStreak: number;
@@ -90,10 +84,7 @@ export function AnalyticsDashboardShell({ data }: AnalyticsDashboardShellProps) 
           </div>
         </section>
 
-        <div className="grid gap-4 lg:grid-cols-2">
-          <ScoreHistoryTable title="Quiz Scores" items={data.quizScoreHistory} />
-          <ScoreHistoryTable title="Problem Set Scores" items={data.problemScoreHistory} />
-        </div>
+        <ScoreHistoryTable title="Quiz Scores" items={data.quizScoreHistory} />
 
         <StreakDisplay activity={data.recentActivity} />
 
