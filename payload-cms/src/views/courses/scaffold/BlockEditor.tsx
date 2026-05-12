@@ -480,11 +480,11 @@ export default function BlockEditor({ block, onChange }: BlockEditorProps) {
       return (
         <div className="grid gap-1 rounded-md border border-dashed border-amber-400 bg-amber-50/40 p-2 text-xs text-amber-900">
           <div>
-            Block type <code className="font-mono">{innerType}</code> isn't editable in the custom
-            editor yet. Its content will be preserved exactly as-is when you save.
+            Block type <code className="font-mono">{innerType}</code> isn&apos;t editable in the
+            custom editor yet. Its content will be preserved exactly as-is when you save.
           </div>
           <div className="text-[10px] text-amber-900/70">
-            To change it, save first, then open this lesson in Payload's edit view.
+            To change it, save first, then open this lesson in Payload&apos;s edit view.
           </div>
         </div>
       )

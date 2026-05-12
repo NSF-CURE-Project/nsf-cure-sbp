@@ -152,8 +152,8 @@ export default function PublishReviewModal({
             />
           ) : mode === 'edit' ? (
             <div style={{ fontSize: 12, color: 'var(--cpp-muted, #5d6b80)' }}>
-              Live preview isn't available here. Open the course workspace's Preview tab if you
-              want to confirm the rendered output before publishing.
+              Live preview isn&apos;t available here. Open the course workspace&apos;s Preview tab
+              if you want to confirm the rendered output before publishing.
             </div>
           ) : null}
         </div>
