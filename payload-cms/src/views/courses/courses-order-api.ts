@@ -337,6 +337,37 @@ export const deleteLesson = async (lessonId: EntityId) => {
   await remove(`/api/lessons/${lessonId}`)
 }
 
+// Clone a lesson into the same chapter as a fresh draft. Source layout is
+// fetched at depth=0 so the persisted shape (with raw relationship ids) round
+// -trips into the new lesson cleanly. Payload assigns new block ids on save.
+export const duplicateLesson = async (
+  lessonId: EntityId,
+  chapterId: EntityId,
+  order: number,
+): Promise<{ id: EntityId; title: string; order: number }> => {
+  const source = await get<{
+    title?: string
+    layout?: Record<string, unknown>[]
+  }>(`/api/lessons/${lessonId}?depth=0&draft=true`)
+  const baseTitle = source.title?.trim() || 'Untitled lesson'
+  const newTitle = baseTitle.endsWith(' (copy)') ? baseTitle : `${baseTitle} (copy)`
+
+  // Strip Payload's per-block `id` so the new lesson gets fresh ones rather
+  // than collision-prone duplicates.
+  const layout = (source.layout ?? []).map((block) => {
+    const { id: _ignored, ...rest } = block as { id?: unknown }
+    return rest
+  })
+
+  return createLesson(chapterId, newTitle, order, {
+    layout,
+    // Always create the duplicate as a draft regardless of the source's
+    // status — duplicating a published lesson into a published row would
+    // surprise students with an instantly-live, untitled-but-similar copy.
+    status: 'draft',
+  })
+}
+
 type LessonCreatedDoc = {
   doc?: {
     id?: string | number

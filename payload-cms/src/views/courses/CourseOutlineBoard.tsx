@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   DndContext,
@@ -36,6 +35,7 @@ import {
   createChapterInCourse,
   deleteChapter,
   deleteLesson,
+  duplicateLesson,
   getChangedChapters,
   getChangedLessons,
   saveChapterOrder,
@@ -109,6 +109,7 @@ export default function CourseOutlineBoard({
   const [chapterDropTargetId, setChapterDropTargetId] = useState<EntityId | null>(null)
   const [lessonDropTargetId, setLessonDropTargetId] = useState<EntityId | null>(null)
   const [deletingLessonId, setDeletingLessonId] = useState<EntityId | null>(null)
+  const [duplicatingLessonId, setDuplicatingLessonId] = useState<EntityId | null>(null)
   const [deletingChapterId, setDeletingChapterId] = useState<EntityId | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [reorderMode, setReorderMode] = useState(false)
@@ -200,7 +201,6 @@ export default function CourseOutlineBoard({
       })),
     )
     // committedRef intentionally NOT updated: staged lessons aren't committed.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stagedStorageKey])
 
   // Persist whatever staged lessons currently live in state. Runs on every
@@ -415,6 +415,49 @@ export default function CourseOutlineBoard({
       setDeleteError(`Unable to delete "${lesson.title}".`)
     } finally {
       setDeletingLessonId(null)
+    }
+  }
+
+  const handleDuplicateLesson = async (lesson: LessonNode) => {
+    if (duplicatingLessonId || lesson.staged) return
+    const owningChapter = course.chapters.find((chapter) =>
+      chapter.lessons.some((entry) => entry.id === lesson.id),
+    )
+    if (!owningChapter) return
+    setDuplicatingLessonId(lesson.id)
+    setDeleteError(null)
+    try {
+      const nextOrder =
+        owningChapter.lessons.reduce((max, entry) => Math.max(max, entry.order), 0) + 1
+      const created = await duplicateLesson(lesson.id, owningChapter.id, nextOrder)
+      const newLesson: LessonNode = {
+        id: created.id,
+        title: created.title,
+        order: created.order,
+        chapterId: owningChapter.id,
+        quizTitle: lesson.quizTitle ?? null,
+        status: 'draft',
+        updatedAt: new Date().toISOString(),
+      }
+      const next = normalizeCourseOrders(
+        courses.map((courseItem) => ({
+          ...courseItem,
+          chapters: courseItem.chapters.map((chapter) =>
+            chapter.id === owningChapter.id
+              ? { ...chapter, lessons: [...chapter.lessons, newLesson] }
+              : chapter,
+          ),
+        })),
+      )
+      setCourses(next)
+      committedRef.current = next
+      router.refresh()
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : `Unable to duplicate "${lesson.title}".`,
+      )
+    } finally {
+      setDuplicatingLessonId(null)
     }
   }
 
@@ -726,6 +769,7 @@ export default function CourseOutlineBoard({
                   chapterDropTargetId={chapterDropTargetId}
                   deleting={deletingChapterId === chapter.id}
                   deletingLessonId={deletingLessonId}
+                  duplicatingLessonId={duplicatingLessonId}
                   reorderMode={reorderMode}
                   isSelected={selectedKey?.type === 'chapter' && selectedKey.id === chapter.id}
                   selectedLessonId={
@@ -743,6 +787,7 @@ export default function CourseOutlineBoard({
                   onAttachLesson={(node) => setAttachLessonChapterId(node.id)}
                   onSetUpLesson={handleSetUpLesson}
                   onAssignQuiz={(lesson) => setQuizAssignLessonId(lesson.id)}
+                  onDuplicateLesson={handleDuplicateLesson}
                 />
               ))
             ) : (

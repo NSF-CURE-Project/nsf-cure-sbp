@@ -16,12 +16,14 @@ type SortableLessonRowProps = {
   index: number
   isDropTarget: boolean
   deleting: boolean
+  duplicating: boolean
   reorderMode: boolean
   isSelected: boolean
   onDelete: (lesson: LessonNode) => void
   onSelect: (lesson: LessonNode) => void
   onSetUp: (lesson: LessonNode) => void
   onAssignQuiz: (lesson: LessonNode) => void
+  onDuplicate: (lesson: LessonNode) => void
 }
 
 const formatRelativeUpdated = (iso: string | null | undefined): string | null => {
@@ -47,12 +49,14 @@ export default function SortableLessonRow({
   index,
   isDropTarget,
   deleting,
+  duplicating,
   reorderMode,
   isSelected,
   onDelete,
   onSelect,
   onSetUp,
   onAssignQuiz,
+  onDuplicate,
 }: SortableLessonRowProps) {
   const isStaged = Boolean(lesson.staged)
   // Staged lessons aren't part of the dnd-kit sortable graph — they have no
@@ -93,6 +97,13 @@ export default function SortableLessonRow({
         },
         {
           kind: 'button',
+          label: 'Duplicate lesson',
+          disabled: duplicating,
+          pendingLabel: 'Duplicating…',
+          onClick: () => onDuplicate(lesson),
+        },
+        {
+          kind: 'button',
           label: 'Delete lesson',
           destructive: true,
           disabled: deleting,
@@ -104,6 +115,35 @@ export default function SortableLessonRow({
   const status = lesson.status ?? 'published'
   const updatedLabel = formatRelativeUpdated(lesson.updatedAt)
   const hasQuiz = Boolean(lesson.quizTitle)
+
+  // Row navigation target: editing for saved lessons, set-up wizard for
+  // staged. We render the title as a Link/button so the whole row body acts
+  // as a single primary affordance; inner controls (drag handle, kebab,
+  // quiz badge) stop propagation via being separate focusable elements.
+  const titleInner = (
+    <>
+      <div className="cw-lesson__title">{lesson.title}</div>
+      <div className="cw-lesson__meta">
+        {isStaged ? (
+          <span className="cw-status cw-status--staged">Not saved yet</span>
+        ) : (
+          <span
+            className={`cw-status ${status === 'published' ? 'cw-status--ok' : 'cw-status--draft'}`}
+          >
+            {status === 'published' ? 'Published' : 'Draft'}
+          </span>
+        )}
+        {!isStaged && updatedLabel ? (
+          <>
+            <span className="cw-lesson__sep" aria-hidden>
+              •
+            </span>
+            <span>{updatedLabel}</span>
+          </>
+        ) : null}
+      </div>
+    </>
+  )
 
   return (
     <div
@@ -120,33 +160,26 @@ export default function SortableLessonRow({
           attributes={sortable.attributes as unknown as Record<string, unknown>}
         />
       </div>
-      <button
-        type="button"
-        onClick={() => (isStaged ? onSetUp(lesson) : onSelect(lesson))}
-        className="cw-lesson__titlebtn"
-        aria-pressed={isSelected}
-      >
-        <div className="cw-lesson__title">{lesson.title}</div>
-        <div className="cw-lesson__meta">
-          {isStaged ? (
-            <span className="cw-status cw-status--staged">Not saved yet</span>
-          ) : (
-            <span
-              className={`cw-status ${status === 'published' ? 'cw-status--ok' : 'cw-status--draft'}`}
-            >
-              {status === 'published' ? 'Published' : 'Draft'}
-            </span>
-          )}
-          {!isStaged && updatedLabel ? (
-            <>
-              <span className="cw-lesson__sep" aria-hidden>
-                •
-              </span>
-              <span>{updatedLabel}</span>
-            </>
-          ) : null}
-        </div>
-      </button>
+      {isStaged ? (
+        <button
+          type="button"
+          onClick={() => {
+            onSelect(lesson)
+            onSetUp(lesson)
+          }}
+          className="cw-lesson__titlebtn"
+        >
+          {titleInner}
+        </button>
+      ) : (
+        <Link
+          href={`/admin/courses/${courseId}/lessons/${lesson.id}/edit`}
+          className="cw-lesson__titlebtn cw-lesson__titlelink"
+          aria-label={`Edit lesson ${lesson.title}`}
+        >
+          {titleInner}
+        </Link>
+      )}
       {reorderMode ? null : (
         <div className="cw-lesson__actions">
           {isStaged ? (
@@ -159,33 +192,24 @@ export default function SortableLessonRow({
               Set up
             </button>
           ) : (
-            <>
-              <button
-                type="button"
-                onClick={() => onAssignQuiz(lesson)}
-                className={`cw-quiz-badge ${hasQuiz ? 'cw-quiz-badge--ok' : 'cw-quiz-badge--missing'}`}
-                aria-label={
-                  hasQuiz
-                    ? `Change quiz for lesson ${lesson.title}`
-                    : `Assign quiz to lesson ${lesson.title}`
-                }
-                title={hasQuiz ? `Quiz: ${lesson.quizTitle}` : 'No quiz assigned'}
-              >
-                <span aria-hidden className="cw-quiz-badge__glyph">
-                  {hasQuiz ? '✓' : '⚠'}
-                </span>
-                <span className="cw-quiz-badge__label">
-                  {hasQuiz ? 'Quiz attached' : 'No quiz'}
-                </span>
-              </button>
-              <Link
-                href={`/admin/courses/${courseId}/lessons/${lesson.id}/edit`}
-                className="cw-btn cw-btn--ghost cw-lesson__edit"
-                aria-label={`Edit lesson ${lesson.title}`}
-              >
-                Edit
-              </Link>
-            </>
+            <button
+              type="button"
+              onClick={() => onAssignQuiz(lesson)}
+              className={`cw-quiz-badge ${hasQuiz ? 'cw-quiz-badge--ok' : 'cw-quiz-badge--missing'}`}
+              aria-label={
+                hasQuiz
+                  ? `Change quiz for lesson ${lesson.title}`
+                  : `Assign quiz to lesson ${lesson.title}`
+              }
+              title={hasQuiz ? `Quiz: ${lesson.quizTitle}` : 'No quiz assigned'}
+            >
+              <span aria-hidden className="cw-quiz-badge__glyph">
+                {hasQuiz ? '✓' : '⚠'}
+              </span>
+              <span className="cw-quiz-badge__label">
+                {hasQuiz ? 'Quiz attached' : 'No quiz'}
+              </span>
+            </button>
           )}
           <RowOverflowMenu
             ariaLabel={`More actions for lesson ${lesson.title}`}

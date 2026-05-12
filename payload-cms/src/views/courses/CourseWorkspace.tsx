@@ -423,7 +423,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         }
         .course-workspace .cw-chapter__header {
           display: grid;
-          grid-template-columns: auto auto auto minmax(0, 1fr) auto auto;
+          grid-template-columns: auto auto auto auto minmax(0, 1fr) auto auto;
           align-items: center;
           gap: 10px;
           padding: 10px 14px;
@@ -448,6 +448,35 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         .course-workspace .cw-chapter:hover .cw-chapter__handle,
         .course-workspace .cw-chapter[data-reorder] .cw-chapter__handle {
           opacity: 1;
+        }
+        .course-workspace .cw-chapter__collapse {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
+          padding: 0;
+          margin: 0;
+          font-size: 14px;
+          color: var(--cpp-muted);
+          background: transparent;
+          border: 0;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background 140ms ease, color 140ms ease;
+        }
+        .course-workspace .cw-chapter__collapse:hover {
+          background: rgba(148, 163, 184, 0.14);
+          color: var(--cpp-ink);
+        }
+        .course-workspace .cw-chapter__collapse:focus-visible {
+          outline: 2px solid rgba(14, 165, 233, 0.45);
+          outline-offset: 1px;
+        }
+        /* Collapsed chapter: header survives, body hides. Header also drops
+         * its bottom border so the chapter card reads as a single bar. */
+        .course-workspace .cw-chapter--collapsed .cw-chapter__header {
+          border-bottom-color: transparent;
         }
         .course-workspace .cw-chapter__badge {
           display: inline-flex;
@@ -593,11 +622,18 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           text-align: left;
           cursor: pointer;
           min-width: 0;
+          color: inherit;
+          text-decoration: none;
         }
         .course-workspace .cw-lesson__titlebtn:focus-visible {
           outline: 2px solid rgba(14, 165, 233, 0.45);
           outline-offset: 4px;
           border-radius: 6px;
+        }
+        .course-workspace .cw-lesson__titlelink:hover .cw-lesson__title {
+          text-decoration: underline;
+          text-decoration-color: rgba(14, 165, 233, 0.45);
+          text-underline-offset: 3px;
         }
         .course-workspace .cw-lesson__title {
           font-size: 15px;
@@ -622,10 +658,6 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           display: flex;
           align-items: center;
           gap: 6px;
-        }
-        .course-workspace .cw-lesson__edit {
-          padding: 6px 10px;
-          font-size: 12px;
         }
 
         /* === Empty chapter card ===
