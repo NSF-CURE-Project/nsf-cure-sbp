@@ -418,13 +418,10 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           align-items: center;
           gap: 16px;
           padding: 10px 18px;
-          background: var(--admin-surface, #fff);
-          border-bottom: 1px solid var(--admin-surface-border, #d6dce5);
+          background: var(--admin-surface-elevated, #fcfdff);
+          border-bottom: 1px solid var(--admin-surface-border, #d7dfea);
+          box-shadow: var(--admin-shadow-soft);
           margin: 0 -18px 0 -18px;
-        }
-        :root[data-theme='dark'] .lse-topbar {
-          background: var(--admin-surface, #161a23);
-          border-color: var(--admin-surface-border, #2a3140);
         }
         .lse-topbar__breadcrumb {
           display: flex;
@@ -561,15 +558,12 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           max-height: calc(100vh - 96px);
           padding: 12px 12px 16px 12px;
           background: var(--admin-surface, #fff);
-          border: 1px solid var(--admin-surface-border, #d6dce5);
+          border: 1px solid var(--admin-surface-border, #d7dfea);
           border-radius: 10px;
+          box-shadow: var(--admin-shadow-soft);
           display: grid;
           grid-template-rows: auto minmax(0, 1fr);
           gap: 10px;
-        }
-        :root[data-theme='dark'] .lse-preview-pane {
-          background: var(--admin-surface, #1e2330);
-          border-color: var(--admin-surface-border, #2a3140);
         }
         .lse-preview-pane__title {
           font-size: 11px;
@@ -606,14 +600,11 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           overflow-y: auto;
           padding: 12px;
           background: var(--admin-surface, #fff);
-          border: 1px solid var(--admin-surface-border, #d6dce5);
+          border: 1px solid var(--admin-surface-border, #d7dfea);
           border-radius: 10px;
+          box-shadow: var(--admin-shadow-soft);
         }
         @media (min-width: 1024px) { .lse-outline { display: block; } }
-        :root[data-theme='dark'] .lse-outline {
-          background: var(--admin-surface, #1e2330);
-          border-color: var(--admin-surface-border, #2a3140);
-        }
         .lse-outline__title {
           font-size: 11px;
           font-weight: 700;
@@ -640,21 +631,18 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           border-radius: 6px;
           text-align: left;
           cursor: pointer;
-          transition: background 120ms ease, border-color 120ms ease;
+          transition: var(--admin-transition);
         }
         .lse-outline__item:hover {
-          background: var(--admin-surface-muted, #f5f7fa);
+          background: var(--admin-surface-muted, #f3f6fb);
         }
-        :root[data-theme='dark'] .lse-outline__item:hover {
-          background: var(--admin-surface-muted, #232938);
+        .lse-outline__item--selected,
+        .lse-outline__item--selected:hover {
+          background: var(--admin-accent-bg, #eef4ff);
+          border-color: var(--admin-accent-border, #3b82f6);
         }
-        .lse-outline__item--selected {
-          background: rgba(14, 165, 233, 0.08);
-          border-color: rgba(14, 165, 233, 0.35);
-        }
-        :root[data-theme='dark'] .lse-outline__item--selected {
-          background: rgba(56, 189, 248, 0.16);
-          border-color: rgba(56, 189, 248, 0.45);
+        .lse-outline__item--selected .lse-outline__item-summary {
+          color: var(--admin-accent-text, #1d4ed8);
         }
         .lse-outline__item-index {
           font-size: 10px;
@@ -689,14 +677,11 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           overflow-y: auto;
           padding: 14px;
           background: var(--admin-surface, #fff);
-          border: 1px solid var(--admin-surface-border, #d6dce5);
+          border: 1px solid var(--admin-surface-border, #d7dfea);
           border-radius: 10px;
+          box-shadow: var(--admin-shadow-soft);
         }
         @media (min-width: 1280px) { .lse-inspector { display: block; } }
-        :root[data-theme='dark'] .lse-inspector {
-          background: var(--admin-surface, #1e2330);
-          border-color: var(--admin-surface-border, #2a3140);
-        }
         .lse-inspector__title {
           font-size: 11px;
           font-weight: 700;
@@ -835,27 +820,19 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         }
         .lse-blocks__list { display: grid; gap: 0; }
         .lse-block {
-          border: 1px solid var(--admin-surface-border, #d6dce5);
+          border: 1px solid var(--admin-surface-border, #d7dfea);
           background: var(--admin-surface, #fff);
           border-radius: 10px;
-          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+          box-shadow: var(--admin-shadow-soft);
           overflow: hidden;
-          transition: border-color 120ms ease, box-shadow 120ms ease;
+          transition: var(--admin-transition);
         }
-        .lse-block:hover { border-color: var(--admin-surface-border-strong, #b9c2d0); }
-        .lse-block--dragging { box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12); }
-        .lse-block--selected {
-          border-color: rgba(14, 165, 233, 0.55);
-          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
-        }
-        :root[data-theme='dark'] .lse-block--selected {
-          border-color: rgba(56, 189, 248, 0.6);
-          box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
-        }
-        :root[data-theme='dark'] .lse-block {
-          background: var(--admin-surface, #1e2330);
-          border-color: var(--admin-surface-border, #2a3140);
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        .lse-block:hover { border-color: var(--admin-surface-border-strong, #c2ccda); }
+        .lse-block--dragging { box-shadow: var(--admin-shadow-deep); }
+        .lse-block--selected,
+        .lse-block--selected:hover {
+          border-color: var(--admin-accent-border, #3b82f6);
+          box-shadow: 0 0 0 3px var(--admin-accent-ring, rgba(59, 130, 246, 0.32));
         }
         .lse-block__header {
           display: grid;
@@ -863,14 +840,10 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           align-items: center;
           gap: 8px;
           padding: 8px 10px;
-          background: var(--admin-surface-muted, #f5f7fa);
-          border-bottom: 1px solid var(--admin-surface-border, #d6dce5);
+          background: var(--admin-surface-muted, #f3f6fb);
+          border-bottom: 1px solid var(--admin-surface-border, #d7dfea);
         }
         .lse-block--collapsed .lse-block__header { border-bottom-color: transparent; }
-        :root[data-theme='dark'] .lse-block__header {
-          background: var(--admin-surface-muted, #232938);
-          border-color: var(--admin-surface-border, #2a3140);
-        }
         .lse-block__handle,
         .lse-block__chevron {
           width: 22px;
