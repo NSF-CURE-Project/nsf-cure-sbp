@@ -26,6 +26,8 @@ import BlockCard from './BlockCard'
 type BlockListProps = {
   blocks: ScaffoldBlock[]
   onChange: (next: ScaffoldBlock[]) => void
+  selectedKey?: string | null
+  onSelect?: (key: string) => void
 }
 
 const blockTypeOrder: AuthorableBlockTypeSlug[] = [
@@ -109,7 +111,12 @@ function InsertionPoint({
   )
 }
 
-export default function BlockList({ blocks, onChange }: BlockListProps) {
+export default function BlockList({
+  blocks,
+  onChange,
+  selectedKey = null,
+  onSelect,
+}: BlockListProps) {
   // `openInsertion === null`     → no insertion point is open.
   // `openInsertion === <number>` → the gap at that index is showing the picker.
   // `openInsertion === 'end'`    → the bottom "+ Add block" is open.
@@ -188,6 +195,8 @@ export default function BlockList({ blocks, onChange }: BlockListProps) {
                   <BlockCard
                     block={block}
                     index={index}
+                    isSelected={selectedKey === block._key}
+                    onSelect={() => onSelect?.(block._key)}
                     onChange={(next) => updateBlock(block._key, next)}
                     onRemove={() => removeBlock(block._key)}
                   />

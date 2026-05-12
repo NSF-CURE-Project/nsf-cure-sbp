@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { BLOCK_TYPE_LABELS, type ScaffoldBlock } from './types'
@@ -46,21 +46,30 @@ type BlockCardProps = {
   block: ScaffoldBlock
   index: number
   defaultOpen?: boolean
+  isSelected: boolean
+  onSelect: () => void
   onChange: (next: ScaffoldBlock) => void
   onRemove: () => void
 }
 
-// One block in the canvas. Owns the collapse/expand state; drag handle,
-// type badge, and remove control live in the persistent header so authors
-// can reorder without expanding.
+// One block in the canvas. Header (drag handle, badge, preview, remove)
+// stays visible whether expanded or not. The expanded body now shows ONLY
+// the content fields (`view='canvas'`) — settings live in the right
+// inspector when the block is selected.
+//
+// Selection: focusing any control inside the card selects the block.
+// Clicking the header also selects. Drag/chevron interactions don't.
 export default function BlockCard({
   block,
   index,
   defaultOpen = true,
+  isSelected,
+  onSelect,
   onChange,
   onRemove,
 }: BlockCardProps) {
   const [open, setOpen] = useState(defaultOpen)
+  const cardRef = useRef<HTMLDivElement | null>(null)
   const sortable = useSortable({ id: block._key })
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(sortable.transform),
@@ -68,11 +77,34 @@ export default function BlockCard({
     opacity: sortable.isDragging ? 0.55 : 1,
   }
 
+  // Scroll selected block into view when selection lands on this card.
+  useEffect(() => {
+    if (isSelected && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  }, [isSelected])
+
+  // Refs callback that wires both dnd-kit's setNodeRef and our own.
+  const setRefs = (node: HTMLDivElement | null) => {
+    sortable.setNodeRef(node)
+    cardRef.current = node
+  }
+
   return (
     <div
-      ref={sortable.setNodeRef}
+      ref={setRefs}
       style={style}
-      className={`lse-block${sortable.isDragging ? ' lse-block--dragging' : ''}${open ? ' lse-block--open' : ' lse-block--collapsed'}`}
+      onFocusCapture={() => {
+        if (!isSelected) onSelect()
+      }}
+      className={[
+        'lse-block',
+        sortable.isDragging ? 'lse-block--dragging' : '',
+        open ? 'lse-block--open' : 'lse-block--collapsed',
+        isSelected ? 'lse-block--selected' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
       <header className="lse-block__header">
         <button
@@ -97,7 +129,10 @@ export default function BlockCard({
         <span className="lse-block__index">#{index + 1}</span>
         <button
           type="button"
-          onClick={() => setOpen((prev) => !prev)}
+          onClick={() => {
+            onSelect()
+            setOpen((prev) => !prev)
+          }}
           className="lse-block__preview"
           title={open ? 'Collapse' : 'Expand'}
         >
@@ -114,7 +149,7 @@ export default function BlockCard({
       </header>
       {open ? (
         <div className="lse-block__body">
-          <BlockEditor block={block} onChange={onChange} />
+          <BlockEditor block={block} view="canvas" onChange={onChange} />
         </div>
       ) : null}
     </div>

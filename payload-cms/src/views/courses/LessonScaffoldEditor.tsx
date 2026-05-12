@@ -8,6 +8,8 @@ import { useBreadcrumbChain } from '../admin/breadcrumbTitle'
 import BlockList from './scaffold/BlockList'
 import VersionsPanel from './scaffold/VersionsPanel'
 import PublishReviewModal from './scaffold/PublishReviewModal'
+import OutlinePanel from './scaffold/OutlinePanel'
+import InspectorPanel from './scaffold/InspectorPanel'
 import { fromPersistedLayout, type ScaffoldBlock, toPersistedLayout } from './scaffold/types'
 
 type CreateModeProps = {
@@ -245,6 +247,21 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
   // Publish gate: click "Publish" opens a review modal first; the actual
   // save fires only after the user confirms.
   const [reviewOpen, setReviewOpen] = useState(false)
+  // Currently-selected block key. Drives which block's settings the right
+  // inspector shows; nothing selected → inspector renders its empty state.
+  const [selectedBlockKey, setSelectedBlockKey] = useState<string | null>(null)
+  // Auto-deselect if the selected block was removed.
+  useEffect(() => {
+    if (selectedBlockKey && !blocks.some((b) => b._key === selectedBlockKey)) {
+      setSelectedBlockKey(null)
+    }
+  }, [blocks, selectedBlockKey])
+  const selectedBlock = selectedBlockKey
+    ? blocks.find((b) => b._key === selectedBlockKey) ?? null
+    : null
+  const updateSelectedBlock = (next: ScaffoldBlock) => {
+    setBlocks((prev) => prev.map((b) => (b._key === next._key ? next : b)))
+  }
 
   const save = async (intent: SaveIntent) => {
     const message = validate(intent)
@@ -490,18 +507,172 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         }
         :root[data-theme='dark'] .lse-btn--primary:hover { background: #cbd5e1; }
 
-        /* === Body / canvas === */
+        /* === Body / 3-column layout === */
         .lse-body {
           display: grid;
           grid-template-columns: minmax(0, 1fr);
           gap: 24px;
           padding: 16px 4px;
+          align-items: start;
+        }
+        @media (min-width: 1024px) {
+          .lse-body { grid-template-columns: 240px minmax(0, 1fr); }
         }
         @media (min-width: 1280px) {
-          /* Phase-2 hook: a sibling .lse-inspector slot will land here. */
-          .lse-body { grid-template-columns: minmax(0, 1fr); }
+          .lse-body { grid-template-columns: 240px minmax(0, 1fr) 300px; }
+        }
+        @media (min-width: 1440px) {
+          .lse-body { grid-template-columns: 260px minmax(0, 1fr) 340px; }
         }
         .lse-canvas { display: grid; gap: 18px; }
+
+        /* === Outline (left rail) === */
+        .lse-outline {
+          display: none;
+          position: sticky;
+          top: 76px; /* clears the sticky topbar */
+          align-self: start;
+          max-height: calc(100vh - 96px);
+          overflow-y: auto;
+          padding: 12px;
+          background: var(--admin-surface, #fff);
+          border: 1px solid var(--admin-surface-border, #d6dce5);
+          border-radius: 10px;
+        }
+        @media (min-width: 1024px) { .lse-outline { display: block; } }
+        :root[data-theme='dark'] .lse-outline {
+          background: var(--admin-surface, #1e2330);
+          border-color: var(--admin-surface-border, #2a3140);
+        }
+        .lse-outline__title {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: var(--cpp-muted, #5d6b80);
+          margin-bottom: 8px;
+        }
+        .lse-outline__empty {
+          font-size: 12px;
+          color: var(--cpp-muted, #5d6b80);
+          padding: 8px 6px;
+        }
+        .lse-outline__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+        .lse-outline__item {
+          display: grid;
+          grid-template-columns: 20px minmax(0, 1fr);
+          gap: 8px;
+          align-items: start;
+          width: 100%;
+          padding: 6px 8px;
+          background: transparent;
+          border: 1px solid transparent;
+          border-radius: 6px;
+          text-align: left;
+          cursor: pointer;
+          transition: background 120ms ease, border-color 120ms ease;
+        }
+        .lse-outline__item:hover {
+          background: var(--admin-surface-muted, #f5f7fa);
+        }
+        :root[data-theme='dark'] .lse-outline__item:hover {
+          background: var(--admin-surface-muted, #232938);
+        }
+        .lse-outline__item--selected {
+          background: rgba(14, 165, 233, 0.08);
+          border-color: rgba(14, 165, 233, 0.35);
+        }
+        :root[data-theme='dark'] .lse-outline__item--selected {
+          background: rgba(56, 189, 248, 0.16);
+          border-color: rgba(56, 189, 248, 0.45);
+        }
+        .lse-outline__item-index {
+          font-size: 10px;
+          font-weight: 700;
+          color: var(--cpp-muted, #5d6b80);
+          line-height: 18px;
+        }
+        .lse-outline__item-body { display: grid; gap: 1px; min-width: 0; }
+        .lse-outline__item-type {
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: var(--cpp-muted, #5d6b80);
+        }
+        .lse-outline__item-summary {
+          font-size: 12px;
+          color: var(--cpp-ink, #1b1f24);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        :root[data-theme='dark'] .lse-outline__item-summary { color: var(--cpp-ink, #e6e8eb); }
+
+        /* === Inspector (right rail) === */
+        .lse-inspector {
+          display: none;
+          position: sticky;
+          top: 76px;
+          align-self: start;
+          max-height: calc(100vh - 96px);
+          overflow-y: auto;
+          padding: 14px;
+          background: var(--admin-surface, #fff);
+          border: 1px solid var(--admin-surface-border, #d6dce5);
+          border-radius: 10px;
+        }
+        @media (min-width: 1280px) { .lse-inspector { display: block; } }
+        :root[data-theme='dark'] .lse-inspector {
+          background: var(--admin-surface, #1e2330);
+          border-color: var(--admin-surface-border, #2a3140);
+        }
+        .lse-inspector__title {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: var(--cpp-muted, #5d6b80);
+          margin-bottom: 10px;
+        }
+        .lse-inspector__empty {
+          font-size: 12px;
+          color: var(--cpp-muted, #5d6b80);
+          line-height: 1.5;
+        }
+        .lse-inspector__empty-hint {
+          font-size: 11px;
+          color: var(--cpp-muted, #5d6b80);
+          opacity: 0.85;
+        }
+        .lse-inspector__body { display: grid; gap: 12px; }
+        .lse-inspector__heading {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding-bottom: 8px;
+          border-bottom: 1px solid var(--admin-surface-border, #d6dce5);
+        }
+        :root[data-theme='dark'] .lse-inspector__heading {
+          border-bottom-color: var(--admin-surface-border, #2a3140);
+        }
+        .lse-inspector__heading-badge {
+          display: inline-flex;
+          align-items: center;
+          padding: 2px 8px;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: #334155;
+          background: rgba(148, 163, 184, 0.18);
+          border-radius: 999px;
+        }
+        :root[data-theme='dark'] .lse-inspector__heading-badge { color: #cbd5e1; background: rgba(148, 163, 184, 0.22); }
+        .lse-inspector__heading-hint {
+          font-size: 11px;
+          color: var(--cpp-muted, #5d6b80);
+        }
         .lse-canvas__intro {
           display: grid;
           gap: 4px;
@@ -603,6 +774,14 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         }
         .lse-block:hover { border-color: var(--admin-surface-border-strong, #b9c2d0); }
         .lse-block--dragging { box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12); }
+        .lse-block--selected {
+          border-color: rgba(14, 165, 233, 0.55);
+          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+        }
+        :root[data-theme='dark'] .lse-block--selected {
+          border-color: rgba(56, 189, 248, 0.6);
+          box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
         :root[data-theme='dark'] .lse-block {
           background: var(--admin-surface, #1e2330);
           border-color: var(--admin-surface-border, #2a3140);
@@ -920,6 +1099,12 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
       </div>
 
       <div className="lse-body">
+        <OutlinePanel
+          blocks={blocks}
+          selectedKey={selectedBlockKey}
+          onSelect={setSelectedBlockKey}
+        />
+
         <div className="lse-canvas">
           <header className="lse-canvas__intro">
             <h1>{isCreate ? 'New lesson' : (props.initialTitle || 'Edit lesson')}</h1>
@@ -951,7 +1136,12 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
             </label>
           </section>
 
-          <BlockList blocks={blocks} onChange={setBlocks} />
+          <BlockList
+            blocks={blocks}
+            onChange={setBlocks}
+            selectedKey={selectedBlockKey}
+            onSelect={setSelectedBlockKey}
+          />
 
           {props.mode === 'edit' ? (
             <VersionsPanel
@@ -974,6 +1164,11 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
             </div>
           ) : null}
         </div>
+
+        <InspectorPanel
+          selectedBlock={selectedBlock}
+          onChange={updateSelectedBlock}
+        />
       </div>
 
       <PublishReviewModal

@@ -13,8 +13,18 @@ import QuizPicker from './QuizPicker'
 import ProblemSetPicker from './ProblemSetPicker'
 import MediaPicker from './MediaPicker'
 
+// view='canvas'    → editable content stream (titles, rich text, items —
+//                    what the reader will see on the public site).
+// view='inspector' → settings/configuration (sizes, flags, relationship
+//                    pickers, hrefs — knobs the author tweaks but that
+//                    aren't part of the visible content).
+// Splitting them lets Phase-2's right rail surface block-specific settings
+// without crowding the canvas card body.
+export type BlockEditorView = 'canvas' | 'inspector'
+
 type BlockEditorProps = {
   block: ScaffoldBlock
+  view: BlockEditorView
   onChange: (next: ScaffoldBlock) => void
 }
 
@@ -30,36 +40,46 @@ function patchBlock<T extends ScaffoldBlock>(block: T, patch: Partial<ScaffoldBl
   return { ...block, ...patch } as T
 }
 
-export default function BlockEditor({ block, onChange }: BlockEditorProps) {
+// Helper rendered by inspector views when a block type has no per-block
+// configuration. Keeps the right rail self-explanatory instead of empty.
+function InspectorEmpty({ note }: { note: string }) {
+  return (
+    <div className="text-xs text-[var(--cpp-muted)]">{note}</div>
+  )
+}
+
+export default function BlockEditor({ block, view, onChange }: BlockEditorProps) {
   switch (block.blockType) {
     case 'sectionTitle': {
+      if (view === 'inspector') {
+        return (
+          <label className="grid gap-1">
+            <span className={labelCls}>Size</span>
+            <select
+              value={block.size ?? 'md'}
+              onChange={(event) =>
+                onChange(patchBlock(block, { size: event.target.value as 'sm' | 'md' | 'lg' }))
+              }
+              className={inputCls}
+            >
+              <option value="sm">Small</option>
+              <option value="md">Medium</option>
+              <option value="lg">Large</option>
+            </select>
+          </label>
+        )
+      }
       return (
         <div className="grid gap-3">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_140px]">
-            <label className="grid gap-1">
-              <span className={labelCls}>Title *</span>
-              <input
-                type="text"
-                value={block.title}
-                onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
-                className={inputCls}
-              />
-            </label>
-            <label className="grid gap-1">
-              <span className={labelCls}>Size</span>
-              <select
-                value={block.size ?? 'md'}
-                onChange={(event) =>
-                  onChange(patchBlock(block, { size: event.target.value as 'sm' | 'md' | 'lg' }))
-                }
-                className={inputCls}
-              >
-                <option value="sm">Small</option>
-                <option value="md">Medium</option>
-                <option value="lg">Large</option>
-              </select>
-            </label>
-          </div>
+          <label className="grid gap-1">
+            <span className={labelCls}>Title *</span>
+            <input
+              type="text"
+              value={block.title}
+              onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
+              className={inputCls}
+            />
+          </label>
           <label className="grid gap-1">
             <span className={labelCls}>Subtitle</span>
             <textarea
@@ -74,21 +94,21 @@ export default function BlockEditor({ block, onChange }: BlockEditorProps) {
     }
 
     case 'videoBlock': {
-      return (
-        <div className="grid gap-3">
-          <div className="grid gap-1">
-            <span className={labelCls}>Uploaded video</span>
-            <MediaPicker
-              value={block.video ?? null}
-              onChange={(video) => onChange(patchBlock(block, { video }))}
-              accept="video/*"
-              noun="video"
-            />
-            <span className="text-xs text-[var(--cpp-muted)]">
-              Optional. Provide either an upload, an external URL below, or both.
-            </span>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+      if (view === 'inspector') {
+        return (
+          <div className="grid gap-3">
+            <div className="grid gap-1">
+              <span className={labelCls}>Uploaded video</span>
+              <MediaPicker
+                value={block.video ?? null}
+                onChange={(video) => onChange(patchBlock(block, { video }))}
+                accept="video/*"
+                noun="video"
+              />
+              <span className="text-xs text-[var(--cpp-muted)]">
+                Optional. Either an upload, an external URL, or both.
+              </span>
+            </div>
             <label className="grid gap-1">
               <span className={labelCls}>External video URL</span>
               <input
@@ -99,32 +119,26 @@ export default function BlockEditor({ block, onChange }: BlockEditorProps) {
                 className={inputCls}
               />
             </label>
-            <label className="grid gap-1">
-              <span className={labelCls}>Caption</span>
-              <input
-                type="text"
-                value={block.caption ?? ''}
-                onChange={(event) => onChange(patchBlock(block, { caption: event.target.value }))}
-                className={inputCls}
-              />
-            </label>
           </div>
-        </div>
+        )
+      }
+      return (
+        <label className="grid gap-1">
+          <span className={labelCls}>Caption</span>
+          <input
+            type="text"
+            value={block.caption ?? ''}
+            onChange={(event) => onChange(patchBlock(block, { caption: event.target.value }))}
+            placeholder="Optional caption displayed under the video"
+            className={inputCls}
+          />
+        </label>
       )
     }
 
     case 'buttonBlock': {
-      return (
-        <div className="grid gap-2 sm:grid-cols-2">
-          <label className="grid gap-1">
-            <span className={labelCls}>Label *</span>
-            <input
-              type="text"
-              value={block.label}
-              onChange={(event) => onChange(patchBlock(block, { label: event.target.value }))}
-              className={inputCls}
-            />
-          </label>
+      if (view === 'inspector') {
+        return (
           <label className="grid gap-1">
             <span className={labelCls}>Link (href) *</span>
             <input
@@ -135,39 +149,54 @@ export default function BlockEditor({ block, onChange }: BlockEditorProps) {
               className={inputCls}
             />
           </label>
-        </div>
+        )
+      }
+      return (
+        <label className="grid gap-1">
+          <span className={labelCls}>Label *</span>
+          <input
+            type="text"
+            value={block.label}
+            onChange={(event) => onChange(patchBlock(block, { label: event.target.value }))}
+            className={inputCls}
+          />
+        </label>
       )
     }
 
     case 'listBlock': {
       const items = block.items ?? []
       const updateItems = (next: ListBlockData['items']) => onChange(patchBlock(block, { items: next }))
+      if (view === 'inspector') {
+        return (
+          <label className="grid gap-1">
+            <span className={labelCls}>Style</span>
+            <select
+              value={block.listStyle ?? 'unordered'}
+              onChange={(event) =>
+                onChange(
+                  patchBlock(block, { listStyle: event.target.value as 'unordered' | 'ordered' }),
+                )
+              }
+              className={inputCls}
+            >
+              <option value="unordered">Unordered (bullets)</option>
+              <option value="ordered">Ordered (numbered)</option>
+            </select>
+          </label>
+        )
+      }
       return (
         <div className="grid gap-3">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_200px]">
-            <label className="grid gap-1">
-              <span className={labelCls}>Title</span>
-              <input
-                type="text"
-                value={block.title ?? ''}
-                onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
-                className={inputCls}
-              />
-            </label>
-            <label className="grid gap-1">
-              <span className={labelCls}>Style</span>
-              <select
-                value={block.listStyle ?? 'unordered'}
-                onChange={(event) =>
-                  onChange(patchBlock(block, { listStyle: event.target.value as 'unordered' | 'ordered' }))
-                }
-                className={inputCls}
-              >
-                <option value="unordered">Unordered (bullets)</option>
-                <option value="ordered">Ordered (numbered)</option>
-              </select>
-            </label>
-          </div>
+          <label className="grid gap-1">
+            <span className={labelCls}>Title</span>
+            <input
+              type="text"
+              value={block.title ?? ''}
+              onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
+              className={inputCls}
+            />
+          </label>
           <div className="grid gap-1.5">
             <span className={labelCls}>Items</span>
             {items.map((item, index) => (
@@ -208,8 +237,11 @@ export default function BlockEditor({ block, onChange }: BlockEditorProps) {
     case 'stepsList': {
       const steps = block.steps ?? []
       const updateSteps = (next: StepsListBlockData['steps']) => onChange(patchBlock(block, { steps: next }))
+      if (view === 'inspector') {
+        return <InspectorEmpty note="Steps don't have per-block settings yet." />
+      }
       return (
-        <div className="grid gap-2">
+        <div className="grid gap-3">
           <label className="grid gap-1">
             <span className={labelCls}>Title</span>
             <input
@@ -273,8 +305,26 @@ export default function BlockEditor({ block, onChange }: BlockEditorProps) {
     }
 
     case 'textSection': {
+      if (view === 'inspector') {
+        return (
+          <label className="grid gap-1">
+            <span className={labelCls}>Size</span>
+            <select
+              value={block.size ?? 'md'}
+              onChange={(event) =>
+                onChange(patchBlock(block, { size: event.target.value as 'sm' | 'md' | 'lg' }))
+              }
+              className={inputCls}
+            >
+              <option value="sm">Small</option>
+              <option value="md">Medium</option>
+              <option value="lg">Large</option>
+            </select>
+          </label>
+        )
+      }
       return (
-        <div className="grid gap-2">
+        <div className="grid gap-3">
           <label className="grid gap-1">
             <span className={labelCls}>Title</span>
             <input
@@ -293,20 +343,6 @@ export default function BlockEditor({ block, onChange }: BlockEditorProps) {
               className={inputCls}
             />
           </label>
-          <label className="grid gap-1">
-            <span className={labelCls}>Size</span>
-            <select
-              value={block.size ?? 'md'}
-              onChange={(event) =>
-                onChange(patchBlock(block, { size: event.target.value as 'sm' | 'md' | 'lg' }))
-              }
-              className={inputCls}
-            >
-              <option value="sm">Small</option>
-              <option value="md">Medium</option>
-              <option value="lg">Large</option>
-            </select>
-          </label>
           <div className="grid gap-1">
             <span className={labelCls}>Body</span>
             <LexicalRichTextEditor
@@ -320,6 +356,9 @@ export default function BlockEditor({ block, onChange }: BlockEditorProps) {
     }
 
     case 'richTextBlock': {
+      if (view === 'inspector') {
+        return <InspectorEmpty note="Rich text content has no per-block settings." />
+      }
       return (
         <div className="grid gap-1">
           <span className={labelCls}>Body *</span>
@@ -333,112 +372,38 @@ export default function BlockEditor({ block, onChange }: BlockEditorProps) {
     }
 
     case 'problemSetBlock': {
-      return (
-        <div className="grid gap-2">
-          <label className="grid gap-1">
-            <span className={labelCls}>Title</span>
-            <input
-              type="text"
-              value={block.title ?? ''}
-              onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
-              placeholder="Optional override of the problem set title"
-              className={inputCls}
-            />
-          </label>
-          <div className="grid gap-1">
-            <span className={labelCls}>Problem set *</span>
-            <ProblemSetPicker
-              value={block.problemSet ?? null}
-              onChange={(problemSet) => onChange(patchBlock(block, { problemSet }))}
-            />
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={block.showTitle ?? true}
-                onChange={(event) =>
-                  onChange(patchBlock(block, { showTitle: event.target.checked }))
-                }
+      if (view === 'inspector') {
+        return (
+          <div className="grid gap-3">
+            <div className="grid gap-1">
+              <span className={labelCls}>Problem set *</span>
+              <ProblemSetPicker
+                value={block.problemSet ?? null}
+                onChange={(problemSet) => onChange(patchBlock(block, { problemSet }))}
               />
-              Show problem-set title
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={block.showAnswers ?? true}
-                onChange={(event) =>
-                  onChange(patchBlock(block, { showAnswers: event.target.checked }))
-                }
-              />
-              Show answers after submit
-            </label>
-          </div>
-          <label className="grid gap-1">
-            <span className={labelCls}>Max attempts</span>
-            <input
-              type="number"
-              min={0}
-              value={block.maxAttempts ?? ''}
-              onChange={(event) => {
-                const raw = event.target.value
-                onChange(
-                  patchBlock(block, {
-                    maxAttempts: raw === '' ? null : Number(raw),
-                  }),
-                )
-              }}
-              placeholder="Unlimited"
-              className={inputCls}
-            />
-          </label>
-        </div>
-      )
-    }
-
-    case 'quizBlock': {
-      return (
-        <div className="grid gap-2">
-          <label className="grid gap-1">
-            <span className={labelCls}>Title</span>
-            <input
-              type="text"
-              value={block.title ?? ''}
-              onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
-              placeholder="Optional override of the quiz title"
-              className={inputCls}
-            />
-          </label>
-          <div className="grid gap-1">
-            <span className={labelCls}>Quiz *</span>
-            <QuizPicker
-              value={block.quiz ?? null}
-              onChange={(quiz) => onChange(patchBlock(block, { quiz }))}
-            />
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={block.showTitle ?? true}
-                onChange={(event) =>
-                  onChange(patchBlock(block, { showTitle: event.target.checked }))
-                }
-              />
-              Show quiz title
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={block.showAnswers ?? true}
-                onChange={(event) =>
-                  onChange(patchBlock(block, { showAnswers: event.target.checked }))
-                }
-              />
-              Show answers after submit
-            </label>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2">
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={block.showTitle ?? true}
+                  onChange={(event) =>
+                    onChange(patchBlock(block, { showTitle: event.target.checked }))
+                  }
+                />
+                Show title
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={block.showAnswers ?? true}
+                  onChange={(event) =>
+                    onChange(patchBlock(block, { showAnswers: event.target.checked }))
+                  }
+                />
+                Show answers
+              </label>
+            </div>
             <label className="grid gap-1">
               <span className={labelCls}>Max attempts</span>
               <input
@@ -457,40 +422,126 @@ export default function BlockEditor({ block, onChange }: BlockEditorProps) {
                 className={inputCls}
               />
             </label>
-            <label className="grid gap-1">
-              <span className={labelCls}>Time limit (seconds)</span>
-              <input
-                type="number"
-                min={0}
-                value={block.timeLimitSec ?? ''}
-                onChange={(event) => {
-                  const raw = event.target.value
-                  onChange(
-                    patchBlock(block, {
-                      timeLimitSec: raw === '' ? null : Number(raw),
-                    }),
-                  )
-                }}
-                placeholder="Use quiz default"
-                className={inputCls}
-              />
-            </label>
           </div>
-        </div>
+        )
+      }
+      return (
+        <label className="grid gap-1">
+          <span className={labelCls}>Title</span>
+          <input
+            type="text"
+            value={block.title ?? ''}
+            onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
+            placeholder="Optional override of the problem set title"
+            className={inputCls}
+          />
+        </label>
+      )
+    }
+
+    case 'quizBlock': {
+      if (view === 'inspector') {
+        return (
+          <div className="grid gap-3">
+            <div className="grid gap-1">
+              <span className={labelCls}>Quiz *</span>
+              <QuizPicker
+                value={block.quiz ?? null}
+                onChange={(quiz) => onChange(patchBlock(block, { quiz }))}
+              />
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={block.showTitle ?? true}
+                  onChange={(event) =>
+                    onChange(patchBlock(block, { showTitle: event.target.checked }))
+                  }
+                />
+                Show title
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={block.showAnswers ?? true}
+                  onChange={(event) =>
+                    onChange(patchBlock(block, { showAnswers: event.target.checked }))
+                  }
+                />
+                Show answers
+              </label>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="grid gap-1">
+                <span className={labelCls}>Max attempts</span>
+                <input
+                  type="number"
+                  min={0}
+                  value={block.maxAttempts ?? ''}
+                  onChange={(event) => {
+                    const raw = event.target.value
+                    onChange(
+                      patchBlock(block, {
+                        maxAttempts: raw === '' ? null : Number(raw),
+                      }),
+                    )
+                  }}
+                  placeholder="Unlimited"
+                  className={inputCls}
+                />
+              </label>
+              <label className="grid gap-1">
+                <span className={labelCls}>Time limit (seconds)</span>
+                <input
+                  type="number"
+                  min={0}
+                  value={block.timeLimitSec ?? ''}
+                  onChange={(event) => {
+                    const raw = event.target.value
+                    onChange(
+                      patchBlock(block, {
+                        timeLimitSec: raw === '' ? null : Number(raw),
+                      }),
+                    )
+                  }}
+                  placeholder="Use quiz default"
+                  className={inputCls}
+                />
+              </label>
+            </div>
+          </div>
+        )
+      }
+      return (
+        <label className="grid gap-1">
+          <span className={labelCls}>Title</span>
+          <input
+            type="text"
+            value={block.title ?? ''}
+            onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
+            placeholder="Optional override of the quiz title"
+            className={inputCls}
+          />
+        </label>
       )
     }
 
     case '__passthrough': {
       const innerType =
         typeof block.data.blockType === 'string' ? block.data.blockType : 'unknown'
+      if (view === 'inspector') {
+        return (
+          <InspectorEmpty
+            note={`Block type "${innerType}" is preserved verbatim. Open this lesson in Payload's edit view to change it.`}
+          />
+        )
+      }
       return (
         <div className="grid gap-1 rounded-md border border-dashed border-amber-400 bg-amber-50/40 p-2 text-xs text-amber-900">
           <div>
             Block type <code className="font-mono">{innerType}</code> isn&apos;t editable in the
             custom editor yet. Its content will be preserved exactly as-is when you save.
-          </div>
-          <div className="text-[10px] text-amber-900/70">
-            To change it, save first, then open this lesson in Payload&apos;s edit view.
           </div>
         </div>
       )
