@@ -11,6 +11,11 @@ export const Classes: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'order', 'slug'],
+    // Courses are authored via the custom Course Workspace and its
+    // `/admin/courses/[id]/edit` view. Hiding here removes the collection
+    // from the admin nav and 404s `/admin/collections/classes/*`, matching
+    // the Chapters and Lessons treatment.
+    hidden: true,
     preview: ({ data }) => {
       const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
       const secret = process.env.PREVIEW_SECRET ?? ''

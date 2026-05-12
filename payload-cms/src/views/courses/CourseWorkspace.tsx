@@ -741,7 +741,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         <div className="course-workspace-topbar-actions">
           <HelpLink topic="courses" />
           <Link
-            href={`/admin/collections/classes/${course.id}`}
+            href={`/admin/courses/${course.id}/edit`}
             className="cw-btn cw-btn--ghost"
           >
             Edit Course

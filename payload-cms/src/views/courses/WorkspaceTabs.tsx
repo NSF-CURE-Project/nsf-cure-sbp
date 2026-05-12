@@ -299,7 +299,7 @@ export function SettingsTab({
       ) : null}
       <div className="flex items-center justify-between gap-2">
         <Link
-          href={`/admin/collections/classes/${course.id}`}
+          href={`/admin/courses/${course.id}/edit`}
           className="text-xs font-semibold text-[var(--cpp-ink)] underline-offset-2 hover:underline"
         >
           Open full course editor for advanced fields
@@ -389,7 +389,7 @@ export function PublishTab({ course }: { course: CourseNode }) {
 
       <div>
         <Link
-          href={`/admin/collections/classes/${course.id}`}
+          href={`/admin/courses/${course.id}/edit`}
           className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white no-underline hover:bg-slate-800"
         >
           Open full course editor

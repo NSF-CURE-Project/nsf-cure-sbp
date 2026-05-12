@@ -176,7 +176,7 @@ export default function CoursesHomeCard({
                 className="absolute right-0 top-full z-20 mt-1 w-44 overflow-hidden rounded-md border border-[var(--admin-surface-border)] bg-[var(--admin-surface)] shadow-lg"
               >
                 <Link
-                  href={`/admin/collections/classes/${course.id}`}
+                  href={`/admin/courses/${course.id}/edit`}
                   role="menuitem"
                   className="block px-3 py-2 text-xs font-semibold text-[var(--cpp-ink)] no-underline hover:bg-[var(--admin-surface-muted)]"
                 >

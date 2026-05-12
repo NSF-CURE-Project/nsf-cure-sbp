@@ -128,7 +128,7 @@ export const saveLessonPositions = async (lessons: LessonPositionUpdate[]) => {
 
 export const updateCourseSettings = async (
   courseId: EntityId,
-  data: { title?: string; slug?: string },
+  data: { title?: string; slug?: string; description?: string },
 ) => {
   await patch(`/api/classes/${courseId}`, data)
 }
