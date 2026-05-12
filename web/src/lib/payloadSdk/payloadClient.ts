@@ -32,12 +32,17 @@ async function parseJsonOrThrow<T>(res: Response, path: string): Promise<T> {
 
 async function request<T>(
   path: string,
-  init?: RequestInit & { next?: { revalidate?: number } }
+  init?: RequestInit & { next?: { revalidate?: number }; draft?: boolean }
 ): Promise<T> {
   const baseUrl = getPayloadBaseUrl();
   const url = `${baseUrl}${API_ROUTE}${path}`;
   const method = (init?.method ?? "GET").toUpperCase();
   const timeoutMs = getRequestTimeoutMs();
+  // Server-to-server preview header — only on draft fetches. Lessons access
+  // honors this to populate draft versions in chapter.lessons relationships,
+  // which would otherwise be filtered out (non-staff caller, latest version
+  // _status=draft).
+  const previewSecret = init?.draft ? process.env.PREVIEW_SECRET : "";
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const controller = new AbortController();
@@ -50,6 +55,7 @@ async function request<T>(
         signal: init?.signal ?? controller.signal,
         headers: {
           "Content-Type": "application/json",
+          ...(previewSecret ? { "X-Preview-Secret": previewSecret } : {}),
           ...(init?.headers || {}),
         },
       });
@@ -110,6 +116,7 @@ export const payload = {
       next: shouldBypassCache
         ? undefined
         : { revalidate: options?.revalidate ?? 60 },
+      draft: options?.draft,
     });
   },
 };

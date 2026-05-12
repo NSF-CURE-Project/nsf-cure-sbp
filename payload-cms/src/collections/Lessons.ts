@@ -166,6 +166,15 @@ export const Lessons: CollectionConfig = {
     // nested-hydration path (chapter.lessons populated at depth>=1).
     read: ({ req }) => {
       if (req.user?.collection === 'users') return true
+      // Server-to-server preview path: the web service forwards
+      // X-Preview-Secret on draft fetches so live-preview iframes can render
+      // unpublished content. Same secret already gates /api/preview, so
+      // honoring it here doesn't broaden the trust surface.
+      const previewSecret = process.env.PREVIEW_SECRET
+      const headerSecret =
+        (typeof req.headers?.get === 'function' && req.headers.get('x-preview-secret')) ||
+        (req.headers as unknown as Record<string, string | undefined>)?.['x-preview-secret']
+      if (previewSecret && headerSecret && headerSecret === previewSecret) return true
       return { _status: { equals: 'published' } }
     },
   },
