@@ -379,45 +379,67 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         .course-workspace .cw-chapter-list {
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 20px;
         }
         /* Chapter card chrome mirrors the lesson editor's BlockCard:
          * persistent header bar (drag, badge, index, title, count, overflow)
-         * over a body of lesson rows. Same visual grammar across screens. */
+         * over a body of lesson rows. Same visual grammar across screens.
+         * Stronger elevation here so chapters feel like parent grouping
+         * structures and not just bigger rows. */
         .course-workspace .cw-chapter {
           position: relative;
-          border-radius: 10px;
+          border-radius: 12px;
           background: var(--cw-surface);
-          border: 1px solid var(--cw-border);
-          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+          border: 1px solid var(--cw-border-strong);
+          box-shadow:
+            0 1px 0 rgba(15, 23, 42, 0.04),
+            0 4px 12px rgba(15, 23, 42, 0.06);
           overflow: hidden;
-          transition: border-color 140ms ease, box-shadow 140ms ease;
+          transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
         }
         .course-workspace .cw-chapter:hover {
-          border-color: var(--cw-border-strong);
+          border-color: rgba(14, 165, 233, 0.35);
+          box-shadow:
+            0 1px 0 rgba(15, 23, 42, 0.05),
+            0 8px 20px rgba(15, 23, 42, 0.08);
         }
         .course-workspace .cw-chapter--selected {
-          border-color: rgba(14, 165, 233, 0.55);
-          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+          border-color: rgba(14, 165, 233, 0.6);
+          box-shadow:
+            0 0 0 3px rgba(14, 165, 233, 0.18),
+            0 6px 16px rgba(14, 165, 233, 0.1);
         }
         :root[data-theme='dark'] .course-workspace .cw-chapter {
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+          box-shadow:
+            0 1px 0 rgba(0, 0, 0, 0.4),
+            0 6px 16px rgba(0, 0, 0, 0.35);
+        }
+        :root[data-theme='dark'] .course-workspace .cw-chapter:hover {
+          border-color: rgba(56, 189, 248, 0.45);
         }
         :root[data-theme='dark'] .course-workspace .cw-chapter--selected {
-          border-color: rgba(56, 189, 248, 0.6);
-          box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+          border-color: rgba(56, 189, 248, 0.65);
+          box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.22);
         }
         .course-workspace .cw-chapter__header {
           display: grid;
           grid-template-columns: auto auto auto minmax(0, 1fr) auto auto;
           align-items: center;
           gap: 10px;
-          padding: 8px 10px;
-          background: var(--cw-surface-muted);
-          border-bottom: 1px solid var(--cw-border);
+          padding: 10px 14px;
+          background: linear-gradient(
+            180deg,
+            var(--cw-surface-muted) 0%,
+            rgba(148, 163, 184, 0.06) 100%
+          );
+          border-bottom: 1px solid var(--cw-border-strong);
         }
         :root[data-theme='dark'] .course-workspace .cw-chapter__header {
-          background: var(--cw-surface-tinted, var(--cw-surface-muted));
+          background: linear-gradient(
+            180deg,
+            rgba(148, 163, 184, 0.08) 0%,
+            rgba(148, 163, 184, 0.04) 100%
+          );
         }
         .course-workspace .cw-chapter__handle {
           opacity: 0.5;
@@ -467,13 +489,14 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         }
         .course-workspace .cw-chapter__title {
           display: block;
-          font-size: 15px;
-          font-weight: 600;
-          color: var(--cw-accent);
+          font-size: 16px;
+          font-weight: 700;
+          color: var(--cpp-ink);
           line-height: 1.3;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+          letter-spacing: -0.005em;
         }
         .course-workspace .cw-chapter__meta {
           font-size: 12px;
@@ -511,26 +534,45 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           background: var(--cw-accent-soft);
         }
 
-        /* === Lesson row === */
+        /* === Lesson row ===
+         * Hovering should feel active: subtle lift, deeper shadow, and a
+         * tinted background so curriculum navigation feels alive instead of
+         * flat. Density tightened (was 8/12) so longer courses scan faster. */
         .course-workspace .cw-lesson {
           position: relative;
           display: grid;
           grid-template-columns: auto minmax(0, 1fr) auto;
           align-items: center;
           gap: 10px;
-          padding: 8px 12px;
+          padding: 7px 10px;
           background: var(--cw-surface);
           border: 1px solid var(--cw-border);
           border-radius: 8px;
-          transition: border-color 140ms ease, background 140ms ease;
+          cursor: pointer;
+          transition:
+            background 150ms ease,
+            border-color 150ms ease,
+            box-shadow 150ms ease,
+            transform 150ms ease;
         }
         .course-workspace .cw-lesson:hover {
-          border-color: var(--cw-border-strong);
+          border-color: rgba(14, 165, 233, 0.4);
           background: var(--cw-surface-muted);
+          box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
+          transform: translateY(-1px);
+        }
+        :root[data-theme='dark'] .course-workspace .cw-lesson:hover {
+          border-color: rgba(56, 189, 248, 0.4);
+          box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
         }
         .course-workspace .cw-lesson--selected {
-          border-color: rgba(14, 165, 233, 0.55);
-          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+          border-color: rgba(14, 165, 233, 0.6);
+          background: rgba(14, 165, 233, 0.04);
+          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18);
+        }
+        :root[data-theme='dark'] .course-workspace .cw-lesson--selected {
+          background: rgba(56, 189, 248, 0.08);
+          box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.22);
         }
         .course-workspace .cw-lesson__handle {
           opacity: 0.3;
@@ -569,8 +611,8 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         .course-workspace .cw-lesson__meta {
           display: flex;
           align-items: center;
-          gap: 8px;
-          font-size: 13px;
+          gap: 6px;
+          font-size: 12px;
           color: var(--cpp-muted);
         }
         .course-workspace .cw-lesson__sep {
@@ -586,43 +628,99 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           font-size: 12px;
         }
 
-        /* === Status + quiz badges === */
+        /* === Empty chapter card ===
+         * Informational. The "+ Add lesson" / "attach existing" affordances
+         * live in the InlineLessonInput sibling below, so this card is the
+         * announcement, not the action surface. */
+        .course-workspace .cw-empty-lessons {
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr);
+          gap: 12px;
+          align-items: center;
+          padding: 12px 14px;
+          background: var(--cw-surface-muted);
+          border: 1px dashed var(--cw-border-strong);
+          border-radius: 10px;
+          color: var(--cpp-muted);
+        }
+        :root[data-theme='dark'] .course-workspace .cw-empty-lessons {
+          background: rgba(148, 163, 184, 0.06);
+        }
+        .course-workspace .cw-empty-lessons__glyph {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          border-radius: 8px;
+          background: var(--cw-surface);
+          border: 1px solid var(--cw-border);
+          color: var(--cw-accent);
+        }
+        .course-workspace .cw-empty-lessons__title {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--cpp-ink);
+        }
+        .course-workspace .cw-empty-lessons__hint {
+          margin-top: 2px;
+          font-size: 12px;
+          color: var(--cpp-muted);
+          line-height: 1.4;
+        }
+
+        /* === Status + quiz badges ===
+         * Goal: status legibility at a glance for an author scanning a long
+         * curriculum. Published = confident green; Draft = warm amber so it
+         * reads as "in progress"; staged = orange (not yet persisted). */
         .course-workspace .cw-status {
           display: inline-flex;
           align-items: center;
-          padding: 2px 8px;
+          gap: 5px;
+          padding: 2px 9px;
           font-size: 11px;
-          font-weight: 600;
+          font-weight: 700;
           letter-spacing: 0.02em;
           border-radius: 999px;
           border: 1px solid transparent;
         }
+        .course-workspace .cw-status::before {
+          content: '';
+          display: inline-block;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: currentColor;
+        }
         .course-workspace .cw-status--ok {
-          background: rgba(16, 185, 129, 0.1);
+          background: rgba(16, 185, 129, 0.16);
           color: #047857;
-          border-color: rgba(16, 185, 129, 0.18);
+          border-color: rgba(16, 185, 129, 0.32);
         }
         .course-workspace .cw-status--draft {
-          background: rgba(100, 116, 139, 0.12);
-          color: #475569;
-          border-color: rgba(100, 116, 139, 0.18);
-        }
-        :root[data-theme='dark'] .course-workspace .cw-status--ok {
-          background: rgba(16, 185, 129, 0.16);
-          color: #6ee7b7;
-        }
-        :root[data-theme='dark'] .course-workspace .cw-status--draft {
-          background: rgba(148, 163, 184, 0.18);
-          color: #cbd5e1;
-        }
-        .course-workspace .cw-status--staged {
           background: rgba(245, 158, 11, 0.14);
           color: #b45309;
-          border-color: rgba(245, 158, 11, 0.22);
+          border-color: rgba(245, 158, 11, 0.28);
         }
-        :root[data-theme='dark'] .course-workspace .cw-status--staged {
+        :root[data-theme='dark'] .course-workspace .cw-status--ok {
+          background: rgba(16, 185, 129, 0.2);
+          color: #6ee7b7;
+          border-color: rgba(16, 185, 129, 0.42);
+        }
+        :root[data-theme='dark'] .course-workspace .cw-status--draft {
           background: rgba(245, 158, 11, 0.2);
           color: #fcd34d;
+          border-color: rgba(245, 158, 11, 0.42);
+        }
+        .course-workspace .cw-status--staged {
+          background: rgba(249, 115, 22, 0.16);
+          color: #9a3412;
+          border-color: rgba(249, 115, 22, 0.32);
+        }
+        :root[data-theme='dark'] .course-workspace .cw-status--staged {
+          background: rgba(249, 115, 22, 0.22);
+          color: #fdba74;
+          border-color: rgba(249, 115, 22, 0.44);
         }
         .course-workspace .cw-lesson--staged {
           border-style: dashed;
@@ -669,45 +767,57 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           color: var(--cw-accent);
           background: var(--cw-accent-soft);
         }
+        /* Quiz Attached = strong success (deeper than Published so the
+         * curricular signal "this lesson has a comprehension check" reads
+         * with confidence). No Quiz = warning-toned neutral so missing
+         * assessments are noticeable but not alarming. */
         .course-workspace .cw-quiz-badge {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          padding: 5px 10px;
+          gap: 5px;
+          padding: 4px 9px;
           font-size: 12px;
-          font-weight: 500;
+          font-weight: 600;
           border-radius: 999px;
           border: 1px solid transparent;
           cursor: pointer;
           background: transparent;
-          transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+          transition: background 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
+        }
+        .course-workspace .cw-quiz-badge:hover {
+          transform: translateY(-1px);
         }
         .course-workspace .cw-quiz-badge__glyph {
           font-size: 11px;
           font-weight: 700;
         }
         .course-workspace .cw-quiz-badge--ok {
-          background: rgba(16, 185, 129, 0.1);
-          color: #047857;
-          border-color: rgba(16, 185, 129, 0.16);
+          background: rgba(16, 185, 129, 0.18);
+          color: #065f46;
+          border-color: rgba(16, 185, 129, 0.4);
         }
         .course-workspace .cw-quiz-badge--ok:hover {
-          background: rgba(16, 185, 129, 0.18);
+          background: rgba(16, 185, 129, 0.26);
+          border-color: rgba(16, 185, 129, 0.55);
         }
         .course-workspace .cw-quiz-badge--missing {
-          background: rgba(148, 163, 184, 0.1);
-          color: var(--cpp-muted);
-          border-color: var(--cw-border);
+          background: rgba(245, 158, 11, 0.12);
+          color: #92400e;
+          border-color: rgba(245, 158, 11, 0.32);
         }
         .course-workspace .cw-quiz-badge--missing:hover {
-          color: var(--cw-accent);
-          background: var(--cw-accent-soft);
-          border-color: var(--cw-border-strong);
+          background: rgba(245, 158, 11, 0.2);
+          border-color: rgba(245, 158, 11, 0.5);
         }
         :root[data-theme='dark'] .course-workspace .cw-quiz-badge--ok {
-          background: rgba(16, 185, 129, 0.18);
+          background: rgba(16, 185, 129, 0.22);
           color: #6ee7b7;
-          border-color: rgba(16, 185, 129, 0.28);
+          border-color: rgba(16, 185, 129, 0.4);
+        }
+        :root[data-theme='dark'] .course-workspace .cw-quiz-badge--missing {
+          background: rgba(245, 158, 11, 0.18);
+          color: #fcd34d;
+          border-color: rgba(245, 158, 11, 0.4);
         }
 
         /* === Drag overlay & reorder bar === */
