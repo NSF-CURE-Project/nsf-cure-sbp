@@ -175,7 +175,12 @@ export default function BlockList({
           lesson edit view, or pick a block type below to start.
         </div>
       ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext
+          id="lesson-block-list"
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
           <SortableContext
             items={blocks.map((block) => block._key)}
             strategy={verticalListSortingStrategy}
