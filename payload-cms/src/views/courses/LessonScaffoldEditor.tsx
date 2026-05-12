@@ -473,6 +473,12 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           min-width: 110px;
           text-align: right;
         }
+        /* Button hierarchy:
+         *   default (secondary) — white surface, visible border
+         *   --primary           — solid dark, drives "the" action (Publish)
+         *   --ghost             — transparent until hover; for tertiary
+         *   --active            — accent-tinted toggle state (e.g. Preview on)
+         */
         .lse-btn {
           display: inline-flex;
           align-items: center;
@@ -481,32 +487,51 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           font-size: 12px;
           font-weight: 600;
           border-radius: 6px;
-          border: 1px solid var(--admin-surface-border, #d6dce5);
+          border: 1px solid var(--admin-surface-border-strong, #c2ccda);
           background: var(--admin-surface, #fff);
-          color: var(--cpp-ink, #1b1f24);
+          color: var(--cpp-ink, #0f172a);
           cursor: pointer;
-          transition: background 120ms ease, border-color 120ms ease;
+          transition: var(--admin-transition);
         }
-        .lse-btn:hover { background: var(--admin-surface-muted, #f5f7fa); }
-        .lse-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+        .lse-btn:hover {
+          background: var(--admin-surface-muted, #f3f6fb);
+          border-color: var(--cpp-muted, #475569);
+        }
+        .lse-btn:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px var(--admin-accent-ring, rgba(59, 130, 246, 0.32));
+        }
+        .lse-btn:disabled { cursor: not-allowed; opacity: 0.55; }
         .lse-btn--primary {
-          background: #0f172a;
+          background: var(--cpp-ink, #0f172a);
           color: #fff;
-          border-color: #0f172a;
+          border-color: var(--cpp-ink, #0f172a);
+          box-shadow: var(--admin-shadow-soft);
         }
-        .lse-btn--primary:hover { background: #1e293b; }
-        :root[data-theme='dark'] .lse-btn {
-          background: var(--admin-surface, #1e2330);
-          border-color: var(--admin-surface-border, #2a3140);
-          color: var(--cpp-ink, #e6e8eb);
+        .lse-btn--primary:hover {
+          background: #1e293b;
+          border-color: #1e293b;
+          box-shadow: var(--admin-shadow);
         }
-        :root[data-theme='dark'] .lse-btn:hover { background: var(--admin-surface-muted, #232938); }
         :root[data-theme='dark'] .lse-btn--primary {
           background: #e2e8f0;
           color: #0f172a;
           border-color: #e2e8f0;
         }
-        :root[data-theme='dark'] .lse-btn--primary:hover { background: #cbd5e1; }
+        :root[data-theme='dark'] .lse-btn--primary:hover {
+          background: #ffffff;
+          border-color: #ffffff;
+        }
+        .lse-btn--ghost {
+          background: transparent;
+          border-color: transparent;
+          color: var(--cpp-muted, #475569);
+        }
+        .lse-btn--ghost:hover {
+          background: var(--admin-surface-muted, #f3f6fb);
+          border-color: transparent;
+          color: var(--cpp-ink, #0f172a);
+        }
 
         /* === Body / 3-column layout === */
         .lse-body {
@@ -538,15 +563,11 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         .lse-canvas { display: grid; gap: 18px; }
 
         /* === Active toggle button (e.g. Preview while engaged) === */
-        .lse-btn--active {
-          background: rgba(14, 165, 233, 0.12);
-          border-color: rgba(14, 165, 233, 0.45);
-          color: #0369a1;
-        }
-        :root[data-theme='dark'] .lse-btn--active {
-          background: rgba(56, 189, 248, 0.18);
-          border-color: rgba(56, 189, 248, 0.5);
-          color: #7dd3fc;
+        .lse-btn--active,
+        .lse-btn--active:hover {
+          background: var(--admin-accent-bg, #eef4ff);
+          border-color: var(--admin-accent-border, #3b82f6);
+          color: var(--admin-accent-text, #1d4ed8);
         }
 
         /* === Preview pane === */
