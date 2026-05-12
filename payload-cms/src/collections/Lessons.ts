@@ -123,6 +123,11 @@ export const Lessons: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['order', 'title', 'chapter', 'updatedAt'],
+    // Lessons are authored exclusively via the custom Course Workspace editor
+    // (`/admin/courses/[id]/lessons/...`). Hiding here removes the collection
+    // from the admin nav and 404s /admin/collections/lessons/*, matching the
+    // Chapters treatment and preventing parallel-edit drift.
+    hidden: true,
     preview: ({ data }) => {
       const lessonSlug = (data as { slug?: string })?.slug ?? ''
       const classSlug = resolveLessonClassSlug(data as { chapter?: unknown } | undefined)
@@ -153,7 +158,16 @@ export const Lessons: CollectionConfig = {
     },
   },
   access: {
-    read: () => true,
+    // Staff (authenticated via the `users` collection) can read any lesson,
+    // including drafts — they edit them. Everyone else — students on the
+    // public site, anonymous traffic, API clients without staff auth — sees
+    // only published lessons. This is the load-bearing filter that keeps
+    // half-finished lessons off the student-facing frontend, including the
+    // nested-hydration path (chapter.lessons populated at depth>=1).
+    read: ({ req }) => {
+      if (req.user?.collection === 'users') return true
+      return { _status: { equals: 'published' } }
+    },
   },
   versions: {
     drafts: true,

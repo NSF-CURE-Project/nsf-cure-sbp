@@ -14,6 +14,9 @@ export const Chapters: CollectionConfig = {
   slug: 'chapters',
   admin: {
     useAsTitle: 'title',
+    // Managed via the custom Course Workspace; default Payload list/edit views
+    // would let users create chapters detached from the wizard flow.
+    hidden: true,
   },
   access: {
     read: () => true,
