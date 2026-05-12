@@ -15,7 +15,11 @@ type InspectorPanelProps = {
 // without crowding the canvas card body.
 export default function InspectorPanel({ selectedBlock, onChange }: InspectorPanelProps) {
   return (
-    <aside className="lse-inspector" aria-label="Block inspector">
+    <aside
+      className="lse-inspector"
+      aria-label="Block inspector"
+      data-block-type={selectedBlock?.blockType}
+    >
       <div className="lse-inspector__title">Inspector</div>
       {selectedBlock ? (
         <div className="lse-inspector__body">

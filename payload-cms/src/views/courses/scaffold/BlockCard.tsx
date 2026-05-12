@@ -105,6 +105,7 @@ export default function BlockCard({
       ]
         .filter(Boolean)
         .join(' ')}
+      data-block-type={block.blockType}
     >
       <header className="lse-block__header">
         <button

@@ -589,9 +589,11 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         .lse-preview-pane__title {
           font-size: 11px;
           font-weight: 700;
-          letter-spacing: 0.06em;
+          letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--cpp-muted, #5d6b80);
+          color: var(--cpp-ink, #0f172a);
+          padding-bottom: 10px;
+          border-bottom: 1px solid var(--admin-surface-border, #d7dfea);
         }
         .lse-preview-pane__iframe {
           width: 100%;
@@ -629,10 +631,12 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         .lse-outline__title {
           font-size: 11px;
           font-weight: 700;
-          letter-spacing: 0.06em;
+          letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--cpp-muted, #5d6b80);
-          margin-bottom: 8px;
+          color: var(--cpp-ink, #0f172a);
+          padding-bottom: 10px;
+          margin-bottom: 10px;
+          border-bottom: 1px solid var(--admin-surface-border, #d7dfea);
         }
         .lse-outline__empty {
           font-size: 12px;
@@ -706,48 +710,59 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         .lse-inspector__title {
           font-size: 11px;
           font-weight: 700;
-          letter-spacing: 0.06em;
+          letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--cpp-muted, #5d6b80);
-          margin-bottom: 10px;
+          color: var(--cpp-ink, #0f172a);
+          padding-bottom: 10px;
+          margin-bottom: 12px;
+          border-bottom: 1px solid var(--admin-surface-border, #d7dfea);
         }
         .lse-inspector__empty {
           font-size: 12px;
-          color: var(--cpp-muted, #5d6b80);
+          color: var(--cpp-muted, #475569);
           line-height: 1.5;
         }
         .lse-inspector__empty-hint {
           font-size: 11px;
-          color: var(--cpp-muted, #5d6b80);
-          opacity: 0.85;
+          color: var(--cpp-subtle, #64748b);
         }
-        .lse-inspector__body { display: grid; gap: 12px; }
+        .lse-inspector__body { display: grid; gap: 14px; }
         .lse-inspector__heading {
           display: flex;
           align-items: center;
           gap: 8px;
-          padding-bottom: 8px;
-          border-bottom: 1px solid var(--admin-surface-border, #d6dce5);
-        }
-        :root[data-theme='dark'] .lse-inspector__heading {
-          border-bottom-color: var(--admin-surface-border, #2a3140);
         }
         .lse-inspector__heading-badge {
           display: inline-flex;
           align-items: center;
-          padding: 2px 8px;
+          padding: 3px 10px;
           font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.04em;
+          letter-spacing: 0.06em;
           text-transform: uppercase;
-          color: #334155;
-          background: rgba(148, 163, 184, 0.18);
+          color: var(--admin-block-generic-icon);
+          background: var(--admin-surface-muted, #f3f6fb);
+          border: 1px solid var(--admin-surface-border, #d7dfea);
           border-radius: 999px;
         }
-        :root[data-theme='dark'] .lse-inspector__heading-badge { color: #cbd5e1; background: rgba(148, 163, 184, 0.22); }
+        /* Mirror the block's identity color onto the inspector badge so
+         * the right rail visually echoes which block is selected. */
+        .lse-inspector[data-block-type="richTextBlock"] .lse-inspector__heading-badge,
+        .lse-inspector[data-block-type="textSection"] .lse-inspector__heading-badge,
+        .lse-inspector[data-block-type="sectionTitle"] .lse-inspector__heading-badge {
+          color: var(--admin-block-rich-icon);
+        }
+        .lse-inspector[data-block-type="videoBlock"] .lse-inspector__heading-badge {
+          color: var(--admin-block-video-icon);
+        }
+        .lse-inspector[data-block-type="quizBlock"] .lse-inspector__heading-badge,
+        .lse-inspector[data-block-type="problemSetBlock"] .lse-inspector__heading-badge {
+          color: var(--admin-block-quiz-icon);
+        }
         .lse-inspector__heading-hint {
           font-size: 11px;
-          color: var(--cpp-muted, #5d6b80);
+          color: var(--cpp-muted, #475569);
+          font-weight: 500;
         }
         .lse-canvas__intro {
           display: grid;
@@ -865,6 +880,61 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           border-bottom: 1px solid var(--admin-surface-border, #d7dfea);
         }
         .lse-block--collapsed .lse-block__header { border-bottom-color: transparent; }
+
+        /* === Block type identity ===
+         * Subtle left-edge stripe (via ::before so it survives hover/
+         * selected border changes) + icon-color tint on the type badge.
+         * The card background stays neutral so block content doesn't
+         * compete with the block's own visuals.
+         * Mapping:
+         *   rich    — richTextBlock, textSection, sectionTitle
+         *   video   — videoBlock
+         *   quiz    — quizBlock, problemSetBlock
+         *   generic — buttonBlock, listBlock, stepsList, __passthrough
+         */
+        .lse-block { position: relative; }
+        .lse-block[data-block-type]::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 3px;
+          background: var(--admin-block-generic-edge);
+          border-top-left-radius: inherit;
+          border-bottom-left-radius: inherit;
+          pointer-events: none;
+        }
+        .lse-block[data-block-type="richTextBlock"]::before,
+        .lse-block[data-block-type="textSection"]::before,
+        .lse-block[data-block-type="sectionTitle"]::before {
+          background: var(--admin-block-rich-edge);
+        }
+        .lse-block[data-block-type="videoBlock"]::before {
+          background: var(--admin-block-video-edge);
+        }
+        .lse-block[data-block-type="quizBlock"]::before,
+        .lse-block[data-block-type="problemSetBlock"]::before {
+          background: var(--admin-block-quiz-edge);
+        }
+        .lse-block[data-block-type="richTextBlock"] .lse-block__badge,
+        .lse-block[data-block-type="textSection"] .lse-block__badge,
+        .lse-block[data-block-type="sectionTitle"] .lse-block__badge {
+          color: var(--admin-block-rich-icon);
+        }
+        .lse-block[data-block-type="videoBlock"] .lse-block__badge {
+          color: var(--admin-block-video-icon);
+        }
+        .lse-block[data-block-type="quizBlock"] .lse-block__badge,
+        .lse-block[data-block-type="problemSetBlock"] .lse-block__badge {
+          color: var(--admin-block-quiz-icon);
+        }
+        .lse-block[data-block-type="buttonBlock"] .lse-block__badge,
+        .lse-block[data-block-type="listBlock"] .lse-block__badge,
+        .lse-block[data-block-type="stepsList"] .lse-block__badge,
+        .lse-block[data-block-type="__passthrough"] .lse-block__badge {
+          color: var(--admin-block-generic-icon);
+        }
         .lse-block__handle,
         .lse-block__chevron {
           width: 22px;
