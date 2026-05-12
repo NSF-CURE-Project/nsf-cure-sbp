@@ -2,16 +2,18 @@ import { MigrateDownArgs, MigrateUpArgs, sql } from '@payloadcms/db-postgres'
 
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
-    CREATE TYPE IF NOT EXISTS "public"."enum_admin_help_help_topics_topic_id" AS ENUM (
-      'getting-started',
-      'courses',
-      'quizzes',
-      'student-support',
-      'classrooms',
-      'reporting',
-      'site-management',
-      'troubleshooting'
-    );
+    DO $$ BEGIN
+      CREATE TYPE "public"."enum_admin_help_help_topics_topic_id" AS ENUM (
+        'getting-started',
+        'courses',
+        'quizzes',
+        'student-support',
+        'classrooms',
+        'reporting',
+        'site-management',
+        'troubleshooting'
+      );
+    EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
     ALTER TYPE "public"."enum_admin_help_help_topics_topic_id" ADD VALUE IF NOT EXISTS 'getting-started';
     ALTER TYPE "public"."enum_admin_help_help_topics_topic_id" ADD VALUE IF NOT EXISTS 'courses';
@@ -22,10 +24,12 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
     ALTER TYPE "public"."enum_admin_help_help_topics_topic_id" ADD VALUE IF NOT EXISTS 'site-management';
     ALTER TYPE "public"."enum_admin_help_help_topics_topic_id" ADD VALUE IF NOT EXISTS 'troubleshooting';
 
-    CREATE TYPE IF NOT EXISTS "public"."enum_admin_help_help_topics_sections_blocks_list_type" AS ENUM (
-      'bullets',
-      'steps'
-    );
+    DO $$ BEGIN
+      CREATE TYPE "public"."enum_admin_help_help_topics_sections_blocks_list_type" AS ENUM (
+        'bullets',
+        'steps'
+      );
+    EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
     ALTER TYPE "public"."enum_admin_help_help_topics_sections_blocks_list_type" ADD VALUE IF NOT EXISTS 'bullets';
     ALTER TYPE "public"."enum_admin_help_help_topics_sections_blocks_list_type" ADD VALUE IF NOT EXISTS 'steps';
@@ -33,7 +37,7 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
     CREATE TABLE IF NOT EXISTS "admin_help_help_topics" (
       "_order" integer NOT NULL,
       "_parent_id" integer NOT NULL,
-      "id" varchar PRIMARY KEY NOT NULL,
+      "id" varchar NOT NULL,
       "topic_id" "enum_admin_help_help_topics_topic_id"
     );
 
@@ -51,7 +55,7 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
     CREATE TABLE IF NOT EXISTS "admin_help_help_topics_sections" (
       "_order" integer NOT NULL,
       "_parent_id" varchar NOT NULL,
-      "id" varchar PRIMARY KEY NOT NULL,
+      "id" varchar NOT NULL,
       "anchor_id" varchar,
       "heading" varchar
     );
@@ -72,7 +76,7 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
       "_order" integer NOT NULL,
       "_parent_id" varchar NOT NULL,
       "_path" text NOT NULL,
-      "id" varchar PRIMARY KEY NOT NULL,
+      "id" varchar NOT NULL,
       "text" varchar,
       "block_name" varchar
     );
@@ -94,7 +98,7 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
       "_order" integer NOT NULL,
       "_parent_id" varchar NOT NULL,
       "_path" text NOT NULL,
-      "id" varchar PRIMARY KEY NOT NULL,
+      "id" varchar NOT NULL,
       "text" varchar,
       "block_name" varchar
     );
@@ -116,7 +120,7 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
       "_order" integer NOT NULL,
       "_parent_id" varchar NOT NULL,
       "_path" text NOT NULL,
-      "id" varchar PRIMARY KEY NOT NULL,
+      "id" varchar NOT NULL,
       "type" "enum_admin_help_help_topics_sections_blocks_list_type" DEFAULT 'bullets',
       "block_name" varchar
     );
@@ -137,7 +141,7 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
     CREATE TABLE IF NOT EXISTS "admin_help_help_topics_sections_blocks_list_items" (
       "_order" integer NOT NULL,
       "_parent_id" varchar NOT NULL,
-      "id" varchar PRIMARY KEY NOT NULL,
+      "id" varchar NOT NULL,
       "text" varchar,
       "href" varchar
     );
@@ -158,7 +162,7 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
       "_order" integer NOT NULL,
       "_parent_id" varchar NOT NULL,
       "_path" text NOT NULL,
-      "id" varchar PRIMARY KEY NOT NULL,
+      "id" varchar NOT NULL,
       "block_name" varchar
     );
 
@@ -177,7 +181,7 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
     CREATE TABLE IF NOT EXISTS "admin_help_help_topics_sections_blocks_link_card_grid_cards" (
       "_order" integer NOT NULL,
       "_parent_id" varchar NOT NULL,
-      "id" varchar PRIMARY KEY NOT NULL,
+      "id" varchar NOT NULL,
       "label" varchar,
       "href" varchar,
       "desc" varchar

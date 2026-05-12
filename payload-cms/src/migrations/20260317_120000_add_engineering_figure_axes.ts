@@ -1,7 +1,7 @@
-import { sql } from '@payloadcms/db-postgres'
+import { MigrateDownArgs, MigrateUpArgs, sql } from '@payloadcms/db-postgres'
 
-export async function up(): Promise<void> {
-  await sql`
+export async function up({ db }: MigrateUpArgs): Promise<void> {
+  await db.execute(sql`
     ALTER TABLE IF EXISTS "engineering_figures"
       ADD COLUMN IF NOT EXISTS "axes_show" boolean DEFAULT false,
       ADD COLUMN IF NOT EXISTS "axes_x" integer,
@@ -9,11 +9,11 @@ export async function up(): Promise<void> {
       ADD COLUMN IF NOT EXISTS "axes_length" integer,
       ADD COLUMN IF NOT EXISTS "axes_x_label" varchar,
       ADD COLUMN IF NOT EXISTS "axes_y_label" varchar;
-  `
+  `)
 }
 
-export async function down(): Promise<void> {
-  await sql`
+export async function down({ db }: MigrateDownArgs): Promise<void> {
+  await db.execute(sql`
     ALTER TABLE IF EXISTS "engineering_figures"
       DROP COLUMN IF EXISTS "axes_show",
       DROP COLUMN IF EXISTS "axes_x",
@@ -21,5 +21,5 @@ export async function down(): Promise<void> {
       DROP COLUMN IF EXISTS "axes_length",
       DROP COLUMN IF EXISTS "axes_x_label",
       DROP COLUMN IF EXISTS "axes_y_label";
-  `
+  `)
 }
