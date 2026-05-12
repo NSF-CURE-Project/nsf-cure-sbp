@@ -118,7 +118,16 @@ const getCourseWorkspaceBreadcrumbs = (pathname: string): BreadcrumbItem[] | nul
 
 const collectionSectionOverrides: Record<
   string,
-  { sectionLabel: string; sectionHref?: string | null; collectionLabel?: string }
+  {
+    sectionLabel: string
+    sectionHref?: string | null
+    collectionLabel?: string
+    // Override where the middle "collection" crumb points to. Used when the
+    // canonical entry point for editing this collection lives outside
+    // /admin/collections/[slug] — e.g. Pages live under Site Management →
+    // Navigation, so the back-link there is more useful than the raw list.
+    collectionHref?: string | null
+  }
 > = {
   // Lessons and chapters are both hidden from the default admin nav — they're
   // edited via the custom Course Workspace. If someone still lands on the
@@ -141,7 +150,11 @@ const collectionSectionOverrides: Record<
     sectionHref: '/admin/collections/classrooms',
     collectionLabel: 'Memberships',
   },
-  pages: { sectionLabel: 'Site Management', sectionHref: '/admin/site-management' },
+  pages: {
+    sectionLabel: 'Site Management',
+    sectionHref: '/admin/site-management',
+    collectionHref: '/admin/site-management?tab=navigation',
+  },
   quizzes: { sectionLabel: 'Assessments' },
   'quiz-questions': { sectionLabel: 'Assessments' },
   problems: { sectionLabel: 'Assessments' },
@@ -195,7 +208,9 @@ const getCollectionSectionBreadcrumbs = (pathname: string): BreadcrumbItem[] | n
   if (!primarySegment || !collectionHasHiddenListing) {
     breadcrumbs.push({
       label: collectionLabel,
-      href: primarySegment ? `/admin/collections/${collectionSlug}` : null,
+      href: primarySegment
+        ? (config.collectionHref ?? `/admin/collections/${collectionSlug}`)
+        : null,
     })
   }
 
