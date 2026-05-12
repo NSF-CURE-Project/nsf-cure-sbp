@@ -242,6 +242,38 @@ export const listLessonVersions = async (
   }))
 }
 
+// Look up the most-recent published version for a lesson. Returns null if no
+// version has ever been published. Used by the publish-review modal to show
+// "Last published Xh ago" / "This will replace version N".
+export const getLastPublishedLessonVersion = async (
+  lessonId: EntityId,
+): Promise<{
+  versionId: EntityId
+  updatedAt: string | null
+  versionNumber: number | null
+} | null> => {
+  const params = new URLSearchParams()
+  params.set('where[parent][equals]', String(lessonId))
+  params.set('where[version._status][equals]', 'published')
+  params.set('sort', '-updatedAt')
+  params.set('depth', '0')
+  params.set('limit', '1')
+  const json = await get<{
+    docs?: Array<{ id: string | number; updatedAt?: string }>
+    totalDocs?: number
+  }>(`/api/lessons/versions?${params.toString()}`)
+  const doc = json.docs?.[0]
+  if (!doc) return null
+  // Best-effort version number — Payload doesn't expose a sequential int but
+  // the totalDocs across all versions is the closest analog the REST API
+  // surfaces directly.
+  return {
+    versionId: String(doc.id),
+    updatedAt: doc.updatedAt ?? null,
+    versionNumber: null,
+  }
+}
+
 // Fetch one version's full snapshot for restore — depth=1 so relationship ids
 // inside the layout come back as objects (matches the create/edit hydrate
 // path; `fromPersistedLayout` extracts ids either way).

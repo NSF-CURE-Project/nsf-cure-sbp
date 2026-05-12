@@ -1350,6 +1350,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         // background save lands while the modal is open, the iframe reloads
         // and shows the up-to-date preview.
         previewRefreshKey={autoSaveAt}
+        lessonId={isCreate ? null : props.lessonId}
         onCancel={() => setReviewOpen(false)}
         onConfirm={async () => {
           await save('publish')
