@@ -33,6 +33,7 @@ import {
   reorderInArray,
 } from './reorder-utils'
 import {
+  createChapterInCourse,
   deleteChapter,
   deleteLesson,
   getChangedChapters,
@@ -116,6 +117,14 @@ export default function CourseOutlineBoard({
   >(null)
   const [attachLessonChapterId, setAttachLessonChapterId] = useState<EntityId | null>(null)
   const [quizAssignLessonId, setQuizAssignLessonId] = useState<EntityId | null>(null)
+  // Inline chapter create — replaces the legacy Link to the now-hidden
+  // /admin/collections/chapters/create route. Press the toolbar button to
+  // expand a title input; Enter commits via createChapterInCourse and keeps
+  // the input open so multiple chapters can be added in a row.
+  const [addingChapter, setAddingChapter] = useState(false)
+  const [newChapterTitle, setNewChapterTitle] = useState('')
+  const [creatingChapter, setCreatingChapter] = useState(false)
+  const [createChapterError, setCreateChapterError] = useState<string | null>(null)
   const deleteErrorRef = useRef<HTMLDivElement | null>(null)
 
   const committedRef = useRef<CourseNode[]>(courses)
@@ -244,6 +253,60 @@ export default function CourseOutlineBoard({
       })),
     )
     // committedRef left untouched: nothing has been persisted.
+  }
+
+  const handleCreateChapter = async () => {
+    const title = newChapterTitle.trim()
+    if (!title || creatingChapter) return
+    setCreatingChapter(true)
+    setCreateChapterError(null)
+    try {
+      const nextOrder =
+        course.chapters.reduce((max, chapter) => Math.max(max, chapter.order), 0) + 1
+      const created = await createChapterInCourse(course.id, title, nextOrder)
+      setCourses((prev) =>
+        prev.map((courseItem) =>
+          courseItem.id !== course.id
+            ? courseItem
+            : {
+                ...courseItem,
+                chapters: [
+                  ...courseItem.chapters,
+                  {
+                    id: created.id,
+                    title: created.title,
+                    order: created.order,
+                    courseId: course.id,
+                    lessons: [],
+                  },
+                ],
+              },
+        ),
+      )
+      committedRef.current = committedRef.current.map((courseItem) =>
+        courseItem.id !== course.id
+          ? courseItem
+          : {
+              ...courseItem,
+              chapters: [
+                ...courseItem.chapters,
+                {
+                  id: created.id,
+                  title: created.title,
+                  order: created.order,
+                  courseId: course.id,
+                  lessons: [],
+                },
+              ],
+            },
+      )
+      setNewChapterTitle('')
+      router.refresh()
+    } catch (err) {
+      setCreateChapterError(err instanceof Error ? err.message : 'Could not create chapter.')
+    } finally {
+      setCreatingChapter(false)
+    }
   }
 
   const handleSetUpLesson = (lesson: LessonNode) => {
@@ -573,16 +636,63 @@ export default function CourseOutlineBoard({
               >
                 Reorder chapters
               </button>
-              <Link
-                href={`/admin/collections/chapters/create?class=${course.id}`}
+              <button
+                type="button"
+                onClick={() => {
+                  setAddingChapter((prev) => !prev)
+                  setCreateChapterError(null)
+                }}
                 className="cw-btn cw-btn--primary"
               >
                 + Add chapter
-              </Link>
+              </button>
             </>
           )}
         </div>
       </div>
+
+      {addingChapter && !reorderMode ? (
+        <div className="cw-chapter__add-row cw-chapter__add-row--expanded">
+          <input
+            type="text"
+            autoFocus
+            value={newChapterTitle}
+            onChange={(event) => setNewChapterTitle(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                void handleCreateChapter()
+              } else if (event.key === 'Escape') {
+                event.preventDefault()
+                setAddingChapter(false)
+                setNewChapterTitle('')
+                setCreateChapterError(null)
+              }
+            }}
+            placeholder="Chapter title — press Enter to add"
+            disabled={creatingChapter}
+            className="cw-chapter__add-input"
+            aria-label="New chapter title"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setAddingChapter(false)
+              setNewChapterTitle('')
+              setCreateChapterError(null)
+            }}
+            disabled={creatingChapter}
+            className="cw-chapter__attach-link"
+          >
+            cancel
+          </button>
+        </div>
+      ) : null}
+      {createChapterError ? (
+        <div className="cw-error-banner" role="alert">
+          {createChapterError}
+        </div>
+      ) : null}
 
       {status === 'error' ? (
         <div className="cw-error-banner">{operationFailedMessage}</div>
