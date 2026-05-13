@@ -1,4 +1,4 @@
-import type { Payload } from 'payload'
+import type { Payload, Where } from 'payload'
 
 // Minimal seed for fresh dev installs. Creates:
 //   1 admin user (so you can log in immediately)
@@ -24,7 +24,7 @@ type Maybe<T> = T | null | undefined
 const findFirst = async <T,>(
   payload: Payload,
   collection: 'users' | 'classes' | 'chapters' | 'lessons',
-  where: Record<string, unknown>,
+  where: Where,
 ): Promise<Maybe<T>> => {
   const res = await payload.find({
     collection,
@@ -35,7 +35,12 @@ const findFirst = async <T,>(
   return (res.docs[0] as T) ?? null
 }
 
-const richTextParagraph = (text: string) => ({
+// Cast to any: Payload's generated richText type is the full Lexical
+// editor state shape with literal-string unions (direction: 'ltr' | 'rtl',
+// format: '' | 'left' | 'center' | ...). Matching that exactly inline is
+// noisy and brittle; this seed script is dev-only so we keep the runtime
+// shape correct and let TypeScript treat the payload as opaque.
+const richTextParagraph = (text: string): any => ({
   root: {
     type: 'root',
     format: '',
@@ -92,9 +97,11 @@ export default async function seedDev(payload: Payload) {
     payload.logger.info(`Admin user already exists: ${email}`)
   }
 
-  // 2. Course (class)
+  // 2. Course (class). Cast to any on create data: `slug` and `order` are
+  // both required on the generated Class type but populated by the
+  // Classes beforeValidate hook, so the type can't see they're optional.
   const courseTitle = 'Statics Fundamentals'
-  let course = await findFirst<{ id: string | number; slug?: string }>(payload, 'classes', {
+  let course = await findFirst<{ id: number; slug?: string }>(payload, 'classes', {
     title: { equals: courseTitle },
   })
   if (!course) {
@@ -103,9 +110,8 @@ export default async function seedDev(payload: Payload) {
       data: {
         title: courseTitle,
         description: 'A starter course seeded for local development.',
-        // slug + order are auto-populated by the Classes beforeValidate hook.
-      },
-    })) as { id: string | number; slug?: string }
+      } as any,
+    })) as { id: number; slug?: string }
     payload.logger.info(`Created course: ${courseTitle}`)
   } else {
     payload.logger.info(`Course already exists: ${courseTitle}`)
@@ -113,7 +119,7 @@ export default async function seedDev(payload: Payload) {
 
   // 3. Chapter
   const chapterTitle = 'Force Vectors'
-  let chapter = await findFirst<{ id: string | number }>(payload, 'chapters', {
+  let chapter = await findFirst<{ id: number }>(payload, 'chapters', {
     and: [
       { title: { equals: chapterTitle } },
       { class: { equals: course.id } },
@@ -126,8 +132,8 @@ export default async function seedDev(payload: Payload) {
         title: chapterTitle,
         chapterNumber: 1,
         class: course.id,
-      },
-    })) as { id: string | number }
+      } as any,
+    })) as { id: number }
     payload.logger.info(`Created chapter: ${chapterTitle}`)
   } else {
     payload.logger.info(`Chapter already exists: ${chapterTitle}`)
@@ -135,7 +141,7 @@ export default async function seedDev(payload: Payload) {
 
   // 4. Lesson with a single rich-text block
   const lessonTitle = 'Welcome to Statics'
-  let lesson = await findFirst<{ id: string | number }>(payload, 'lessons', {
+  let lesson = await findFirst<{ id: number }>(payload, 'lessons', {
     and: [
       { title: { equals: lessonTitle } },
       { chapter: { equals: chapter.id } },
@@ -157,8 +163,8 @@ export default async function seedDev(payload: Payload) {
           },
         ],
         _status: 'published',
-      },
-    })) as { id: string | number }
+      } as any,
+    })) as { id: number }
     payload.logger.info(`Created lesson: ${lessonTitle}`)
   } else {
     payload.logger.info(`Lesson already exists: ${lessonTitle}`)
