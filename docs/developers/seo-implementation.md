@@ -59,8 +59,13 @@ Each static route exports `metadata = buildMetadata(...)`:
 - **Search:** `web/src/app/(public)/search/page.tsx`
 - **Resources:** `web/src/app/(public)/resources/page.tsx`
 - **Contact Us:** `web/src/app/(public)/contact-us/page.tsx`
-- **Contacts:** `web/src/app/(public)/contacts/page.tsx`
 - **Getting Started:** `web/src/app/(public)/getting-started/page.tsx`
+- **Learning hub:** `web/src/app/(public)/learning/page.tsx`
+- **Data Transparency:** `web/src/app/(public)/data-transparency/page.tsx`
+- **Analytics (public view):** `web/src/app/(public)/analytics/page.tsx`
+- **Classrooms (public listing):** `web/src/app/(public)/classrooms/page.tsx`
+- **Quiz Demo:** `web/src/app/(public)/quiz-demo/page.tsx`
+- **Questions / Saved lessons / Problem attempts:** `web/src/app/(public)/{questions,saved-lessons,problem-attempts}/page.tsx`
 
 ## 5) No-Index for Private/Non-Public Pages
 
@@ -79,9 +84,11 @@ Auth and sensitive routes are marked `noIndex`:
 
 Rules:
 
-- Allow all by default
-- Disallow: `/admin`, `/api`, `/preview`, and auth/profile routes
-- Sitemap URL included
+- `User-agent: *`, `Allow: /`.
+- `Disallow`: `/admin`, `/api`, `/preview`, `/login`, `/register`, `/forgot-password`, `/reset-password`, `/check-email`, `/settings`, `/profile`.
+- `Sitemap` URL included.
+
+When you add a new authenticated/preview route, add it to the `disallow` list so search engines do not index it.
 
 ## 7) Sitemap
 
@@ -89,9 +96,11 @@ Rules:
 
 Includes:
 
-- Static routes: `/`, `/directory`, `/search`, `/resources`, `/contact-us`, `/contacts`, `/getting-started`
-- Payload pages (excluding `home` to avoid duplicate `/`)
-- Class, chapter, lesson URLs from `getClassesTree()`
+- Static routes: `/`, `/learning`, `/directory`, `/search`, `/resources`, `/contact-us`, `/getting-started`.
+- Payload pages (excluding `home` to avoid duplicate `/`), pulled via `getPages()`.
+- Class, chapter, lesson URLs from `getClassesTree()`.
+
+Routes intentionally **not** in the sitemap include `/data-transparency`, `/analytics`, `/classrooms`, `/quiz-demo`, `/questions`, `/saved-lessons`, `/problem-attempts`. They are still publicly reachable; add them to `staticRoutes` if/when they should be indexed.
 
 ## 8) Canonical URLs
 

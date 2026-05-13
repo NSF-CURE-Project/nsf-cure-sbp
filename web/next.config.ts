@@ -29,6 +29,12 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: "standalone",
   outputFileTracingRoot: projectRoot,
+  // `jsdom` reads its own `default-stylesheet.css` at runtime via __dirname.
+  // When webpack bundles it for the server, __dirname resolves to the bundle
+  // directory and the file lookup fails with ENOENT. Marking it (and the
+  // `isomorphic-dompurify` wrapper that loads it) as external keeps Node's
+  // module resolution intact.
+  serverExternalPackages: ["jsdom", "isomorphic-dompurify"],
   turbopack: {
     root: projectRoot,
   },

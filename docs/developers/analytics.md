@@ -28,7 +28,9 @@ Primary modules
 Collections used by reporting
 - `lesson-progress`
 - `quiz-attempts`
+- `problem-attempts`
 - `accounts`
+- `classroom-memberships`
 - `organizations`
 - `reporting-periods`
 - `rppr-reports`
@@ -36,19 +38,37 @@ Collections used by reporting
 - `reporting-audit-events`
 - `reporting-saved-views`
 - `reporting-evidence-links`
-- content artifacts: `lessons`, `quizzes`, `pages`, `quiz-questions`
+- `reporting-product-records` — first-class NSF product capture (publications/presentations) alongside content-artifact products.
+- content artifacts: `lessons`, `quizzes`, `pages`, `quiz-questions`, `problems`, `concepts`
 
 Endpoints
-- Internal/operational summary: `GET /api/analytics/reporting-summary`
-- RPPR summary and exports: `GET /api/analytics/nsf-rppr`
-- Reporting Center payload, drilldowns, and snapshot trigger: `GET /api/analytics/reporting-center`
+
+Reporting (period-aware, RPPR-aligned):
+- `GET /api/analytics/reporting-summary` — operational summary used by dashboards.
+- `GET /api/analytics/nsf-rppr` — RPPR summary and exports.
+- `GET /api/analytics/reporting-center` — Reporting Center payload, drilldowns, snapshot trigger.
   - actions: `summary`, `drilldown`, `create-snapshot`, `save-view`
   - CSV types: `summary`, `participants`, `organizations`, `products`, `evidence`, `data-quality`
-- Metric definition registry: `GET /api/analytics/metric-definitions`
+- `GET /api/analytics/metric-definitions` — metric definition registry consumed by both UI and exports.
+- `POST /api/analytics/generate-rppr-pdf` — staff-only PDF render of the current period.
+- `GET /api/analytics/gpt-rppr-context` — read-only narrative context for AI-assisted drafts (admin/staff).
+
+Operational staff analytics (powering the custom admin views):
+- `GET /api/analytics/student` — per-learner activity drilldown (`studentAnalytics`).
+- `GET /api/staff/student-performance` — roster-level performance used by `/admin/student-performance`.
+- `GET /api/staff/user-analytics/list` and `GET /api/staff/user-analytics` — instructor performance roster and detail (`/admin/user-analytics`).
+- `GET /api/staff/quiz-stats` — per-quiz attempts and mastery (`/admin/quiz-stats/[quizId]`).
+- `GET /api/staff/question-stats` — per-question performance (`/admin/question-stats/[questionId]`).
+- `GET /api/staff/question-bank` — cross-quiz question pool with usage counters (`/admin/question-bank`).
+- `GET /api/staff/concept-list` and `GET /api/staff/concept-detail` — concept library data (`/admin/concepts`).
+- `GET /api/staff/pre-post/list` and `GET /api/staff/pre-post/detail` — pre/post pairings and normalized-gain (`/admin/pre-post`).
+
+These staff endpoints all gate on `isStaff(req)` (admin/staff/professor). Professor scope is narrowed to their own classrooms inside each handler.
 
 Admin entry points
-- Dashboard (operational): `/admin`
-- RPPR reporting workspace: `/admin/reporting`
+- Dashboard (operational, custom view): `/admin` (rendered by `StaffDashboardView`).
+- RPPR reporting workspace: `/admin/reporting`.
+- Staff analytics pages: `/admin/student-performance`, `/admin/user-analytics`, `/admin/quiz-bank`, `/admin/question-bank`, `/admin/concepts`, `/admin/pre-post`.
 
 ## Reporting period semantics
 
@@ -117,9 +137,8 @@ Manual narratives are stored in `rppr-reports`:
 
 ## Known limitations
 
-- Publications/patents are not yet modeled as first-class product records; content artifacts are used as a proxy.
 - Participant demographic detail is not fully standardized for all NSF program variants.
-- Final submission packaging (PDF/DOCX) is not implemented yet; JSON/CSV exports are available.
+- DOCX packaging is not implemented; PDF (`/api/analytics/generate-rppr-pdf`) and JSON/CSV exports cover submission needs.
 - Saved views and snapshot comparisons are currently lightweight and query-string driven; dedicated workflow UI can be expanded later.
 
 ## Snapshot automation scaffold

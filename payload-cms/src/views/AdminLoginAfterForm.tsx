@@ -10,11 +10,11 @@ export default function AdminLoginAfterForm() {
     <div className="admin-login-footer">
       <style>{`
         .admin-login-footer {
-          margin-top: 20px;
-          padding-top: 16px;
+          margin-top: 8px;
+          padding-top: 8px;
           border-top: 1px solid rgba(15, 23, 42, 0.08);
           display: grid;
-          gap: 6px;
+          gap: 4px;
           text-align: center;
         }
         :root[data-theme='dark'] .admin-login-footer {
@@ -42,6 +42,28 @@ export default function AdminLoginAfterForm() {
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: var(--theme-elevation-450, #5d6b80);
+        }
+
+        /* Adaptive footer compression for short-height desktops. */
+        @media (max-height: 850px) {
+          .admin-login-footer {
+            margin-top: 8px;
+            padding-top: 8px;
+            gap: 3px;
+          }
+        }
+        @media (max-height: 750px) {
+          .admin-login-footer {
+            margin-top: 6px;
+            padding-top: 6px;
+            gap: 2px;
+          }
+          .admin-login-footer__trust {
+            font-size: 10px;
+          }
+          .admin-login-footer__affiliation {
+            font-size: 9px;
+          }
         }
       `}</style>
 

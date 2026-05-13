@@ -81,7 +81,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           --cw-shadow-md: 0 4px 14px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
           display: flex;
           flex-direction: column;
-          gap: 24px;
+          gap: 18px;
         }
         :root[data-theme='dark'] .course-workspace {
           --cw-border: rgba(148, 163, 184, 0.14);
@@ -98,7 +98,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         .course-workspace-header {
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 12px;
           padding-bottom: 0;
         }
         /* Sticky topbar — same shape as .lse-topbar in the lesson editor so
@@ -111,8 +111,8 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           display: grid;
           grid-template-columns: minmax(0, 1fr) auto;
           align-items: center;
-          gap: 16px;
-          padding: 10px 18px;
+          gap: 12px;
+          padding: 8px 18px;
           margin: 0 -18px;
           background: var(--admin-surface, var(--cw-surface));
           border-bottom: 1px solid var(--admin-surface-border, var(--cw-border));
@@ -158,7 +158,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         .course-workspace-title-block {
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 6px;
           min-width: 0;
         }
         .course-workspace-title-row {
@@ -232,7 +232,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 7px 14px;
+          padding: 6px 12px;
           font-size: 13px;
           font-weight: 500;
           line-height: 1.2;
@@ -287,7 +287,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         .course-workspace-tabs {
           display: flex;
           flex-wrap: wrap;
-          gap: 4px;
+          gap: 2px;
           border-bottom: 1px solid var(--cw-border);
           margin: 0;
           padding: 0;
@@ -296,7 +296,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           position: relative;
           background: transparent;
           border: none;
-          padding: 10px 14px 12px;
+          padding: 8px 12px 10px;
           margin-bottom: -1px;
           font-size: 14px;
           font-weight: 500;
@@ -321,7 +321,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         .course-workspace .cw-outline {
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 12px;
           padding-bottom: 96px;
         }
         .course-workspace .cw-outline__toolbar {
@@ -379,7 +379,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         .course-workspace .cw-chapter-list {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 14px;
         }
         /* Chapter card chrome mirrors the lesson editor's BlockCard:
          * persistent header bar (drag, badge, index, title, count, overflow)
@@ -426,7 +426,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           grid-template-columns: auto auto auto auto minmax(0, 1fr) auto auto;
           align-items: center;
           gap: 10px;
-          padding: 10px 14px;
+          padding: 9px 12px;
           background: linear-gradient(
             180deg,
             var(--cw-surface-muted) 0%,
@@ -540,8 +540,8 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         .course-workspace .cw-chapter__lessons {
           display: flex;
           flex-direction: column;
-          gap: 4px;
-          padding: 10px 12px 12px 12px;
+          gap: 3px;
+          padding: 8px 10px 10px 10px;
         }
 
         .course-workspace .cw-chapter__add-inline {
@@ -566,14 +566,14 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         /* === Lesson row ===
          * Hovering should feel active: subtle lift, deeper shadow, and a
          * tinted background so curriculum navigation feels alive instead of
-         * flat. Density tightened (was 8/12) so longer courses scan faster. */
+         * flat. Density tightened (was 7/10) so longer courses scan faster. */
         .course-workspace .cw-lesson {
           position: relative;
           display: grid;
           grid-template-columns: auto minmax(0, 1fr) auto;
           align-items: center;
           gap: 10px;
-          padding: 7px 10px;
+          padding: 5px 10px;
           background: var(--cw-surface);
           border: 1px solid var(--cw-border);
           border-radius: 8px;
@@ -614,7 +614,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         .course-workspace .cw-lesson__titlebtn {
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          gap: 2px;
           padding: 0;
           margin: 0;
           background: transparent;

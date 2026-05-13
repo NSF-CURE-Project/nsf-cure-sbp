@@ -87,14 +87,14 @@ export default function AdminLoginBeforeForm() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 4px;
-          margin-bottom: 8px;
+          gap: 8px;
+          margin-bottom: 52px;
           position: relative;
         }
         .admin-login-logo::before {
           content: '';
           position: absolute;
-          inset: -28px -40px;
+          inset: -36px -56px;
           background: radial-gradient(
             closest-side,
             rgba(47, 143, 70, 0.10),
@@ -104,7 +104,7 @@ export default function AdminLoginBeforeForm() {
           z-index: -1;
         }
         .admin-login-logo img {
-          width: min(220px, 56vw) !important;
+          width: min(320px, 64vw) !important;
           height: auto !important;
         }
         .admin-login-logo__caption {
@@ -115,24 +115,12 @@ export default function AdminLoginBeforeForm() {
           color: var(--theme-elevation-500, #4b5563);
         }
 
-        /* === Supporting description block (this component) === */
-        .admin-login-intro {
-          margin: 0 0 18px 0;
-          font-size: 13px;
-          line-height: 1.55;
-          color: var(--theme-elevation-600, #475569);
-          text-align: center;
-        }
-        :root[data-theme='dark'] .admin-login-intro {
-          color: var(--theme-elevation-500, #94a3b8);
-        }
-
         /* === Form inputs — tighter desktop sizing === */
         .template-default--login .field-type input[type='text'],
         .template-default--login .field-type input[type='email'],
         .template-default--login .field-type input[type='password'] {
-          height: 38px;
-          padding: 8px 12px;
+          height: 34px;
+          padding: 6px 12px;
           font-size: 14px;
           border-radius: 8px;
           border-color: rgba(15, 23, 42, 0.14);
@@ -156,16 +144,16 @@ export default function AdminLoginBeforeForm() {
           letter-spacing: 0.06em;
           text-transform: uppercase;
           color: var(--theme-elevation-500, #5d6b80);
-          margin-bottom: 4px !important;
+          margin-bottom: 3px !important;
         }
         .template-default--login .field-type {
-          margin-bottom: 14px;
+          margin-bottom: 6px;
         }
 
         /* === Submit button — slightly tighter, darker green === */
         .template-default--login .form-submit,
         .template-default--login button[type='submit'] {
-          height: 40px;
+          height: 38px;
           font-size: 13px;
           font-weight: 600;
           border-radius: 8px;
@@ -188,12 +176,79 @@ export default function AdminLoginBeforeForm() {
         .template-default--login a:hover {
           color: #2F8F46;
         }
-      `}</style>
 
-      <p className="admin-login-intro">
-        Manage curriculum, lessons, quizzes, and publishing workflows for
-        the NSF CURE Summer Bridge Program.
-      </p>
+        /* === Adaptive composition for short-height desktops ===
+         * Mirrors the height-tier rules in custom.scss but for selectors
+         * scoped to this component (logo internals, intro, inputs, submit).
+         * Goal: keep logo + fields + CTA above the fold on ~720-850px tall
+         * desktop viewports without forcing the mobile layout. */
+        @media (max-height: 850px) {
+          .admin-login-logo {
+            gap: 6px;
+            margin-bottom: 28px;
+          }
+          .admin-login-logo img {
+            width: min(220px, 46vw) !important;
+          }
+          .admin-login-logo::before {
+            inset: -24px -40px;
+          }
+          .template-default--login .field-type input[type='text'],
+          .template-default--login .field-type input[type='email'],
+          .template-default--login .field-type input[type='password'] {
+            height: 32px;
+            padding: 5px 12px;
+          }
+          .template-default--login .field-type {
+            margin-bottom: 4px;
+          }
+          .template-default--login .field-type__label,
+          .template-default--login .field-label {
+            margin-bottom: 2px !important;
+          }
+          .template-default--login .form-submit,
+          .template-default--login button[type='submit'] {
+            height: 36px;
+          }
+        }
+
+        @media (max-height: 750px) {
+          .admin-login-logo {
+            gap: 4px;
+            margin-bottom: 16px;
+          }
+          .admin-login-logo img {
+            width: min(160px, 36vw) !important;
+          }
+          .admin-login-logo::before {
+            inset: -16px -28px;
+          }
+          .admin-login-logo__caption {
+            font-size: 10px;
+            letter-spacing: 0.16em;
+          }
+          .template-default--login .field-type input[type='text'],
+          .template-default--login .field-type input[type='email'],
+          .template-default--login .field-type input[type='password'] {
+            height: 30px;
+            padding: 3px 12px;
+            border-radius: 7px;
+          }
+          .template-default--login .field-type {
+            margin-bottom: 2px;
+          }
+          .template-default--login .field-type__label,
+          .template-default--login .field-label {
+            font-size: 10px !important;
+            margin-bottom: 1px !important;
+          }
+          .template-default--login .form-submit,
+          .template-default--login button[type='submit'] {
+            height: 32px;
+            font-size: 12px;
+          }
+        }
+      `}</style>
     </>
   )
 }
