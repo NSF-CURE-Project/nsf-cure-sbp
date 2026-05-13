@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getClassBySlug } from "@/lib/payloadSdk/classes";
+import { chapterHasReadableLessons, getClassBySlug } from "@/lib/payloadSdk/classes";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 import type { ChapterDoc, LessonDoc } from "@/lib/payloadSdk/types";
@@ -101,12 +101,14 @@ export default async function ClassPage(props: {
   const chapters: ChapterDoc[] = Array.isArray(c.chapters)
     ? (c.chapters as ChapterDoc[])
     : [];
-  const sortedChapters = [...chapters].sort(byChapterNumberThenTitle);
-  const totalLessons = chapters.reduce((count, chapter) => {
+  const visibleChapters = chapters
+    .filter(chapterHasReadableLessons)
+    .sort(byChapterNumberThenTitle);
+  const totalLessons = visibleChapters.reduce((count, chapter) => {
     const lessons = (chapter as ChapterDoc & { lessons?: LessonDoc[] }).lessons;
     return count + (Array.isArray(lessons) ? lessons.length : 0);
   }, 0);
-  const chapterCards = sortedChapters.map((chapter) => {
+  const chapterCards = visibleChapters.map((chapter) => {
     const rawLessons =
       (chapter as ChapterDoc & { lessons?: LessonDoc[] }).lessons ?? [];
     const hasLessonOrder = rawLessons.some(
@@ -177,16 +179,16 @@ export default async function ClassPage(props: {
                 {c.description}
               </p>
             ) : null}
-            {chapters.length > 0 ? (
+            {visibleChapters.length > 0 ? (
               <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[13px]">
                 <div className="inline-flex items-center gap-1.5 text-muted-foreground">
                   <Layers className="h-3.5 w-3.5 text-primary/70" />
                   <dt className="sr-only">Chapters</dt>
                   <dd>
                     <span className="font-semibold tabular-nums text-foreground">
-                      {chapters.length}
+                      {visibleChapters.length}
                     </span>{" "}
-                    {chapters.length === 1 ? "chapter" : "chapters"}
+                    {visibleChapters.length === 1 ? "chapter" : "chapters"}
                   </dd>
                 </div>
                 <div className="inline-flex items-center gap-1.5 text-muted-foreground">
@@ -226,7 +228,7 @@ export default async function ClassPage(props: {
               classId={String(c.id)}
               chapters={chapterCards}
             />
-            {chapters.length === 0 ? (
+            {visibleChapters.length === 0 ? (
               <p className="text-muted-foreground">
                 No chapters available yet.
               </p>

@@ -39,6 +39,7 @@ import * as migration_20260506_200000_add_saved_views from './20260506_200000_ad
 import * as migration_20260507_010000_add_locked_documents_rels_columns from './20260507_010000_add_locked_documents_rels_columns'
 import * as migration_20260512_120000_drop_engineering_figures from './20260512_120000_drop_engineering_figures'
 import * as migration_20260512_130000_drop_problem_sets from './20260512_130000_drop_problem_sets'
+import * as migration_20260513_140000_repair_admin_help_blocks_tables from './20260513_140000_repair_admin_help_blocks_tables'
 
 export const migrations = [
   {
@@ -245,5 +246,10 @@ export const migrations = [
     up: migration_20260512_130000_drop_problem_sets.up,
     down: migration_20260512_130000_drop_problem_sets.down,
     name: '20260512_130000_drop_problem_sets',
+  },
+  {
+    up: migration_20260513_140000_repair_admin_help_blocks_tables.up,
+    down: migration_20260513_140000_repair_admin_help_blocks_tables.down,
+    name: '20260513_140000_repair_admin_help_blocks_tables',
   },
 ]

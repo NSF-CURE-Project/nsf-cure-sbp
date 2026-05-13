@@ -1,5 +1,8 @@
 import type { MetadataRoute } from "next";
-import { getClassesTree } from "@/lib/payloadSdk/classes";
+import {
+  chapterHasReadableLessons,
+  getClassesTree,
+} from "@/lib/payloadSdk/classes";
 import { getPages } from "@/lib/payloadSdk/pages";
 import type { ChapterDoc, ClassDoc, LessonDoc } from "@/lib/payloadSdk/types";
 import { siteUrl } from "@/lib/seo";
@@ -40,7 +43,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const chapterList = Array.isArray(cls.chapters)
       ? (cls.chapters as ChapterDoc[])
       : [];
-    const chapters = chapterList.filter(isChapterDoc) as ChapterLike[];
+    const chapters = chapterList
+      .filter(isChapterDoc)
+      .filter(chapterHasReadableLessons) as ChapterLike[];
 
     const chapterUrls = chapters
       .filter((chapter) => chapter.slug)

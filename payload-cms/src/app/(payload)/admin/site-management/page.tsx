@@ -185,7 +185,7 @@ export default function AdminSettingsPage() {
                 }}
               >
                 <AdminActionCard
-                  href="/admin/collections/users"
+                  href="/admin/site-management/users"
                   title="User Directory"
                   description="Review existing staff accounts and update names, emails, or roles."
                   meta="Collection"

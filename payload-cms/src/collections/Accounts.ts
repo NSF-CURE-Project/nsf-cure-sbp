@@ -1,5 +1,14 @@
 import { buildAuthEmail, buildResetPasswordUrl } from '../utils/authEmails'
 import type { CollectionConfig, PayloadRequest } from 'payload'
+import { accountsMeHandler } from '../endpoints/accountsMe'
+import { accountsHeartbeatHandler } from '../endpoints/accountsHeartbeat'
+import {
+  accountDataSummaryHandler,
+  updateMyDemographicsHandler,
+  updateNotificationPreferencesHandler,
+} from '../endpoints/accountEndpoints'
+import { logoutAllSessionsHandler } from '../endpoints/logoutAll'
+import { emailPreviewHandler } from '../endpoints/emailPreview'
 
 const cookieSecure = (() => {
   const envValue = process.env.PAYLOAD_COOKIE_SECURE
@@ -50,6 +59,52 @@ export const Accounts: CollectionConfig = {
     useAsTitle: 'email',
     group: 'Students',
   },
+  // Payload 3 scopes /api/accounts/* lookups to this collection's endpoints
+  // array (see node_modules/payload/dist/utilities/handleEndpoints.js). Custom
+  // endpoints sharing the /accounts namespace must live here, not at the
+  // top-level config.endpoints — otherwise they 404.
+  endpoints: [
+    {
+      path: '/me',
+      method: 'get',
+      handler: accountsMeHandler,
+    },
+    {
+      path: '/heartbeat',
+      method: 'post',
+      handler: accountsHeartbeatHandler,
+    },
+    {
+      path: '/me/demographics',
+      method: 'patch',
+      handler: updateMyDemographicsHandler,
+    },
+    {
+      path: '/me/notification-preferences',
+      method: 'patch',
+      handler: updateNotificationPreferencesHandler,
+    },
+    {
+      path: '/me/data-summary',
+      method: 'get',
+      handler: accountDataSummaryHandler,
+    },
+    {
+      path: '/logout-all',
+      method: 'post',
+      handler: logoutAllSessionsHandler,
+    },
+    {
+      path: '/email-preview',
+      method: 'post',
+      handler: emailPreviewHandler,
+    },
+    {
+      path: '/email-preview',
+      method: 'get',
+      handler: emailPreviewHandler,
+    },
+  ],
   hooks: {
     afterLogin: [
       async ({ user, req }) => {

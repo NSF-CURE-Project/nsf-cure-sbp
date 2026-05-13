@@ -10,6 +10,7 @@ export const ClassroomMemberships: CollectionConfig = {
   admin: {
     useAsTitle: 'student',
     group: 'Classrooms',
+    hidden: true,
     defaultColumns: [
       'student',
       'classroom',

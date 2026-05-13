@@ -1,6 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { getClassesTree } from "@/lib/payloadSdk/classes";
+import {
+  chapterHasReadableLessons,
+  getClassesTree,
+} from "@/lib/payloadSdk/classes";
 import { getPages } from "@/lib/payloadSdk/pages";
 import type {
   ClassDoc,
@@ -587,7 +590,7 @@ function buildResults(
     });
 
     const chapters: ChapterDoc[] = Array.isArray(cls.chapters)
-      ? (cls.chapters as ChapterDoc[])
+      ? (cls.chapters as ChapterDoc[]).filter(chapterHasReadableLessons)
       : [];
 
     for (const chapter of chapters) {

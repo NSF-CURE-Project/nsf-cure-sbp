@@ -30,6 +30,20 @@ export default function JoinClassroomPage() {
     return slug ? `/classes/${slug}` : null;
   }, [classroom?.class?.slug]);
 
+  // Allow staff to share a one-click invite URL like
+  // /join-classroom?code=SH9RMB. Read from window.location.search rather
+  // than next/navigation's useSearchParams so the page doesn't force a CSR
+  // bailout without a Suspense boundary. LoginLink preserves the query
+  // string through the login round-trip, so this still works for visitors
+  // who arrive logged-out.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("code") ?? "";
+    const cleaned = raw.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    if (cleaned) setCode(cleaned);
+  }, []);
+
   useEffect(() => {
     const controller = new AbortController();
     const loadUser = async () => {

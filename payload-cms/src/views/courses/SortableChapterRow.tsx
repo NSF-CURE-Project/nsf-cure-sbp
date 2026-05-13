@@ -35,16 +35,16 @@ type SortableChapterRowProps = {
   onDuplicateLesson: (lesson: ChapterNode['lessons'][number]) => void
 }
 
-// Persist per-chapter collapse state in sessionStorage so navigating away
-// and back keeps the author's focus context. Keyed by course+chapter so
-// collapsing on one course doesn't bleed into another.
-const collapseKey = (courseId: EntityId, chapterId: EntityId) =>
-  `chapter-collapsed:${courseId}:${chapterId}`
+// Persist per-chapter expansion in sessionStorage so navigating away and
+// back keeps the author's focus context. Chapters default to collapsed on
+// fresh page loads; the storage tracks which ones the author has expanded.
+const expandedKey = (courseId: EntityId, chapterId: EntityId) =>
+  `chapter-expanded:${courseId}:${chapterId}`
 
-const readCollapsed = (courseId: EntityId, chapterId: EntityId): boolean => {
+const readExpanded = (courseId: EntityId, chapterId: EntityId): boolean => {
   if (typeof window === 'undefined') return false
   try {
-    return window.sessionStorage.getItem(collapseKey(courseId, chapterId)) === '1'
+    return window.sessionStorage.getItem(expandedKey(courseId, chapterId)) === '1'
   } catch {
     return false
   }
@@ -98,11 +98,12 @@ export default function SortableChapterRow({
     opacity: sortable.isDragging ? 0.55 : 1,
   }
 
-  // Default to expanded server-side to avoid hydration mismatch; rehydrate
-  // from sessionStorage on the client after mount.
-  const [collapsed, setCollapsed] = useState(false)
+  // Default to collapsed on initial render (matches SSR output to avoid
+  // hydration mismatch); rehydrate any author-expanded chapters from
+  // sessionStorage on the client after mount.
+  const [collapsed, setCollapsed] = useState(true)
   useEffect(() => {
-    setCollapsed(readCollapsed(courseId, chapter.id))
+    setCollapsed(!readExpanded(courseId, chapter.id))
   }, [courseId, chapter.id])
 
   const toggleCollapsed = () => {
@@ -110,9 +111,9 @@ export default function SortableChapterRow({
       const next = !prev
       try {
         if (next) {
-          window.sessionStorage.setItem(collapseKey(courseId, chapter.id), '1')
+          window.sessionStorage.removeItem(expandedKey(courseId, chapter.id))
         } else {
-          window.sessionStorage.removeItem(collapseKey(courseId, chapter.id))
+          window.sessionStorage.setItem(expandedKey(courseId, chapter.id), '1')
         }
       } catch {
         // sessionStorage unavailable (private mode, quota) — degrade

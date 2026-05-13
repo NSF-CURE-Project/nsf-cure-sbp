@@ -28,8 +28,29 @@ type ClassroomMembership = {
   classroom?: {
     id?: string;
     title?: string;
-    class?: { slug?: string; title?: string };
+    active?: boolean;
+    class?: {
+      slug?: string;
+      title?: string;
+      description?: string;
+      chapters?: unknown[];
+    };
   };
+};
+
+const formatRelativeTime = (iso?: string | null): string | null => {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  const diffSec = Math.round((Date.now() - date.getTime()) / 1000);
+  if (diffSec < 60) return "just now";
+  const diffMin = Math.round(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.round(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDay = Math.round(diffHr / 24);
+  if (diffDay < 30) return `${diffDay}d ago`;
+  return date.toLocaleDateString();
 };
 
 export default function ProfilePage() {
@@ -81,7 +102,7 @@ export default function ProfilePage() {
       setClassroomsStatus("loading");
       try {
         const res = await fetch(
-          `${PAYLOAD_URL}/api/classroom-memberships?where[student][equals]=${user.id}&depth=2`,
+          `${PAYLOAD_URL}/api/classroom-memberships?where[student][equals]=${user.id}&depth=3`,
           {
             credentials: "include",
             signal: controller.signal,
@@ -321,58 +342,155 @@ export default function ProfilePage() {
                       membership.classroom?.title ?? "Classroom";
                     const classTitle = membership.classroom?.class?.title;
                     const classSlug = membership.classroom?.class?.slug;
-                    const joinedAt = membership.joinedAt
-                      ? new Date(membership.joinedAt).toLocaleDateString()
-                      : null;
+                    const classDescription =
+                      membership.classroom?.class?.description?.trim() || null;
+                    const chapterCount = Array.isArray(
+                      membership.classroom?.class?.chapters
+                    )
+                      ? membership.classroom.class.chapters.length
+                      : 0;
                     const totalLessons = membership.totalLessons ?? 0;
                     const completedLessons = membership.completedLessons ?? 0;
                     const completionRate = membership.completionRate ?? 0;
-                    const statusLabel =
-                      totalLessons > 0 && completionRate >= 1
-                        ? "Completed"
-                        : "Active";
+                    const completionPct = Math.max(
+                      0,
+                      Math.min(100, Math.round(completionRate * 100))
+                    );
                     const isCompleted = totalLessons > 0 && completionRate >= 1;
-                    const lastActivity = membership.lastActivityAt
-                      ? new Date(membership.lastActivityAt).toLocaleDateString()
-                      : "No activity yet";
+                    const isArchived = membership.classroom?.active === false;
+                    const statusLabel = isArchived
+                      ? "Archived"
+                      : isCompleted
+                        ? "Completed"
+                        : completedLessons > 0
+                          ? "In progress"
+                          : "Not started";
+                    const statusToneClass = isArchived
+                      ? "bg-muted/40 text-muted-foreground"
+                      : isCompleted
+                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300"
+                        : completedLessons > 0
+                          ? "bg-sky-500/15 text-sky-600 dark:text-sky-300"
+                          : "bg-muted/40 text-muted-foreground";
+                    const joinedRel = formatRelativeTime(membership.joinedAt);
+                    const lastActivityRel = formatRelativeTime(
+                      membership.lastActivityAt
+                    );
 
                     return (
                       <div
                         key={membership.id}
-                        className="flex flex-col gap-1.5 rounded-md border border-border/60 bg-background px-4 py-3"
+                        className="flex flex-col gap-3 rounded-md border border-border/60 bg-background px-4 py-3.5"
                       >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="text-[15px] font-semibold text-foreground">
-                            {classroomTitle}
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="text-[15px] font-semibold text-foreground">
+                              {classroomTitle}
+                            </div>
+                            <div className="mt-0.5 text-[13px] text-muted-foreground">
+                              {classTitle ?? "Course"}
+                              {chapterCount > 0 ? (
+                                <>
+                                  {" · "}
+                                  {chapterCount} chapter
+                                  {chapterCount === 1 ? "" : "s"}
+                                </>
+                              ) : null}
+                              {totalLessons > 0 ? (
+                                <>
+                                  {" · "}
+                                  {totalLessons} lesson
+                                  {totalLessons === 1 ? "" : "s"}
+                                </>
+                              ) : null}
+                            </div>
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {statusLabel}
-                          </div>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {classTitle ? `Class: ${classTitle}` : "Course"}
-                          {joinedAt ? ` • Joined ${joinedAt}` : ""}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {totalLessons > 0
-                            ? `${completedLessons}/${totalLessons} lessons completed`
-                            : "No lessons started"}
-                          {" • "}
-                          {lastActivity}
-                        </div>
-                        {classSlug ? (
-                          <Link
-                            href={`/classes/${classSlug}`}
-                            className="text-xs font-semibold text-primary underline underline-offset-4"
+                          <span
+                            className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${statusToneClass}`}
                           >
-                            Go to class
-                          </Link>
+                            {statusLabel}
+                          </span>
+                        </div>
+
+                        {classDescription ? (
+                          <p className="line-clamp-2 text-[13px] leading-snug text-muted-foreground">
+                            {classDescription}
+                          </p>
                         ) : null}
-                        {isCompleted && membership.classroom?.id ? (
-                          <DownloadCertificateButton
-                            classroomId={membership.classroom.id}
-                          />
-                        ) : null}
+
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between text-[12px] text-muted-foreground">
+                            <span>
+                              {totalLessons > 0
+                                ? `${completedLessons} of ${totalLessons} lesson${
+                                    totalLessons === 1 ? "" : "s"
+                                  } completed`
+                                : "No lessons available yet"}
+                            </span>
+                            {totalLessons > 0 ? (
+                              <span className="font-medium tabular-nums text-foreground">
+                                {completionPct}%
+                              </span>
+                            ) : null}
+                          </div>
+                          <div
+                            className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
+                            role="progressbar"
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-valuenow={completionPct}
+                            aria-label={`${classroomTitle} progress`}
+                          >
+                            <div
+                              className={`h-full rounded-full transition-[width] ${
+                                isCompleted
+                                  ? "bg-emerald-500"
+                                  : "bg-sky-500"
+                              }`}
+                              style={{ width: `${completionPct}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-muted-foreground">
+                          {joinedRel ? (
+                            <span>Joined {joinedRel}</span>
+                          ) : null}
+                          {lastActivityRel ? (
+                            <>
+                              <span aria-hidden>·</span>
+                              <span>Last active {lastActivityRel}</span>
+                            </>
+                          ) : (
+                            <>
+                              <span aria-hidden>·</span>
+                              <span>No activity yet</span>
+                            </>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                          {classSlug ? (
+                            <Link
+                              href={`/classes/${classSlug}`}
+                              className="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-[13px] font-semibold text-primary-foreground transition hover:bg-primary/90"
+                            >
+                              {completedLessons > 0 && !isCompleted
+                                ? "Continue learning"
+                                : isCompleted
+                                  ? "Review class"
+                                  : "Start learning"}
+                              <span aria-hidden className="ml-1">
+                                →
+                              </span>
+                            </Link>
+                          ) : null}
+                          {isCompleted && membership.classroom?.id ? (
+                            <DownloadCertificateButton
+                              classroomId={membership.classroom.id}
+                            />
+                          ) : null}
+                        </div>
                       </div>
                     );
                   })}

@@ -1,5 +1,6 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
 import { getId, gradeQuizAnswer } from '../lib/quiz'
+import { quizAttemptReviewHandler } from '../endpoints/quizAttemptReview'
 
 const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' &&
@@ -12,6 +13,14 @@ export const QuizAttempts: CollectionConfig = {
     group: 'Student Support',
     defaultColumns: ['quiz', 'user', 'score', 'createdAt'],
   },
+  // Payload 3 scopes /api/quiz-attempts/* to this collection's endpoints array.
+  endpoints: [
+    {
+      path: '/:attemptId/review',
+      method: 'get',
+      handler: quizAttemptReviewHandler,
+    },
+  ],
   access: {
     read: ({ req }) => {
       if (isStaff(req)) return true

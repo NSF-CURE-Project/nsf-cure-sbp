@@ -59,7 +59,7 @@ export const HELP_TOPICS: HelpTopic[] = [
         href: '/admin/collections/questions?where[status][equals]=open',
         desc: 'Unanswered questions',
       },
-      { label: 'All Feedback', href: '/admin/collections/feedback', desc: 'Platform feedback' },
+      { label: 'All Feedback', href: '/admin/feedback', desc: 'Platform feedback' },
       { label: 'Lesson Feedback', href: '/admin/collections/lesson-feedback', desc: 'Per-lesson feedback' },
       { label: 'Lesson Progress', href: '/admin/collections/lesson-progress', desc: 'Student progress' },
     ],
@@ -70,7 +70,7 @@ export const HELP_TOPICS: HelpTopic[] = [
     description: 'Create classrooms, manage join codes, and review enrollment records.',
     accentColor: '#ec4899',
     primaryLinks: [
-      { label: 'Classrooms', href: '/admin/collections/classrooms', desc: 'All classrooms' },
+      { label: 'Classrooms', href: '/admin/classrooms', desc: 'All classrooms' },
       { label: 'Memberships', href: '/admin/collections/classroom-memberships', desc: 'Enrollment records' },
     ],
   },

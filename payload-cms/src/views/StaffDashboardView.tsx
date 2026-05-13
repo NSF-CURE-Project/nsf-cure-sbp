@@ -652,7 +652,7 @@ const NeedsAttentionPanel = ({
       tone: unpublished > 0 ? 'warning' : 'positive',
     },
     {
-      href: '/admin/collections/feedback?where[read][equals]=false',
+      href: '/admin/feedback',
       label: 'Unread feedback',
       count: stats.unreadFeedback,
       description: stats.unreadFeedback
@@ -821,6 +821,7 @@ const StaffDashboardContent = ({
     quizzesTotal: number
     quizQuestionsTotal: number
     classroomsTotal: number
+    classroomEnrollmentsTotal: number
     lastLessonUpdatedAt: string | null
   }
   contentHealth: {
@@ -1975,7 +1976,7 @@ const StaffDashboardContent = ({
                     icon: <MessageIcon size={15} color="#d97706" />,
                   },
                   {
-                    href: '/admin/collections/feedback?where[read][equals]=false',
+                    href: '/admin/feedback',
                     label: 'Sitewide',
                     value: stats.unreadFeedback,
                     hint: 'Unread feedback',
@@ -2148,10 +2149,10 @@ const StaffDashboardContent = ({
               description="Create join codes, manage cohort rosters, track enrollments for credit."
               meta={[
                 { label: 'classrooms', value: managementCounts?.classroomsTotal ?? 0 },
-                { label: 'enrolled', value: stats.accounts },
+                { label: 'enrolled', value: managementCounts?.classroomEnrollmentsTotal ?? 0 },
                 { label: 'active 7d', value: stats.activeStudents },
               ]}
-              primary={{ href: '/admin/collections/classrooms', label: 'Manage Classrooms' }}
+              primary={{ href: '/admin/classrooms', label: 'Manage Classrooms' }}
               secondary={{
                 href: '/admin/collections/classroom-memberships',
                 label: 'View Enrollments',
@@ -2541,15 +2542,28 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
   let quizzesTotal = 0
   let quizQuestionsTotal = 0
   let classroomsTotal = 0
+  let classroomEnrollmentsTotal = 0
   let lastLessonUpdatedAt: string | null = null
   try {
-    const [courses, chapters, lessonsAll, quizzes, qbank, classrooms, recentLesson] = await Promise.all([
+    const [
+      courses,
+      chapters,
+      lessonsAll,
+      quizzes,
+      qbank,
+      classrooms,
+      classroomMemberships,
+      recentLesson,
+    ] = await Promise.all([
       payload.find({ collection: 'classes', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
       payload.find({ collection: 'chapters', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
       payload.find({ collection: 'lessons', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
       payload.find({ collection: 'quizzes', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
       payload.find({ collection: 'quiz-questions', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
       payload.find({ collection: 'classrooms', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
+      payload
+        .find({ collection: 'classroom-memberships', depth: 0, limit: 0 })
+        .catch(() => ({ totalDocs: 0 })),
       payload
         .find({ collection: 'lessons', depth: 0, limit: 1, sort: '-updatedAt' })
         .catch(() => ({ docs: [] as Array<{ updatedAt?: string }> })),
@@ -2560,6 +2574,8 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     quizzesTotal = (quizzes as { totalDocs?: number }).totalDocs ?? 0
     quizQuestionsTotal = (qbank as { totalDocs?: number }).totalDocs ?? 0
     classroomsTotal = (classrooms as { totalDocs?: number }).totalDocs ?? 0
+    classroomEnrollmentsTotal =
+      (classroomMemberships as { totalDocs?: number }).totalDocs ?? 0
     const lessonDoc = (recentLesson as { docs?: Array<{ updatedAt?: string }> }).docs?.[0]
     lastLessonUpdatedAt = lessonDoc?.updatedAt ?? null
   } catch {
@@ -2957,6 +2973,7 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     quizzesTotal,
     quizQuestionsTotal,
     classroomsTotal,
+    classroomEnrollmentsTotal,
     lastLessonUpdatedAt,
   }
 

@@ -1,4 +1,7 @@
-import { getClassesTree } from "@/lib/payloadSdk/classes";
+import {
+  chapterHasReadableLessons,
+  getClassesTree,
+} from "@/lib/payloadSdk/classes";
 import type { ChapterDoc, ClassDoc, LessonDoc } from "@/lib/payloadSdk/types";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
@@ -32,7 +35,7 @@ export default async function LearningPage() {
     const classTitle = cls.title ?? "Untitled class";
     const classLessons: LearningLessonIndexEntry[] = [];
     const chapters: ChapterWithLessons[] = Array.isArray(cls.chapters)
-      ? (cls.chapters as ChapterWithLessons[])
+      ? (cls.chapters as ChapterWithLessons[]).filter(chapterHasReadableLessons)
       : [];
 
     chapters.forEach((chapter) => {

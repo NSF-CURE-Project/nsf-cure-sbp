@@ -39,6 +39,7 @@ const routeLabelOverrides: Record<string, string> = {
   'quiz-bank': 'Quiz Bank',
   'site-management': 'Site Management',
   courses: 'Manage Courses',
+  classrooms: 'Classrooms',
 }
 
 const collectionLabelOverrides: Record<string, string> = {
@@ -144,10 +145,10 @@ const collectionSectionOverrides: Record<
     sectionHref: '/admin/courses',
     collectionLabel: 'Chapter',
   },
-  classrooms: { sectionLabel: 'Classrooms', sectionHref: '/admin/collections/classrooms' },
+  classrooms: { sectionLabel: 'Classrooms', sectionHref: '/admin/classrooms' },
   'classroom-memberships': {
     sectionLabel: 'Classrooms',
-    sectionHref: '/admin/collections/classrooms',
+    sectionHref: '/admin/classrooms',
     collectionLabel: 'Memberships',
   },
   pages: {
@@ -181,6 +182,11 @@ const collectionSectionOverrides: Record<
   'reporting-evidence-links': { sectionLabel: 'NSF Reporting', sectionHref: '/admin/reporting' },
   'reporting-product-records': { sectionLabel: 'NSF Reporting', sectionHref: '/admin/reporting' },
   'api-keys': { sectionLabel: 'Settings', sectionHref: '/admin/site-management' },
+  users: {
+    sectionLabel: 'Site Management',
+    sectionHref: '/admin/site-management',
+    collectionHref: '/admin/site-management/users',
+  },
 }
 
 const getCollectionSectionBreadcrumbs = (pathname: string): BreadcrumbItem[] | null => {
@@ -209,7 +215,13 @@ const getCollectionSectionBreadcrumbs = (pathname: string): BreadcrumbItem[] | n
     collectionSlug === 'chapters' ||
     collectionSlug === 'quizzes'
 
-  if (!primarySegment || !collectionHasHiddenListing) {
+  // On a list page (no primarySegment) the appended label would be a
+  // non-clickable dup of the section label whenever they match (e.g.
+  // Classrooms / Classrooms). Skip it.
+  const wouldDuplicateSectionLabel =
+    !primarySegment && collectionLabel === config.sectionLabel
+
+  if ((!primarySegment || !collectionHasHiddenListing) && !wouldDuplicateSectionLabel) {
     breadcrumbs.push({
       label: collectionLabel,
       href: primarySegment
@@ -3356,138 +3368,63 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           z-index: 1;
         }
 
-        /* ----- Appearance toggle (theme switch in primary nav) ----- */
-        .admin-theme-toggle {
+        /* ----- Appearance toggle (theme switch inside user menu) ----- */
+        .admin-user-action--toggle {
+          gap: 10px;
+        }
+        .admin-user-action--toggle .admin-user-action-label {
+          flex: 1;
+        }
+        .admin-user-action-switch {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          padding: 4px 10px 4px 4px;
-          border-radius: 999px;
-          border: 1px solid transparent;
-          background: rgba(15, 23, 42, 0.04);
+          gap: 8px;
+          margin-left: auto;
+          pointer-events: none;
+        }
+        .admin-user-action-switch__value {
+          font-size: 11px;
+          font-weight: 700;
           color: var(--cpp-muted);
-          font-size: 12px;
-          font-weight: 500;
-          letter-spacing: 0;
-          cursor: pointer;
-          transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
-          box-shadow: none;
+          letter-spacing: 0.2px;
+          min-width: 28px;
+          text-align: right;
         }
-        .admin-theme-toggle:hover {
-          background: rgba(15, 23, 42, 0.08);
-          color: var(--cpp-ink);
-          transform: none;
-          box-shadow: none;
-        }
-        .admin-theme-toggle:focus-visible {
-          outline: none;
-          border-color: rgba(59, 130, 246, 0.5);
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
-        }
-        :root[data-theme='dark'] .admin-theme-toggle {
-          background: rgba(148, 163, 184, 0.1);
-        }
-        :root[data-theme='dark'] .admin-theme-toggle:hover {
-          background: rgba(148, 163, 184, 0.18);
-        }
-        .admin-theme-toggle-track {
+        .admin-user-action-switch__track {
           position: relative;
-          width: 32px;
-          height: 18px;
+          width: 28px;
+          height: 16px;
           border-radius: 999px;
           background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-          box-shadow:
-            inset 0 1px 2px rgba(0, 0, 0, 0.18),
-            0 1px 0 rgba(255, 255, 255, 0.3);
+          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.18);
           transition: background 220ms ease;
           flex-shrink: 0;
         }
-        .admin-theme-toggle[aria-checked="true"] .admin-theme-toggle-track {
+        .admin-user-action--toggle[aria-checked="true"] .admin-user-action-switch__track {
           background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
         }
-        .admin-theme-toggle-thumb {
+        .admin-user-action-switch__thumb {
           position: absolute;
           top: 2px;
           left: 2px;
-          width: 14px;
-          height: 14px;
+          width: 12px;
+          height: 12px;
           border-radius: 999px;
           background: #ffffff;
-          box-shadow:
-            0 1px 2px rgba(0, 0, 0, 0.25),
-            0 0 0 1px rgba(0, 0, 0, 0.04);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.04);
           transform: translateX(0);
           transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .admin-theme-toggle[aria-checked="true"] .admin-theme-toggle-thumb {
-          transform: translateX(14px);
+        .admin-user-action--toggle[aria-checked="true"] .admin-user-action-switch__thumb {
+          transform: translateX(12px);
           background: #f1f5fb;
         }
-        .admin-theme-toggle-icon {
-          position: absolute;
-          top: 50%;
-          transform: translateY(-50%);
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          color: #ffffff;
-          opacity: 0.95;
-          pointer-events: none;
-          transition: opacity 200ms ease;
-        }
-        .admin-theme-toggle-icon--sun {
-          left: 3px;
-        }
-        .admin-theme-toggle-icon--moon {
-          right: 3px;
-        }
-        .admin-theme-toggle-icon svg {
-          width: 10px;
-          height: 10px;
-        }
-        .admin-theme-toggle[aria-checked="true"] .admin-theme-toggle-icon--sun {
-          opacity: 0.35;
-        }
-        .admin-theme-toggle:not([aria-checked="true"]) .admin-theme-toggle-icon--moon {
-          opacity: 0.35;
-        }
-        .admin-theme-toggle-label {
-          font-size: 12px;
-          font-weight: 500;
+        :root[data-theme="dark"] .admin-user-action-switch__value {
           color: var(--cpp-muted);
-          letter-spacing: 0;
-          min-width: 28px;
-          text-align: left;
-        }
-        .admin-theme-toggle:hover .admin-theme-toggle-label {
-          color: var(--cpp-ink);
-        }
-        @media (max-width: 720px) {
-          .admin-theme-toggle-label { display: none; }
-          .admin-theme-toggle { padding: 4px 6px; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .admin-theme-toggle-thumb,
-          .admin-theme-toggle-track,
-          .admin-theme-toggle-icon { transition: none; }
-        }
-        :root[data-theme="dark"] .admin-theme-toggle {
-          background: rgba(20, 30, 50, 0.7);
-          border-color: rgba(148, 163, 184, 0.18);
-          color: var(--cpp-ink);
-          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 4px 10px rgba(2, 6, 18, 0.40);
-        }
-        :root[data-theme="dark"] .admin-theme-toggle:hover {
-          background: rgba(28, 40, 65, 0.9);
-          border-color: rgba(148, 163, 184, 0.32);
-          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 10px 22px rgba(2, 6, 18, 0.55);
-        }
-        :root[data-theme="dark"] .admin-theme-toggle-label {
-          color: var(--cpp-ink);
-        }
-        :root[data-theme="dark"] .admin-theme-toggle:focus-visible {
-          border-color: rgba(96, 165, 250, 0.6);
-          box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.30);
+          .admin-user-action-switch__thumb,
+          .admin-user-action-switch__track { transition: none; }
         }
 
         @media (max-width: 920px) {
@@ -4033,51 +3970,6 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
             ) : null}
           </div>
           <div className="admin-topbar-actions">
-            <button
-              type="button"
-              className="admin-theme-toggle"
-              role="switch"
-              aria-checked={theme === 'dark'}
-              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            >
-              <span className="admin-theme-toggle-track" aria-hidden="true">
-                <span className="admin-theme-toggle-icon admin-theme-toggle-icon--sun">
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="13"
-                    height="13"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="4" />
-                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-                  </svg>
-                </span>
-                <span className="admin-theme-toggle-icon admin-theme-toggle-icon--moon">
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="13"
-                    height="13"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                  </svg>
-                </span>
-                <span className="admin-theme-toggle-thumb" />
-              </span>
-              <span className="admin-theme-toggle-label">
-                {theme === 'dark' ? 'Dark' : 'Light'}
-              </span>
-            </button>
             <div className={`admin-user-menu${isUserMenuOpen ? ' is-open' : ''}`} ref={userMenuRef}>
               <button
                 type="button"
@@ -4186,6 +4078,42 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
                   <div className="admin-user-divider" />
                   <div className="admin-user-section">
                     <div className="admin-user-section-label">System</div>
+                    <button
+                      type="button"
+                      className="admin-user-action admin-user-action--toggle"
+                      role="menuitemcheckbox"
+                      aria-checked={theme === 'dark'}
+                      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    >
+                      <svg
+                        className="admin-user-action-icon"
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        {theme === 'dark' ? (
+                          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                        ) : (
+                          <>
+                            <circle cx="12" cy="12" r="4" />
+                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                          </>
+                        )}
+                      </svg>
+                      <span className="admin-user-action-label">Appearance</span>
+                      <span className="admin-user-action-switch" aria-hidden="true">
+                        <span className="admin-user-action-switch__value">
+                          {theme === 'dark' ? 'Dark' : 'Light'}
+                        </span>
+                        <span className="admin-user-action-switch__track">
+                          <span className="admin-user-action-switch__thumb" />
+                        </span>
+                      </span>
+                    </button>
                     <Link
                       href="/admin/help"
                       className="admin-user-action"

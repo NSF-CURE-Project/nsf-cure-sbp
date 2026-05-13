@@ -34,16 +34,39 @@ export type StudentPerformanceSummary = {
   publishedLessonCount: number
 }
 
-export type StudentPerformanceTrendPoint = {
-  weekStart: string
+export type StudentPerformanceTrendBucket = {
+  bucketStart: string
+  label: string
   activeStudents: number
   averageQuizScore: number | null
+}
+
+export type StudentPerformanceRange = '7d' | '30d' | 'semester' | 'all'
+
+export type StudentPerformanceClassroomOption = {
+  id: string
+  title: string
+}
+
+export type StudentPerformanceDeltas = {
+  activeStudentsChange: number | null
+  averageScoreChange: number | null
+  completionRateChange: number | null
 }
 
 export type StudentPerformancePayload = {
   summary: StudentPerformanceSummary
   students: StudentPerformanceStudent[]
-  weeklyTrend: StudentPerformanceTrendPoint[]
+  trend: StudentPerformanceTrendBucket[]
+  deltas: StudentPerformanceDeltas
+  classrooms: StudentPerformanceClassroomOption[]
+  range: StudentPerformanceRange
+  generatedAt: string
+}
+
+export type GetStudentPerformanceOptions = {
+  range?: StudentPerformanceRange
+  classroomId?: string | null
 }
 
 const isStaffUser = (user?: StaffUser | null) =>
@@ -115,10 +138,39 @@ const getWeekStart = (value: unknown): string | null => {
   return date.toISOString().slice(0, 10)
 }
 
+const getDayStart = (value: unknown): string | null => {
+  if (typeof value !== 'string') return null
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  date.setUTCHours(0, 0, 0, 0)
+  return date.toISOString().slice(0, 10)
+}
+
+const RANGE_CONFIG: Record<
+  StudentPerformanceRange,
+  { granularity: 'day' | 'week'; buckets: number | null; activityWindowDays: number | null }
+> = {
+  '7d': { granularity: 'day', buckets: 7, activityWindowDays: 7 },
+  '30d': { granularity: 'week', buckets: 5, activityWindowDays: 30 },
+  semester: { granularity: 'week', buckets: 18, activityWindowDays: 120 },
+  all: { granularity: 'week', buckets: null, activityWindowDays: null },
+}
+
+const bucketLabelFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' })
+
+const formatBucketLabel = (iso: string) => {
+  const parsed = new Date(`${iso}T00:00:00Z`)
+  if (Number.isNaN(parsed.getTime())) return iso.slice(5)
+  return bucketLabelFormatter.format(parsed)
+}
+
 const roundMetric = (value: number | null): number | null =>
   value == null ? null : Math.round(value * 10) / 10
 
-const buildEmptyPayload = (): StudentPerformancePayload => ({
+const buildEmptyPayload = (
+  range: StudentPerformanceRange,
+  classrooms: StudentPerformanceClassroomOption[] = [],
+): StudentPerformancePayload => ({
   summary: {
     studentCount: 0,
     activeStudents30d: 0,
@@ -131,34 +183,76 @@ const buildEmptyPayload = (): StudentPerformancePayload => ({
     publishedLessonCount: 0,
   },
   students: [],
-  weeklyTrend: [],
+  trend: [],
+  deltas: {
+    activeStudentsChange: null,
+    averageScoreChange: null,
+    completionRateChange: null,
+  },
+  classrooms,
+  range,
+  generatedAt: new Date().toISOString(),
 })
 
 export const getStudentPerformancePayload = async (
   payload: Payload,
   user?: StaffUser | null,
+  options: GetStudentPerformanceOptions = {},
 ): Promise<StudentPerformancePayload> => {
   if (!isStaffUser(user)) {
     throw new Error('Unauthorized')
   }
 
-  let scopedStudentIds: Set<string> | null = null
+  const range: StudentPerformanceRange = options.range ?? '30d'
+  const rangeConfig = RANGE_CONFIG[range]
+  const classroomFilterId = options.classroomId?.trim() || null
+
+  let scopedClassroomIds: string[] | null = null
 
   if (user?.role === 'professor') {
-    const classrooms = await findAllDocs(payload, 'classrooms', {
+    const professorClassrooms = await findAllDocs(payload, 'classrooms', {
       where: {
         professor: {
           equals: user.id,
         },
       },
     })
-    const classroomIds = classrooms.map((doc) => getId(doc.id)).filter((id): id is string => Boolean(id))
-    if (!classroomIds.length) return buildEmptyPayload()
+    scopedClassroomIds = professorClassrooms
+      .map((doc) => getId(doc.id))
+      .filter((id): id is string => Boolean(id))
+    if (!scopedClassroomIds.length) return buildEmptyPayload(range)
+  }
+
+  const classroomDocs = await findAllDocs(payload, 'classrooms', {
+    where: scopedClassroomIds ? { id: { in: scopedClassroomIds } } : undefined,
+  })
+  const classroomOptions: StudentPerformanceClassroomOption[] = classroomDocs
+    .map((doc) => {
+      const id = getId(doc.id)
+      const rawTitle = (doc as { title?: unknown }).title
+      const title = typeof rawTitle === 'string' ? rawTitle.trim() : ''
+      if (!id) return null
+      return { id, title: title || 'Untitled classroom' }
+    })
+    .filter((option): option is StudentPerformanceClassroomOption => Boolean(option))
+    .sort((a, b) => a.title.localeCompare(b.title))
+
+  let scopedStudentIds: Set<string> | null = null
+  const effectiveClassroomIds = (() => {
+    if (classroomFilterId) {
+      if (scopedClassroomIds && !scopedClassroomIds.includes(classroomFilterId)) return []
+      return [classroomFilterId]
+    }
+    return scopedClassroomIds
+  })()
+
+  if (effectiveClassroomIds) {
+    if (!effectiveClassroomIds.length) return buildEmptyPayload(range, classroomOptions)
 
     const scopedMemberships = await findAllDocs(payload, 'classroom-memberships', {
       where: {
         classroom: {
-          in: classroomIds,
+          in: effectiveClassroomIds,
         },
       },
       depth: 2,
@@ -169,7 +263,7 @@ export const getStudentPerformancePayload = async (
         .filter((id): id is string => Boolean(id)),
     )
 
-    if (!scopedStudentIds.size) return buildEmptyPayload()
+    if (!scopedStudentIds.size) return buildEmptyPayload(range, classroomOptions)
   }
 
   const [accounts, lessons, lessonProgress, quizAttempts, memberships] = await Promise.all([
@@ -216,7 +310,10 @@ export const getStudentPerformancePayload = async (
     }
 
     const membershipLastActivity = (membership as { lastActivityAt?: unknown }).lastActivityAt
-    lastActivityByStudent.set(studentId, maxIsoDate(lastActivityByStudent.get(studentId) ?? null, membershipLastActivity))
+    lastActivityByStudent.set(
+      studentId,
+      maxIsoDate(lastActivityByStudent.get(studentId) ?? null, membershipLastActivity),
+    )
   })
 
   const completedLessonsByStudent = new Map<string, Set<string>>()
@@ -249,21 +346,36 @@ export const getStudentPerformancePayload = async (
       quizScores: number[]
     }
   >()
-
-  const recordTrend = (
-    studentId: string,
-    dateValue: unknown,
-    score: number | null,
-  ) => {
-    const weekStart = getWeekStart(dateValue)
-    if (!weekStart) return
-    const current = weeklyTrendMap.get(weekStart) ?? {
-      activeStudents: new Set<string>(),
-      quizScores: [],
+  const dailyTrendMap = new Map<
+    string,
+    {
+      activeStudents: Set<string>
+      quizScores: number[]
     }
-    current.activeStudents.add(studentId)
-    if (score != null) current.quizScores.push(score)
-    weeklyTrendMap.set(weekStart, current)
+  >()
+
+  const recordTrend = (studentId: string, dateValue: unknown, score: number | null) => {
+    const weekStart = getWeekStart(dateValue)
+    if (weekStart) {
+      const current = weeklyTrendMap.get(weekStart) ?? {
+        activeStudents: new Set<string>(),
+        quizScores: [],
+      }
+      current.activeStudents.add(studentId)
+      if (score != null) current.quizScores.push(score)
+      weeklyTrendMap.set(weekStart, current)
+    }
+
+    const dayStart = getDayStart(dateValue)
+    if (dayStart) {
+      const current = dailyTrendMap.get(dayStart) ?? {
+        activeStudents: new Set<string>(),
+        quizScores: [],
+      }
+      current.activeStudents.add(studentId)
+      if (score != null) current.quizScores.push(score)
+      dailyTrendMap.set(dayStart, current)
+    }
   }
 
   quizAttempts.forEach((attempt) => {
@@ -280,7 +392,10 @@ export const getStudentPerformancePayload = async (
     const activityDate =
       (attempt as { completedAt?: unknown; createdAt?: unknown }).completedAt ??
       (attempt as { createdAt?: unknown }).createdAt
-    lastActivityByStudent.set(studentId, maxIsoDate(lastActivityByStudent.get(studentId) ?? null, activityDate))
+    lastActivityByStudent.set(
+      studentId,
+      maxIsoDate(lastActivityByStudent.get(studentId) ?? null, activityDate),
+    )
     recordTrend(studentId, activityDate, score)
   })
 
@@ -317,9 +432,9 @@ export const getStudentPerformancePayload = async (
           typeof (account as { participantType?: unknown }).participantType === 'string'
             ? ((account as { participantType?: string }).participantType ?? null)
             : null,
-        classroomTitles: [...(classroomTitlesByStudent.get(accountId) ?? new Set<string>())].sort((a, b) =>
-          a.localeCompare(b),
-        ),
+        classroomTitles: [
+          ...(classroomTitlesByStudent.get(accountId) ?? new Set<string>()),
+        ].sort((a, b) => a.localeCompare(b)),
         classroomCount: classroomTitlesByStudent.get(accountId)?.size ?? 0,
         lessonsCompleted: completedLessons,
         lessonCompletionRate: roundMetric(completionRate) ?? 0,
@@ -352,31 +467,77 @@ export const getStudentPerformancePayload = async (
   const completionRates = students.map((student) => student.lessonCompletionRate)
   const totalAttempts = students.reduce((sum, student) => sum + student.quizAttempts, 0)
 
-  const weeklyTrend = [...weeklyTrendMap.entries()]
+  const sourceMap = rangeConfig.granularity === 'day' ? dailyTrendMap : weeklyTrendMap
+  const allBuckets = [...sourceMap.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
-    .slice(-8)
-    .map(([weekStart, entry]) => ({
-      weekStart,
+    .map(([bucketStart, entry]) => ({
+      bucketStart,
+      label: formatBucketLabel(bucketStart),
       activeStudents: entry.activeStudents.size,
       averageQuizScore: roundMetric(average(entry.quizScores)),
     }))
+  const trend: StudentPerformanceTrendBucket[] =
+    rangeConfig.buckets == null ? allBuckets : allBuckets.slice(-rangeConfig.buckets)
+
+  const computeDelta = (values: (number | null)[]): number | null => {
+    const numeric = values.filter((v): v is number => v != null)
+    if (numeric.length < 2) return null
+    const recentSlice = Math.min(2, Math.max(1, Math.floor(numeric.length / 2)))
+    const recent = numeric.slice(-recentSlice)
+    const prior = numeric.slice(-recentSlice * 2, -recentSlice)
+    if (!recent.length || !prior.length) return null
+    const recentAvg = recent.reduce((s, v) => s + v, 0) / recent.length
+    const priorAvg = prior.reduce((s, v) => s + v, 0) / prior.length
+    return roundMetric(recentAvg - priorAvg)
+  }
+
+  const computeActiveDelta = (buckets: StudentPerformanceTrendBucket[]): number | null => {
+    if (buckets.length < 2) return null
+    const last = buckets[buckets.length - 1]?.activeStudents ?? null
+    const prev = buckets[buckets.length - 2]?.activeStudents ?? null
+    if (last == null || prev == null) return null
+    return last - prev
+  }
+
+  const deltas: StudentPerformanceDeltas = {
+    activeStudentsChange: computeActiveDelta(trend),
+    averageScoreChange: computeDelta(trend.map((b) => b.averageQuizScore)),
+    completionRateChange: null,
+  }
+
+  const activityWindowDays = rangeConfig.activityWindowDays
+  const activeStudentsRange = activityWindowDays
+    ? students.filter((student) => {
+        if (!student.lastActivityAt) return false
+        const threshold = now - activityWindowDays * 24 * 60 * 60 * 1000
+        return new Date(student.lastActivityAt).getTime() >= threshold
+      }).length
+    : students.filter((student) => Boolean(student.lastActivityAt)).length
 
   return {
     summary: {
       studentCount: students.length,
-      activeStudents30d: students.filter((student) => {
-        if (!student.lastActivityAt) return false
-        return new Date(student.lastActivityAt).getTime() >= activeThreshold
-      }).length,
+      activeStudents30d: activityWindowDays
+        ? activeStudentsRange
+        : students.filter((student) => {
+            if (!student.lastActivityAt) return false
+            return new Date(student.lastActivityAt).getTime() >= activeThreshold
+          }).length,
       averageScore: roundMetric(average(overallScores)),
       medianScore: roundMetric(median(overallScores)),
       scoreStdDev: roundMetric(standardDeviation(overallScores)),
       averageQuizScore: roundMetric(average(quizAverages)),
       averageLessonCompletionRate: roundMetric(average(completionRates)),
-      averageAttemptsPerStudent: students.length ? Math.round((totalAttempts / students.length) * 10) / 10 : 0,
+      averageAttemptsPerStudent: students.length
+        ? Math.round((totalAttempts / students.length) * 10) / 10
+        : 0,
       publishedLessonCount,
     },
     students,
-    weeklyTrend,
+    trend,
+    deltas,
+    classrooms: classroomOptions,
+    range,
+    generatedAt: new Date().toISOString(),
   }
 }
