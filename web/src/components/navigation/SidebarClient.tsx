@@ -54,11 +54,6 @@ const getChapterTitle = (ch: ChapterItem) =>
   ch.title ?? ch.name ?? "Untitled Chapter";
 const getChapterNumber = (ch: ChapterItem) =>
   typeof ch.chapterNumber === "number" ? ch.chapterNumber : null;
-const getChapterLabel = (ch: ChapterItem) => {
-  const number = getChapterNumber(ch);
-  const title = getChapterTitle(ch);
-  return number ? `Ch ${number} \u00b7 ${title}` : title;
-};
 const getLessons = (ch: ChapterItem): LessonItem[] =>
   (ch.lessons ?? ch.items ?? ch.children ?? []) as LessonItem[];
 
@@ -420,11 +415,18 @@ export default function SidebarClient({ classes }: Props) {
                                   href={`/classes/${cSlug}/chapters/${chSlug}`}
                                   className="flex flex-1 items-center justify-between gap-2 text-left text-inherit focus-visible:outline-none"
                                 >
-                                  <span className="truncate">
-                                    {cleanTitle(
-                                      getChapterLabel(ch),
-                                      "Untitled chapter"
-                                    )}
+                                  <span className="flex min-w-0 items-baseline gap-1.5">
+                                    {getChapterNumber(ch) != null ? (
+                                      <span className="shrink-0 text-[11px] font-semibold tabular-nums text-muted-foreground/55">
+                                        {getChapterNumber(ch)}
+                                      </span>
+                                    ) : null}
+                                    <span className="truncate">
+                                      {cleanTitle(
+                                        getChapterTitle(ch),
+                                        "Untitled chapter"
+                                      )}
+                                    </span>
                                   </span>
                                   <span
                                     className={cn(
