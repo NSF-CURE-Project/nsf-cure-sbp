@@ -3975,15 +3975,6 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
           box-shadow: 0 14px 28px rgba(15, 23, 42, 0.25);
         }
 
-        .admin-global-footer {
-          text-align: center;
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--cpp-muted);
-          letter-spacing: 0.02em;
-          margin: 32px 0 0;
-          padding-bottom: max(84px, env(safe-area-inset-bottom));
-        }
       `}</style>
       {role === 'staff' ? (
         <style>{`
@@ -4327,9 +4318,6 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
       <BreadcrumbProvider setOverride={setBreadcrumbOverride}>
         {props.children}
       </BreadcrumbProvider>
-      <footer className="admin-global-footer">
-        © 2025 Cal Poly Pomona Engineering — NSF CURE Summer Bridge Program
-      </footer>
     </>
   )
 }
