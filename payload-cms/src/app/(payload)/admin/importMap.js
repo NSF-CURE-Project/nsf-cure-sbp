@@ -35,6 +35,8 @@ import { default as default_8ecf3705f4486154c43b65ffcba083a4 } from '@/views/Qui
 import { default as default_b228ebeb356b13e416a25a2727293bbc } from '@/views/QuizPreviewField'
 import { default as default_20b4b595011067220e22f7c98e94e4e7 } from '@/views/AdminIcon'
 import { default as default_1c527c7f8e4abfd6959bbf71cc426e00 } from '@/views/AdminLogo'
+import { default as default_24115ad8eb060696f6fdcdadcd9cad0c } from '@/views/AdminLoginAfterForm'
+import { default as default_5b3a1c225d06a0af9e06f67663f2dcae } from '@/views/AdminLoginBeforeForm'
 import { default as default_9d5e242f5b9448a15263946a6aafe2ce } from '@/views/StaffProvider'
 import { default as default_afe82a4d7d416ef3822c4ceeb7b60fa0 } from '@/views/StaffDashboardView'
 
@@ -76,6 +78,8 @@ export const importMap = {
   "@/views/QuizPreviewField#default": default_b228ebeb356b13e416a25a2727293bbc,
   "@/views/AdminIcon#default": default_20b4b595011067220e22f7c98e94e4e7,
   "@/views/AdminLogo#default": default_1c527c7f8e4abfd6959bbf71cc426e00,
+  "@/views/AdminLoginAfterForm#default": default_24115ad8eb060696f6fdcdadcd9cad0c,
+  "@/views/AdminLoginBeforeForm#default": default_5b3a1c225d06a0af9e06f67663f2dcae,
   "@/views/StaffProvider#default": default_9d5e242f5b9448a15263946a6aafe2ce,
   "@/views/StaffDashboardView#default": default_afe82a4d7d416ef3822c4ceeb7b60fa0
 }

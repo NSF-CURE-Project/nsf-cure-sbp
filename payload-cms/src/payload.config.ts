@@ -97,6 +97,12 @@ const AdminLogo: CustomComponent = {
 const AdminIcon: CustomComponent = {
   path: '@/views/AdminIcon#default',
 }
+const AdminLoginBeforeForm: CustomComponent = {
+  path: '@/views/AdminLoginBeforeForm#default',
+}
+const AdminLoginAfterForm: CustomComponent = {
+  path: '@/views/AdminLoginAfterForm#default',
+}
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
@@ -374,6 +380,8 @@ export default buildConfig({
         Logo: AdminLogo,
         Icon: AdminIcon,
       },
+      beforeLogin: [AdminLoginBeforeForm],
+      afterLogin: [AdminLoginAfterForm],
       views: {
         dashboard: {
           Component: StaffDashboardView,
