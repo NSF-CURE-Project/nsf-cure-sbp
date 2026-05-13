@@ -20,6 +20,13 @@ type PublishReviewModalProps = {
   lessonId?: string | null
   onCancel: () => void
   onConfirm: () => void
+  // Optional tertiary action: persist as draft without publishing. The
+  // editor toolbar already owns saving, but mirroring inside the modal
+  // lets an author bail out of a publish flow with a soft save instead of
+  // discarding their review state. Edit mode only; the editor wires this
+  // up only when there's a real lesson row to save against.
+  onSaveDraft?: () => void
+  savingDraft?: boolean
 }
 
 type ValidationCheck = {
@@ -101,8 +108,25 @@ function runChecks(title: string, blocks: ScaffoldBlock[]): ValidationCheck[] {
   return checks
 }
 
-// Estimate read time using a coarse ~200 wpm average. Counts text fields and
-// rich-text root content roughly; good enough for an "X min read" pill.
+// Estimate read time at ~180 wpm (slightly slower than the typical 200 wpm
+// figure to reflect technical content with formulas and diagrams).
+// Non-prose blocks contribute a flat "interaction budget" in words so the
+// estimate doesn't undercount videos and quizzes:
+//   * Video block:   720 words ≈ 4 min — most embedded videos run 3–6 min,
+//                    and the author rarely captions them with enough text
+//                    to register otherwise.
+//   * Quiz block:    360 words ≈ 2 min — reading questions + thinking +
+//                    answering; the old 60-word constant was 18 s, which
+//                    was a clear undercount even for 1-question quizzes.
+//   * Steps list:    45 words per step ≈ 15 s of "think between steps"
+//                    on top of the step's own heading + body word count.
+// These are intentionally conservative — better to slightly overshoot than
+// undersell a lesson's actual time-on-page.
+const WORDS_PER_MINUTE = 180
+const VIDEO_BUDGET_WORDS = 720
+const QUIZ_BUDGET_WORDS = 360
+const STEP_BUDGET_WORDS = 45
+
 function estimateMinutes(title: string, blocks: ScaffoldBlock[]): number {
   let words = title.trim().split(/\s+/).filter(Boolean).length
   const countString = (s: unknown) => {
@@ -134,7 +158,7 @@ function estimateMinutes(title: string, blocks: ScaffoldBlock[]): number {
         words += countRich(block.body)
         break
       case 'videoBlock':
-        words += countString(block.caption)
+        words += countString(block.caption) + VIDEO_BUDGET_WORDS
         break
       case 'buttonBlock':
         words += countString(block.label)
@@ -144,22 +168,25 @@ function estimateMinutes(title: string, blocks: ScaffoldBlock[]): number {
           countString(block.title) +
           (block.items ?? []).reduce((sum, item) => sum + countString(item.text), 0)
         break
-      case 'stepsList':
+      case 'stepsList': {
+        const steps = block.steps ?? []
         words +=
           countString(block.title) +
-          (block.steps ?? []).reduce(
+          steps.reduce(
             (sum, step) => sum + countString(step.heading) + countRich(step.description),
             0,
-          )
+          ) +
+          steps.length * STEP_BUDGET_WORDS
         break
+      }
       case 'quizBlock':
-        words += countString(block.title) + 60 // assume one-minute interaction
+        words += countString(block.title) + QUIZ_BUDGET_WORDS
         break
       case '__passthrough':
         break
     }
   }
-  return Math.max(1, Math.round(words / 200))
+  return Math.max(1, Math.round(words / WORDS_PER_MINUTE))
 }
 
 function relativeTime(iso: string | null): string | null {
@@ -191,6 +218,8 @@ export default function PublishReviewModal({
   lessonId,
   onCancel,
   onConfirm,
+  onSaveDraft,
+  savingDraft = false,
 }: PublishReviewModalProps) {
   const checks = useMemo(() => runChecks(title, blocks), [title, blocks])
   const readMinutes = useMemo(() => estimateMinutes(title, blocks), [title, blocks])
@@ -205,9 +234,14 @@ export default function PublishReviewModal({
 
   // Fetch last-published metadata + its full layout when the modal opens
   // (edit mode only). The layout drives the "Changes in this version" diff.
+  // `publishedCount` lets the modal show the upcoming version number
+  // ("Publishing version N") so authors have a stable reference point per
+  // release — Payload doesn't expose sequential ints, so this approximates
+  // by counting prior published versions for the lesson.
   const [lastPublished, setLastPublished] = useState<{
     updatedAt: string | null
     versionId: string | null
+    publishedCount: number
   } | null>(null)
   const [previousSnapshot, setPreviousSnapshot] = useState<
     { title: string; layout: unknown } | null
@@ -231,7 +265,11 @@ export default function PublishReviewModal({
           setPreviousSnapshot(null)
           return
         }
-        setLastPublished({ updatedAt: meta.updatedAt, versionId: meta.versionId })
+        setLastPublished({
+          updatedAt: meta.updatedAt,
+          versionId: meta.versionId,
+          publishedCount: meta.publishedCount,
+        })
         const snapshot = await getLessonVersion(meta.versionId)
         if (cancelled) return
         setPreviousSnapshot(snapshot)
@@ -368,6 +406,24 @@ export default function PublishReviewModal({
           border-color: #0f172a;
         }
         .prm-btn--primary:hover { background: #1e293b; }
+        /* Tertiary action — Save Draft sits between Cancel and Publish but
+         * reads as clearly subordinate so it doesn't blur the publish intent. */
+        .prm-btn--ghost {
+          background: transparent;
+          border-color: transparent;
+          color: var(--cpp-muted, #5d6b80);
+        }
+        .prm-btn--ghost:hover {
+          background: var(--admin-surface-muted, #f5f7fa);
+          color: var(--cpp-ink, #1b1f24);
+        }
+        :root[data-theme='dark'] .prm-btn--ghost {
+          color: var(--cpp-muted, #94a3b8);
+        }
+        :root[data-theme='dark'] .prm-btn--ghost:hover {
+          background: var(--admin-surface-muted, #232938);
+          color: var(--cpp-ink, #e6e8eb);
+        }
         :root[data-theme='dark'] .prm-btn {
           background: var(--admin-surface-muted, #232938);
           border-color: var(--admin-surface-border, #2a3140);
@@ -744,16 +800,19 @@ export default function PublishReviewModal({
           <div className="prm-version">
             {mode === 'edit' && lastPublished?.updatedAt ? (
               <>
-                Last published{' '}
-                <strong>{relativeTime(lastPublished.updatedAt) ?? 'previously'}</strong>
+                <strong>Publishing version {lastPublished.publishedCount + 1}</strong>
                 <br />
-                <span>This release will replace it.</span>
+                <span>
+                  Last published{' '}
+                  {relativeTime(lastPublished.updatedAt) ?? 'previously'} — replaces version{' '}
+                  {lastPublished.publishedCount}.
+                </span>
               </>
             ) : mode === 'edit' ? (
               <>
-                <strong>First publish</strong>
+                <strong>Publishing version 1</strong>
                 <br />
-                <span>No previously-published version exists.</span>
+                <span>First publish — no previous version exists.</span>
               </>
             ) : (
               <>
@@ -906,15 +965,30 @@ export default function PublishReviewModal({
             <button
               type="button"
               onClick={onCancel}
-              disabled={busy}
+              disabled={busy || savingDraft}
               className="prm-btn"
             >
               Back to editing
             </button>
+            {onSaveDraft && mode === 'edit' ? (
+              <button
+                type="button"
+                onClick={onSaveDraft}
+                disabled={busy || savingDraft || errorCount > 0}
+                className="prm-btn prm-btn--ghost"
+                title={
+                  errorCount > 0
+                    ? 'Resolve validation errors before saving as draft.'
+                    : 'Save current changes as a draft without publishing.'
+                }
+              >
+                {savingDraft ? 'Saving…' : 'Save Draft'}
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={onConfirm}
-              disabled={!canPublish}
+              disabled={!canPublish || savingDraft}
               className="prm-btn prm-btn--primary"
             >
               {busy ? 'Publishing…' : 'Publish Live'}

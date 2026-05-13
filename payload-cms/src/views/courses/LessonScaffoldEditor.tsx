@@ -1556,6 +1556,18 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           // modal in both cases — on error the inline alert takes over.
           setReviewOpen(false)
         }}
+        // Save Draft from inside the modal: edit-mode only. save('draft')
+        // navigates on success (same as the toolbar Save draft button), so
+        // the modal unmounts naturally; on error the inline alert takes over.
+        onSaveDraft={
+          isCreate
+            ? undefined
+            : async () => {
+                await save('draft')
+                setReviewOpen(false)
+              }
+        }
+        savingDraft={busy === 'draft'}
       />
     </div>
   )

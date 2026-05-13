@@ -244,13 +244,20 @@ export const listLessonVersions = async (
 
 // Look up the most-recent published version for a lesson. Returns null if no
 // version has ever been published. Used by the publish-review modal to show
-// "Last published Xh ago" / "This will replace version N".
+// "Last published Xh ago — publishing version N+1".
+//
+// `publishedCount` is derived from `totalDocs` on the versions list filtered
+// to published status. Payload doesn't expose a sequential int per version,
+// so this is a best-effort approximation: it's exactly correct as long as
+// no published versions get hard-deleted out of band. That matches what an
+// author would expect to see in the modal — the count grows with each
+// successful publish.
 export const getLastPublishedLessonVersion = async (
   lessonId: EntityId,
 ): Promise<{
   versionId: EntityId
   updatedAt: string | null
-  versionNumber: number | null
+  publishedCount: number
 } | null> => {
   const params = new URLSearchParams()
   params.set('where[parent][equals]', String(lessonId))
@@ -264,13 +271,10 @@ export const getLastPublishedLessonVersion = async (
   }>(`/api/lessons/versions?${params.toString()}`)
   const doc = json.docs?.[0]
   if (!doc) return null
-  // Best-effort version number — Payload doesn't expose a sequential int but
-  // the totalDocs across all versions is the closest analog the REST API
-  // surfaces directly.
   return {
     versionId: String(doc.id),
     updatedAt: doc.updatedAt ?? null,
-    versionNumber: null,
+    publishedCount: typeof json.totalDocs === 'number' ? json.totalDocs : 1,
   }
 }
 
