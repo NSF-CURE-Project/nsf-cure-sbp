@@ -17,6 +17,7 @@
     "start": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=2048\" next start -H admin.sbp.local -p 3000",
     "test": "pnpm run test:int && pnpm run test:e2e",
     "publish:all": "cross-env NODE_OPTIONS=--no-deprecation payload script scripts/publish-all.ts",
+    "seed": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/seed-dev.ts",
     "test:e2e": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test",
     "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts",
     "sync:admin-help": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/sync-admin-help-from-handbook.ts",
