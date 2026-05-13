@@ -87,6 +87,47 @@ export type QuizBlockData = {
   timeLimitSec?: number | null
 }
 
+export type HeroBlockData = {
+  blockType: 'heroBlock'
+  title: string
+  subtitle?: string
+  buttonLabel?: string
+  buttonHref?: string
+}
+
+export type ResourceItemData = {
+  title?: string
+  description?: string
+  url?: string
+  type?: string
+}
+
+export type ResourcesListBlockData = {
+  blockType: 'resourcesList'
+  title?: string
+  description?: string
+  resources?: ResourceItemData[]
+}
+
+export type ContactPersonData = {
+  name?: string
+  title?: string
+  phone?: string
+  email?: string
+  category?: string
+  // photo is a media-relationship id. Editing it via the custom picker is
+  // a follow-up; existing values round-trip via __passthrough-style id keep.
+  photo?: string | number | null
+}
+
+export type ContactsListBlockData = {
+  blockType: 'contactsList'
+  title?: string
+  description?: string
+  groupByCategory?: boolean
+  contacts?: ContactPersonData[]
+}
+
 // Opaque carrier for block types the custom editor doesn't (yet) know how to
 // render. On hydrate we stash the raw record here; on serialize we expand it
 // back to its original shape. The discriminator `__passthrough` is what makes
@@ -106,6 +147,9 @@ export type ScaffoldBlockData =
   | TextSectionData
   | RichTextBlockData
   | QuizBlockData
+  | HeroBlockData
+  | ResourcesListBlockData
+  | ContactsListBlockData
   | PassthroughBlockData
 
 // In-memory block: a Stage-1 block payload plus a stable client-side key
@@ -128,6 +172,9 @@ export const BLOCK_TYPE_LABELS: Record<BlockTypeSlug, string> = {
   textSection: 'Text section',
   richTextBlock: 'Rich text',
   quizBlock: 'Quiz',
+  heroBlock: 'Hero',
+  resourcesList: 'Resources',
+  contactsList: 'Contacts',
   __passthrough: 'Unsupported',
 }
 
@@ -162,6 +209,21 @@ export const emptyBlockFor = (type: AuthorableBlockTypeSlug): ScaffoldBlock => {
         showTitle: true,
         showAnswers: true,
       }
+    case 'heroBlock':
+      return { _key: newKey(), blockType: 'heroBlock', title: '' }
+    case 'resourcesList':
+      return {
+        _key: newKey(),
+        blockType: 'resourcesList',
+        resources: [{ title: '', url: '' }],
+      }
+    case 'contactsList':
+      return {
+        _key: newKey(),
+        blockType: 'contactsList',
+        groupByCategory: false,
+        contacts: [{ name: '' }],
+      }
   }
 }
 
@@ -190,6 +252,13 @@ export const toPersistedLayout = (blocks: ScaffoldBlock[]): Record<string, unkno
     }
     if (rest.blockType === 'videoBlock' && rest.video != null) {
       return { ...rest, video: toRelId(rest.video) }
+    }
+    if (rest.blockType === 'contactsList') {
+      const contacts = (rest.contacts ?? []).map((contact) => ({
+        ...contact,
+        photo: contact.photo != null ? toRelId(contact.photo) : null,
+      }))
+      return { ...rest, contacts }
     }
     return rest as Record<string, unknown>
   })
@@ -339,6 +408,55 @@ export const fromPersistedLayout = (
           timeLimitSec: asNumberOrNull(block.timeLimitSec),
         })
         break
+      case 'heroBlock':
+        out.push({
+          _key: newKey(),
+          blockType: 'heroBlock',
+          title: asString(block.title),
+          subtitle: asOptionalString(block.subtitle),
+          buttonLabel: asOptionalString(block.buttonLabel),
+          buttonHref: asOptionalString(block.buttonHref),
+        })
+        break
+      case 'resourcesList': {
+        const resources = Array.isArray(block.resources)
+          ? (block.resources as Array<Record<string, unknown>>).map((r) => ({
+              title: asOptionalString(r.title),
+              description: asOptionalString(r.description),
+              url: asOptionalString(r.url),
+              type: asOptionalString(r.type),
+            }))
+          : []
+        out.push({
+          _key: newKey(),
+          blockType: 'resourcesList',
+          title: asOptionalString(block.title),
+          description: asOptionalString(block.description),
+          resources: resources.length > 0 ? resources : [{ title: '', url: '' }],
+        })
+        break
+      }
+      case 'contactsList': {
+        const contacts = Array.isArray(block.contacts)
+          ? (block.contacts as Array<Record<string, unknown>>).map((c) => ({
+              name: asOptionalString(c.name),
+              title: asOptionalString(c.title),
+              phone: asOptionalString(c.phone),
+              email: asOptionalString(c.email),
+              category: asOptionalString(c.category),
+              photo: extractRelId(c.photo),
+            }))
+          : []
+        out.push({
+          _key: newKey(),
+          blockType: 'contactsList',
+          title: asOptionalString(block.title),
+          description: asOptionalString(block.description),
+          groupByCategory: asBoolean(block.groupByCategory, false),
+          contacts: contacts.length > 0 ? contacts : [{ name: '' }],
+        })
+        break
+      }
       // Unknown block type — keep as opaque passthrough so we don't lose
       // it on edit-save. The editor renders a read-only chip; the data
       // round-trips verbatim.

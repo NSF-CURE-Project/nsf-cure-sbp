@@ -2,8 +2,10 @@
 
 import React from 'react'
 import type {
+  ContactsListBlockData,
   LexicalRichText,
   ListBlockData,
+  ResourcesListBlockData,
   ScaffoldBlock,
   ScaffoldBlockData,
   StepsListBlockData,
@@ -455,6 +457,308 @@ export default function BlockEditor({ block, view, onChange }: BlockEditorProps)
             className={inputCls}
           />
         </label>
+      )
+    }
+
+    case 'heroBlock': {
+      if (view === 'inspector') {
+        return (
+          <div className="grid gap-3">
+            <label className="grid gap-1">
+              <span className={labelCls}>Button label</span>
+              <input
+                type="text"
+                value={block.buttonLabel ?? ''}
+                onChange={(event) =>
+                  onChange(patchBlock(block, { buttonLabel: event.target.value }))
+                }
+                placeholder="Optional CTA label"
+                className={inputCls}
+              />
+            </label>
+            <label className="grid gap-1">
+              <span className={labelCls}>Button link (href)</span>
+              <input
+                type="text"
+                value={block.buttonHref ?? ''}
+                onChange={(event) =>
+                  onChange(patchBlock(block, { buttonHref: event.target.value }))
+                }
+                placeholder="/path or https://…"
+                className={inputCls}
+              />
+            </label>
+          </div>
+        )
+      }
+      return (
+        <div className="grid gap-3">
+          <label className="grid gap-1">
+            <span className={labelCls}>Title *</span>
+            <input
+              type="text"
+              value={block.title}
+              onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
+              placeholder="Hero headline"
+              className={inputCls}
+            />
+          </label>
+          <label className="grid gap-1">
+            <span className={labelCls}>Subtitle</span>
+            <textarea
+              value={block.subtitle ?? ''}
+              onChange={(event) => onChange(patchBlock(block, { subtitle: event.target.value }))}
+              rows={2}
+              placeholder="Short supporting line under the headline"
+              className={inputCls}
+            />
+          </label>
+        </div>
+      )
+    }
+
+    case 'resourcesList': {
+      const resources = block.resources ?? []
+      const updateResources = (next: ResourcesListBlockData['resources']) =>
+        onChange(patchBlock(block, { resources: next }))
+      if (view === 'inspector') {
+        return <InspectorEmpty note="Resources don't have per-block settings yet." />
+      }
+      return (
+        <div className="grid gap-3">
+          <label className="grid gap-1">
+            <span className={labelCls}>Title</span>
+            <input
+              type="text"
+              value={block.title ?? ''}
+              onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
+              className={inputCls}
+            />
+          </label>
+          <label className="grid gap-1">
+            <span className={labelCls}>Description</span>
+            <textarea
+              value={block.description ?? ''}
+              onChange={(event) =>
+                onChange(patchBlock(block, { description: event.target.value }))
+              }
+              rows={2}
+              className={inputCls}
+            />
+          </label>
+          <div className="grid gap-2">
+            <span className={labelCls}>Resources</span>
+            {resources.map((resource, index) => (
+              <div
+                key={index}
+                className="grid gap-2 rounded-md border border-[var(--admin-surface-border)] bg-[var(--admin-surface-muted)] p-2"
+              >
+                <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
+                  <span className="text-xs font-semibold text-[var(--cpp-muted)]">
+                    {index + 1}.
+                  </span>
+                  <input
+                    type="text"
+                    value={resource.title ?? ''}
+                    onChange={(event) => {
+                      const next = resources.slice()
+                      next[index] = { ...next[index], title: event.target.value }
+                      updateResources(next)
+                    }}
+                    placeholder="Resource title"
+                    className={inputCls}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => updateResources(resources.filter((_, i) => i !== index))}
+                    className="rounded-md border border-[var(--admin-surface-border)] px-2 py-1 text-xs text-[var(--cpp-muted)] hover:bg-[var(--admin-surface)]"
+                    aria-label={`Remove resource ${index + 1}`}
+                  >
+                    Remove
+                  </button>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <input
+                    type="url"
+                    value={resource.url ?? ''}
+                    onChange={(event) => {
+                      const next = resources.slice()
+                      next[index] = { ...next[index], url: event.target.value }
+                      updateResources(next)
+                    }}
+                    placeholder="https://…"
+                    className={inputCls}
+                  />
+                  <input
+                    type="text"
+                    value={resource.type ?? ''}
+                    onChange={(event) => {
+                      const next = resources.slice()
+                      next[index] = { ...next[index], type: event.target.value }
+                      updateResources(next)
+                    }}
+                    placeholder="Type (article, video, etc.)"
+                    className={inputCls}
+                  />
+                </div>
+                <textarea
+                  value={resource.description ?? ''}
+                  onChange={(event) => {
+                    const next = resources.slice()
+                    next[index] = { ...next[index], description: event.target.value }
+                    updateResources(next)
+                  }}
+                  rows={2}
+                  placeholder="Description (optional)"
+                  className={inputCls}
+                />
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() =>
+                updateResources([
+                  ...resources,
+                  { title: '', url: '' },
+                ])
+              }
+              className="inline-flex w-fit rounded-md border border-dashed border-[var(--admin-surface-border)] px-3 py-1 text-xs font-semibold text-[var(--cpp-ink)] hover:bg-[var(--admin-surface-muted)]"
+            >
+              + Add resource
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    case 'contactsList': {
+      const contacts = block.contacts ?? []
+      const updateContacts = (next: ContactsListBlockData['contacts']) =>
+        onChange(patchBlock(block, { contacts: next }))
+      if (view === 'inspector') {
+        return (
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={block.groupByCategory ?? false}
+              onChange={(event) =>
+                onChange(patchBlock(block, { groupByCategory: event.target.checked }))
+              }
+            />
+            Group contacts by category
+          </label>
+        )
+      }
+      return (
+        <div className="grid gap-3">
+          <label className="grid gap-1">
+            <span className={labelCls}>Title</span>
+            <input
+              type="text"
+              value={block.title ?? ''}
+              onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
+              className={inputCls}
+            />
+          </label>
+          <label className="grid gap-1">
+            <span className={labelCls}>Description</span>
+            <textarea
+              value={block.description ?? ''}
+              onChange={(event) =>
+                onChange(patchBlock(block, { description: event.target.value }))
+              }
+              rows={2}
+              className={inputCls}
+            />
+          </label>
+          <div className="grid gap-2">
+            <span className={labelCls}>Contacts</span>
+            {contacts.map((contact, index) => (
+              <div
+                key={index}
+                className="grid gap-2 rounded-md border border-[var(--admin-surface-border)] bg-[var(--admin-surface-muted)] p-2"
+              >
+                <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
+                  <span className="text-xs font-semibold text-[var(--cpp-muted)]">
+                    {index + 1}.
+                  </span>
+                  <input
+                    type="text"
+                    value={contact.name ?? ''}
+                    onChange={(event) => {
+                      const next = contacts.slice()
+                      next[index] = { ...next[index], name: event.target.value }
+                      updateContacts(next)
+                    }}
+                    placeholder="Name"
+                    className={inputCls}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => updateContacts(contacts.filter((_, i) => i !== index))}
+                    className="rounded-md border border-[var(--admin-surface-border)] px-2 py-1 text-xs text-[var(--cpp-muted)] hover:bg-[var(--admin-surface)]"
+                    aria-label={`Remove contact ${index + 1}`}
+                  >
+                    Remove
+                  </button>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <input
+                    type="text"
+                    value={contact.title ?? ''}
+                    onChange={(event) => {
+                      const next = contacts.slice()
+                      next[index] = { ...next[index], title: event.target.value }
+                      updateContacts(next)
+                    }}
+                    placeholder="Title / role"
+                    className={inputCls}
+                  />
+                  <input
+                    type="text"
+                    value={contact.category ?? ''}
+                    onChange={(event) => {
+                      const next = contacts.slice()
+                      next[index] = { ...next[index], category: event.target.value }
+                      updateContacts(next)
+                    }}
+                    placeholder="Category (staff, technical, …)"
+                    className={inputCls}
+                  />
+                  <input
+                    type="email"
+                    value={contact.email ?? ''}
+                    onChange={(event) => {
+                      const next = contacts.slice()
+                      next[index] = { ...next[index], email: event.target.value }
+                      updateContacts(next)
+                    }}
+                    placeholder="email@example.com"
+                    className={inputCls}
+                  />
+                  <input
+                    type="tel"
+                    value={contact.phone ?? ''}
+                    onChange={(event) => {
+                      const next = contacts.slice()
+                      next[index] = { ...next[index], phone: event.target.value }
+                      updateContacts(next)
+                    }}
+                    placeholder="Phone (optional)"
+                    className={inputCls}
+                  />
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => updateContacts([...contacts, { name: '' }])}
+              className="inline-flex w-fit rounded-md border border-dashed border-[var(--admin-surface-border)] px-3 py-1 text-xs font-semibold text-[var(--cpp-ink)] hover:bg-[var(--admin-surface-muted)]"
+            >
+              + Add contact
+            </button>
+          </div>
+        </div>
       )
     }
 

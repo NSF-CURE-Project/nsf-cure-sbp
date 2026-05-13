@@ -121,7 +121,7 @@ const guideByCollection: Record<string, GuideConfig> = {
         body: 'Save Draft while building, preview the layout before publishing, and reorder pages from the page ordering workspace when needed.',
       },
     ],
-    backHref: '/admin/collections/pages',
+    backHref: '/admin/pages',
     backLabel: 'Back to Pages',
     compactTitle: 'Page editing reminder',
     compactBody:

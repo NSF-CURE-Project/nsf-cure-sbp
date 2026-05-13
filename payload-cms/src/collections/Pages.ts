@@ -14,6 +14,10 @@ export const Pages: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['navOrder', 'title', 'slug', 'updatedAt'],
     group: 'Main Pages',
+    // Canonical UI lives at /admin/pages — see views/pages/*.
+    // Keep this hidden so /admin/collections/pages doesn't render the
+    // generic Payload list/edit forms in parallel.
+    hidden: true,
     preview: ({ data }) => {
       const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
       const secret = process.env.PREVIEW_SECRET ?? ''

@@ -629,7 +629,7 @@ function SiteManagementContent() {
         </p>
         <BulletList
           items={[
-            <>Create page: <InlineLink href="/admin/collections/pages/create">New Page</InlineLink>.</>,
+            <>Create page: <InlineLink href="/admin/pages/new">New Page</InlineLink>.</>,
             'Reorder pages with drag-and-drop list — confirm Save order in the modal.',
             'Pages support drafts and publishing. Use live preview for content review.',
           ]}
@@ -676,8 +676,8 @@ function SiteManagementContent() {
         <div style={{ display: 'grid', gap: 7 }}>
           {[
             { label: 'Site Management', href: '/admin/site-management', desc: 'Overview & quick actions' },
-            { label: 'All Pages', href: '/admin/collections/pages', desc: 'Browse published pages' },
-            { label: 'Create Page', href: '/admin/collections/pages/create', desc: 'New page' },
+            { label: 'All Pages', href: '/admin/pages', desc: 'Browse published pages' },
+            { label: 'Create Page', href: '/admin/pages/new', desc: 'New page' },
             { label: 'Footer Settings', href: '/admin/globals/footer', desc: 'Footer links & content' },
             { label: 'Admin Help Settings', href: '/admin/globals/admin-help', desc: 'Edit help portal' },
           ].map(({ label, href, desc }) => (
@@ -761,7 +761,7 @@ function TroubleshootingContent() {
             <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 5 }}>Has draft workflow</div>
             <BulletList
               items={[
-                <><InlineLink href="/admin/collections/pages">Pages</InlineLink></>,
+                <><InlineLink href="/admin/pages">Pages</InlineLink></>,
                 <><InlineLink href="/admin/collections/lessons">Lessons</InlineLink></>,
                 <><InlineLink href="/admin/quiz-bank">Quizzes</InlineLink></>,
                 <><InlineLink href="/admin/collections/quiz-questions">Quiz Questions</InlineLink></>,

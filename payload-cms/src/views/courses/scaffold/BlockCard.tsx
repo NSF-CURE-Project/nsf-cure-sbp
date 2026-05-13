@@ -33,6 +33,20 @@ function previewText(block: ScaffoldBlock): string {
     }
     case 'quizBlock':
       return block.quiz != null ? `Quiz #${block.quiz}` : 'Quiz — not selected'
+    case 'heroBlock':
+      return block.title || 'Hero — needs headline'
+    case 'resourcesList': {
+      const resources = block.resources ?? []
+      const first = resources.find((r) => r.title?.trim())?.title ?? ''
+      const label = block.title || first || 'Resources'
+      return resources.length > 1 ? `${label} (+${resources.length - 1} more)` : label
+    }
+    case 'contactsList': {
+      const contacts = block.contacts ?? []
+      const first = contacts.find((c) => c.name?.trim())?.name ?? ''
+      const label = block.title || first || 'Contacts'
+      return contacts.length > 1 ? `${label} (+${contacts.length - 1} more)` : label
+    }
     case '__passthrough':
       return (block.data.blockType as string) ?? 'Unsupported block'
   }

@@ -138,8 +138,8 @@ export const HELP_TOPICS: HelpTopic[] = [
     accentColor: '#06b6d4',
     primaryLinks: [
       { label: 'Site Management', href: '/admin/site-management', desc: 'Overview' },
-      { label: 'All Pages', href: '/admin/collections/pages', desc: 'Published pages' },
-      { label: 'Create Page', href: '/admin/collections/pages/create', desc: 'New page' },
+      { label: 'All Pages', href: '/admin/pages', desc: 'Published pages' },
+      { label: 'Create Page', href: '/admin/pages/new', desc: 'New page' },
       { label: 'Footer Settings', href: '/admin/globals/footer', desc: 'Footer links & content' },
     ],
   },

@@ -35,6 +35,18 @@ function summarize(block: ScaffoldBlock): string {
     }
     case 'quizBlock':
       return block.title || 'Quiz'
+    case 'heroBlock':
+      return block.title || 'Hero'
+    case 'resourcesList': {
+      const resources = block.resources ?? []
+      const first = resources.find((r) => r.title?.trim())?.title ?? ''
+      return block.title || first || 'Resources'
+    }
+    case 'contactsList': {
+      const contacts = block.contacts ?? []
+      const first = contacts.find((c) => c.name?.trim())?.name ?? ''
+      return block.title || first || 'Contacts'
+    }
     case '__passthrough':
       return (block.data.blockType as string) ?? 'Unsupported block'
   }

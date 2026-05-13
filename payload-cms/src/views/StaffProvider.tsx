@@ -152,9 +152,9 @@ const collectionSectionOverrides: Record<
     collectionLabel: 'Memberships',
   },
   pages: {
-    sectionLabel: 'Site Management',
-    sectionHref: '/admin/site-management',
-    collectionHref: '/admin/site-management?tab=navigation',
+    sectionLabel: 'Pages',
+    sectionHref: '/admin/pages',
+    collectionHref: '/admin/pages',
   },
   // Quizzes are hidden from /admin/collections — canonical surfaces are
   // /admin/quiz-bank (list) + /admin/quizzes/[id]/edit (settings). The
@@ -185,7 +185,7 @@ const collectionSectionOverrides: Record<
   users: {
     sectionLabel: 'Site Management',
     sectionHref: '/admin/site-management',
-    collectionHref: '/admin/site-management/users',
+    collectionHref: '/admin/site-management?tab=users',
   },
 }
 
