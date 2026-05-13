@@ -163,24 +163,24 @@ export default async function ClassPage(props: {
 
   return (
     <main className="min-w-0 overflow-x-hidden">
-      <div className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 sm:px-6 lg:px-8 py-6">
-        <article className="space-y-8">
+      <div className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 sm:px-6 lg:px-8 py-5">
+        <article className="space-y-5">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
               Course
             </p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               {c.title}
             </h1>
             {c.description ? (
-              <p className="mt-2 max-w-3xl text-muted-foreground">
+              <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">
                 {c.description}
               </p>
             ) : null}
             {chapters.length > 0 ? (
-              <dl className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
-                <div className="inline-flex items-center gap-2 text-muted-foreground">
-                  <Layers className="h-4 w-4 text-primary/70" />
+              <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[13px]">
+                <div className="inline-flex items-center gap-1.5 text-muted-foreground">
+                  <Layers className="h-3.5 w-3.5 text-primary/70" />
                   <dt className="sr-only">Chapters</dt>
                   <dd>
                     <span className="font-semibold tabular-nums text-foreground">
@@ -189,8 +189,8 @@ export default async function ClassPage(props: {
                     {chapters.length === 1 ? "chapter" : "chapters"}
                   </dd>
                 </div>
-                <div className="inline-flex items-center gap-2 text-muted-foreground">
-                  <BookOpen className="h-4 w-4 text-primary/70" />
+                <div className="inline-flex items-center gap-1.5 text-muted-foreground">
+                  <BookOpen className="h-3.5 w-3.5 text-primary/70" />
                   <dt className="sr-only">Lessons</dt>
                   <dd>
                     <span className="font-semibold tabular-nums text-foreground">
@@ -200,8 +200,8 @@ export default async function ClassPage(props: {
                   </dd>
                 </div>
                 {lessonTimeSum > 0 ? (
-                  <div className="inline-flex items-center gap-2 text-muted-foreground">
-                    <Clock className="h-4 w-4 text-primary/70" />
+                  <div className="inline-flex items-center gap-1.5 text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5 text-primary/70" />
                     <dt className="sr-only">Estimated time</dt>
                     <dd>
                       <span className="font-semibold tabular-nums text-foreground">
@@ -220,7 +220,7 @@ export default async function ClassPage(props: {
             />
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             <ClassChapterBrowser
               classSlug={classSlug}
               classId={String(c.id)}

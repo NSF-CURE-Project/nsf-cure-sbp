@@ -279,19 +279,19 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
   const visibleChapters = filteredChapters.slice(0, visibleCount);
 
   return (
-    <div className="space-y-6">
-      <div className="sticky top-[3.75rem] z-20 rounded-2xl border border-border/60 bg-background/95 px-3.5 py-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="relative mb-3">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+    <div className="space-y-4">
+      <div className="sticky top-[3.75rem] z-20 rounded-xl border border-border/60 bg-background/95 px-3 py-2.5 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="relative mb-2">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <input
             type="search"
             value={chapterQuery}
             onChange={(event) => setChapterQuery(event.target.value)}
             placeholder="Search chapters or lessons..."
-            className="h-10 w-full rounded-xl border border-border/60 bg-background pl-10 pr-3 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus-visible:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+            className="h-8 w-full rounded-lg border border-border/60 bg-background pl-9 pr-3 text-[13px] text-foreground placeholder:text-muted-foreground transition-colors focus-visible:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
           />
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
           {filterLabels.map((item) => {
             const active = filter === item.key;
             const count = filterCounts[item.key];
@@ -301,7 +301,7 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                 type="button"
                 onClick={() => setFilter(item.key)}
                 className={cn(
-                  "group/chip inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-all duration-150",
+                  "group/chip inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide transition-all duration-150",
                   active
                     ? "border-primary/60 bg-primary text-primary-foreground shadow-sm"
                     : "border-border/60 bg-background text-muted-foreground hover:-translate-y-[1px] hover:border-primary/40 hover:bg-muted/30 hover:text-foreground"
@@ -310,7 +310,7 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                 <span>{item.label}</span>
                 <span
                   className={cn(
-                    "rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
+                    "rounded-full px-1.5 py-0 text-[10px] font-semibold tabular-nums",
                     active
                       ? "bg-primary-foreground/15 text-primary-foreground"
                       : "bg-muted text-muted-foreground group-hover/chip:bg-background"
@@ -324,7 +324,7 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
         </div>
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-3">
         {visibleChapters.map((chapter) => {
           const baseLessons = chapter.lessons;
           const completedCount = baseLessons.filter(
@@ -366,11 +366,11 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
             >
               <header
                 className={cn(
-                  "bg-gradient-to-b from-background to-background/70 px-5 py-4 transition-colors duration-200 group-hover/chapter:bg-muted/25 group-hover/chapter:bg-none",
+                  "bg-gradient-to-b from-background to-background/70 px-4 py-3 transition-colors duration-200 group-hover/chapter:bg-muted/25 group-hover/chapter:bg-none",
                   chapterOpen ? "border-b border-border/55" : ""
                 )}
               >
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start justify-between gap-3">
                   <button
                     type="button"
                     onClick={() =>
@@ -379,12 +379,12 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                         [chapter.id]: !prev[chapter.id],
                       }))
                     }
-                    className="flex min-w-0 flex-1 items-start gap-3 rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    className="flex min-w-0 flex-1 items-start gap-2.5 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     aria-expanded={chapterOpen}
                   >
                     <span
                       className={cn(
-                        "mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-colors",
+                        "mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors",
                         chapterIsComplete
                           ? "border-primary/40 bg-primary/15 text-primary"
                           : "border-border/60 bg-background text-muted-foreground group-hover/chapter:border-primary/35 group-hover/chapter:text-foreground"
@@ -392,44 +392,44 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                     >
                       <ChevronDown
                         className={cn(
-                          "h-4 w-4 transition-transform duration-200",
+                          "h-3.5 w-3.5 transition-transform duration-200",
                           chapterOpen ? "rotate-0" : "-rotate-90"
                         )}
                       />
                     </span>
-                    <div className="min-w-0 space-y-2">
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
                         {chapter.chapterNumber ? (
-                          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                          <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                             Chapter {chapter.chapterNumber}
                           </span>
                         ) : null}
                         {chapterIsComplete ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide text-primary">
                             <CheckCircle2 className="h-3 w-3" />
                             Completed
                           </span>
                         ) : inProgressCount > 0 ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-400">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/15 px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-400">
                             <CirclePlay className="h-3 w-3" />
                             In progress
                           </span>
                         ) : null}
                       </div>
-                      <h2 className="text-2xl font-semibold leading-tight tracking-tight text-foreground">
+                      <h2 className="text-lg font-semibold leading-tight tracking-tight text-foreground">
                         {cleanTitle(chapter.title, "Untitled chapter")}
                       </h2>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                        <span className="inline-flex items-center gap-1.5">
-                          <Layers className="h-3.5 w-3.5" />
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-muted-foreground">
+                        <span className="inline-flex items-center gap-1">
+                          <Layers className="h-3 w-3" />
                           {baseLessons.length}{" "}
                           {baseLessons.length === 1 ? "lesson" : "lessons"}
                         </span>
                         {baseLessons.length > 0 ? (
                           <>
                             <span className="text-border">·</span>
-                            <span className="inline-flex items-center gap-1.5">
-                              <Clock className="h-3.5 w-3.5" />~{avgMins} min /
+                            <span className="inline-flex items-center gap-1">
+                              <Clock className="h-3 w-3" />~{avgMins} min /
                               lesson
                             </span>
                           </>
@@ -437,8 +437,8 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                         {quizCount > 0 ? (
                           <>
                             <span className="text-border">·</span>
-                            <span className="inline-flex items-center gap-1.5">
-                              <FileQuestion className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                            <span className="inline-flex items-center gap-1">
+                              <FileQuestion className="h-3 w-3 text-amber-600 dark:text-amber-400" />
                               {quizCount} {quizCount === 1 ? "quiz" : "quizzes"}
                             </span>
                           </>
@@ -449,15 +449,15 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                   {chapter.slug ? (
                     <Link
                       href={`/classes/${classSlug}/chapters/${chapter.slug}`}
-                      className="shrink-0 self-start rounded-lg border border-transparent px-2.5 py-1 text-sm font-medium text-muted-foreground transition-colors hover:border-border/60 hover:bg-background hover:text-foreground"
+                      className="shrink-0 self-start rounded-md border border-transparent px-2 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-border/60 hover:bg-background hover:text-foreground"
                     >
                       View chapter →
                     </Link>
                   ) : null}
                 </div>
                 {baseLessons.length > 0 ? (
-                  <div className="mt-4 flex items-center gap-3">
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                  <div className="mt-2.5 flex items-center gap-2.5">
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
                       <div
                         className={cn(
                           "h-full rounded-full transition-[width] duration-500 ease-out",
@@ -470,10 +470,10 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                         style={{ width: `${Math.max(percent, percent > 0 ? 4 : 0)}%` }}
                       />
                     </div>
-                    <span className="shrink-0 text-xs font-semibold tabular-nums text-foreground">
+                    <span className="shrink-0 text-[11px] font-semibold tabular-nums text-foreground">
                       {completedCount}/{baseLessons.length}
                     </span>
-                    <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
+                    <span className="shrink-0 rounded-full bg-muted px-1.5 py-0 text-[10px] font-semibold tabular-nums text-muted-foreground">
                       {percent}%
                     </span>
                   </div>
@@ -482,20 +482,20 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
 
               {chapterOpen ? (
                 baseLessons.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center gap-2 px-6 py-10 text-center">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                      <Sparkles className="h-5 w-5" />
+                  <div className="flex flex-col items-center justify-center gap-1.5 px-5 py-7 text-center">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                      <Sparkles className="h-4 w-4" />
                     </span>
-                    <p className="text-sm font-medium text-foreground">
+                    <p className="text-[13px] font-medium text-foreground">
                       No lessons added yet
                     </p>
-                    <p className="max-w-sm text-xs text-muted-foreground">
+                    <p className="max-w-sm text-[11px] text-muted-foreground">
                       Start building this chapter by adding your first lesson.
                       Lessons appear here as soon as staff publish them.
                     </p>
                   </div>
                 ) : (
-                  <ul className="grid gap-3 p-4 md:grid-cols-2 2xl:grid-cols-3">
+                  <ul className="grid gap-2 p-2.5 md:grid-cols-2 2xl:grid-cols-3">
                     {baseLessons.map((lesson) => {
                       const status =
                         progressByLesson[lesson.id] ?? "not-started";
@@ -514,10 +514,10 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                           <Link
                             href={`/classes/${classSlug}/lessons/${lesson.slug}`}
                             className={cn(
-                              "group/lesson relative flex h-full items-start gap-3 rounded-xl border border-border/60 bg-background/70 px-4 py-3.5 shadow-sm",
+                              "group/lesson relative flex h-full items-start gap-2.5 rounded-lg border border-border/60 bg-background/70 px-3 py-2.5 shadow-sm",
                               "transition-[transform,box-shadow,border-color,background-color] duration-150 ease-out",
-                              "hover:-translate-y-[2px] hover:border-primary/50 hover:bg-card hover:shadow-md",
-                              "focus-visible:-translate-y-[2px] focus-visible:border-primary/60 focus-visible:bg-card focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                              "hover:-translate-y-[1px] hover:border-primary/50 hover:bg-card hover:shadow-md",
+                              "focus-visible:-translate-y-[1px] focus-visible:border-primary/60 focus-visible:bg-card focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                               status === "completed"
                                 ? "border-primary/30 bg-primary/[0.04]"
                                 : status === "in-progress"
@@ -527,7 +527,7 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                           >
                             <span
                               className={cn(
-                                "mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ring-1 transition-transform duration-150",
+                                "mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md ring-1 transition-transform duration-150",
                                 accent.iconBg,
                                 accent.ring,
                                 "group-hover/lesson:scale-105"
@@ -535,34 +535,34 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                             >
                               <LessonTypeIcon
                                 type={type}
-                                className={cn("h-4 w-4", accent.iconText)}
+                                className={cn("h-3.5 w-3.5", accent.iconText)}
                               />
                             </span>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-start justify-between gap-2">
-                                <p className="text-sm font-semibold leading-snug text-foreground">
+                                <p className="text-[13px] font-semibold leading-snug text-foreground">
                                   {cleanTitle(lesson.title, "Untitled lesson")}
                                 </p>
                                 {status === "completed" ? (
-                                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
                                 ) : status === "in-progress" ? (
-                                  <CirclePlay className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                                  <CirclePlay className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
                                 ) : (
-                                  <CircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/70" />
+                                  <CircleDashed className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
                                 )}
                               </div>
-                              <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-muted-foreground">
+                              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground">
                                 <span className="font-medium uppercase tracking-wide">
                                   {type}
                                 </span>
                                 <span className="text-border">·</span>
                                 <span className="inline-flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />~{eta} min
+                                  <Clock className="h-2.5 w-2.5" />~{eta} min
                                 </span>
                                 <span className="text-border">·</span>
                                 <span
                                   className={cn(
-                                    "rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                                    "rounded-full px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide",
                                     status === "completed" &&
                                       "bg-primary/15 text-primary",
                                     status === "in-progress" &&

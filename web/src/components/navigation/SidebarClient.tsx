@@ -283,8 +283,8 @@ export default function SidebarClient({ classes }: Props) {
   };
 
   return (
-    <nav className="text-sm">
-      <ul className="space-y-3">
+    <nav className="text-[13px]">
+      <ul className="space-y-1.5">
         {(classes ?? []).map((cls) => {
           const cSlug = getClassSlug(cls);
           if (!cSlug) return null;
@@ -304,7 +304,7 @@ export default function SidebarClient({ classes }: Props) {
                 <Link
                   href={`/classes/${cSlug}`}
                   className={cn(
-                    "relative block rounded-md border-l-[3px] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em]",
+                    "relative block rounded-md border-l-[3px] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em]",
                     "transition-[background-color,border-color,color,transform,box-shadow] duration-200",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                     "hover:-translate-y-[1px] hover:border-primary/60 hover:bg-muted/30 hover:text-foreground",
@@ -318,7 +318,7 @@ export default function SidebarClient({ classes }: Props) {
               ) : (
                 <div
                   className={cn(
-                    "group flex w-full items-center justify-between gap-2 rounded-md border-l-[3px] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em]",
+                    "group flex w-full items-center justify-between gap-2 rounded-md border-l-[3px] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em]",
                     "transition-[background-color,border-color,color,transform,box-shadow] duration-200",
                     "hover:-translate-y-[1px] hover:border-primary/60 hover:bg-muted/30 hover:text-foreground",
                     classIsActive
@@ -338,7 +338,7 @@ export default function SidebarClient({ classes }: Props) {
                     aria-controls={`panel-class-${cSlug}`}
                     onClick={() => toggleClass(cSlug)}
                     className={cn(
-                      "flex h-6 w-6 items-center justify-center rounded-md transition-colors",
+                      "flex h-5 w-5 items-center justify-center rounded-md transition-colors",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
                       classIsActive
                         ? "text-foreground/80 hover:bg-primary/20"
@@ -370,7 +370,7 @@ export default function SidebarClient({ classes }: Props) {
                       : "grid-rows-[0fr] opacity-70",
                   ].join(" ")}
                 >
-                  <ul className="min-h-0 overflow-hidden pl-6 pr-2 space-y-1">
+                  <ul className="min-h-0 overflow-hidden pl-5 pr-1.5 space-y-0.5">
                     {getChapters(cls).map((ch) => {
                       const chSlug = getChapterSlug(ch);
                       if (!chSlug) return null;
@@ -407,7 +407,7 @@ export default function SidebarClient({ classes }: Props) {
                           <div className="relative pl-3">
                             <div
                               className={cn(
-                                "group -ml-3 flex w-[calc(100%+0.75rem)] flex-col gap-1 rounded-md border-l-[3px] py-1.5 pl-4 pr-2 text-left",
+                                "group -ml-3 flex w-[calc(100%+0.75rem)] flex-col gap-0.5 rounded-md border-l-[3px] py-1 pl-3 pr-1.5 text-left",
                                 "transition-[background-color,border-color,color,transform,box-shadow] duration-200",
                                 "hover:-translate-y-[1px]",
                                 chapterBarActive
@@ -428,7 +428,7 @@ export default function SidebarClient({ classes }: Props) {
                                   </span>
                                   <span
                                     className={cn(
-                                      "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold tabular-nums uppercase tracking-wide",
+                                      "shrink-0 rounded-full px-1.5 py-0 text-[10px] font-semibold tabular-nums uppercase tracking-wide",
                                       chapterIsComplete
                                         ? "bg-primary/20 text-primary"
                                         : chapterCompleted > 0
@@ -445,7 +445,7 @@ export default function SidebarClient({ classes }: Props) {
                                 aria-controls={`panel-ch-${chKey}`}
                                 onClick={() => toggleChapter(cSlug, chSlug)}
                                 className={cn(
-                                  "flex h-6 w-6 items-center justify-center rounded-md transition-colors",
+                                  "flex h-5 w-5 items-center justify-center rounded-md transition-colors",
                                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
                                   chapterBarActive
                                     ? "text-foreground/80 hover:bg-primary/20"
@@ -496,7 +496,7 @@ export default function SidebarClient({ classes }: Props) {
                                   : "grid-rows-[0fr] opacity-70",
                               ].join(" ")}
                             >
-                              <ul className="min-h-0 overflow-hidden py-0.5 space-y-1">
+                              <ul className="min-h-0 overflow-hidden py-0.5 space-y-0">
                                 {lessons.map((ls) => {
                                   const lsSlug = getLessonSlug(ls);
                                   const lsId = getLessonId(ls);
@@ -507,9 +507,9 @@ export default function SidebarClient({ classes }: Props) {
                                       <Link
                                         href={`/classes/${cSlug}/lessons/${lsSlug}`}
                                         className={cn(
-                                          "block rounded-md border-l-2 px-2 py-1 transition-[background-color,border-color,color,transform] duration-200",
+                                          "block rounded-md border-l-2 px-2 py-0.5 text-[13px] transition-[background-color,border-color,color,transform] duration-200",
                                           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                                          "hover:-translate-y-[2px]",
+                                          "hover:-translate-y-[1px]",
                                           active
                                             ? "border-primary bg-primary/20 text-foreground ring-1 ring-inset ring-primary/25"
                                             : "border-transparent text-muted-foreground/70 hover:border-primary/40 hover:bg-muted/20 hover:text-foreground"
