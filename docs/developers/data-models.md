@@ -23,7 +23,6 @@ There are **34 collections** plus **3 globals** (`AdminHelp`, `Footer`, `SiteBra
 | `Lessons` | `lessons` | Lesson body content (layout blocks), assessment attachment, lesson-level overrides. Drafts enabled. |
 | `Pages` | `pages` | CMS pages for the public site. Drafts enabled. |
 | `Media` | `media` | Uploaded assets. S3-backed when `S3_BUCKET` is set. |
-| `EngineeringFigures` | `engineering-figures` | Structured figures (free-body diagrams, plots) authored via `FigureBuilderField` / `PlotWizardField`. |
 
 ## Assessments and problem-solving
 
@@ -32,10 +31,7 @@ There are **34 collections** plus **3 globals** (`AdminHelp`, `Footer`, `SiteBra
 | `Quizzes` | `quizzes` | Quiz definitions, question lists, attempt limits, time limits. Drafts enabled. |
 | `QuizQuestions` | `quiz-questions` | Reusable question bank (multiple-choice, etc.). Drafts enabled. |
 | `QuizAttempts` | `quiz-attempts` | Learner attempt records (score, mastery, timestamps). |
-| `Problems` | `problems` | Individual problem definitions with templated parameters. Drafts enabled. |
-| `ProblemSets` | `problem-sets` | Curated collections of problems served via `/public/problem-sets`. |
-| `ProblemAttempts` | `problem-attempts` | Learner attempt records on problems. |
-| `Concepts` | `concepts` | Learning outcomes / standards mapped onto questions and problems. |
+| `Concepts` | `concepts` | Learning outcomes / standards mapped onto questions. |
 | `PrePostAssessments` | `pre-post-assessments` | Pairs a pre-quiz with a post-quiz for normalized-gain (research) analysis. |
 
 ## Learner experience
@@ -101,7 +97,7 @@ Most collections share two helpers, defined inline per file:
 - `isStaff(req)` → `req.user?.collection === 'users'` and role in `admin|staff|professor`.
 - `isAdmin(req)` → `req.user?.role === 'admin'`.
 
-Learner-owned collections (`Notifications`, `LessonProgress`, `LessonBookmarks`, `Questions`, `QuizAttempts`, `ProblemAttempts`) scope read access to records where `recipient`/`account` equals `req.user.id` when the caller is an account.
+Learner-owned collections (`Notifications`, `LessonProgress`, `LessonBookmarks`, `Questions`, `QuizAttempts`) scope read access to records where `recipient`/`account` equals `req.user.id` when the caller is an account.
 
 Audit and snapshot records are immutable after create — enforced in `access.update` / `access.delete` returning `false`.
 

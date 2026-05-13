@@ -53,13 +53,12 @@ Available on lessons and pages (defined in `payload-cms/src/blocks/pageBlocks.ts
 
 - Create `Quizzes` and `QuizQuestions` in the admin, or use the **Quiz Bank** (`/admin/quiz-bank`) to filter, duplicate, and CSV-import.
 - Attach a quiz to a lesson on the lesson's `Assessment` tab. You can override max attempts, show-answers behaviour, and time limit per lesson.
-- Use **Problem Sets** (`/admin/collections/problem-sets`) and `Problems` for templated practice problems served via `/api/public/problem-sets`.
 - Use **Pre/Post Assessments** (`/admin/pre-post`) to pair a pre-quiz with a post-quiz for normalized-gain research analysis.
-- Learner attempts are recorded in `QuizAttempts` and `ProblemAttempts`.
+- Learner attempts are recorded in `QuizAttempts`.
 
 ## Concept mapping
 
-Use the **Concept Library** (`/admin/concepts`) to define learning outcomes and tag them onto questions, problems, and lessons. Reporting endpoints (`/api/staff/concept-list`, `/api/staff/concept-detail`) read these mappings to surface concept-level mastery.
+Use the **Concept Library** (`/admin/concepts`) to define learning outcomes and tag them onto questions and lessons. Reporting endpoints (`/api/staff/concept-list`, `/api/staff/concept-detail`) read these mappings to surface concept-level mastery.
 
 ## Student tracking
 

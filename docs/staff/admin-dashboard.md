@@ -35,7 +35,7 @@ The handbook lists the full set of custom pages including `/admin/concepts`, `/a
 
 - Manage lessons and curriculum: open `/admin/courses` (drag-and-drop outline; inline `+ Add chapter` / `+ Add lesson`).
 - Upload media: use the `Media` collection.
-- View student progress: `LessonProgress`, `QuizAttempts`, `ProblemAttempts` collections, or the Student Performance workspace for roster summaries.
+- View student progress: `LessonProgress` and `QuizAttempts` collections, or the Student Performance workspace for roster summaries.
 - Manage classrooms and enrollments: `Classrooms` (sidebar holds join code) and `ClassroomMemberships`.
 - Generate NSF RPPR reporting outputs: open `/admin/reporting`. Includes period/date-range scope, cohort filters, KPI trend deltas vs previous snapshots, evidence-link summaries, data quality checks, anomalies, exports, and snapshot trigger/reuse.
 

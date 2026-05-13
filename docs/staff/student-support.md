@@ -7,7 +7,7 @@ This guide covers the day-to-day support surfaces for learners. For the full adm
 | Concern | Collection / page |
 | --- | --- |
 | Account exists / locked out / password reset | `Accounts` (`/admin/collections/accounts`) — learner auth. Staff accounts live in `Users`. |
-| Progress questions | `LessonProgress`, `QuizAttempts`, `ProblemAttempts` |
+| Progress questions | `LessonProgress`, `QuizAttempts` |
 | Open student questions on lessons | `Questions` (`/admin/collections/questions?where[status][equals]=open`) |
 | Platform feedback (free-form) | `Feedback` (`/admin/collections/feedback?where[read][equals]=false`) |
 | Per-lesson feedback | `LessonFeedback`, or the panel inside the lesson scaffold editor |

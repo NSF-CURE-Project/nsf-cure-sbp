@@ -66,7 +66,7 @@ Registered in `payload.config.ts` via `admin.components.views.dashboard` and Nex
 - `StaffProvider` — global admin provider (theme, user menu, breadcrumbs).
 - Custom workspaces: `/admin/courses`, `/admin/quiz-bank`, `/admin/question-bank`, `/admin/concepts`, `/admin/pre-post`, `/admin/student-performance`, `/admin/user-analytics`, `/admin/site-management`, `/admin/reporting`, `/admin/help`, `/admin/settings`, and per-record drilldowns (`/admin/quiz-stats/[quizId]`, `/admin/question-stats/[questionId]`).
 
-Custom field UIs (e.g., `FigureBuilderField`, `PlotWizardField`, `ClassroomJoinCodeField`, `LessonFeedbackPanel`, the lesson scaffold editor under `views/courses/`) are resolved through Payload's import map (`pnpm generate:importmap`).
+Custom field UIs (e.g., `ClassroomJoinCodeField`, `LessonFeedbackPanel`, the lesson scaffold editor under `views/courses/`) are resolved through Payload's import map (`pnpm generate:importmap`).
 
 ## Custom endpoints (overview)
 
@@ -79,8 +79,7 @@ Roughly 35 custom handlers are registered. Groups:
 - **API keys**: `/auth/api-key-info`.
 - **Admin user create**: `/admin/users/create`.
 - **Email previews / demo**: `/accounts/email-preview`, `/demo/quiz-formats`.
-- **Public content**: `/public/problem-sets`, `/public/problem-sets/[id]`.
-- **Attempts review**: `/quiz-attempts/:attemptId/review`, `/problem-attempts/:attemptId/review`.
+- **Attempts review**: `/quiz-attempts/:attemptId/review`.
 - **Q&A**: `/questions/...` (lesson questions, question detail).
 - **Reporting / analytics**: `/analytics/reporting-summary`, `/analytics/nsf-rppr`, `/analytics/reporting-center`, `/analytics/metric-definitions`, `/analytics/student`, `/analytics/gpt-rppr-context`, `/analytics/generate-rppr-pdf`.
 - **Staff analytics**: `/staff/student-performance`, `/staff/user-analytics`, `/staff/user-analytics/list`, `/staff/quiz-stats`, `/staff/question-stats`, `/staff/concept-list`, `/staff/concept-detail`, `/staff/question-bank`, `/staff/pre-post/list`, `/staff/pre-post/detail`.
