@@ -251,12 +251,29 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
   // collapse and the canvas shares its space with a docked preview iframe.
   // Only meaningful in edit mode (create mode has no row to preview).
   const [previewMode, setPreviewMode] = useState(false)
-  // Viewport simulation for the preview iframe. Desktop = fill pane;
-  // tablet/phone clamp width + center so authors can sanity-check responsive
-  // layout without leaving the editor.
+  // Viewport simulation for the preview iframe. Each mode renders the
+  // iframe at the device's real CSS width (so the lesson page hits its
+  // real breakpoints — desktop layout shows the sidebar etc.) and we
+  // transform-scale the iframe down to fit the pane.
   const [previewViewport, setPreviewViewport] = useState<'desktop' | 'tablet' | 'phone'>(
     'desktop',
   )
+  const previewFrameRef = useRef<HTMLDivElement | null>(null)
+  const [previewPaneSize, setPreviewPaneSize] = useState<{ w: number; h: number }>({
+    w: 600,
+    h: 800,
+  })
+  useEffect(() => {
+    if (!previewMode) return
+    const el = previewFrameRef.current
+    if (!el) return
+    const observer = new ResizeObserver(([entry]) => {
+      const rect = entry.contentRect
+      setPreviewPaneSize({ w: rect.width, h: rect.height })
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [previewMode])
   // Auto-deselect if the selected block was removed.
   useEffect(() => {
     if (selectedBlockKey && !blocks.some((b) => b._key === selectedBlockKey)) {
@@ -553,14 +570,15 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         @media (min-width: 1440px) {
           .lse-body { grid-template-columns: 260px minmax(0, 1fr) 340px; }
         }
-        /* Split-preview mode collapses outline + inspector and shares the
-         * available width between the canvas and the preview iframe. */
+        /* Split-preview mode collapses outline + inspector and gives the
+         * canvas (where authors actually type) the larger share — preview
+         * is for verification, not primary work surface. 3fr/2fr ≈ 60/40. */
         .lse-body--preview {
           grid-template-columns: minmax(0, 1fr) !important;
         }
         @media (min-width: 1024px) {
           .lse-body--preview {
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+            grid-template-columns: minmax(0, 3fr) minmax(0, 2fr) !important;
           }
         }
         .lse-canvas { display: grid; gap: 18px; }
@@ -634,26 +652,59 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           color: var(--cpp-ink, #0f172a);
           box-shadow: var(--admin-shadow-soft);
         }
-        /* Frame wraps the iframe so we can clamp width + center it for
-         * tablet/phone viewports without losing the pane's own padding. */
-        .lse-preview-pane__frame {
-          display: flex;
+        /* Quick-close affordance inside the pane head so authors don't
+         * have to scroll back to the topbar Preview toggle. */
+        .lse-preview-pane__close {
+          display: inline-flex;
+          align-items: center;
           justify-content: center;
-          align-items: stretch;
+          width: 26px;
+          height: 26px;
+          margin-left: 4px;
+          padding: 0;
+          background: transparent;
+          border: 1px solid transparent;
+          border-radius: 6px;
+          color: var(--cpp-muted, #475569);
+          cursor: pointer;
+          transition: var(--admin-transition);
+        }
+        .lse-preview-pane__close:hover {
+          background: var(--admin-surface-muted, #f3f6fb);
+          border-color: var(--admin-surface-border, #d7dfea);
+          color: var(--cpp-ink, #0f172a);
+        }
+        .lse-preview-pane__close:focus-visible {
+          outline: 2px solid var(--admin-accent-border, #3b82f6);
+          outline-offset: 1px;
+        }
+        /* Frame is the visible window onto a scaled iframe. The iframe is
+         * always rendered at its true device width (1280/768/390) so the
+         * lesson page hits its real breakpoints; the scaler shrinks it
+         * with transform: scale so the author sees the whole layout. */
+        .lse-preview-pane__frame {
+          position: relative;
+          overflow: hidden;
           min-height: 600px;
-          overflow: auto;
+          height: 100%;
+          border: 1px solid var(--admin-surface-border, #d7dfea);
+          border-radius: 8px;
+          background: #fff;
+        }
+        .lse-preview-pane__scaler {
+          position: absolute;
+          top: 0;
+          left: 0;
+          transform-origin: top left;
+          transition: transform 180ms ease, left 180ms ease;
         }
         .lse-preview-pane__iframe {
           width: 100%;
           height: 100%;
-          min-height: 600px;
-          border: 1px solid var(--admin-surface-border, #d7dfea);
-          border-radius: 8px;
+          border: 0;
           background: #fff;
-          transition: max-width 200ms ease;
+          display: block;
         }
-        .lse-preview-pane__iframe--tablet { max-width: 768px; }
-        .lse-preview-pane__iframe--phone { max-width: 390px; }
         .lse-preview-pane__empty {
           padding: 24px 12px;
           font-size: 12px;
@@ -1414,17 +1465,62 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
                   </button>
                 ))}
               </div>
+              <button
+                type="button"
+                className="lse-preview-pane__close"
+                aria-label="Close live preview"
+                title="Close preview"
+                onClick={() => setPreviewMode(false)}
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path
+                    d="M4 4l8 8M12 4l-8 8"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
             </div>
             {!isCreate && (props as EditModeProps).previewUrl ? (
-              <div className="lse-preview-pane__frame">
-                <iframe
-                  title="Lesson preview"
-                  src={`${(props as EditModeProps).previewUrl}${
-                    (props as EditModeProps).previewUrl!.includes('?') ? '&' : '?'
-                  }_t=${autoSaveAt ?? 0}`}
-                  className={`lse-preview-pane__iframe lse-preview-pane__iframe--${previewViewport}`}
-                />
-              </div>
+              (() => {
+                // Real device widths trigger the lesson page's real
+                // breakpoints inside the iframe (desktop shows sidebar etc.).
+                // Transform-scale the iframe down to fit the pane so the
+                // author still sees the whole layout.
+                const DEVICE_WIDTH = {
+                  desktop: 1280,
+                  tablet: 768,
+                  phone: 390,
+                }[previewViewport]
+                const padding = 24
+                const available = Math.max(0, previewPaneSize.w - padding)
+                const rawScale = available > 0 ? available / DEVICE_WIDTH : 1
+                const scale = Math.min(1, rawScale)
+                const unscaledHeight = scale > 0 ? previewPaneSize.h / scale : previewPaneSize.h
+                const offsetX = scale === 1 ? Math.max(0, (available - DEVICE_WIDTH) / 2) : 0
+                return (
+                  <div className="lse-preview-pane__frame" ref={previewFrameRef}>
+                    <div
+                      className="lse-preview-pane__scaler"
+                      style={{
+                        width: `${DEVICE_WIDTH}px`,
+                        height: `${unscaledHeight}px`,
+                        left: `${offsetX}px`,
+                        transform: `scale(${scale})`,
+                      }}
+                    >
+                      <iframe
+                        title="Lesson preview"
+                        src={`${(props as EditModeProps).previewUrl}${
+                          (props as EditModeProps).previewUrl!.includes('?') ? '&' : '?'
+                        }_t=${autoSaveAt ?? 0}`}
+                        className="lse-preview-pane__iframe"
+                      />
+                    </div>
+                  </div>
+                )
+              })()
             ) : (
               <div className="lse-preview-pane__empty">
                 Live preview becomes available once the lesson is saved at least once.
