@@ -33,15 +33,9 @@ import { default as default_5565cf0809d37ddd6682af69dc08c9da } from '@/views/Cla
 import { default as default_4c635b207a892622d6930c06b05f52ee } from '@/views/ApiKeyDisplay'
 import { default as default_8ecf3705f4486154c43b65ffcba083a4 } from '@/views/QuizQuestionPickerField'
 import { default as default_b228ebeb356b13e416a25a2727293bbc } from '@/views/QuizPreviewField'
-import { default as default_0937aecc147b64e1fe0af8b25be8b04e } from '@/views/FigureBuilderField'
-import { default as default_5c42f65881579824c215aea0ce8e7864 } from '@/views/ToleranceExplainerField'
-import { default as default_edf03fc31873d58cdebfd253d2bc5043 } from '@/views/FormulaHelperField'
-import { default as default_03e4eb924d785e0e6b165922bb3d1f28 } from '@/views/ProblemTemplatePreviewField'
-import { default as default_83665b2e457b847ee9222917fde5a7ab } from '@/views/ProblemPreviewTab'
 import { default as default_20b4b595011067220e22f7c98e94e4e7 } from '@/views/AdminIcon'
 import { default as default_1c527c7f8e4abfd6959bbf71cc426e00 } from '@/views/AdminLogo'
 import { default as default_9d5e242f5b9448a15263946a6aafe2ce } from '@/views/StaffProvider'
-import { S3ClientUploadHandler as S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24 } from '@payloadcms/storage-s3/client'
 import { default as default_afe82a4d7d416ef3822c4ceeb7b60fa0 } from '@/views/StaffDashboardView'
 
 export const importMap = {
@@ -80,14 +74,8 @@ export const importMap = {
   "@/views/ApiKeyDisplay#default": default_4c635b207a892622d6930c06b05f52ee,
   "@/views/QuizQuestionPickerField#default": default_8ecf3705f4486154c43b65ffcba083a4,
   "@/views/QuizPreviewField#default": default_b228ebeb356b13e416a25a2727293bbc,
-  "@/views/FigureBuilderField#default": default_0937aecc147b64e1fe0af8b25be8b04e,
-  "@/views/ToleranceExplainerField#default": default_5c42f65881579824c215aea0ce8e7864,
-  "@/views/FormulaHelperField#default": default_edf03fc31873d58cdebfd253d2bc5043,
-  "@/views/ProblemTemplatePreviewField#default": default_03e4eb924d785e0e6b165922bb3d1f28,
-  "@/views/ProblemPreviewTab#default": default_83665b2e457b847ee9222917fde5a7ab,
   "@/views/AdminIcon#default": default_20b4b595011067220e22f7c98e94e4e7,
   "@/views/AdminLogo#default": default_1c527c7f8e4abfd6959bbf71cc426e00,
   "@/views/StaffProvider#default": default_9d5e242f5b9448a15263946a6aafe2ce,
-  "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24,
   "@/views/StaffDashboardView#default": default_afe82a4d7d416ef3822c4ceeb7b60fa0
 }
