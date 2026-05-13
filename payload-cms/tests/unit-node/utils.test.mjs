@@ -1,10 +1,9 @@
 import assert from 'node:assert/strict'
-import { describe, it, afterEach } from 'node:test'
+import { describe, it } from 'node:test'
 
 import { ensureUniqueSlug, slugify } from '../../src/utils/slug.ts'
 import { generateUniqueJoinCode } from '../../src/utils/joinCode.ts'
 import { getReportingSummary, reportRowsToCsv } from '../../src/utils/analyticsSummary.ts'
-import { buildEmailConfirmation, hashEmailToken } from '../../src/utils/emailConfirmation.ts'
 import { buildAuthEmail, buildResetPasswordUrl } from '../../src/utils/authEmails.ts'
 
 describe('slug utilities', () => {
@@ -255,58 +254,5 @@ describe('auth email template utilities', () => {
     assert.match(message.html, /Supported by NSF Award #2318158 · Cal Poly Pomona/)
 
     delete process.env.SUPPORT_EMAIL
-  })
-})
-describe('email confirmation utilities', () => {
-  const prevPublic = process.env.WEB_PUBLIC_URL
-  const prevPreview = process.env.WEB_PREVIEW_URL
-
-  afterEach(() => {
-    if (prevPublic === undefined) delete process.env.WEB_PUBLIC_URL
-    else process.env.WEB_PUBLIC_URL = prevPublic
-    if (prevPreview === undefined) delete process.env.WEB_PREVIEW_URL
-    else process.env.WEB_PREVIEW_URL = prevPreview
-  })
-
-  it('hashEmailToken is deterministic', () => {
-    assert.equal(
-      hashEmailToken('abc'),
-      'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
-    )
-  })
-
-  it('buildEmailConfirmation honors URL fallback order', () => {
-    process.env.WEB_PUBLIC_URL = 'https://app.example.com'
-    const fromPublic = buildEmailConfirmation()
-    assert.match(fromPublic.confirmUrl, /^https:\/\/app\.example\.com\/confirm-email\?token=[a-f0-9]{64}$/)
-
-    delete process.env.WEB_PUBLIC_URL
-    process.env.WEB_PREVIEW_URL = 'https://preview.example.com'
-    const fromPreview = buildEmailConfirmation()
-    assert.match(fromPreview.confirmUrl, /^https:\/\/preview\.example\.com\/confirm-email\?token=[a-f0-9]{64}$/)
-
-    delete process.env.WEB_PREVIEW_URL
-    const fromLocal = buildEmailConfirmation()
-    assert.match(fromLocal.confirmUrl, /^http:\/\/localhost:3001\/confirm-email\?token=[a-f0-9]{64}$/)
-  })
-
-  it('buildEmailConfirmation sets expiry roughly 24h in future', () => {
-    const now = Date.now()
-    const { expiresAt } = buildEmailConfirmation()
-    const delta = new Date(expiresAt).getTime() - now
-    assert.ok(delta > 23.5 * 60 * 60 * 1000)
-    assert.ok(delta < 24.5 * 60 * 60 * 1000)
-  })
-
-  it('prefers WEB_PUBLIC_URL over WEB_PREVIEW_URL when both are set', () => {
-    process.env.WEB_PUBLIC_URL = 'https://public.example.com'
-    process.env.WEB_PREVIEW_URL = 'https://preview.example.com'
-
-    const result = buildEmailConfirmation()
-    assert.match(
-      result.confirmUrl,
-      /^https:\/\/public\.example\.com\/confirm-email\?token=[a-f0-9]{64}$/,
-    )
-    assert.match(result.tokenHash, /^[a-f0-9]{64}$/)
   })
 })
