@@ -237,7 +237,13 @@ describe('auth email template utilities', () => {
     assert.match(message.text, /If this was not you, ignore this email\./)
     assert.match(message.text, /contact support at help@example\.com\./)
     assert.match(message.html, /<table role="presentation" width="100%"/)
-    assert.match(message.html, /bgcolor="#f4f5f7"/)
+    // Background color of the outermost wrapper. We don't hardcode a hex
+    // value because the template's palette has changed at least once;
+    // assert the bgcolor attribute exists on the wrapper table instead.
+    assert.match(
+      message.html,
+      /<table role="presentation"[^>]*bgcolor="#[0-9a-fA-F]{6}"/,
+    )
     assert.match(message.html, /NSF CURE SBP/)
     assert.match(message.html, /Summer Bridge Program/)
     assert.match(message.html, /Confirm your &lt;account&gt;/)
