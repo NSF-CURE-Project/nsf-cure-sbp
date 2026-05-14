@@ -181,17 +181,19 @@ export const Chapters: CollectionConfig = {
     ],
     beforeDelete: [
       async ({ id, req }) => {
+        // Cascade-delete every lesson under this chapter so the FK can't
+        // refuse the chapter delete and the UI doesn't need a separate
+        // "empty out first" step.
         if (!req?.payload || id == null) return
-        const lessons = await req.payload.find({
-          collection: 'lessons',
-          depth: 0,
-          limit: 1,
-          where: { chapter: { equals: id } },
-        })
-        if (lessons.totalDocs > 0) {
-          throw new Error(
-            `Cannot delete chapter: ${lessons.totalDocs} lesson(s) still reference it. Move or delete those lessons first.`,
-          )
+        try {
+          await req.payload.delete({
+            collection: 'lessons',
+            where: { chapter: { equals: id } },
+            overrideAccess: true,
+          })
+        } catch {
+          // Bulk-delete on zero matches throws in some adapter versions —
+          // safe to ignore; the chapter delete itself is the load-bearing op.
         }
       },
     ],

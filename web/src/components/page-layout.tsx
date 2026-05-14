@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
 import type { PageLayoutBlock } from "@/lib/payloadSdk/types";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
+import { extractLessonSections } from "@/lib/lessons/toc";
 
 // Heavy interactive blocks (mathjs / katex / state machines) — load on demand
 // so non-problem/quiz pages don't pay for them in the initial bundle.
@@ -314,6 +315,10 @@ export function PageLayout({
   const firstHeroIndex = blocks.findIndex(
     (block) => block.blockType === "heroBlock"
   );
+  // Pre-compute anchor ids for heading blocks so the rendered headings and
+  // the table-of-contents in LessonSidebar share the exact same slugs.
+  const sections = extractLessonSections(blocks);
+  const sectionIdByIndex = new Map(sections.map((s) => [s.index, s.id]));
 
   return (
     <div className={className}>
@@ -358,8 +363,13 @@ export function PageLayout({
         if (block.blockType === "sectionTitle") {
           const TitleTag = getTitleTag(block.size);
           const titleClass = getTitleClass(block.size);
+          const anchorId = sectionIdByIndex.get(idx);
           return (
-            <section key={block.id ?? idx} className="space-y-2">
+            <section
+              key={block.id ?? idx}
+              id={anchorId}
+              className="space-y-2 scroll-mt-24"
+            >
               <TitleTag className={`${titleClass} font-semibold`}>
                 {block.title}
               </TitleTag>
@@ -375,8 +385,13 @@ export function PageLayout({
         if (block.blockType === "textSection") {
           const TitleTag = getTitleTag(block.size);
           const titleClass = getTitleClass(block.size);
+          const anchorId = sectionIdByIndex.get(idx);
           return (
-            <section key={block.id ?? idx} className="space-y-3">
+            <section
+              key={block.id ?? idx}
+              id={anchorId}
+              className="space-y-3 scroll-mt-24"
+            >
               {block.title && (
                 <TitleTag className={`${titleClass} font-semibold`}>
                   {block.title}
@@ -398,8 +413,13 @@ export function PageLayout({
         if (block.blockType === "sectionBlock") {
           const TitleTag = getTitleTag(block.size);
           const titleClass = getTitleClass(block.size);
+          const anchorId = sectionIdByIndex.get(idx);
           return (
-            <section key={block.id ?? idx} className="space-y-2">
+            <section
+              key={block.id ?? idx}
+              id={anchorId}
+              className="space-y-2 scroll-mt-24"
+            >
               <TitleTag className={`${titleClass} font-semibold`}>
                 {block.title}
               </TitleTag>

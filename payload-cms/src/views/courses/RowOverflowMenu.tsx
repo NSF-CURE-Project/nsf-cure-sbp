@@ -22,16 +22,25 @@ type RowOverflowMenuProps = {
   ariaLabel: string
   actions: OverflowAction[]
   align?: 'left' | 'right'
+  onOpenChange?: (open: boolean) => void
 }
 
 export default function RowOverflowMenu({
   ariaLabel,
   actions,
   align = 'right',
+  onOpenChange,
 }: RowOverflowMenuProps) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpenState] = useState(false)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const buttonId = useId()
+  const setOpen = (next: boolean | ((prev: boolean) => boolean)) => {
+    setOpenState((prev) => {
+      const resolved = typeof next === 'function' ? next(prev) : next
+      if (resolved !== prev) onOpenChange?.(resolved)
+      return resolved
+    })
+  }
 
   useEffect(() => {
     if (!open) return
@@ -48,6 +57,7 @@ export default function RowOverflowMenu({
       document.removeEventListener('mousedown', handlePointer)
       document.removeEventListener('keydown', handleKey)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   return (

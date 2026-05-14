@@ -19,6 +19,9 @@ import { LessonQuestionList } from "@/components/questions/LessonQuestionList";
 import { LessonProgressControls } from "@/components/progress/LessonProgressControls";
 import { LessonHelpfulFeedback } from "@/components/lessons/LessonHelpfulFeedback";
 import { QuizBlock as QuizBlockComponent } from "@/components/quiz/QuizBlock";
+import LessonSidebar from "@/components/lessons/LessonSidebar";
+import LessonFinishCard from "@/components/lessons/LessonFinishCard";
+import { extractLessonSections } from "@/lib/lessons/toc";
 
 type Props = {
   initialData: LessonDoc | null;
@@ -180,6 +183,35 @@ export function LivePreviewLesson({
   const LessonIcon =
     lessonType === "Video" ? Video : lessonType === "Quiz" ? FileQuestion : BookOpen;
 
+  const sections = useMemo(() => extractLessonSections(blocks), [blocks]);
+
+  // Compute prev/next neighbors once so both the sidebar and the bottom nav
+  // share the same data without recomputing.
+  const neighbors = useMemo(() => {
+    if (!normalizedNav) return { prev: null, next: null };
+    const { lessons, currentIndex } = normalizedNav;
+    const prev = currentIndex > 0 ? lessons[currentIndex - 1] : null;
+    const next =
+      currentIndex >= 0 && currentIndex < lessons.length - 1
+        ? lessons[currentIndex + 1]
+        : null;
+    return { prev, next };
+  }, [normalizedNav]);
+
+  const sidebarChapter = chapterInfo
+    ? {
+        title: chapterInfo.chapterTitle ?? null,
+        slug: chapterInfo.chapterSlug ?? null,
+        number: chapterInfo.chapterNumber ?? null,
+        classSlug: chapterInfo.classSlug ?? null,
+      }
+    : undefined;
+  const lessonIndexInChapter =
+    normalizedNav && normalizedNav.currentIndex >= 0
+      ? normalizedNav.currentIndex + 1
+      : null;
+  const lessonCountInChapter = normalizedNav?.lessons.length ?? null;
+
   const navTop = normalizedNav ? (
     <LessonNavSimple
       lessons={normalizedNav.lessons}
@@ -208,6 +240,8 @@ export function LivePreviewLesson({
   return (
     <article className={className}>
       {navTop}
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_260px]">
+        <div className="min-w-0 max-w-[72ch]">
       <header className="mb-8">
         {chapterInfo &&
         (chapterInfo.classTitle || chapterInfo.chapterTitle) ? (
@@ -292,6 +326,15 @@ export function LivePreviewLesson({
           />
         </div>
       ) : null}
+      <LessonFinishCard
+        lessonTitle={title}
+        sections={sections}
+        next={neighbors.next}
+        hrefPrefix={normalizedNav?.hrefPrefix ?? ""}
+        chapter={sidebarChapter}
+        lessonIndex={lessonIndexInChapter}
+        lessonCount={lessonCountInChapter}
+      />
       {data?.id ? (
         <>
           <LessonQuestionDrawer
@@ -308,6 +351,19 @@ export function LivePreviewLesson({
       ) : null}
       {navBottom}
       {data?.id ? <LessonHelpfulFeedback lessonId={String(data.id)} /> : null}
+        </div>
+        <LessonSidebar
+          sections={sections}
+          estimatedMinutes={estimatedMinutes}
+          lessonType={lessonType}
+          prev={neighbors.prev}
+          next={neighbors.next}
+          hrefPrefix={normalizedNav?.hrefPrefix ?? ""}
+          chapter={sidebarChapter}
+          lessonIndex={lessonIndexInChapter}
+          lessonCount={lessonCountInChapter}
+        />
+      </div>
     </article>
   );
 }

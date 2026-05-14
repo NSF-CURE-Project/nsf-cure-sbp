@@ -21,7 +21,7 @@ export default function ClassroomsHome({ initialClassrooms }: ClassroomsHomeProp
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('active')
   const [deletingId, setDeletingId] = useState<EntityId | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
-  const { confirm, alert: showAlert, dialog: confirmDialog } = useConfirm()
+  const { confirm, dialog: confirmDialog } = useConfirm()
 
   const filtered = useMemo(() => {
     const query = searchValue.trim().toLowerCase()
@@ -44,21 +44,15 @@ export default function ClassroomsHome({ initialClassrooms }: ClassroomsHomeProp
   const handleDelete = async (classroom: ClassroomCatalogItem) => {
     if (deletingId) return
 
-    if (classroom.memberCount > 0) {
-      const message = `"${classroom.title}" still has ${classroom.memberCount} member${
-        classroom.memberCount === 1 ? '' : 's'
-      }. Remove enrollments first.`
-      setDeleteError(message)
-      await showAlert({
-        title: 'Classroom is not empty',
-        message,
-      })
-      return
-    }
-
+    const hasMembers = classroom.memberCount > 0
+    const memberLine = hasMembers
+      ? ` This will also remove ${classroom.memberCount} enrollment${
+          classroom.memberCount === 1 ? '' : 's'
+        } — students will lose access.`
+      : ''
     const confirmed = await confirm({
       title: `Delete "${classroom.title}"?`,
-      message: 'This permanently removes the classroom. This cannot be undone.',
+      message: `This permanently removes the classroom.${memberLine} This cannot be undone.`,
       confirmLabel: 'Delete classroom',
       destructive: true,
     })

@@ -180,6 +180,27 @@ export const Classrooms: CollectionConfig = {
         return data
       },
     ],
+    beforeDelete: [
+      async ({ id, req }) => {
+        // Cascade-delete memberships so the FK constraint can't refuse the
+        // classroom delete, and so the UI doesn't have to walk users through
+        // an empty-out step. overrideAccess so the cleanup runs regardless
+        // of who initiated the delete (admin / staff / professor).
+        if (!req?.payload) return
+        try {
+          await req.payload.delete({
+            collection: 'classroom-memberships',
+            where: { classroom: { equals: id } },
+            overrideAccess: true,
+          })
+        } catch {
+          // If the bulk delete fails (e.g. there are zero matches, which
+          // Payload sometimes treats as an error), swallow it — the
+          // classroom delete that follows will still succeed when no FK
+          // references remain.
+        }
+      },
+    ],
   },
   fields: [
     {
