@@ -128,6 +128,44 @@ export type ContactsListBlockData = {
   contacts?: ContactPersonData[]
 }
 
+export type CalloutVariant = 'info' | 'tip' | 'warning' | 'key'
+
+export type CalloutBlockData = {
+  blockType: 'callout'
+  variant?: CalloutVariant
+  title?: string
+  body: string
+}
+
+export type DefinitionBlockData = {
+  blockType: 'definition'
+  term: string
+  definition: string
+}
+
+export type WorkedExampleStep = { text: string }
+export type WorkedExampleBlockData = {
+  blockType: 'workedExample'
+  title?: string
+  problem: string
+  steps?: WorkedExampleStep[]
+  finalAnswer?: string
+}
+
+export type CheckpointBlockData = {
+  blockType: 'checkpoint'
+  prompt: string
+  answer: string
+  hint?: string
+}
+
+export type LessonSummaryPoint = { text: string }
+export type LessonSummaryBlockData = {
+  blockType: 'lessonSummary'
+  title?: string
+  points?: LessonSummaryPoint[]
+}
+
 // Opaque carrier for block types the custom editor doesn't (yet) know how to
 // render. On hydrate we stash the raw record here; on serialize we expand it
 // back to its original shape. The discriminator `__passthrough` is what makes
@@ -150,6 +188,11 @@ export type ScaffoldBlockData =
   | HeroBlockData
   | ResourcesListBlockData
   | ContactsListBlockData
+  | CalloutBlockData
+  | DefinitionBlockData
+  | WorkedExampleBlockData
+  | CheckpointBlockData
+  | LessonSummaryBlockData
   | PassthroughBlockData
 
 // In-memory block: a Stage-1 block payload plus a stable client-side key
@@ -175,6 +218,11 @@ export const BLOCK_TYPE_LABELS: Record<BlockTypeSlug, string> = {
   heroBlock: 'Hero',
   resourcesList: 'Resources',
   contactsList: 'Contacts',
+  callout: 'Callout',
+  definition: 'Definition',
+  workedExample: 'Worked example',
+  checkpoint: 'Checkpoint',
+  lessonSummary: 'Summary',
   __passthrough: 'Unsupported',
 }
 
@@ -223,6 +271,25 @@ export const emptyBlockFor = (type: AuthorableBlockTypeSlug): ScaffoldBlock => {
         blockType: 'contactsList',
         groupByCategory: false,
         contacts: [{ name: '' }],
+      }
+    case 'callout':
+      return { _key: newKey(), blockType: 'callout', variant: 'info', body: '' }
+    case 'definition':
+      return { _key: newKey(), blockType: 'definition', term: '', definition: '' }
+    case 'workedExample':
+      return {
+        _key: newKey(),
+        blockType: 'workedExample',
+        problem: '',
+        steps: [{ text: '' }],
+      }
+    case 'checkpoint':
+      return { _key: newKey(), blockType: 'checkpoint', prompt: '', answer: '' }
+    case 'lessonSummary':
+      return {
+        _key: newKey(),
+        blockType: 'lessonSummary',
+        points: [{ text: '' }],
       }
   }
 }
@@ -454,6 +521,68 @@ export const fromPersistedLayout = (
           description: asOptionalString(block.description),
           groupByCategory: asBoolean(block.groupByCategory, false),
           contacts: contacts.length > 0 ? contacts : [{ name: '' }],
+        })
+        break
+      }
+      case 'callout': {
+        const rawVariant = block.variant
+        const variant: CalloutVariant =
+          rawVariant === 'tip' || rawVariant === 'warning' || rawVariant === 'key'
+            ? rawVariant
+            : 'info'
+        out.push({
+          _key: newKey(),
+          blockType: 'callout',
+          variant,
+          title: asOptionalString(block.title),
+          body: asString(block.body),
+        })
+        break
+      }
+      case 'definition':
+        out.push({
+          _key: newKey(),
+          blockType: 'definition',
+          term: asString(block.term),
+          definition: asString(block.definition),
+        })
+        break
+      case 'workedExample': {
+        const steps = Array.isArray(block.steps)
+          ? (block.steps as Array<Record<string, unknown>>).map((step) => ({
+              text: asString(step.text),
+            }))
+          : []
+        out.push({
+          _key: newKey(),
+          blockType: 'workedExample',
+          title: asOptionalString(block.title),
+          problem: asString(block.problem),
+          steps: steps.length > 0 ? steps : [{ text: '' }],
+          finalAnswer: asOptionalString(block.finalAnswer),
+        })
+        break
+      }
+      case 'checkpoint':
+        out.push({
+          _key: newKey(),
+          blockType: 'checkpoint',
+          prompt: asString(block.prompt),
+          answer: asString(block.answer),
+          hint: asOptionalString(block.hint),
+        })
+        break
+      case 'lessonSummary': {
+        const points = Array.isArray(block.points)
+          ? (block.points as Array<Record<string, unknown>>).map((p) => ({
+              text: asString(p.text),
+            }))
+          : []
+        out.push({
+          _key: newKey(),
+          blockType: 'lessonSummary',
+          title: asOptionalString(block.title),
+          points: points.length > 0 ? points : [{ text: '' }],
         })
         break
       }

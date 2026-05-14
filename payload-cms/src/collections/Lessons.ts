@@ -496,6 +496,48 @@ export const Lessons: CollectionConfig = {
               required: true,
             },
             {
+              name: 'difficulty',
+              label: 'Difficulty',
+              type: 'select',
+              options: [
+                { label: 'Intro', value: 'intro' },
+                { label: 'Easy', value: 'easy' },
+                { label: 'Medium', value: 'medium' },
+                { label: 'Hard', value: 'hard' },
+              ],
+              admin: {
+                description:
+                  'Surfaces as a pill in the lesson header so students know what to expect.',
+              },
+            },
+            {
+              name: 'objectives',
+              label: 'Learning objectives',
+              type: 'array',
+              labels: { singular: 'Objective', plural: 'Objectives' },
+              fields: [
+                {
+                  name: 'text',
+                  label: 'Objective',
+                  type: 'text',
+                  required: true,
+                },
+              ],
+              admin: {
+                description:
+                  'Rendered under the title as a "You will learn" list. Keep each bullet short — one outcome.',
+              },
+            },
+            {
+              name: 'summary',
+              label: 'Recap summary',
+              type: 'textarea',
+              admin: {
+                description:
+                  'Shown on the end-of-lesson recap card. Leave blank to fall back to a list of section titles.',
+              },
+            },
+            {
               name: 'chapter',
               label: 'Chapter',
               type: 'relationship',

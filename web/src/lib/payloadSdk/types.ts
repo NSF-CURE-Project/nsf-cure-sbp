@@ -38,6 +38,10 @@ export type LessonDoc = {
   slug: string;
   order?: number | null;
   layout?: PageLayoutBlock[];
+  // Authoring metadata surfaced in the lesson header / recap.
+  difficulty?: "intro" | "easy" | "medium" | "hard" | null;
+  objectives?: { id?: string; text: string }[];
+  summary?: string | null;
   assessment?: {
     quiz?: QuizDoc | string | number;
     showAnswers?: boolean;
@@ -223,6 +227,51 @@ export type QuizBlock = {
   timeLimitSec?: number | null;
 };
 
+// ────────────────────────────────────────────────────────────────────
+// Lesson-only learning blocks. Authored from the custom lesson editor.
+// ────────────────────────────────────────────────────────────────────
+
+export type CalloutBlock = {
+  id?: string;
+  blockType: "callout";
+  variant?: "info" | "tip" | "warning" | "key";
+  title?: string;
+  body: string;
+};
+
+export type DefinitionBlock = {
+  id?: string;
+  blockType: "definition";
+  term: string;
+  definition: string;
+};
+
+export type WorkedExampleStep = { id?: string; text: string };
+export type WorkedExampleBlock = {
+  id?: string;
+  blockType: "workedExample";
+  title?: string;
+  problem: string;
+  steps?: WorkedExampleStep[];
+  finalAnswer?: string;
+};
+
+export type CheckpointBlock = {
+  id?: string;
+  blockType: "checkpoint";
+  prompt: string;
+  answer: string;
+  hint?: string;
+};
+
+export type LessonSummaryPoint = { id?: string; text: string };
+export type LessonSummaryBlock = {
+  id?: string;
+  blockType: "lessonSummary";
+  title?: string;
+  points?: LessonSummaryPoint[];
+};
+
 export type PageLayoutBlock =
   | HeroBlock
   | SectionTitleBlock
@@ -236,6 +285,11 @@ export type PageLayoutBlock =
   | ButtonBlock
   | ResourcesListBlock
   | ContactsListBlock
-  | QuizBlock;
+  | QuizBlock
+  | CalloutBlock
+  | DefinitionBlock
+  | WorkedExampleBlock
+  | CheckpointBlock
+  | LessonSummaryBlock;
 
 export type LessonBlock = PageLayoutBlock;

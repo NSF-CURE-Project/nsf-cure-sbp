@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Clock,
   FileQuestion,
+  Sparkles,
   Video,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -297,6 +298,12 @@ export function LivePreviewLesson({
               <span className="inline-flex items-center gap-1.5">
                 <Clock className="h-3.5 w-3.5" />~{estimatedMinutes} min read
               </span>
+              {data?.difficulty ? (
+                <>
+                  <span className="text-border">·</span>
+                  <DifficultyPill value={data.difficulty} />
+                </>
+              ) : null}
               {updatedAt ? (
                 <>
                   <span className="text-border">·</span>
@@ -306,6 +313,29 @@ export function LivePreviewLesson({
             </div>
           </div>
         </div>
+
+        {data?.objectives && data.objectives.length > 0 ? (
+          <div className="mt-5 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 sm:px-5 sm:py-4">
+            <div className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.1em] text-primary">
+              <Sparkles className="h-3 w-3" aria-hidden="true" />
+              You will learn
+            </div>
+            <ul className="mt-2 grid gap-1.5">
+              {data.objectives.map((objective, index) => (
+                <li
+                  key={objective.id ?? index}
+                  className="flex items-start gap-2 text-[14px] leading-6 text-foreground/95"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="mt-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+                  />
+                  <span>{objective.text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </header>
       {blocks.length > 0 ? (
         <PageLayout
@@ -334,6 +364,7 @@ export function LivePreviewLesson({
         chapter={sidebarChapter}
         lessonIndex={lessonIndexInChapter}
         lessonCount={lessonCountInChapter}
+        summary={data?.summary ?? null}
       />
       {data?.id ? (
         <>
@@ -456,5 +487,27 @@ function LessonNavSimple({
         )}
       </div>
     </div>
+  );
+}
+
+const DIFFICULTY_PILLS = {
+  intro: { label: "Intro", tone: "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300" },
+  easy: { label: "Easy", tone: "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300" },
+  medium: { label: "Medium", tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
+  hard: { label: "Hard", tone: "bg-rose-500/15 text-rose-700 dark:text-rose-300" },
+} as const;
+
+function DifficultyPill({ value }: { value: "intro" | "easy" | "medium" | "hard" }) {
+  const pill = DIFFICULTY_PILLS[value];
+  if (!pill) return null;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.08em]",
+        pill.tone,
+      )}
+    >
+      {pill.label}
+    </span>
   );
 }

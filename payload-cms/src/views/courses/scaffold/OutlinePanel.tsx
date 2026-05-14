@@ -47,6 +47,16 @@ function summarize(block: ScaffoldBlock): string {
       const first = contacts.find((c) => c.name?.trim())?.name ?? ''
       return block.title || first || 'Contacts'
     }
+    case 'callout':
+      return block.title || 'Callout'
+    case 'definition':
+      return block.term || 'Definition'
+    case 'workedExample':
+      return block.title || 'Worked example'
+    case 'checkpoint':
+      return 'Checkpoint'
+    case 'lessonSummary':
+      return block.title || 'Summary'
     case '__passthrough':
       return (block.data.blockType as string) ?? 'Unsupported block'
   }

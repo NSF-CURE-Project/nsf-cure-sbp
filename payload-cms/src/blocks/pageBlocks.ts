@@ -340,6 +340,153 @@ const contactsListBlock: Block = {
   ],
 }
 
+// ────────────────────────────────────────────────────────────────────
+// Learning blocks — instructional content surfaces (callouts, worked
+// examples, checkpoints, definitions, summaries). Authored from the
+// custom lesson editor, rendered with their own visual identity on the
+// web side so the lesson reads less like a blog post.
+// ────────────────────────────────────────────────────────────────────
+
+const calloutBlock: Block = {
+  slug: 'callout',
+  labels: { singular: 'Callout', plural: 'Callouts' },
+  fields: [
+    {
+      name: 'variant',
+      label: 'Variant',
+      type: 'select',
+      defaultValue: 'info',
+      options: [
+        { label: 'Info', value: 'info' },
+        { label: 'Tip', value: 'tip' },
+        { label: 'Warning', value: 'warning' },
+        { label: 'Key concept', value: 'key' },
+      ],
+    },
+    { name: 'title', label: 'Title (optional)', type: 'text' },
+    {
+      name: 'body',
+      label: 'Body',
+      type: 'textarea',
+      required: true,
+    },
+  ],
+}
+
+const definitionBlock: Block = {
+  slug: 'definition',
+  labels: { singular: 'Definition', plural: 'Definitions' },
+  fields: [
+    {
+      name: 'term',
+      label: 'Term',
+      type: 'text',
+      required: true,
+    },
+    {
+      name: 'definition',
+      label: 'Definition',
+      type: 'textarea',
+      required: true,
+    },
+  ],
+}
+
+const workedExampleBlock: Block = {
+  slug: 'workedExample',
+  labels: { singular: 'Worked Example', plural: 'Worked Examples' },
+  fields: [
+    {
+      name: 'title',
+      label: 'Title (optional)',
+      type: 'text',
+    },
+    {
+      name: 'problem',
+      label: 'Problem',
+      type: 'textarea',
+      required: true,
+    },
+    {
+      name: 'steps',
+      label: 'Steps',
+      type: 'array',
+      minRows: 1,
+      labels: { singular: 'Step', plural: 'Steps' },
+      fields: [
+        {
+          name: 'text',
+          label: 'Step',
+          type: 'textarea',
+          required: true,
+        },
+      ],
+    },
+    {
+      name: 'finalAnswer',
+      label: 'Final answer (optional)',
+      type: 'text',
+      admin: {
+        description: 'Surfaces as a highlighted result line under the steps.',
+      },
+    },
+  ],
+}
+
+const checkpointBlock: Block = {
+  slug: 'checkpoint',
+  labels: { singular: 'Checkpoint', plural: 'Checkpoints' },
+  fields: [
+    {
+      name: 'prompt',
+      label: 'Prompt',
+      type: 'textarea',
+      required: true,
+    },
+    {
+      name: 'answer',
+      label: 'Answer',
+      type: 'textarea',
+      required: true,
+      admin: {
+        description: 'Hidden behind a "Reveal answer" toggle on the public page.',
+      },
+    },
+    {
+      name: 'hint',
+      label: 'Hint (optional)',
+      type: 'textarea',
+    },
+  ],
+}
+
+const lessonSummaryBlock: Block = {
+  slug: 'lessonSummary',
+  labels: { singular: 'Summary', plural: 'Summaries' },
+  fields: [
+    {
+      name: 'title',
+      label: 'Title (optional)',
+      type: 'text',
+    },
+    {
+      name: 'points',
+      label: 'Key takeaways',
+      type: 'array',
+      minRows: 1,
+      labels: { singular: 'Takeaway', plural: 'Takeaways' },
+      fields: [
+        {
+          name: 'text',
+          label: 'Takeaway',
+          type: 'text',
+          required: true,
+        },
+      ],
+    },
+  ],
+}
+
 export const lessonBlocks: Block[] = [
   textSectionBlock,
   sectionTitleBlock,
@@ -348,6 +495,11 @@ export const lessonBlocks: Block[] = [
   listBlock,
   stepsListBlock,
   buttonBlock,
+  calloutBlock,
+  definitionBlock,
+  workedExampleBlock,
+  checkpointBlock,
+  lessonSummaryBlock,
   quizBlock,
 ]
 

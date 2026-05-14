@@ -42,6 +42,11 @@ const DEFAULT_BLOCK_TYPE_ORDER: AuthorableBlockTypeSlug[] = [
   'buttonBlock',
   'listBlock',
   'stepsList',
+  'callout',
+  'definition',
+  'workedExample',
+  'checkpoint',
+  'lessonSummary',
   'quizBlock',
 ]
 

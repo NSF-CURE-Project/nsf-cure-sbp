@@ -2,13 +2,16 @@
 
 import React from 'react'
 import type {
+  CalloutVariant,
   ContactsListBlockData,
+  LessonSummaryBlockData,
   LexicalRichText,
   ListBlockData,
   ResourcesListBlockData,
   ScaffoldBlock,
   ScaffoldBlockData,
   StepsListBlockData,
+  WorkedExampleBlockData,
 } from './types'
 import LexicalRichTextEditor from './LexicalRichTextEditor'
 import QuizPicker from './QuizPicker'
@@ -756,6 +759,276 @@ export default function BlockEditor({ block, view, onChange }: BlockEditorProps)
               className="inline-flex w-fit rounded-md border border-dashed border-[var(--admin-surface-border)] px-3 py-1 text-xs font-semibold text-[var(--cpp-ink)] hover:bg-[var(--admin-surface-muted)]"
             >
               + Add contact
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    case 'callout': {
+      if (view === 'inspector') {
+        return (
+          <div className="grid gap-3">
+            <label className="grid gap-1">
+              <span className={labelCls}>Variant</span>
+              <select
+                value={block.variant ?? 'info'}
+                onChange={(event) =>
+                  onChange(
+                    patchBlock(block, { variant: event.target.value as CalloutVariant }),
+                  )
+                }
+                className={inputCls}
+              >
+                <option value="info">Info</option>
+                <option value="tip">Tip</option>
+                <option value="warning">Warning</option>
+                <option value="key">Key concept</option>
+              </select>
+            </label>
+          </div>
+        )
+      }
+      return (
+        <div className="grid gap-3">
+          <label className="grid gap-1">
+            <span className={labelCls}>Title (optional)</span>
+            <input
+              type="text"
+              value={block.title ?? ''}
+              onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
+              className={inputCls}
+            />
+          </label>
+          <label className="grid gap-1">
+            <span className={labelCls}>Body *</span>
+            <textarea
+              value={block.body}
+              onChange={(event) => onChange(patchBlock(block, { body: event.target.value }))}
+              rows={3}
+              className={inputCls}
+            />
+          </label>
+        </div>
+      )
+    }
+
+    case 'definition': {
+      if (view === 'inspector') {
+        return <InspectorEmpty note="Definitions have no per-block settings." />
+      }
+      return (
+        <div className="grid gap-3">
+          <label className="grid gap-1">
+            <span className={labelCls}>Term *</span>
+            <input
+              type="text"
+              value={block.term}
+              onChange={(event) => onChange(patchBlock(block, { term: event.target.value }))}
+              placeholder='e.g. "Free body diagram"'
+              className={inputCls}
+            />
+          </label>
+          <label className="grid gap-1">
+            <span className={labelCls}>Definition *</span>
+            <textarea
+              value={block.definition}
+              onChange={(event) =>
+                onChange(patchBlock(block, { definition: event.target.value }))
+              }
+              rows={3}
+              className={inputCls}
+            />
+          </label>
+        </div>
+      )
+    }
+
+    case 'workedExample': {
+      const steps = block.steps ?? []
+      const updateSteps = (next: WorkedExampleBlockData['steps']) =>
+        onChange(patchBlock(block, { steps: next }))
+      if (view === 'inspector') {
+        return (
+          <label className="grid gap-1">
+            <span className={labelCls}>Final answer</span>
+            <input
+              type="text"
+              value={block.finalAnswer ?? ''}
+              onChange={(event) =>
+                onChange(patchBlock(block, { finalAnswer: event.target.value }))
+              }
+              placeholder='e.g. "F = 24 N"'
+              className={inputCls}
+            />
+            <span className="text-xs text-[var(--cpp-muted)]">
+              Renders highlighted under the steps.
+            </span>
+          </label>
+        )
+      }
+      return (
+        <div className="grid gap-3">
+          <label className="grid gap-1">
+            <span className={labelCls}>Title (optional)</span>
+            <input
+              type="text"
+              value={block.title ?? ''}
+              onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
+              className={inputCls}
+            />
+          </label>
+          <label className="grid gap-1">
+            <span className={labelCls}>Problem *</span>
+            <textarea
+              value={block.problem}
+              onChange={(event) =>
+                onChange(patchBlock(block, { problem: event.target.value }))
+              }
+              rows={3}
+              className={inputCls}
+            />
+          </label>
+          <div className="grid gap-2">
+            <span className={labelCls}>Steps</span>
+            {steps.map((step, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2"
+              >
+                <span className="text-xs font-semibold text-[var(--cpp-muted)]">
+                  {index + 1}.
+                </span>
+                <textarea
+                  value={step.text}
+                  onChange={(event) => {
+                    const next = steps.slice()
+                    next[index] = { text: event.target.value }
+                    updateSteps(next)
+                  }}
+                  rows={2}
+                  className={inputCls}
+                />
+                <button
+                  type="button"
+                  onClick={() => updateSteps(steps.filter((_, i) => i !== index))}
+                  className="rounded-md border border-[var(--admin-surface-border)] px-2 py-1 text-xs text-[var(--cpp-muted)] hover:bg-[var(--admin-surface-muted)]"
+                  aria-label={`Remove step ${index + 1}`}
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => updateSteps([...steps, { text: '' }])}
+              className="inline-flex w-fit rounded-md border border-dashed border-[var(--admin-surface-border)] px-3 py-1 text-xs font-semibold text-[var(--cpp-ink)] hover:bg-[var(--admin-surface-muted)]"
+            >
+              + Add step
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    case 'checkpoint': {
+      if (view === 'inspector') {
+        return (
+          <label className="grid gap-1">
+            <span className={labelCls}>Hint (optional)</span>
+            <textarea
+              value={block.hint ?? ''}
+              onChange={(event) => onChange(patchBlock(block, { hint: event.target.value }))}
+              rows={2}
+              placeholder="Optional nudge before students reveal the answer."
+              className={inputCls}
+            />
+          </label>
+        )
+      }
+      return (
+        <div className="grid gap-3">
+          <label className="grid gap-1">
+            <span className={labelCls}>Prompt *</span>
+            <textarea
+              value={block.prompt}
+              onChange={(event) =>
+                onChange(patchBlock(block, { prompt: event.target.value }))
+              }
+              rows={2}
+              className={inputCls}
+            />
+          </label>
+          <label className="grid gap-1">
+            <span className={labelCls}>Answer * (revealed by click)</span>
+            <textarea
+              value={block.answer}
+              onChange={(event) =>
+                onChange(patchBlock(block, { answer: event.target.value }))
+              }
+              rows={3}
+              className={inputCls}
+            />
+          </label>
+        </div>
+      )
+    }
+
+    case 'lessonSummary': {
+      const points = block.points ?? []
+      const updatePoints = (next: LessonSummaryBlockData['points']) =>
+        onChange(patchBlock(block, { points: next }))
+      if (view === 'inspector') {
+        return <InspectorEmpty note="Summary has no per-block settings." />
+      }
+      return (
+        <div className="grid gap-3">
+          <label className="grid gap-1">
+            <span className={labelCls}>Title (optional)</span>
+            <input
+              type="text"
+              value={block.title ?? ''}
+              onChange={(event) => onChange(patchBlock(block, { title: event.target.value }))}
+              placeholder='e.g. "Key takeaways"'
+              className={inputCls}
+            />
+          </label>
+          <div className="grid gap-2">
+            <span className={labelCls}>Takeaways</span>
+            {points.map((point, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2"
+              >
+                <span className="text-xs font-semibold text-[var(--cpp-muted)]">
+                  •
+                </span>
+                <input
+                  type="text"
+                  value={point.text}
+                  onChange={(event) => {
+                    const next = points.slice()
+                    next[index] = { text: event.target.value }
+                    updatePoints(next)
+                  }}
+                  className={inputCls}
+                />
+                <button
+                  type="button"
+                  onClick={() => updatePoints(points.filter((_, i) => i !== index))}
+                  className="rounded-md border border-[var(--admin-surface-border)] px-2 py-1 text-xs text-[var(--cpp-muted)] hover:bg-[var(--admin-surface-muted)]"
+                  aria-label={`Remove takeaway ${index + 1}`}
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => updatePoints([...points, { text: '' }])}
+              className="inline-flex w-fit rounded-md border border-dashed border-[var(--admin-surface-border)] px-3 py-1 text-xs font-semibold text-[var(--cpp-ink)] hover:bg-[var(--admin-surface-muted)]"
+            >
+              + Add takeaway
             </button>
           </div>
         </div>

@@ -47,6 +47,22 @@ function previewText(block: ScaffoldBlock): string {
       const label = block.title || first || 'Contacts'
       return contacts.length > 1 ? `${label} (+${contacts.length - 1} more)` : label
     }
+    case 'callout':
+      return block.title || block.body?.slice(0, 60) || 'Callout — needs body'
+    case 'definition':
+      return block.term ? `${block.term} — definition` : 'Definition — needs term'
+    case 'workedExample': {
+      const stepCount = block.steps?.length ?? 0
+      const label = block.title || block.problem?.slice(0, 60) || 'Worked example'
+      return stepCount ? `${label} (${stepCount} step${stepCount === 1 ? '' : 's'})` : label
+    }
+    case 'checkpoint':
+      return block.prompt?.slice(0, 60) || 'Checkpoint — needs prompt'
+    case 'lessonSummary': {
+      const points = block.points ?? []
+      const label = block.title || 'Summary'
+      return points.length ? `${label} (${points.length} takeaway${points.length === 1 ? '' : 's'})` : label
+    }
     case '__passthrough':
       return (block.data.blockType as string) ?? 'Unsupported block'
   }

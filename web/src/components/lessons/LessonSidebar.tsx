@@ -1,10 +1,59 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Clock, ListTree } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, ArrowRight, Clock, Flame, ListTree } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LessonSection } from "@/lib/lessons/toc";
+import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
+
+const PAYLOAD_URL = getPayloadBaseUrl();
+
+type ProgressDoc = {
+  id: string | number;
+  completed?: boolean;
+  updatedAt?: string;
+  completedAt?: string | null;
+};
+
+// Compute a "consecutive days with any activity" count from the student's
+// lesson-progress docs. Matches the streak logic on the learning page so
+// the number is consistent across surfaces.
+const toLocalDayKey = (value: string): string | null => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+  )
+    .toISOString()
+    .slice(0, 10);
+};
+
+const computeStreak = (
+  docs: ProgressDoc[],
+): { count: number; activeToday: boolean } => {
+  const daySet = new Set<string>();
+  for (const doc of docs) {
+    const stamp = doc.updatedAt ?? doc.completedAt;
+    if (!stamp) continue;
+    const key = toLocalDayKey(stamp);
+    if (key) daySet.add(key);
+  }
+  if (daySet.size === 0) return { count: 0, activeToday: false };
+  const today = new Date();
+  const todayKey = toLocalDayKey(today.toISOString());
+  const cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  let count = 0;
+  while (true) {
+    const key = toLocalDayKey(cursor.toISOString());
+    if (!key || !daySet.has(key)) break;
+    count += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return { count, activeToday: !!todayKey && daySet.has(todayKey) };
+};
 
 type Props = {
   sections: LessonSection[];
@@ -47,6 +96,43 @@ export default function LessonSidebar({
   const [activeId, setActiveId] = useState<string | null>(
     sections[0]?.id ?? null,
   );
+  const [streak, setStreak] = useState<{ count: number; activeToday: boolean } | null>(
+    null,
+  );
+
+  // Pull the student's recent progress to compute the streak. Anonymous
+  // visitors get a 401 and we just skip rendering the streak card.
+  useEffect(() => {
+    const controller = new AbortController();
+    const load = async () => {
+      try {
+        const res = await fetch(
+          `${PAYLOAD_URL}/api/lesson-progress?limit=200&sort=-updatedAt&depth=0`,
+          { credentials: "include", signal: controller.signal },
+        );
+        if (!res.ok) {
+          setStreak(null);
+          return;
+        }
+        const data = (await res.json()) as { docs?: ProgressDoc[] };
+        setStreak(computeStreak(data.docs ?? []));
+      } catch {
+        if (!controller.signal.aborted) setStreak(null);
+      }
+    };
+    load();
+    return () => controller.abort();
+  }, []);
+
+  const streakMessage = useMemo(() => {
+    if (!streak) return null;
+    if (streak.activeToday) {
+      if (streak.count >= 3) return "Consistency pays — keep going.";
+      return "Active today. Same time tomorrow keeps it alive.";
+    }
+    if (streak.count === 0) return "Finish one lesson to start a streak.";
+    return "One short lesson today keeps it alive.";
+  }, [streak]);
 
   // Track which section is currently in view. The threshold + rootMargin
   // pair keeps the "active" indicator pegged to the section closest to the
@@ -145,6 +231,63 @@ export default function LessonSidebar({
             </Link>
           ) : null}
         </section>
+
+        {/* Streak / momentum (only shown when we successfully read progress) */}
+        {streak ? (
+          <section
+            className={cn(
+              "rounded-xl border p-4 transition-colors",
+              streak.activeToday
+                ? "border-amber-500/35 bg-amber-500/8"
+                : "border-border/60 bg-card/40",
+            )}
+            aria-label="Learning streak"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-foreground/75">
+                <Flame
+                  className={cn(
+                    "h-3.5 w-3.5",
+                    streak.activeToday
+                      ? "text-amber-500"
+                      : "text-muted-foreground",
+                  )}
+                  aria-hidden="true"
+                />
+                Streak
+              </div>
+              {streak.activeToday ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
+                  <span
+                    aria-hidden="true"
+                    className="inline-flex h-1.5 w-1.5 rounded-full bg-amber-500 ring-2 ring-amber-500/30"
+                  />
+                  Active today
+                </span>
+              ) : null}
+            </div>
+            <div className="mt-2 flex items-baseline gap-1.5">
+              <span
+                className={cn(
+                  "text-2xl font-bold leading-none tabular-nums tracking-tight",
+                  streak.activeToday
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-foreground",
+                )}
+              >
+                {streak.count}
+              </span>
+              <span className="text-xs font-medium text-muted-foreground">
+                {streak.count === 1 ? "day" : "days"}
+              </span>
+            </div>
+            {streakMessage ? (
+              <p className="mt-1 text-[11.5px] leading-snug text-muted-foreground">
+                {streakMessage}
+              </p>
+            ) : null}
+          </section>
+        ) : null}
 
         {/* Table of contents */}
         {sections.length > 1 ? (

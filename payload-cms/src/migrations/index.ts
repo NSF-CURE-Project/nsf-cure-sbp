@@ -41,6 +41,7 @@ import * as migration_20260512_120000_drop_engineering_figures from './20260512_
 import * as migration_20260512_130000_drop_problem_sets from './20260512_130000_drop_problem_sets'
 import * as migration_20260513_140000_repair_admin_help_blocks_tables from './20260513_140000_repair_admin_help_blocks_tables'
 import * as migration_20260513_150000_add_pages_hidden from './20260513_150000_add_pages_hidden'
+import * as migration_20260513_170000_add_lesson_learning_fields from './20260513_170000_add_lesson_learning_fields'
 
 export const migrations = [
   {
@@ -257,5 +258,10 @@ export const migrations = [
     up: migration_20260513_150000_add_pages_hidden.up,
     down: migration_20260513_150000_add_pages_hidden.down,
     name: '20260513_150000_add_pages_hidden',
+  },
+  {
+    up: migration_20260513_170000_add_lesson_learning_fields.up,
+    down: migration_20260513_170000_add_lesson_learning_fields.down,
+    name: '20260513_170000_add_lesson_learning_fields',
   },
 ]

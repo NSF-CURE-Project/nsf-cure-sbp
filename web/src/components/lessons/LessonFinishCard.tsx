@@ -19,6 +19,9 @@ type Props = {
   };
   lessonIndex?: number | null;
   lessonCount?: number | null;
+  // Authored summary on the lesson. When present, the recap renders this
+  // verbatim instead of falling back to the derived section list.
+  summary?: string | null;
 };
 
 // End-of-lesson recap card. Replaces the abrupt "next lesson" nav with a
@@ -33,12 +36,14 @@ export default function LessonFinishCard({
   chapter,
   lessonIndex,
   lessonCount,
+  summary,
 }: Props) {
   const summaryItems = sections.slice(0, 4);
   const hasProgressCaption =
     typeof lessonIndex === "number" &&
     typeof lessonCount === "number" &&
     lessonCount > 0;
+  const trimmedSummary = summary?.trim();
 
   return (
     <section
@@ -59,7 +64,16 @@ export default function LessonFinishCard({
           <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
             You finished “{lessonTitle}”
           </h2>
-          {summaryItems.length > 0 ? (
+          {trimmedSummary ? (
+            <div className="space-y-1.5">
+              <p className="text-[12.5px] font-semibold uppercase tracking-[0.08em] text-foreground/75">
+                In summary
+              </p>
+              <p className="whitespace-pre-line text-[14px] leading-6 text-foreground/95">
+                {trimmedSummary}
+              </p>
+            </div>
+          ) : summaryItems.length > 0 ? (
             <div className="space-y-1.5">
               <p className="text-[12.5px] font-semibold uppercase tracking-[0.08em] text-foreground/75">
                 What you covered

@@ -7,6 +7,13 @@ import { PayloadRichText } from "@/components/ui/payloadRichText";
 import type { PageLayoutBlock } from "@/lib/payloadSdk/types";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 import { extractLessonSections } from "@/lib/lessons/toc";
+import {
+  CalloutBlockView,
+  CheckpointBlockView,
+  DefinitionBlockView,
+  LessonSummaryBlockView,
+  WorkedExampleBlockView,
+} from "@/components/lessons/blocks";
 
 // Heavy interactive blocks (mathjs / katex / state machines) — load on demand
 // so non-problem/quiz pages don't pay for them in the initial bundle.
@@ -334,6 +341,8 @@ export function PageLayout({
                     alt={heroLogo.alt}
                     width={heroLogo.width ?? 48}
                     height={heroLogo.height ?? 48}
+                    priority
+                    fetchPriority="high"
                     className={
                       heroLogo.className ?? "h-10 w-auto opacity-80 grayscale"
                     }
@@ -726,6 +735,25 @@ export function PageLayout({
               lessonId={lessonId}
             />
           );
+        }
+
+        // Lesson learning blocks. Distinct visual identities so the page
+        // stops feeling like uninterrupted body copy and starts feeling
+        // like guided instruction.
+        if (block.blockType === "callout") {
+          return <CalloutBlockView key={block.id ?? idx} block={block} />;
+        }
+        if (block.blockType === "definition") {
+          return <DefinitionBlockView key={block.id ?? idx} block={block} />;
+        }
+        if (block.blockType === "workedExample") {
+          return <WorkedExampleBlockView key={block.id ?? idx} block={block} />;
+        }
+        if (block.blockType === "checkpoint") {
+          return <CheckpointBlockView key={block.id ?? idx} block={block} />;
+        }
+        if (block.blockType === "lessonSummary") {
+          return <LessonSummaryBlockView key={block.id ?? idx} block={block} />;
         }
 
         return null;
