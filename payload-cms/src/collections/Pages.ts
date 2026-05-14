@@ -108,6 +108,17 @@ export const Pages: CollectionConfig = {
       },
     },
     {
+      name: 'hidden',
+      label: 'Hidden from public site',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description:
+          'When enabled, this page is removed from the public navigation and its URL returns 404. Admins can still see and edit it here.',
+      },
+    },
+    {
       name: 'title',
       type: 'text',
       required: true,

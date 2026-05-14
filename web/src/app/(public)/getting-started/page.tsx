@@ -1,5 +1,10 @@
+import { notFound } from "next/navigation";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
-import { getPageBySlug, type PageDoc } from "@/lib/payloadSdk/pages";
+import {
+  getPageBySlug,
+  isPageHiddenPublicly,
+  type PageDoc,
+} from "@/lib/payloadSdk/pages";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 
@@ -16,6 +21,10 @@ export default async function GettingStartedPage() {
   const page: PageDoc | null = await getPageBySlug("getting-started", {
     draft: isPreview,
   }).catch(() => null);
+
+  if (isPageHiddenPublicly(page, { draft: isPreview })) {
+    notFound();
+  }
 
   return (
     <main className="mx-auto w-full max-w-[var(--content-max,110ch)] px-6 pt-6 pb-12 space-y-10">

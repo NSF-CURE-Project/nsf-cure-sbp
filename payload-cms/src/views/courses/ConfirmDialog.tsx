@@ -11,7 +11,8 @@ type ConfirmDialogProps = {
   destructive?: boolean
   busy?: boolean
   onConfirm: () => void
-  onCancel: () => void
+  // Omit for an alert-only dialog (single button, no backdrop dismiss).
+  onCancel?: () => void
 }
 
 export default function ConfirmDialog({
@@ -33,8 +34,10 @@ export default function ConfirmDialog({
       typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null
     confirmRef.current?.focus()
 
+    // Escape dismisses confirm dialogs (where there's a cancel path). Alert
+    // dialogs intentionally swallow escape so the user must acknowledge.
     const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !busy) {
+      if (event.key === 'Escape' && !busy && onCancel) {
         event.stopPropagation()
         onCancel()
       }
@@ -67,7 +70,7 @@ export default function ConfirmDialog({
         animation: 'confirm-dialog-fade 120ms ease-out',
       }}
       onClick={(event) => {
-        if (event.target === event.currentTarget && !busy) {
+        if (event.target === event.currentTarget && !busy && onCancel) {
           onCancel()
         }
       }}
@@ -169,34 +172,36 @@ export default function ConfirmDialog({
             paddingTop: 4,
           }}
         >
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={busy}
-            style={{
-              padding: '9px 16px',
-              borderRadius: 10,
-              border: '1px solid rgba(15, 23, 42, 0.12)',
-              background: '#ffffff',
-              color: 'var(--cpp-ink, #0b3d27)',
-              fontWeight: 700,
-              fontSize: 13,
-              cursor: busy ? 'not-allowed' : 'pointer',
-              opacity: busy ? 0.6 : 1,
-              transition: 'background-color 150ms ease, border-color 150ms ease',
-            }}
-            onMouseEnter={(event) => {
-              if (busy) return
-              event.currentTarget.style.background = 'rgba(248, 250, 252, 1)'
-              event.currentTarget.style.borderColor = 'rgba(15, 23, 42, 0.22)'
-            }}
-            onMouseLeave={(event) => {
-              event.currentTarget.style.background = '#ffffff'
-              event.currentTarget.style.borderColor = 'rgba(15, 23, 42, 0.12)'
-            }}
-          >
-            {cancelLabel}
-          </button>
+          {onCancel ? (
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={busy}
+              style={{
+                padding: '9px 16px',
+                borderRadius: 10,
+                border: '1px solid rgba(15, 23, 42, 0.12)',
+                background: '#ffffff',
+                color: 'var(--cpp-ink, #0b3d27)',
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: busy ? 'not-allowed' : 'pointer',
+                opacity: busy ? 0.6 : 1,
+                transition: 'background-color 150ms ease, border-color 150ms ease',
+              }}
+              onMouseEnter={(event) => {
+                if (busy) return
+                event.currentTarget.style.background = 'rgba(248, 250, 252, 1)'
+                event.currentTarget.style.borderColor = 'rgba(15, 23, 42, 0.22)'
+              }}
+              onMouseLeave={(event) => {
+                event.currentTarget.style.background = '#ffffff'
+                event.currentTarget.style.borderColor = 'rgba(15, 23, 42, 0.12)'
+              }}
+            >
+              {cancelLabel}
+            </button>
+          ) : null}
           <button
             ref={confirmRef}
             type="button"

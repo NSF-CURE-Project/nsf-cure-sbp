@@ -3,9 +3,10 @@
 import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { deletePage, type EntityId } from './pages-api'
+import { deletePage, setPageHidden, type EntityId } from './pages-api'
 import PagesHomeCard, { type PageCatalogItem } from './PagesHomeCard'
 import { HelpLink } from '../admin/HelpLink'
+import { useConfirm } from '../admin/useConfirm'
 
 type PagesHomeProps = {
   initialPages: PageCatalogItem[]
@@ -18,6 +19,9 @@ export default function PagesHome({ initialPages }: PagesHomeProps) {
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all')
   const [deletingId, setDeletingId] = useState<EntityId | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [togglingId, setTogglingId] = useState<EntityId | null>(null)
+  const [visibilityError, setVisibilityError] = useState<string | null>(null)
+  const { confirm, dialog: confirmDialog } = useConfirm()
 
   const filtered = useMemo(() => {
     const query = searchValue.trim().toLowerCase()
@@ -34,12 +38,14 @@ export default function PagesHome({ initialPages }: PagesHomeProps) {
   const handleDelete = async (page: PageCatalogItem) => {
     if (deletingId) return
 
-    if (typeof window !== 'undefined') {
-      const confirmed = window.confirm(
-        `Delete "${page.title}"? This permanently removes the page and its layout. This cannot be undone.`,
-      )
-      if (!confirmed) return
-    }
+    const confirmed = await confirm({
+      title: `Delete "${page.title}"?`,
+      message:
+        'This permanently removes the page and its layout. This cannot be undone.',
+      confirmLabel: 'Delete page',
+      destructive: true,
+    })
+    if (!confirmed) return
 
     setDeleteError(null)
     setDeletingId(page.id)
@@ -56,10 +62,45 @@ export default function PagesHome({ initialPages }: PagesHomeProps) {
     }
   }
 
+  const handleToggleVisibility = async (page: PageCatalogItem) => {
+    if (togglingId) return
+    const nextHidden = !page.hidden
+
+    if (nextHidden) {
+      const confirmed = await confirm({
+        title: `Hide "${page.title}"?`,
+        message:
+          'Hidden pages are removed from the public navigation and their URL returns 404. Admins can still see and edit them here.',
+        confirmLabel: 'Hide page',
+      })
+      if (!confirmed) return
+    }
+
+    setVisibilityError(null)
+    setTogglingId(page.id)
+    try {
+      await setPageHidden(page.id, nextHidden)
+      setPages((prev) =>
+        prev.map((p) => (p.id === page.id ? { ...p, hidden: nextHidden } : p)),
+      )
+      router.refresh()
+    } catch (error) {
+      setVisibilityError(
+        error instanceof Error
+          ? error.message
+          : `Unable to update visibility for "${page.title}".`,
+      )
+    } finally {
+      setTogglingId(null)
+    }
+  }
+
   const publishedCount = pages.filter((page) => page.status === 'published').length
   const draftCount = pages.length - publishedCount
 
   return (
+    <>
+      {confirmDialog}
     <div className="grid gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -127,6 +168,15 @@ export default function PagesHome({ initialPages }: PagesHomeProps) {
         </div>
       ) : null}
 
+      {visibilityError ? (
+        <div
+          role="alert"
+          className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+        >
+          {visibilityError}
+        </div>
+      ) : null}
+
       {pages.length === 0 ? (
         <div className="rounded-lg border border-dashed border-[var(--admin-surface-border)] bg-[var(--admin-surface-muted)] px-4 py-6 text-sm text-[var(--cpp-muted)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -150,11 +200,14 @@ export default function PagesHome({ initialPages }: PagesHomeProps) {
               key={page.id}
               page={page}
               deleting={deletingId === page.id}
+              togglingVisibility={togglingId === page.id}
               onDelete={handleDelete}
+              onToggleVisibility={handleToggleVisibility}
             />
           ))}
         </div>
       )}
     </div>
+    </>
   )
 }

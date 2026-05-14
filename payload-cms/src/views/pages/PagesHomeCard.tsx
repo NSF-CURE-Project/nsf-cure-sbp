@@ -10,6 +10,7 @@ export type PageCatalogItem = {
   slug: string
   status: 'draft' | 'published'
   navOrder: number | null
+  hidden: boolean
   blockCount: number
   updatedAt: string | null
 }
@@ -17,7 +18,9 @@ export type PageCatalogItem = {
 type PagesHomeCardProps = {
   page: PageCatalogItem
   deleting: boolean
+  togglingVisibility: boolean
   onDelete: (page: PageCatalogItem) => void
+  onToggleVisibility: (page: PageCatalogItem) => void
 }
 
 const formatDate = (iso: string | null) => {
@@ -27,7 +30,13 @@ const formatDate = (iso: string | null) => {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-export default function PagesHomeCard({ page, deleting, onDelete }: PagesHomeCardProps) {
+export default function PagesHomeCard({
+  page,
+  deleting,
+  togglingVisibility,
+  onDelete,
+  onToggleVisibility,
+}: PagesHomeCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
 
@@ -71,6 +80,14 @@ export default function PagesHomeCard({ page, deleting, onDelete }: PagesHomeCar
             >
               {statusLabel}
             </span>
+            {page.hidden ? (
+              <span
+                className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-700"
+                title="Hidden from navigation and returns 404 on the public site"
+              >
+                Hidden
+              </span>
+            ) : null}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--cpp-muted)]">
             <span>
@@ -132,6 +149,22 @@ export default function PagesHomeCard({ page, deleting, onDelete }: PagesHomeCar
                 >
                   Reorder in nav
                 </Link>
+                <button
+                  type="button"
+                  role="menuitem"
+                  disabled={togglingVisibility}
+                  onClick={() => {
+                    setMenuOpen(false)
+                    onToggleVisibility(page)
+                  }}
+                  className="block w-full border-t border-[var(--admin-surface-border)] px-3 py-2 text-left text-xs font-semibold text-[var(--cpp-ink)] hover:bg-[var(--admin-surface-muted)] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {togglingVisibility
+                    ? 'Updating…'
+                    : page.hidden
+                      ? 'Show on site'
+                      : 'Hide on site'}
+                </button>
                 <button
                   type="button"
                   role="menuitem"

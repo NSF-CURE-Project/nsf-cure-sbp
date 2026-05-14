@@ -643,7 +643,9 @@ const NeedsAttentionPanel = ({
   )
   const items: NeedsAttentionItem[] = [
     {
-      href: '/admin/collections/lessons?where[_status][equals]=draft',
+      // Custom drafts inbox — lists every lesson with _status=draft across
+      // courses, each linking straight to its editor.
+      href: '/admin/courses/drafts',
       label: 'Unpublished lessons',
       count: unpublished,
       description: unpublished

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import type { EntityId, LessonNode } from './types'
 import SidePanel from './SidePanel'
+import { useConfirm } from '../admin/useConfirm'
 import {
   assignQuizToLesson,
   removeQuizFromLesson,
@@ -38,6 +39,7 @@ export default function QuizAssignmentDrawer({
   const [busy, setBusy] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { confirm, dialog: confirmDialog } = useConfirm()
 
   useEffect(() => {
     if (!open) return
@@ -88,10 +90,14 @@ export default function QuizAssignmentDrawer({
 
   const handleRemove = async () => {
     if (!currentQuiz) return
-    if (typeof window !== 'undefined') {
-      const confirmed = window.confirm(`Remove quiz from “${lesson.title}”?`)
-      if (!confirmed) return
-    }
+    if (!lesson) return
+    const confirmed = await confirm({
+      title: 'Remove quiz?',
+      message: `The quiz will be detached from "${lesson.title}". You can re-assign it any time.`,
+      confirmLabel: 'Remove',
+      destructive: true,
+    })
+    if (!confirmed) return
     setSubmitting(true)
     setError(null)
     try {
@@ -106,6 +112,8 @@ export default function QuizAssignmentDrawer({
   }
 
   return (
+    <>
+      {confirmDialog}
     <SidePanel
       open={open}
       onClose={onClose}
@@ -192,5 +200,6 @@ export default function QuizAssignmentDrawer({
         {error ? <div className="text-xs text-red-700">{error}</div> : null}
       </div>
     </SidePanel>
+    </>
   )
 }

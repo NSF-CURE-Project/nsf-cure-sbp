@@ -23,6 +23,7 @@ import type { DragMeta, EntityId, SaveStatus } from './types'
 import SaveStatusIndicator from './SaveStatusIndicator'
 import CoursesHomeCard, { type CourseCatalogItem } from './CoursesHomeCard'
 import { HelpLink } from '../admin/HelpLink'
+import { useConfirm } from '../admin/useConfirm'
 import { reorderInArray } from './reorder-utils'
 import { deleteCourse, saveCourseOrder } from './courses-order-api'
 
@@ -55,6 +56,7 @@ export default function CoursesHome({ initialCourses }: CoursesHomeProps) {
   const [dropTargetId, setDropTargetId] = useState<EntityId | null>(null)
   const [deletingCourseId, setDeletingCourseId] = useState<EntityId | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const { confirm, alert: showAlert, dialog: confirmDialog } = useConfirm()
 
   const committedRef = useRef<CourseCatalogItem[]>(reindexOrder(initialCourses))
   const saveQueueRef = useRef(Promise.resolve())
@@ -123,16 +125,22 @@ export default function CoursesHome({ initialCourses }: CoursesHomeProps) {
           : parts.length === 2
             ? `${parts[0]} and ${parts[1]}`
             : `${parts.slice(0, -1).join(', ')}, and ${parts[parts.length - 1]}`
-      const message = `Cannot delete "${course.title}" because it still contains ${joined}. Open the workspace and remove that content first.`
+      const message = `"${course.title}" still contains ${joined}. Open the workspace and remove that content first.`
       setDeleteError(message)
-      if (typeof window !== 'undefined') window.alert(message)
+      await showAlert({
+        title: 'Course is not empty',
+        message,
+      })
       return
     }
 
-    if (typeof window !== 'undefined') {
-      const confirmed = window.confirm(`Delete course "${course.title}"? This cannot be undone.`)
-      if (!confirmed) return
-    }
+    const confirmed = await confirm({
+      title: `Delete "${course.title}"?`,
+      message: 'This permanently removes the course. This cannot be undone.',
+      confirmLabel: 'Delete course',
+      destructive: true,
+    })
+    if (!confirmed) return
 
     setDeleteError(null)
     setDeletingCourseId(course.id)
@@ -193,6 +201,8 @@ export default function CoursesHome({ initialCourses }: CoursesHomeProps) {
   }, [courses])
 
   return (
+    <>
+      {confirmDialog}
     <div className="grid gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -298,5 +308,6 @@ export default function CoursesHome({ initialCourses }: CoursesHomeProps) {
         </DndContext>
       )}
     </div>
+    </>
   )
 }

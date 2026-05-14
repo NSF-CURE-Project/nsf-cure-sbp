@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { deleteClassroom, type EntityId } from './classrooms-api'
 import ClassroomsHomeCard, { type ClassroomCatalogItem } from './ClassroomsHomeCard'
 import { HelpLink } from '../admin/HelpLink'
+import { useConfirm } from '../admin/useConfirm'
 
 type ClassroomsHomeProps = {
   initialClassrooms: ClassroomCatalogItem[]
@@ -20,6 +21,7 @@ export default function ClassroomsHome({ initialClassrooms }: ClassroomsHomeProp
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('active')
   const [deletingId, setDeletingId] = useState<EntityId | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const { confirm, alert: showAlert, dialog: confirmDialog } = useConfirm()
 
   const filtered = useMemo(() => {
     const query = searchValue.trim().toLowerCase()
@@ -43,20 +45,24 @@ export default function ClassroomsHome({ initialClassrooms }: ClassroomsHomeProp
     if (deletingId) return
 
     if (classroom.memberCount > 0) {
-      const message = `Cannot delete "${classroom.title}" because it still has ${classroom.memberCount} member${
+      const message = `"${classroom.title}" still has ${classroom.memberCount} member${
         classroom.memberCount === 1 ? '' : 's'
       }. Remove enrollments first.`
       setDeleteError(message)
-      if (typeof window !== 'undefined') window.alert(message)
+      await showAlert({
+        title: 'Classroom is not empty',
+        message,
+      })
       return
     }
 
-    if (typeof window !== 'undefined') {
-      const confirmed = window.confirm(
-        `Delete classroom "${classroom.title}"? This cannot be undone.`,
-      )
-      if (!confirmed) return
-    }
+    const confirmed = await confirm({
+      title: `Delete "${classroom.title}"?`,
+      message: 'This permanently removes the classroom. This cannot be undone.',
+      confirmLabel: 'Delete classroom',
+      destructive: true,
+    })
+    if (!confirmed) return
 
     setDeleteError(null)
     setDeletingId(classroom.id)
@@ -86,6 +92,8 @@ export default function ClassroomsHome({ initialClassrooms }: ClassroomsHomeProp
   ]
 
   return (
+    <>
+      {confirmDialog}
     <div className="grid gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -198,5 +206,6 @@ export default function ClassroomsHome({ initialClassrooms }: ClassroomsHomeProp
         </div>
       )}
     </div>
+    </>
   )
 }

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import BlockList from '../courses/scaffold/BlockList'
 import OutlinePanel from '../courses/scaffold/OutlinePanel'
 import InspectorPanel from '../courses/scaffold/InspectorPanel'
+import PublishReviewModal from '../courses/scaffold/PublishReviewModal'
 import ScaffoldStyles from '../courses/scaffold/scaffoldStyles'
 import {
   fromPersistedLayout,
@@ -13,7 +14,12 @@ import {
   type AuthorableBlockTypeSlug,
   type ScaffoldBlock,
 } from '../courses/scaffold/types'
-import { updatePage, type EntityId } from './pages-api'
+import {
+  getLastPublishedPageVersion,
+  getPageVersion,
+  updatePage,
+  type EntityId,
+} from './pages-api'
 import { useBreadcrumbChain } from '../admin/breadcrumbTitle'
 
 type PageStatus = 'draft' | 'published'
@@ -25,6 +31,10 @@ type PageScaffoldEditorProps = {
   initialSlug: string
   initialStatus: PageStatus
   initialLayout: unknown
+  // Resolved server-side from WEB_PREVIEW_URL + PREVIEW_SECRET + page slug.
+  // When null (missing env, missing slug), the publish-review modal drops the
+  // iframe and just shows a summary.
+  previewUrl?: string | null
 }
 
 const AUTOSAVE_DEBOUNCE_MS = 1500
@@ -51,6 +61,7 @@ export default function PageScaffoldEditor({
   initialSlug,
   initialStatus,
   initialLayout,
+  previewUrl = null,
 }: PageScaffoldEditorProps) {
   const router = useRouter()
 
@@ -63,7 +74,9 @@ export default function PageScaffoldEditor({
   const [autosave, setAutosave] = useState<SaveStatus>('idle')
   const [savedAt, setSavedAt] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
+  const [busyKind, setBusyKind] = useState<'draft' | 'publish' | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [reviewOpen, setReviewOpen] = useState(false)
 
   // Snapshot of the last successfully persisted draft. Compared against the
   // current state to skip no-op autosaves.
@@ -136,6 +149,7 @@ export default function PageScaffoldEditor({
       return
     }
     setBusy(true)
+    setBusyKind('draft')
     setError(null)
     try {
       await updatePage(pageId, {
@@ -147,19 +161,24 @@ export default function PageScaffoldEditor({
       lastSavedRef.current = currentSnapshot
       setAutosave('saved')
       setSavedAt(Date.now())
-      setBusy(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Save failed')
+    } finally {
       setBusy(false)
+      setBusyKind(null)
     }
   }
 
+  // Direct publish. Reached from the publish-review modal's confirm action —
+  // the toolbar's "Publish" / "Republish" opens the modal first so the author
+  // sees validation, version meta, and a live preview before committing.
   const handlePublish = async () => {
     if (!title.trim() || !slug.trim()) {
       setError('Title and slug are required before publishing.')
       return
     }
     setBusy(true)
+    setBusyKind('publish')
     setError(null)
     try {
       await updatePage(pageId, {
@@ -173,11 +192,21 @@ export default function PageScaffoldEditor({
       setAutosave('saved')
       setSavedAt(Date.now())
       router.refresh()
-      setBusy(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Publish failed')
+    } finally {
       setBusy(false)
+      setBusyKind(null)
     }
+  }
+
+  const openReview = () => {
+    if (!title.trim() || !slug.trim()) {
+      setError('Title and slug are required before publishing.')
+      return
+    }
+    setError(null)
+    setReviewOpen(true)
   }
 
   const saveLabel = useMemo(() => {
@@ -222,7 +251,7 @@ export default function PageScaffoldEditor({
           </button>
           <button
             type="button"
-            onClick={handlePublish}
+            onClick={openReview}
             disabled={busy || !title.trim() || !slug.trim()}
             className="lse-btn lse-btn--primary"
           >
@@ -299,6 +328,35 @@ export default function PageScaffoldEditor({
           }
         />
       </div>
+
+      <PublishReviewModal
+        open={reviewOpen}
+        title={title}
+        blocks={blocks}
+        mode="edit"
+        busy={busyKind === 'publish'}
+        previewUrl={previewUrl}
+        // savedAt doubles as the iframe cache-buster — background autosaves
+        // bump it and the modal's iframe reloads with the fresh draft.
+        previewRefreshKey={savedAt}
+        entityId={pageId}
+        entity={{ label: 'page', capitalLabel: 'Page' }}
+        fetchLastPublishedVersion={getLastPublishedPageVersion}
+        fetchVersionSnapshot={getPageVersion}
+        // Pages don't ship quizzes the way lessons do — skip the "no quiz
+        // attached" recommendation that would otherwise show as a warning.
+        showQuizCoverageCheck={false}
+        onCancel={() => setReviewOpen(false)}
+        onConfirm={async () => {
+          await handlePublish()
+          setReviewOpen(false)
+        }}
+        onSaveDraft={async () => {
+          await handleSaveDraft()
+          setReviewOpen(false)
+        }}
+        savingDraft={busyKind === 'draft'}
+      />
     </div>
   )
 }

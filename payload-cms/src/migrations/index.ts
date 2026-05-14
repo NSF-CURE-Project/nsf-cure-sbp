@@ -40,6 +40,7 @@ import * as migration_20260507_010000_add_locked_documents_rels_columns from './
 import * as migration_20260512_120000_drop_engineering_figures from './20260512_120000_drop_engineering_figures'
 import * as migration_20260512_130000_drop_problem_sets from './20260512_130000_drop_problem_sets'
 import * as migration_20260513_140000_repair_admin_help_blocks_tables from './20260513_140000_repair_admin_help_blocks_tables'
+import * as migration_20260513_150000_add_pages_hidden from './20260513_150000_add_pages_hidden'
 
 export const migrations = [
   {
@@ -251,5 +252,10 @@ export const migrations = [
     up: migration_20260513_140000_repair_admin_help_blocks_tables.up,
     down: migration_20260513_140000_repair_admin_help_blocks_tables.down,
     name: '20260513_140000_repair_admin_help_blocks_tables',
+  },
+  {
+    up: migration_20260513_150000_add_pages_hidden.up,
+    down: migration_20260513_150000_add_pages_hidden.down,
+    name: '20260513_150000_add_pages_hidden',
   },
 ]

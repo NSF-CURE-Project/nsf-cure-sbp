@@ -586,6 +586,10 @@ export interface Page {
    * Managed from the Reorder pages list.
    */
   navOrder?: number | null;
+  /**
+   * When enabled, this page is removed from the public navigation and its URL returns 404. Admins can still see and edit it here.
+   */
+  hidden?: boolean | null;
   title: string;
   /**
    * Auto-generated from the page title. Use 'Home' to create the homepage slug.
@@ -1824,6 +1828,7 @@ export interface LessonsSelect<T extends boolean = true> {
  */
 export interface PagesSelect<T extends boolean = true> {
   navOrder?: T;
+  hidden?: T;
   title?: T;
   slug?: T;
   layout?:

@@ -6,6 +6,7 @@ import type { ChapterDoc, LessonDoc } from "@/lib/payloadSdk/types";
 import { BookOpen, Clock, Layers } from "lucide-react";
 import { ClassProgressSummary } from "@/components/progress/ClassProgressSummary";
 import { ClassChapterBrowser } from "@/components/classes/ClassChapterBrowser";
+import ScrollToTopOnMount from "@/components/layout/ScrollToTopOnMount";
 
 type Params = Promise<{ classSlug: string }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -165,6 +166,7 @@ export default async function ClassPage(props: {
 
   return (
     <main className="min-w-0 overflow-x-hidden">
+      <ScrollToTopOnMount />
       <div className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 sm:px-6 lg:px-8 py-5">
         <article className="space-y-5">
           <div>

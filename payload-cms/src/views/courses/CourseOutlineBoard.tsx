@@ -23,6 +23,7 @@ import SortableChapterRow from './SortableChapterRow'
 import EmptyChapterState from './EmptyChapterState'
 import SaveStatusIndicator from './SaveStatusIndicator'
 import ConfirmDialog from './ConfirmDialog'
+import { useConfirm } from '../admin/useConfirm'
 import EntityInspector, { type Selection } from './EntityInspector'
 import LessonAssignmentDrawer from './LessonAssignmentDrawer'
 import QuizAssignmentDrawer from './QuizAssignmentDrawer'
@@ -113,6 +114,7 @@ export default function CourseOutlineBoard({
   const [duplicatingLessonId, setDuplicatingLessonId] = useState<EntityId | null>(null)
   const [deletingChapterId, setDeletingChapterId] = useState<EntityId | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const { alert: showAlert, dialog: alertDialog } = useConfirm()
   const [reorderMode, setReorderMode] = useState(false)
   const [selectedKey, setSelectedKey] = useState<
     { type: 'chapter'; id: EntityId } | { type: 'lesson'; id: EntityId } | null
@@ -470,9 +472,12 @@ export default function CourseOutlineBoard({
     if (deletingChapterId) return
 
     if (chapter.lessons.length > 0) {
-      const message = `Cannot delete "${chapter.title}" because it still contains ${chapter.lessons.length} lesson${chapter.lessons.length === 1 ? '' : 's'}. Delete or move those lessons first.`
+      const message = `"${chapter.title}" still contains ${chapter.lessons.length} lesson${chapter.lessons.length === 1 ? '' : 's'}. Delete or move those lessons first.`
       setDeleteError(message)
-      if (typeof window !== 'undefined') window.alert(message)
+      void showAlert({
+        title: 'Chapter is not empty',
+        message,
+      })
       return
     }
 
@@ -932,6 +937,8 @@ export default function CourseOutlineBoard({
           (selectedKey?.type === 'lesson' && deletingLessonId === selectedKey.id)
         }
       />
+
+      {alertDialog}
 
       <ConfirmDialog
         open={pendingDelete !== null}

@@ -40,6 +40,7 @@ const routeLabelOverrides: Record<string, string> = {
   'site-management': 'Site Management',
   courses: 'Manage Courses',
   classrooms: 'Classrooms',
+  drafts: 'Draft lessons',
 }
 
 const collectionLabelOverrides: Record<string, string> = {
@@ -3244,7 +3245,7 @@ const StaffProvider = (props: AdminViewServerProps & { children?: React.ReactNod
         .admin-topbar {
           position: sticky;
           top: 0;
-          z-index: 30;
+          z-index: 50;
           display: flex;
           align-items: center;
           gap: 16px;

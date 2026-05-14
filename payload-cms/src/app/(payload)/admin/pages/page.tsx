@@ -10,6 +10,7 @@ type PageDoc = {
   title?: string
   slug?: string
   navOrder?: number | null
+  hidden?: boolean | null
   layout?: unknown[]
   _status?: 'draft' | 'published'
   updatedAt?: string | null
@@ -39,6 +40,7 @@ const buildCatalog = async (): Promise<PageCatalogItem[]> => {
       slug: page.slug ?? '',
       status: page._status === 'published' ? 'published' : 'draft',
       navOrder: typeof page.navOrder === 'number' ? page.navOrder : null,
+      hidden: Boolean(page.hidden),
       blockCount: layout.length,
       updatedAt: page.updatedAt ?? null,
     }

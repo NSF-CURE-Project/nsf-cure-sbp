@@ -51,6 +51,7 @@ type NavbarPage = {
   slug: string;
   title: string;
   navOrder?: number | null;
+  hidden?: boolean | null;
 };
 
 function readCachedNavbarUser(): NavbarUser | null {
@@ -207,7 +208,7 @@ export default function Navbar() {
     const loadPages = async () => {
       try {
         const res = await fetch(
-          `${PAYLOAD_URL}/api/pages?limit=100&sort=navOrder`,
+          `${PAYLOAD_URL}/api/pages?limit=100&sort=navOrder&where[hidden][not_equals]=true`,
           {
             signal: controller.signal,
           }
@@ -222,7 +223,7 @@ export default function Navbar() {
           docs?: NavbarPage[];
         };
         const cleaned = (data.docs ?? []).filter(
-          (page) => page.slug && page.slug !== "home"
+          (page) => page.slug && page.slug !== "home" && !page.hidden
         );
         cleaned.sort((a, b) => {
           const aOrder =

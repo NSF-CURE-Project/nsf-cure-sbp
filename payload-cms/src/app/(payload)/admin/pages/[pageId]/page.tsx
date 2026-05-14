@@ -38,6 +38,28 @@ export default async function EditPageRoute({
 
   const doc = page as PageDoc
 
+  // Mirror the lesson editor's preview wiring: hit web's /api/preview with a
+  // shared secret so the iframe inside PublishReviewModal can render the
+  // page's draft. Falls back to null when the secret/slug aren't available;
+  // the modal degrades to a summary-only view in that case.
+  const previewBase = (
+    process.env.WEB_PREVIEW_URL ??
+    process.env.FRONTEND_URL ??
+    'http://localhost:3001'
+  )
+    .trim()
+    .replace(/\/+$/, '')
+  const previewSecret = process.env.PREVIEW_SECRET ?? ''
+  let previewUrl: string | null = null
+  if (doc.slug && previewSecret) {
+    const search = new URLSearchParams({
+      secret: previewSecret,
+      type: 'page',
+      slug: doc.slug,
+    })
+    previewUrl = `${previewBase}/api/preview?${search.toString()}`
+  }
+
   return (
     <Gutter>
       <div style={{ maxWidth: 1500, margin: '0 auto 80px' }}>
@@ -47,6 +69,7 @@ export default async function EditPageRoute({
           initialSlug={doc.slug ?? ''}
           initialStatus={doc._status === 'published' ? 'published' : 'draft'}
           initialLayout={doc.layout ?? []}
+          previewUrl={previewUrl}
         />
       </div>
     </Gutter>

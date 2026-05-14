@@ -1,5 +1,10 @@
+import { notFound } from "next/navigation";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
-import { getPageBySlug, type PageDoc } from "@/lib/payloadSdk/pages";
+import {
+  getPageBySlug,
+  isPageHiddenPublicly,
+  type PageDoc,
+} from "@/lib/payloadSdk/pages";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 
@@ -16,6 +21,10 @@ export default async function ResourcesPage() {
   const page: PageDoc | null = await getPageBySlug("resources", {
     draft: isPreview,
   }).catch(() => null);
+
+  if (isPageHiddenPublicly(page, { draft: isPreview })) {
+    notFound();
+  }
 
   return (
     <main className="min-w-0 overflow-x-hidden p-6 lg:px-8">

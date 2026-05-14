@@ -3,7 +3,12 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createLesson, updateLesson } from './courses-order-api'
+import {
+  createLesson,
+  getLastPublishedLessonVersion,
+  getLessonVersion,
+  updateLesson,
+} from './courses-order-api'
 import { useBreadcrumbChain } from '../admin/breadcrumbTitle'
 import BlockList from './scaffold/BlockList'
 import VersionsPanel from './scaffold/VersionsPanel'
@@ -312,7 +317,14 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         })
       }
       clearDraft()
-      router.push(`/admin/courses/${props.courseId}`)
+      // Pass a flash code so the workspace can surface a toast confirming
+      // the action; useFlashToast strips the params after rendering.
+      const flashCode = intent === 'publish' ? 'lesson-published' : 'lesson-saved'
+      const params = new URLSearchParams({
+        flash: flashCode,
+        title: title.trim(),
+      })
+      router.push(`/admin/courses/${props.courseId}?${params.toString()}`)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save lesson.')
@@ -1548,7 +1560,11 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         // background save lands while the modal is open, the iframe reloads
         // and shows the up-to-date preview.
         previewRefreshKey={autoSaveAt}
-        lessonId={isCreate ? null : props.lessonId}
+        entityId={isCreate ? null : props.lessonId}
+        entity={{ label: 'lesson', capitalLabel: 'Lesson' }}
+        fetchLastPublishedVersion={getLastPublishedLessonVersion}
+        fetchVersionSnapshot={getLessonVersion}
+        showQuizCoverageCheck
         onCancel={() => setReviewOpen(false)}
         onConfirm={async () => {
           await save('publish')

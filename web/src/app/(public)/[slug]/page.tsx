@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
-import { getPageBySlug, type PageDoc } from "@/lib/payloadSdk/pages";
+import {
+  getPageBySlug,
+  isPageHiddenPublicly,
+  type PageDoc,
+} from "@/lib/payloadSdk/pages";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 
@@ -16,7 +20,10 @@ export async function generateMetadata({
   const page = await getPageBySlug(slug, { draft: isPreview }).catch(
     () => null
   );
-  const title = page?.title ?? "Page";
+  const visiblePage = isPageHiddenPublicly(page, { draft: isPreview })
+    ? null
+    : page;
+  const title = visiblePage?.title ?? "Page";
   return buildMetadata({
     title,
     description: `${title} — NSF CURE SBP.`,
@@ -38,7 +45,7 @@ export default async function PageBySlug({
     draft: isPreview,
   }).catch(() => null);
 
-  if (!page) {
+  if (!page || isPageHiddenPublicly(page, { draft: isPreview })) {
     notFound();
   }
 

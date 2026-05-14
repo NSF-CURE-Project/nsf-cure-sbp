@@ -16,6 +16,7 @@ import {
   type ProfessorOption,
 } from './classrooms-api'
 import { useBreadcrumbChain } from '../admin/breadcrumbTitle'
+import { useConfirm } from '../admin/useConfirm'
 
 type ClassroomEditorProps = {
   classroomId: EntityId
@@ -212,6 +213,8 @@ export default function ClassroomEditor({
       joinCodeDurationHours: initialJoinCodeDurationHours,
     }),
   )
+
+  const { confirm, dialog: confirmDialog } = useConfirm()
 
   useBreadcrumbChain([
     { label: 'Dashboard', href: '/admin' },
@@ -422,14 +425,15 @@ export default function ClassroomEditor({
   const handleToggleArchive = async () => {
     const nextActive = !active
     const verb = nextActive ? 'reactivate' : 'archive'
-    if (typeof window !== 'undefined') {
-      const confirmed = window.confirm(
-        nextActive
-          ? `Reactivate "${title}"? Students will be able to join with the code again.`
-          : `Archive "${title}"? The join code stops working immediately. You can reactivate later.`,
-      )
-      if (!confirmed) return
-    }
+    const confirmed = await confirm({
+      title: nextActive ? `Reactivate "${title}"?` : `Archive "${title}"?`,
+      message: nextActive
+        ? 'Students will be able to join with the code again.'
+        : 'The join code stops working immediately. You can reactivate later.',
+      confirmLabel: nextActive ? 'Reactivate' : 'Archive',
+      destructive: !nextActive,
+    })
+    if (!confirmed) return
     setBusy(true)
     setActionMessage(null)
     try {
@@ -459,12 +463,13 @@ export default function ClassroomEditor({
       setActionMessage('Add a course and professor before duplicating.')
       return
     }
-    if (typeof window !== 'undefined') {
-      const confirmed = window.confirm(
-        `Duplicate "${title}"? A new classroom is created with the same course and professor; a fresh join code is generated.`,
-      )
-      if (!confirmed) return
-    }
+    const confirmed = await confirm({
+      title: `Duplicate "${title}"?`,
+      message:
+        'A new classroom is created with the same course and professor; a fresh join code is generated.',
+      confirmLabel: 'Duplicate',
+    })
+    if (!confirmed) return
     setBusy(true)
     setActionMessage(null)
     try {
@@ -524,6 +529,8 @@ export default function ClassroomEditor({
   const membershipsHref = `/admin/classrooms/${encodeURIComponent(classroomId)}/students`
 
   return (
+    <>
+      {confirmDialog}
     <div className="ce-shell">
       <style>{styles}</style>
 
@@ -908,6 +915,7 @@ export default function ClassroomEditor({
         </aside>
       </div>
     </div>
+    </>
   )
 }
 

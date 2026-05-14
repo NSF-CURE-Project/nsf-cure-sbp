@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { deleteFeedback, updateFeedback, type FeedbackId } from './feedback-api'
 import FeedbackHomeCard, { type FeedbackItem } from './FeedbackHomeCard'
 import { HelpLink } from '../admin/HelpLink'
+import { useConfirm } from '../admin/useConfirm'
 
 type FeedbackHomeProps = {
   initialFeedback: FeedbackItem[]
@@ -21,6 +22,7 @@ export default function FeedbackHome({ initialFeedback }: FeedbackHomeProps) {
   const [updatingId, setUpdatingId] = useState<FeedbackId | null>(null)
   const [deletingId, setDeletingId] = useState<FeedbackId | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const { confirm, dialog: confirmDialog } = useConfirm()
 
   const unreadCount = useMemo(
     () => feedback.filter((item) => !item.read).length,
@@ -66,11 +68,14 @@ export default function FeedbackHome({ initialFeedback }: FeedbackHomeProps) {
 
   const handleDelete = async (item: FeedbackItem) => {
     if (deletingId) return
-    if (typeof window !== 'undefined') {
-      const preview = item.message.length > 80 ? `${item.message.slice(0, 77)}…` : item.message
-      const confirmed = window.confirm(`Delete this feedback?\n\n"${preview}"`)
-      if (!confirmed) return
-    }
+    const preview = item.message.length > 80 ? `${item.message.slice(0, 77)}…` : item.message
+    const confirmed = await confirm({
+      title: 'Delete this feedback?',
+      message: `"${preview}"`,
+      confirmLabel: 'Delete',
+      destructive: true,
+    })
+    if (!confirmed) return
     setActionError(null)
     setDeletingId(item.id)
     try {
@@ -106,6 +111,8 @@ export default function FeedbackHome({ initialFeedback }: FeedbackHomeProps) {
   )
 
   return (
+    <>
+      {confirmDialog}
     <div className="grid gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -175,5 +182,6 @@ export default function FeedbackHome({ initialFeedback }: FeedbackHomeProps) {
         </div>
       )}
     </div>
+    </>
   )
 }

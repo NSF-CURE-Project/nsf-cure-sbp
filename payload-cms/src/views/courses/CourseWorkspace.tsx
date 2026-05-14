@@ -14,6 +14,7 @@ import {
 } from './WorkspaceTabs'
 import { HelpLink } from '../admin/HelpLink'
 import { useBreadcrumbTitle } from '../admin/breadcrumbTitle'
+import { useFlashToast } from '../admin/useFlashToast'
 
 type WorkspaceTab = 'outline' | 'lessons' | 'quizzes' | 'preview' | 'settings' | 'publish'
 
@@ -36,6 +37,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('outline')
   const [course, setCourse] = useState<CourseNode>(initialCourse)
   useBreadcrumbTitle(course.title)
+  const { flashElement } = useFlashToast()
 
   const stats = useMemo(() => {
     const allLessons = course.chapters.flatMap((chapter) => chapter.lessons)
@@ -64,6 +66,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
 
   return (
     <div className="course-workspace">
+      {flashElement}
       <style>{`
         .course-workspace {
           font-family: 'Inter', 'Satoshi', 'Avenir Next', system-ui, -apple-system, 'Segoe UI', sans-serif;

@@ -134,3 +134,62 @@ export const updatePage = async (pageId: EntityId, input: UpdatePageInput): Prom
 export const deletePage = async (pageId: EntityId): Promise<void> => {
   await remove(`/api/pages/${pageId}`)
 }
+
+export const setPageHidden = async (
+  pageId: EntityId,
+  hidden: boolean,
+): Promise<void> => {
+  // draft=false keeps the published doc in sync so visibility flips reflect
+  // on the live site immediately rather than waiting for a publish.
+  await patch(`/api/pages/${pageId}`, { hidden }, { draft: 'false' })
+}
+
+const getJson = async <T = unknown,>(path: string): Promise<T> => {
+  const response = await fetch(path, { credentials: 'include' })
+  if (!response.ok) throw new Error(await extractErrorMessage(response, path))
+  return response.json() as Promise<T>
+}
+
+// Look up the most-recent published version for a page. Returns null if no
+// version has ever been published. Used by the publish-review modal to show
+// "Last published Xh ago — publishing version N+1". Mirrors the lesson
+// helper of the same shape.
+export const getLastPublishedPageVersion = async (
+  pageId: EntityId,
+): Promise<{
+  versionId: EntityId
+  updatedAt: string | null
+  publishedCount: number
+} | null> => {
+  const params = new URLSearchParams()
+  params.set('where[parent][equals]', String(pageId))
+  params.set('where[version._status][equals]', 'published')
+  params.set('sort', '-updatedAt')
+  params.set('depth', '0')
+  params.set('limit', '1')
+  const json = await getJson<{
+    docs?: Array<{ id: string | number; updatedAt?: string }>
+    totalDocs?: number
+  }>(`/api/pages/versions?${params.toString()}`)
+  const doc = json.docs?.[0]
+  if (!doc) return null
+  return {
+    versionId: String(doc.id),
+    updatedAt: doc.updatedAt ?? null,
+    publishedCount: typeof json.totalDocs === 'number' ? json.totalDocs : 1,
+  }
+}
+
+// Fetch one version's full snapshot for diff. depth=1 so relationship ids
+// inside the layout come back as objects (matches the editor's hydrate path).
+export const getPageVersion = async (
+  versionId: EntityId,
+): Promise<{ title: string; layout: unknown }> => {
+  const json = await getJson<{
+    version?: { title?: string; layout?: unknown }
+  }>(`/api/pages/versions/${versionId}?depth=1`)
+  return {
+    title: json.version?.title ?? '',
+    layout: json.version?.layout ?? [],
+  }
+}

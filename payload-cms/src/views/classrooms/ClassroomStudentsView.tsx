@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import React, { useMemo, useState } from 'react'
+import { useConfirm } from '../admin/useConfirm'
 
 export type ClassroomStudentRow = {
   membershipId: string
@@ -116,6 +117,7 @@ export default function ClassroomStudentsView({
 }: Props) {
   const router = useRouter()
   const [rows, setRows] = useState(initialRows)
+  const { confirm, dialog: confirmDialog } = useConfirm()
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('joined')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
@@ -195,12 +197,13 @@ export default function ClassroomStudentsView({
   }
 
   const handleRemove = async (membershipId: string, studentName: string) => {
-    if (typeof window !== 'undefined') {
-      const ok = window.confirm(
-        `Remove ${studentName} from ${classroomTitle}? They can rejoin with the active join code.`,
-      )
-      if (!ok) return
-    }
+    const ok = await confirm({
+      title: `Remove ${studentName}?`,
+      message: `${studentName} will no longer be enrolled in ${classroomTitle}. They can rejoin with the active join code.`,
+      confirmLabel: 'Remove',
+      destructive: true,
+    })
+    if (!ok) return
     setError(null)
     setRemovingId(membershipId)
     try {
@@ -222,6 +225,8 @@ export default function ClassroomStudentsView({
   }
 
   return (
+    <>
+      {confirmDialog}
     <div className="csv-shell">
       <style>{styles}</style>
 
@@ -409,5 +414,6 @@ export default function ClassroomStudentsView({
         )}
       </div>
     </div>
+    </>
   )
 }
