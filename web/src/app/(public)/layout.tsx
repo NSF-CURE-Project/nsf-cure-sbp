@@ -2,6 +2,7 @@ import React, { Suspense } from "react";
 
 import AccountHeartbeat from "@/components/AccountHeartbeat";
 import ContentShell from "@/components/layout/ContentShell";
+import CookieBanner from "@/components/layout/CookieBanner";
 import Navbar from "@/components/navigation/navbar";
 import SidebarData from "@/components/layout/SidebarData";
 import {
@@ -36,6 +37,7 @@ export default function PublicLayout({
         {children}
       </ContentShell>
       <AccountHeartbeat />
+      <CookieBanner />
     </>
   );
 }

@@ -457,12 +457,23 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
           {/* Bottom bar */}
           <div className="mt-8 flex flex-col items-center gap-2 text-center text-xs text-muted-foreground/80">
             <div>
-              <p>
-                {(content.bottom?.copyrightLine ??
-                  defaultFooter.bottom?.copyrightLine ??
-                  "")
-                  .replace("{year}", String(year))
-                  .trim()}
+              <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+                <span>
+                  {(content.bottom?.copyrightLine ??
+                    defaultFooter.bottom?.copyrightLine ??
+                    "")
+                    .replace("{year}", String(year))
+                    .trim()}
+                </span>
+                <span aria-hidden="true" className="text-muted-foreground/50">
+                  ·
+                </span>
+                <Link
+                  href="/privacy"
+                  className="font-medium text-muted-foreground hover:text-foreground hover:underline"
+                >
+                  Privacy
+                </Link>
               </p>
               {content.bottom?.nsfCompliance?.enabled !== false ? (
                 <>
