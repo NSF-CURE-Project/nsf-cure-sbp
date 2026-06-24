@@ -206,7 +206,8 @@ export function LessonQuestionDrawer({
             <Button
               type="button"
               variant="outline"
-              className="w-full sm:w-auto"
+              size="lg"
+              className="w-full px-5 sm:w-auto"
               disabled={!lessonId || (!!user && (!canAskQuestion || eligibilityLoading))}
             >
               <MessageSquarePlus className="h-4 w-4" />

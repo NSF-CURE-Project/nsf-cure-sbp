@@ -110,14 +110,14 @@ export default function LessonFinishCard({
 
         <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center lg:flex-col lg:items-end lg:pt-8">
           {next ? (
-            <Button asChild className="group w-full sm:w-auto">
+            <Button asChild size="lg" className="group w-full px-5 sm:w-auto">
               <Link href={`${hrefPrefix}/${next.slug}`}>
                 Continue to next lesson
                 <ArrowRight className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5" />
               </Link>
             </Button>
           ) : chapter?.title && chapter.slug && chapter.classSlug ? (
-            <Button asChild className="group w-full sm:w-auto">
+            <Button asChild size="lg" className="group w-full px-5 sm:w-auto">
               <Link href={`/classes/${chapter.classSlug}/chapters/${chapter.slug}`}>
                 Back to {chapter.title}
                 <ArrowRight className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5" />
@@ -127,8 +127,8 @@ export default function LessonFinishCard({
           {next && chapter?.title && chapter.slug && chapter.classSlug ? (
             <Button
               asChild
-              variant="outline"
-              className="w-full sm:w-auto"
+              variant="ghost"
+              className="w-full text-muted-foreground hover:text-primary sm:w-auto"
             >
               <Link href={`/classes/${chapter.classSlug}/chapters/${chapter.slug}`}>
                 <ListTree className="h-4 w-4" />
