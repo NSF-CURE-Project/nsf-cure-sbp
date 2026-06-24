@@ -1,6 +1,8 @@
 import { RegisterForm } from "./RegisterForm";
+import { AuthDisabledNotice } from "@/components/auth/AuthDisabledNotice";
 import { buildMetadata } from "@/lib/seo";
 import { LoginLink } from "@/components/auth/LoginLink";
+import { getAuthSettings } from "@/lib/payloadSdk/authSettings";
 
 export const metadata = buildMetadata({
   title: "Register",
@@ -9,10 +11,12 @@ export const metadata = buildMetadata({
   noIndex: true,
 });
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  const authSettings = await getAuthSettings({ cache: "no-store" });
+
   return (
     <main className="min-h-[70vh] px-6 py-16">
-      <div className="mx-auto w-full max-w-xl rounded-lg border border-border/60 bg-card/80 p-10 shadow-lg">
+      <div className="mx-auto w-full max-w-xl border-y border-border/60 bg-background/50 py-10">
         <div className="space-y-2">
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
             Student Access
@@ -26,17 +30,26 @@ export default function RegisterPage() {
         </div>
 
         <div className="mt-8">
-          <RegisterForm />
+          {authSettings.studentLoginEnabled ? (
+            <RegisterForm />
+          ) : (
+            <AuthDisabledNotice
+              message={authSettings.studentLoginDisabledMessage}
+              title="Student registration is temporarily unavailable"
+            />
+          )}
         </div>
 
-        <p className="mt-6 text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <LoginLink
-            className="font-semibold text-primary underline underline-offset-4"
-          >
-            Sign in
-          </LoginLink>
-        </p>
+        {authSettings.studentLoginEnabled ? (
+          <p className="mt-6 text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <LoginLink
+              className="font-semibold text-primary underline underline-offset-4"
+            >
+              Sign in
+            </LoginLink>
+          </p>
+        ) : null}
       </div>
     </main>
   );

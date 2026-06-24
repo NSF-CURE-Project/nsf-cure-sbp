@@ -24,7 +24,7 @@ const Section = ({
 }) => (
   <section
     id={id}
-    className="scroll-mt-24 rounded-2xl border border-border/60 bg-card/60 p-6 sm:p-7"
+    className="scroll-mt-24 border-y border-border/60 py-6 sm:py-7"
   >
     <h2 className="text-lg font-semibold text-foreground sm:text-xl">{title}</h2>
     <div className="mt-3 space-y-3 text-[14.5px] leading-7 text-foreground/85">
@@ -65,7 +65,7 @@ export default function PrivacyPage() {
 
       <nav
         aria-label="On this page"
-        className="mb-8 rounded-xl border border-border/50 bg-background/50 p-4"
+        className="mb-8 border-y border-border/50 bg-background/50 py-4"
       >
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
           On this page

@@ -54,19 +54,16 @@ export function SavedLessonsShell({ groupedLessons }: SavedLessonsShellProps) {
         </header>
 
         {groups.length === 0 ? (
-          <section className="rounded-xl border border-border/60 bg-card/40 p-6 text-sm text-muted-foreground">
+          <section className="border-y border-border/60 bg-muted/10 py-6 text-sm text-muted-foreground">
             No saved lessons yet. Bookmark a lesson to see it here.
           </section>
         ) : (
           groups.map((group) => (
             <section key={group.className} className="space-y-3">
               <h2 className="text-lg font-semibold text-foreground">{group.className}</h2>
-              <div className="grid gap-3">
+              <div className="divide-y divide-border/60 border-y border-border/60">
                 {group.items.map((item) => (
-                  <article
-                    key={item.id}
-                    className="rounded-xl border border-border/60 bg-card/50 p-4"
-                  >
+                  <article key={item.id} className="py-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <p className="text-base font-semibold text-foreground">

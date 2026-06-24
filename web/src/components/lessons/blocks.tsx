@@ -64,8 +64,7 @@ export function CalloutBlockView({ block }: { block: CalloutBlock }) {
     <aside
       role="note"
       className={cn(
-        "rounded-xl border px-4 py-3.5 sm:px-5 sm:py-4",
-        "border-l-[3px] shadow-sm",
+        "border-l-[3px] px-4 py-3.5 sm:px-5 sm:py-4",
         palette.accent,
       )}
     >
@@ -108,7 +107,7 @@ export function CalloutBlockView({ block }: { block: CalloutBlock }) {
 
 export function DefinitionBlockView({ block }: { block: DefinitionBlock }) {
   return (
-    <figure className="rounded-xl border border-border/60 bg-card/50 px-4 py-4 shadow-sm sm:px-5">
+    <figure className="border-l-[3px] border-primary/35 bg-muted/15 px-4 py-3.5 sm:px-5">
       <div className="text-[10.5px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
         Definition
       </div>
@@ -129,8 +128,8 @@ export function DefinitionBlockView({ block }: { block: DefinitionBlock }) {
 export function WorkedExampleBlockView({ block }: { block: WorkedExampleBlock }) {
   const steps = block.steps ?? [];
   return (
-    <section className="overflow-hidden rounded-xl border border-primary/35 bg-gradient-to-br from-primary/5 via-card to-card shadow-sm">
-      <header className="flex items-center gap-2 border-b border-primary/20 px-4 py-2.5 sm:px-5">
+    <section className="border-l-[3px] border-primary/40 bg-primary/[0.03] px-4 py-4 sm:px-5">
+      <header className="flex items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-primary">
           <ListChecks className="h-3 w-3" />
           Worked example
@@ -141,7 +140,7 @@ export function WorkedExampleBlockView({ block }: { block: WorkedExampleBlock })
           </span>
         ) : null}
       </header>
-      <div className="space-y-4 px-4 py-4 sm:px-5">
+      <div className="mt-4 space-y-4">
         <div>
           <div className="text-[10.5px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
             Problem
@@ -159,7 +158,7 @@ export function WorkedExampleBlockView({ block }: { block: WorkedExampleBlock })
               {steps.map((step, index) => (
                 <li
                   key={step.id ?? index}
-                  className="flex gap-3 rounded-lg border border-border/55 bg-background/50 px-3 py-2"
+                  className="flex gap-3 border-t border-border/60 py-2 first:border-t-0"
                 >
                   <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold tabular-nums text-primary">
                     {index + 1}
@@ -173,7 +172,7 @@ export function WorkedExampleBlockView({ block }: { block: WorkedExampleBlock })
           </div>
         ) : null}
         {block.finalAnswer ? (
-          <div className="rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-3 py-2">
+          <div className="border-l-[3px] border-emerald-500/60 bg-emerald-500/10 px-3 py-2">
             <div className="text-[10.5px] font-bold uppercase tracking-[0.1em] text-emerald-700 dark:text-emerald-300">
               Final answer
             </div>
@@ -195,7 +194,7 @@ export function CheckpointBlockView({ block }: { block: CheckpointBlock }) {
   const [showHint, setShowHint] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
   return (
-    <section className="rounded-xl border border-amber-500/35 bg-gradient-to-br from-amber-500/8 via-card to-card px-4 py-4 shadow-sm sm:px-5">
+    <section className="border-l-[3px] border-amber-500/60 bg-amber-500/[0.06] px-4 py-4 sm:px-5">
       <div className="flex items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-amber-700 dark:text-amber-300">
           <Target className="h-3 w-3" />
@@ -233,7 +232,7 @@ export function CheckpointBlockView({ block }: { block: CheckpointBlock }) {
         </button>
       </div>
       {showHint && block.hint ? (
-        <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/8 px-3 py-2 text-[13.5px] leading-6 text-foreground/90">
+        <div className="mt-3 border-l-[3px] border-amber-500/50 bg-amber-500/8 px-3 py-2 text-[13.5px] leading-6 text-foreground/90">
           <div className="text-[10.5px] font-bold uppercase tracking-[0.1em] text-amber-700 dark:text-amber-300">
             Hint
           </div>
@@ -241,7 +240,7 @@ export function CheckpointBlockView({ block }: { block: CheckpointBlock }) {
         </div>
       ) : null}
       {showAnswer ? (
-        <div className="mt-3 rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-3 py-2 text-[14px] leading-6 text-foreground">
+        <div className="mt-3 border-l-[3px] border-emerald-500/60 bg-emerald-500/10 px-3 py-2 text-[14px] leading-6 text-foreground">
           <div className="text-[10.5px] font-bold uppercase tracking-[0.1em] text-emerald-700 dark:text-emerald-300">
             Answer
           </div>
@@ -260,7 +259,7 @@ export function LessonSummaryBlockView({ block }: { block: LessonSummaryBlock })
   const points = (block.points ?? []).filter((p) => p.text?.trim());
   if (points.length === 0 && !block.title) return null;
   return (
-    <section className="rounded-xl border border-border/60 bg-card/50 px-4 py-4 shadow-sm sm:px-5">
+    <section className="border-y border-border/60 bg-muted/10 px-4 py-4 sm:px-5">
       <div className="flex items-center gap-1.5">
         <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
         <h3 className="text-[12.5px] font-bold uppercase tracking-[0.08em] text-foreground/85">

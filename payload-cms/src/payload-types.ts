@@ -146,11 +146,13 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     'admin-help': AdminHelp;
+    'auth-settings': AuthSetting;
     footer: Footer;
     'site-branding': SiteBranding;
   };
   globalsSelect: {
     'admin-help': AdminHelpSelect<false> | AdminHelpSelect<true>;
+    'auth-settings': AuthSettingsSelect<false> | AuthSettingsSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     'site-branding': SiteBrandingSelect<false> | SiteBrandingSelect<true>;
   };
@@ -270,6 +272,23 @@ export interface Lesson {
   order?: number | null;
   title: string;
   /**
+   * Surfaces as a pill in the lesson header so students know what to expect.
+   */
+  difficulty?: ('intro' | 'easy' | 'medium' | 'hard') | null;
+  /**
+   * Rendered under the title as a "You will learn" list. Keep each bullet short — one outcome.
+   */
+  objectives?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Shown on the end-of-lesson recap card. Leave blank to fall back to a list of section titles.
+   */
+  summary?: string | null;
+  /**
    * Pre-filled when you add a lesson from a chapter row.
    */
   chapter: number | Chapter;
@@ -387,6 +406,61 @@ export interface Lesson {
             id?: string | null;
             blockName?: string | null;
             blockType: 'buttonBlock';
+          }
+        | {
+            variant?: ('info' | 'tip' | 'warning' | 'key') | null;
+            title?: string | null;
+            body: string;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'callout';
+          }
+        | {
+            term: string;
+            definition: string;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'definition';
+          }
+        | {
+            title?: string | null;
+            problem: string;
+            steps?:
+              | {
+                  text: string;
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * Surfaces as a highlighted result line under the steps.
+             */
+            finalAnswer?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'workedExample';
+          }
+        | {
+            prompt: string;
+            /**
+             * Hidden behind a "Reveal answer" toggle on the public page.
+             */
+            answer: string;
+            hint?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'checkpoint';
+          }
+        | {
+            title?: string | null;
+            points?:
+              | {
+                  text: string;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'lessonSummary';
           }
         | {
             title?: string | null;
@@ -1729,6 +1803,14 @@ export interface ChaptersSelect<T extends boolean = true> {
 export interface LessonsSelect<T extends boolean = true> {
   order?: T;
   title?: T;
+  difficulty?: T;
+  objectives?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  summary?: T;
   chapter?: T;
   slug?: T;
   layout?:
@@ -1802,6 +1884,60 @@ export interface LessonsSelect<T extends boolean = true> {
           | {
               label?: T;
               href?: T;
+              id?: T;
+              blockName?: T;
+            };
+        callout?:
+          | T
+          | {
+              variant?: T;
+              title?: T;
+              body?: T;
+              id?: T;
+              blockName?: T;
+            };
+        definition?:
+          | T
+          | {
+              term?: T;
+              definition?: T;
+              id?: T;
+              blockName?: T;
+            };
+        workedExample?:
+          | T
+          | {
+              title?: T;
+              problem?: T;
+              steps?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              finalAnswer?: T;
+              id?: T;
+              blockName?: T;
+            };
+        checkpoint?:
+          | T
+          | {
+              prompt?: T;
+              answer?: T;
+              hint?: T;
+              id?: T;
+              blockName?: T;
+            };
+        lessonSummary?:
+          | T
+          | {
+              title?: T;
+              points?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
               id?: T;
               blockName?: T;
             };
@@ -2693,6 +2829,25 @@ export interface AdminHelp {
   createdAt?: string | null;
 }
 /**
+ * Controls student-facing sign-in and account access.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "auth-settings".
+ */
+export interface AuthSetting {
+  id: number;
+  /**
+   * When off, students cannot sign in, create accounts, or reset passwords. Admin login remains available.
+   */
+  studentLoginEnabled?: boolean | null;
+  /**
+   * Shown on student login, registration, and password reset pages.
+   */
+  studentLoginDisabledMessage?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "footer".
  */
@@ -2840,6 +2995,17 @@ export interface AdminHelpSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "auth-settings_select".
+ */
+export interface AuthSettingsSelect<T extends boolean = true> {
+  studentLoginEnabled?: T;
+  studentLoginDisabledMessage?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

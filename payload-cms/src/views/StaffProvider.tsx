@@ -75,6 +75,7 @@ const globalLabelOverrides: Record<string, string> = {
   footer: 'Footer',
   'site-branding': 'Site Branding',
   'admin-help': 'Help Portal',
+  'auth-settings': 'Auth Settings',
 }
 
 const formatSegmentLabel = (segment: string): string => {

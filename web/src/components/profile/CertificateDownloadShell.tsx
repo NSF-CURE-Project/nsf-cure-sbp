@@ -22,7 +22,7 @@ export function CertificateDownloadShell({
 
   return (
     <main className="mx-auto w-full max-w-[var(--content-max,72ch)] px-4 py-6 sm:px-6 lg:px-8">
-      <section className="rounded-xl border border-border/60 bg-card/50 p-6">
+      <section className="border-y border-border/60 py-6">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">
           Certificate
         </p>

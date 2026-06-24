@@ -98,7 +98,7 @@ export function ClassProgressSummary({
   const isComplete = percent === 100;
 
   return (
-    <div className="mt-5 overflow-hidden rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm">
+    <div className="mt-5 border-y border-border/70 bg-muted/10 py-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-1">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
@@ -158,7 +158,7 @@ export function ClassProgressSummary({
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
+      <div className="mt-4 grid grid-cols-3 divide-x divide-border/60 border-y border-border/60 text-xs">
         <ProgressStat
           icon={<CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
           label="Completed"
@@ -195,10 +195,10 @@ function ProgressStat({ icon, label, value, accent }: ProgressStatProps) {
   return (
     <div
       className={cn(
-        "rounded-lg border bg-background/60 px-2.5 py-2",
-        accent === "primary" && "border-primary/25",
-        accent === "blue" && "border-blue-500/25",
-        accent === "muted" && "border-border/60"
+        "px-2.5 py-2",
+        accent === "primary" && "bg-primary/[0.03]",
+        accent === "blue" && "bg-blue-500/[0.03]",
+        accent === "muted" && "bg-transparent"
       )}
     >
       <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">

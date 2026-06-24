@@ -300,11 +300,11 @@ export default function SidebarClient({ classes }: Props) {
                   href={`/classes/${cSlug}`}
                   className={cn(
                     "relative block rounded-md border-l-[3px] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em]",
-                    "transition-[background-color,border-color,color,transform,box-shadow] duration-200",
+                    "transition-[background-color,border-color,color,transform] duration-200",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                     "hover:-translate-y-[1px] hover:border-primary/60 hover:bg-muted/30 hover:text-foreground",
                     classIsActive
-                      ? "border-primary bg-primary/25 text-foreground shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
+                      ? "border-primary bg-primary/25 text-foreground ring-1 ring-inset ring-primary/15"
                       : "border-transparent text-muted-foreground/90"
                   )}
                 >
@@ -314,10 +314,10 @@ export default function SidebarClient({ classes }: Props) {
                 <div
                   className={cn(
                     "group flex w-full items-center justify-between gap-2 rounded-md border-l-[3px] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em]",
-                    "transition-[background-color,border-color,color,transform,box-shadow] duration-200",
+                    "transition-[background-color,border-color,color,transform] duration-200",
                     "hover:-translate-y-[1px] hover:border-primary/60 hover:bg-muted/30 hover:text-foreground",
                     classIsActive
-                      ? "border-primary bg-primary/25 text-foreground shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
+                      ? "border-primary bg-primary/25 text-foreground ring-1 ring-inset ring-primary/15"
                       : "border-transparent text-muted-foreground/90"
                   )}
                 >
@@ -403,10 +403,10 @@ export default function SidebarClient({ classes }: Props) {
                             <div
                               className={cn(
                                 "group -ml-3 flex w-[calc(100%+0.75rem)] flex-col gap-0.5 rounded-md border-l-[3px] py-1 pl-3 pr-1.5 text-left",
-                                "transition-[background-color,border-color,color,transform,box-shadow] duration-200",
+                                "transition-[background-color,border-color,color,transform] duration-200",
                                 "hover:-translate-y-[1px]",
                                 chapterBarActive
-                                  ? "border-primary bg-primary/25 text-foreground pl-1 shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
+                                  ? "border-primary bg-primary/25 text-foreground pl-1 ring-1 ring-inset ring-primary/15"
                                   : "border-transparent text-muted-foreground/85 hover:border-primary/45 hover:bg-muted/25 hover:text-foreground"
                               )}
                             >

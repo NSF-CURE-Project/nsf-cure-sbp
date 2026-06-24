@@ -445,7 +445,7 @@ export default function Navbar() {
       <div className="ml-auto flex items-center gap-2">
         <button
           type="button"
-          className="hidden md:flex items-center gap-2 rounded-lg border border-border/70 bg-muted/40 px-3 py-1 text-[13px] text-muted-foreground shadow-sm transition hover:bg-muted/60"
+          className="hidden md:flex items-center gap-2 rounded-md border border-border/70 bg-muted/40 px-3 py-1 text-[13px] text-muted-foreground transition hover:bg-muted/60"
           onClick={() => setSearchOpen(true)}
           aria-label="Open search"
         >
@@ -469,7 +469,7 @@ export default function Navbar() {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="hidden md:inline-flex items-center gap-2.5 rounded-full border border-border/60 bg-background/70 px-2 py-1.5 text-sm font-medium text-foreground shadow-sm transition hover:border-border hover:bg-muted/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                className="hidden md:inline-flex items-center gap-2.5 rounded-md border border-border/60 bg-background/70 px-2 py-1.5 text-sm font-medium text-foreground transition hover:border-border hover:bg-muted/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 <Avatar className="h-8 w-8 border border-border/60">
                   <AvatarImage src="" alt={displayName} />
@@ -496,10 +496,10 @@ export default function Navbar() {
               align="center"
               sideOffset={8}
               alignOffset={0}
-              className="z-[9999] w-72 rounded-b-xl rounded-t-none border-x border-b border-t-0 border-border/70 bg-background/95 p-2 shadow-2xl data-[side=bottom]:slide-in-from-top-0 backdrop-blur supports-[backdrop-filter]:bg-background/90"
+              className="z-[9999] w-72 rounded-b-lg rounded-t-none border-x border-b border-t-0 border-border/70 bg-background/95 p-2 data-[side=bottom]:slide-in-from-top-0 backdrop-blur supports-[backdrop-filter]:bg-background/90"
             >
               <DropdownMenuLabel className="p-0 font-normal">
-                <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-3">
+                <div className="border-y border-border/60 bg-muted/10 px-3 py-3">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 border border-border/60">
                       <AvatarImage src="" alt={displayName} />
@@ -580,7 +580,7 @@ export default function Navbar() {
                 </span>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="my-2" />
-              <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2.5">
+              <div className="border-y border-border/60 bg-muted/10 px-3 py-2.5">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -605,7 +605,7 @@ export default function Navbar() {
               className="hidden md:inline-flex hover:bg-muted/60"
             />
             <LoginLink
-              className="hidden md:inline-flex h-8 items-center rounded-lg border border-border/70 bg-muted/40 px-3 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/60"
+              className="hidden md:inline-flex h-8 items-center rounded-md border border-border/70 bg-muted/40 px-3 text-sm font-medium text-foreground transition hover:bg-muted/60"
             >
               Sign In
             </LoginLink>
@@ -614,7 +614,7 @@ export default function Navbar() {
         {!resolvedUser ? (
           <button
             type="button"
-            className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-muted/40 text-foreground/70 shadow-sm opacity-70"
+            className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-muted/40 text-foreground/70 opacity-70"
             aria-hidden="true"
             disabled
           >
@@ -628,7 +628,7 @@ export default function Navbar() {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-muted/40 text-foreground shadow-sm transition hover:bg-muted/60"
+                className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-muted/40 text-foreground transition hover:bg-muted/60"
                 aria-label="Open notifications"
               >
                 <Bell className="h-4 w-4" />
@@ -643,7 +643,7 @@ export default function Navbar() {
               side="bottom"
               align="end"
               sideOffset={12}
-              className="z-[9999] w-80 bg-background shadow-xl"
+              className="z-[9999] w-80 border border-border/70 bg-background"
             >
               <div className="flex items-center justify-between px-3 py-2">
                 <span className="text-sm font-semibold">Notifications</span>
@@ -711,7 +711,7 @@ export default function Navbar() {
           <SheetTrigger asChild>
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-md border border-border/70 bg-muted/40 px-3 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:hidden"
+              className="inline-flex items-center gap-2 rounded-md border border-border/70 bg-muted/40 px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:hidden"
               aria-label="Open navigation"
             >
               <Menu className="h-4 w-4" />
@@ -728,7 +728,7 @@ export default function Navbar() {
 
             <div className="px-5 pb-6 space-y-4">
               {!resolvedUser ? null : user ? (
-                <div className="rounded-lg border border-border/60 bg-muted/40 px-4 py-3 text-sm">
+                <div className="border-y border-border/60 bg-muted/20 px-4 py-3 text-sm">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-9 w-9 border border-border/50">
                       <AvatarImage src="" alt={displayName} />
@@ -752,7 +752,7 @@ export default function Navbar() {
                 <Input
                   name="q"
                   placeholder="Search program..."
-                  className="h-10 rounded-lg border-border/80 bg-muted/40 pl-9 pr-3 text-sm shadow-sm transition focus-visible:ring-2 focus-visible:ring-primary/50"
+                  className="h-10 rounded-md border-border/80 bg-muted/40 pl-9 pr-3 text-sm transition focus-visible:ring-2 focus-visible:ring-primary/50"
                 />
               </form>
 
@@ -838,7 +838,7 @@ export default function Navbar() {
           onClick={() => setSearchOpen(false)}
         >
           <div
-            className="mx-auto mt-24 w-[min(92vw,720px)] rounded-2xl border border-border/70 bg-background shadow-2xl"
+            className="mx-auto mt-24 w-[min(92vw,720px)] rounded-lg border border-border/70 bg-background"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center gap-2 border-b border-border/60 px-4 py-3">
@@ -849,7 +849,7 @@ export default function Navbar() {
                   value={searchValue}
                   onChange={(event) => setSearchValue(event.target.value)}
                   placeholder="What are you searching for?"
-                  className="w-full border-border/60 bg-muted/20 px-3 text-sm shadow-sm"
+                  className="w-full border-border/60 bg-muted/20 px-3 text-sm"
                 />
               </form>
               <button
@@ -868,7 +868,7 @@ export default function Navbar() {
               <div className="mt-2 grid gap-2">
                 <Link
                   href="/directory"
-                  className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-sm text-foreground transition hover:bg-muted/40"
+                  className="flex items-center justify-between border-y border-border/60 bg-muted/10 px-3 py-2 text-sm text-foreground transition hover:bg-muted/40"
                   onClick={() => setSearchOpen(false)}
                 >
                   Site Directory
@@ -878,7 +878,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href="/classes"
-                  className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-sm text-foreground transition hover:bg-muted/40"
+                  className="flex items-center justify-between border-b border-border/60 bg-muted/10 px-3 py-2 text-sm text-foreground transition hover:bg-muted/40"
                   onClick={() => setSearchOpen(false)}
                 >
                   Classes

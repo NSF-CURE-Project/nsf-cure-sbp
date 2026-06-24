@@ -71,7 +71,7 @@ export function ConfirmDialog({
     >
       <div
         className={cn(
-          "grid w-full max-w-md gap-3.5 rounded-2xl border border-border/60 bg-background p-5 shadow-2xl",
+          "grid w-full max-w-md gap-3.5 rounded-lg border border-border/60 bg-background p-5",
           "animate-in fade-in zoom-in-95 duration-200",
         )}
       >
@@ -144,7 +144,7 @@ export function ConfirmDialog({
             onClick={onConfirm}
             disabled={busy}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all",
+              "inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors",
               destructive
                 ? "bg-red-600 hover:bg-red-700"
                 : "bg-primary hover:bg-primary/90",

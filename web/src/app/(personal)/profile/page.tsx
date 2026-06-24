@@ -210,7 +210,7 @@ export default function ProfilePage() {
 
   return (
     <main className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 sm:px-6 lg:px-8 py-6">
-      <div className="rounded-md bg-card/80 p-10 shadow-lg">
+      <div>
         <div className="space-y-3">
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
             Profile
@@ -224,7 +224,7 @@ export default function ProfilePage() {
 
         <div className="mt-10 space-y-6 text-[15px] leading-relaxed">
           {status === "loading" ? (
-            <div className="rounded-md border border-border/60 bg-muted/30 px-5 py-4 text-base text-muted-foreground">
+            <div className="border-y border-border/60 bg-muted/20 py-4 text-base text-muted-foreground">
               Loading your profile...
             </div>
           ) : null}
@@ -236,7 +236,7 @@ export default function ProfilePage() {
           ) : null}
 
           {status === "ready" && !user ? (
-            <div className="rounded-md border border-border/60 bg-muted/30 px-5 py-4 text-base text-muted-foreground">
+            <div className="border-y border-border/60 bg-muted/20 py-4 text-base text-muted-foreground">
               You are not signed in.{" "}
               <LoginLink
                 className="font-semibold text-primary underline underline-offset-4"
@@ -247,7 +247,7 @@ export default function ProfilePage() {
           ) : null}
 
           {status === "ready" && user ? (
-            <div className="grid gap-4 rounded-md border border-border/60 bg-background/80 p-6 text-[15px]">
+            <div className="grid gap-4 border-y border-border/60 bg-background/50 py-6 text-[15px]">
               <div className="flex flex-col gap-1">
                 <span className="text-xs uppercase tracking-wide text-muted-foreground">
                   Full name
@@ -298,7 +298,7 @@ export default function ProfilePage() {
           ) : null}
 
           {status === "ready" && user ? (
-            <div className="rounded-md border border-border/60 bg-background/80 p-6 text-[15px] space-y-4">
+            <div className="border-y border-border/60 bg-background/50 py-6 text-[15px] space-y-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <span className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -317,7 +317,7 @@ export default function ProfilePage() {
               </div>
 
               {classroomsStatus === "loading" ? (
-                <div className="rounded-md border border-border/60 bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
+                <div className="border-y border-border/60 bg-muted/20 py-3 text-xs text-muted-foreground">
                   Loading classrooms...
                 </div>
               ) : null}
@@ -336,7 +336,7 @@ export default function ProfilePage() {
               ) : null}
 
               {classroomsStatus === "ready" && classrooms.length > 0 ? (
-                <div className="grid gap-3">
+                <div className="divide-y divide-border/60 border-y border-border/60">
                   {classrooms.map((membership) => {
                     const classroomTitle =
                       membership.classroom?.title ?? "Classroom";
@@ -378,10 +378,7 @@ export default function ProfilePage() {
                     );
 
                     return (
-                      <div
-                        key={membership.id}
-                        className="flex flex-col gap-3 rounded-md border border-border/60 bg-background px-4 py-3.5"
-                      >
+                      <div key={membership.id} className="flex flex-col gap-3 py-4">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <div className="text-[15px] font-semibold text-foreground">
@@ -500,7 +497,7 @@ export default function ProfilePage() {
           ) : null}
 
           {status === "ready" && user ? (
-            <div className="rounded-md border border-border/60 bg-background/80 p-6 text-[15px] space-y-4">
+            <div className="border-y border-border/60 bg-background/50 py-6 text-[15px] space-y-4">
               <div>
                 <span className="text-xs uppercase tracking-wide text-muted-foreground">
                   Progress summary
@@ -510,7 +507,7 @@ export default function ProfilePage() {
                 </p>
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
-                <div className="rounded-md border border-border/60 bg-background px-4 py-3">
+                <div className="border-y border-border/60 bg-background/50 py-3">
                   <div className="text-xs uppercase tracking-wide text-muted-foreground">
                     Lessons completed
                   </div>
@@ -518,7 +515,7 @@ export default function ProfilePage() {
                     {progressSummary.completedLessons}
                   </div>
                 </div>
-                <div className="rounded-md border border-border/60 bg-background px-4 py-3">
+                <div className="border-y border-border/60 bg-background/50 py-3">
                   <div className="text-xs uppercase tracking-wide text-muted-foreground">
                     Overall completion
                   </div>
@@ -526,7 +523,7 @@ export default function ProfilePage() {
                     {overallCompletion}%
                   </div>
                 </div>
-                <div className="rounded-md border border-border/60 bg-background px-4 py-3">
+                <div className="border-y border-border/60 bg-background/50 py-3">
                   <div className="text-xs uppercase tracking-wide text-muted-foreground">
                     Last activity
                   </div>

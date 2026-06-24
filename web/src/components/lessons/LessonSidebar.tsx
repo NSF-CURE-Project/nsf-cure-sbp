@@ -177,8 +177,8 @@ export default function LessonSidebar({
       className="hidden xl:block xl:w-[260px] shrink-0"
     >
       <div className="sticky top-[calc(var(--nav-h,4rem)+1rem)] grid gap-4">
-        {/* Lesson meta card */}
-        <section className="rounded-xl border border-border/60 bg-card/40 p-4">
+        {/* Lesson meta */}
+        <section className="border-y border-border/60 bg-muted/10 py-4">
           <div className="flex items-center justify-between gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/60 px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-foreground/75">
               {lessonType}
@@ -236,10 +236,10 @@ export default function LessonSidebar({
         {streak ? (
           <section
             className={cn(
-              "rounded-xl border p-4 transition-colors",
+              "border-y py-4 transition-colors",
               streak.activeToday
                 ? "border-amber-500/35 bg-amber-500/8"
-                : "border-border/60 bg-card/40",
+                : "border-border/60 bg-muted/10",
             )}
             aria-label="Learning streak"
           >
@@ -291,7 +291,7 @@ export default function LessonSidebar({
 
         {/* Table of contents */}
         {sections.length > 1 ? (
-          <section className="rounded-xl border border-border/60 bg-card/40 p-4">
+          <section className="border-y border-border/60 bg-muted/10 py-4">
             <div className="mb-2 flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-foreground/75">
               <ListTree className="h-3.5 w-3.5" />
               In this lesson
@@ -335,7 +335,7 @@ export default function LessonSidebar({
         {next ? (
           <Link
             href={`${hrefPrefix}/${next.slug}`}
-            className="group block rounded-xl border border-border/60 bg-card/40 p-4 transition-all hover:-translate-y-[1px] hover:border-primary/50 hover:bg-card/60 hover:shadow-sm"
+            className="group block border-y border-border/60 bg-muted/10 py-4 transition-colors hover:bg-muted/25"
           >
             <div className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
               Up next
@@ -354,7 +354,7 @@ export default function LessonSidebar({
         {!next && prev ? (
           <Link
             href={`${hrefPrefix}/${prev.slug}`}
-            className="group block rounded-xl border border-border/60 bg-card/40 p-4 transition-all hover:-translate-y-[1px] hover:border-primary/50 hover:bg-card/60 hover:shadow-sm"
+            className="group block border-y border-border/60 bg-muted/10 py-4 transition-colors hover:bg-muted/25"
           >
             <div className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
               Previous lesson

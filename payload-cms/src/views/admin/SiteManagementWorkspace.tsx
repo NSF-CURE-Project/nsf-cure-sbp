@@ -64,6 +64,7 @@ export default function SiteManagementWorkspace({ initialUsers }: Props) {
     return value === 'navigation' || value === 'users' ? value : 'general'
   })()
 
+  const canManageAuthSettings = auth.user?.role === 'admin'
   const canCreateUsers = auth.user?.role === 'admin'
   const canEditRoles = auth.user?.role === 'admin'
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -124,7 +125,7 @@ export default function SiteManagementWorkspace({ initialUsers }: Props) {
         })}
       </nav>
 
-      {tab === 'general' ? <GeneralPanel /> : null}
+      {tab === 'general' ? <GeneralPanel canManageAuthSettings={canManageAuthSettings} /> : null}
       {tab === 'navigation' ? <NavigationPanel /> : null}
       {tab === 'users' ? (
         <UsersPanel
@@ -182,7 +183,7 @@ export default function SiteManagementWorkspace({ initialUsers }: Props) {
   )
 }
 
-function GeneralPanel() {
+function GeneralPanel({ canManageAuthSettings }: { canManageAuthSettings: boolean }) {
   const rows = [
     {
       title: 'Branding',
@@ -194,6 +195,15 @@ function GeneralPanel() {
       description: 'Footer links, contact info, feedback toggle.',
       href: '/admin/globals/footer',
     },
+    ...(canManageAuthSettings
+      ? [
+          {
+            title: 'Auth Settings',
+            description: 'Enable or disable student account access.',
+            href: '/admin/globals/auth-settings',
+          },
+        ]
+      : []),
     {
       title: 'Help Portal',
       description: 'FAQ entries, support links, quick actions.',

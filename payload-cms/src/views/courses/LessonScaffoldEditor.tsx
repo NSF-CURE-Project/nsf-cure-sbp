@@ -204,7 +204,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
     }
   }
 
-  const validate = (intent: SaveIntent): string | null => {
+  const validate = (): string | null => {
     if (!title.trim()) return 'Title is required.'
     for (const [i, block] of blocks.entries()) {
       if (block.blockType === 'sectionTitle' && !block.title.trim()) {
@@ -228,9 +228,6 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
       if (block.blockType === 'quizBlock' && block.quiz == null) {
         return `Block ${i + 1} (quiz) needs a quiz selected.`
       }
-    }
-    if (intent === 'publish' && blocks.length === 0) {
-      return 'Add at least one block before publishing.'
     }
     return null
   }
@@ -293,7 +290,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
   }
 
   const save = async (intent: SaveIntent) => {
-    const message = validate(intent)
+    const message = validate()
     if (message) {
       setError(message)
       return
@@ -348,7 +345,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
       // (we'd race ourselves into stale data otherwise).
       const fresh = JSON.stringify({ title, blocks: toPersistedLayout(blocks) })
       if (fresh !== snapshot) return
-      if (validate('draft') !== null) return // silent skip if invalid
+      if (validate() !== null) return // silent skip if invalid
       setAutoSaveStatus('saving')
       try {
         await updateLesson(props.lessonId, {
@@ -377,7 +374,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
   // stale).
   const [preparingReview, setPreparingReview] = useState(false)
   const handlePublishClick = async () => {
-    const message = validate('publish')
+    const message = validate()
     if (message) {
       setError(message)
       return

@@ -85,7 +85,7 @@ export function LoginForm() {
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="login-input h-12 rounded-xl !border !border-slate-300 !bg-white !text-base !text-slate-900 shadow-sm transition-all duration-200 placeholder:text-slate-400 hover:!border-slate-400 focus-visible:!border-emerald-600 focus-visible:!ring-2 focus-visible:!ring-emerald-200 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
+          className="login-input h-12 rounded-md !border !border-slate-300 !bg-white !text-base !text-slate-900 transition-all duration-200 placeholder:text-slate-400 hover:!border-slate-400 focus-visible:!border-emerald-600 focus-visible:!ring-2 focus-visible:!ring-emerald-200 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
           placeholder="student@cpp.edu"
         />
       </div>
@@ -100,7 +100,7 @@ export function LoginForm() {
           required
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="login-input h-12 rounded-xl !border !border-slate-300 !bg-white !text-base !text-slate-900 shadow-sm transition-all duration-200 placeholder:text-slate-400 hover:!border-slate-400 focus-visible:!border-emerald-600 focus-visible:!ring-2 focus-visible:!ring-emerald-200 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
+          className="login-input h-12 rounded-md !border !border-slate-300 !bg-white !text-base !text-slate-900 transition-all duration-200 placeholder:text-slate-400 hover:!border-slate-400 focus-visible:!border-emerald-600 focus-visible:!ring-2 focus-visible:!ring-emerald-200 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
           placeholder="••••••••"
         />
       </div>
@@ -121,7 +121,7 @@ export function LoginForm() {
       <Button
         type="submit"
         disabled={status === "loading"}
-        className="h-12 w-full rounded-xl bg-emerald-700 text-base font-semibold text-white shadow-md shadow-emerald-900/30 transition-all duration-200 hover:bg-emerald-800 active:scale-[0.99]"
+        className="h-12 w-full rounded-md bg-emerald-700 text-base font-semibold text-white transition-colors duration-200 hover:bg-emerald-800"
       >
         {status === "loading" ? "Signing in..." : "Sign In"}
       </Button>

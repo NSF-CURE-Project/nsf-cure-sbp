@@ -58,7 +58,7 @@ export default function ContentShell({
         >
           <div
             className={cn(
-              "hidden lg:flex lg:flex-col lg:bg-background lg:shadow-[0_1px_0_rgba(15,23,42,0.04)]",
+              "hidden lg:flex lg:flex-col lg:border-r lg:border-border/50 lg:bg-background",
               sidebarOpen
                 ? "lg:sticky lg:top-[var(--nav-h,4rem)] lg:h-[calc(100dvh-var(--nav-h,4rem))]"
                 : "lg:fixed lg:left-0 lg:top-[var(--nav-h,4rem)] lg:h-[calc(100dvh-var(--nav-h,4rem))] lg:w-14 lg:z-30"

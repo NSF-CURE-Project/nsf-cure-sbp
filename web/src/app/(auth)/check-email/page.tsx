@@ -11,7 +11,7 @@ export const metadata = buildMetadata({
 export default function CheckEmailPage() {
   return (
     <main className="min-h-[70vh] px-6 py-16">
-      <div className="mx-auto w-full max-w-xl rounded-md border border-border/60 bg-card/80 p-10 shadow-lg">
+      <div className="mx-auto w-full max-w-xl border-y border-border/60 bg-background/50 py-10">
         <div className="space-y-2">
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
             Student Access
@@ -32,7 +32,7 @@ export default function CheckEmailPage() {
         <div className="mt-8">
           <Link
             href="/forgot-password"
-            className="inline-flex items-center rounded-md border border-border/70 bg-muted/40 px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition hover:bg-muted/60"
+            className="inline-flex items-center rounded-md border border-border/70 bg-muted/40 px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-muted/60"
           >
             Try another email
           </Link>

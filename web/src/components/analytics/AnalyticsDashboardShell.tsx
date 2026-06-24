@@ -50,7 +50,7 @@ export function AnalyticsDashboardShell({ data }: AnalyticsDashboardShellProps) 
         </header>
 
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl border border-border/60 bg-card/50 p-4">
+          <div className="border-y border-border/60 bg-muted/10 p-4">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
               Lessons completed
             </p>
@@ -58,7 +58,7 @@ export function AnalyticsDashboardShell({ data }: AnalyticsDashboardShellProps) 
               {data.totalLessonsCompleted}
             </p>
           </div>
-          <div className="rounded-xl border border-border/60 bg-card/50 p-4">
+          <div className="border-y border-border/60 bg-muted/10 p-4">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
               Time spent
             </p>
@@ -66,7 +66,7 @@ export function AnalyticsDashboardShell({ data }: AnalyticsDashboardShellProps) 
               {formatDuration(data.totalTimeSpentSec)}
             </p>
           </div>
-          <div className="rounded-xl border border-border/60 bg-card/50 p-4">
+          <div className="border-y border-border/60 bg-muted/10 p-4">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
               Current streak
             </p>
@@ -74,7 +74,7 @@ export function AnalyticsDashboardShell({ data }: AnalyticsDashboardShellProps) 
               {data.currentStreak} day{data.currentStreak === 1 ? "" : "s"}
             </p>
           </div>
-          <div className="rounded-xl border border-border/60 bg-card/50 p-4">
+          <div className="border-y border-border/60 bg-muted/10 p-4">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
               Longest streak
             </p>
@@ -88,7 +88,7 @@ export function AnalyticsDashboardShell({ data }: AnalyticsDashboardShellProps) 
 
         <StreakDisplay activity={data.recentActivity} />
 
-        <section className="rounded-xl border border-border/60 bg-card/50 p-5">
+        <section className="border-y border-border/60 py-5">
           <h2 className="text-base font-semibold text-foreground">Classroom Progress</h2>
           {data.classroomSummaries.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">

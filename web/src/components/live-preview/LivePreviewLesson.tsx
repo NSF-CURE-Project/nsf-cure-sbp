@@ -315,7 +315,7 @@ export function LivePreviewLesson({
         </div>
 
         {data?.objectives && data.objectives.length > 0 ? (
-          <div className="mt-5 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 sm:px-5 sm:py-4">
+          <div className="mt-5 border-l-[3px] border-primary/35 bg-primary/5 px-4 py-3 sm:px-5 sm:py-4">
             <div className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.1em] text-primary">
               <Sparkles className="h-3 w-3" aria-hidden="true" />
               You will learn

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { LoginForm } from "./LoginForm";
+import { AuthDisabledNotice } from "@/components/auth/AuthDisabledNotice";
 import { buildMetadata } from "@/lib/seo";
+import { getAuthSettings } from "@/lib/payloadSdk/authSettings";
 
 export const metadata = buildMetadata({
   title: "Sign in",
@@ -9,7 +11,9 @@ export const metadata = buildMetadata({
   noIndex: true,
 });
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const authSettings = await getAuthSettings({ cache: "no-store" });
+
   return (
     <main className="relative flex min-h-[calc(100vh-5rem)] items-center justify-center overflow-hidden bg-transparent px-4 py-8 sm:px-6 sm:py-10">
       <section className="relative mx-auto grid w-full max-w-[90rem] gap-6 md:-translate-y-6 md:grid-cols-[0.8fr_1.2fr] md:items-stretch">
@@ -30,20 +34,20 @@ export default function LoginPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 text-xs font-medium uppercase tracking-[0.08em] text-slate-600 dark:text-slate-200">
-            <span className="rounded-full border border-white/85 bg-white/85 px-3 py-1.5 shadow-sm dark:border-slate-700 dark:bg-slate-800/90">
+            <span className="rounded-full border border-emerald-700/20 bg-emerald-700/5 px-3 py-1.5 dark:border-slate-700 dark:bg-slate-800/70">
               Progress tracking
             </span>
-            <span className="rounded-full border border-white/85 bg-white/85 px-3 py-1.5 shadow-sm dark:border-slate-700 dark:bg-slate-800/90">
+            <span className="rounded-full border border-emerald-700/20 bg-emerald-700/5 px-3 py-1.5 dark:border-slate-700 dark:bg-slate-800/70">
               Ask questions
             </span>
-            <span className="rounded-full border border-white/85 bg-white/85 px-3 py-1.5 shadow-sm dark:border-slate-700 dark:bg-slate-800/90">
+            <span className="rounded-full border border-emerald-700/20 bg-emerald-700/5 px-3 py-1.5 dark:border-slate-700 dark:bg-slate-800/70">
               Join classrooms
             </span>
           </div>
         </div>
 
         <div className="relative h-full p-2 sm:p-4 md:p-6">
-          <div className="relative mx-auto flex h-full w-full max-w-[56rem] flex-col rounded-2xl border border-slate-200/90 bg-[#f9fafb] p-6 shadow-xl shadow-slate-900/15 ring-1 ring-black/5 dark:border-white/10 dark:shadow-black/40 dark:ring-white/10 sm:p-8">
+          <div className="relative mx-auto flex h-full w-full max-w-[56rem] flex-col border-y border-slate-200/90 bg-[#f9fafb]/80 py-6 dark:border-white/10 sm:py-8">
             <div className="mb-6 space-y-2">
               <h2 className="text-2xl font-semibold text-slate-900">
                 Welcome back
@@ -53,28 +57,36 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <LoginForm />
+            {authSettings.studentLoginEnabled ? (
+              <LoginForm />
+            ) : (
+              <AuthDisabledNotice
+                message={authSettings.studentLoginDisabledMessage}
+              />
+            )}
 
-            <div className="mt-auto pt-6 space-y-2 text-sm text-slate-600">
-              <p>
-                Need an account?{" "}
-                <Link
-                  href="/register"
-                  className="font-semibold text-emerald-700 underline underline-offset-4 hover:text-emerald-800"
-                >
-                  Create one
-                </Link>
-              </p>
-              <p>
-                Forgot your password?{" "}
-                <Link
-                  href="/forgot-password"
-                  className="font-semibold text-emerald-700 underline underline-offset-4 hover:text-emerald-800"
-                >
-                  Reset it
-                </Link>
-              </p>
-            </div>
+            {authSettings.studentLoginEnabled ? (
+              <div className="mt-auto pt-6 space-y-2 text-sm text-slate-600">
+                <p>
+                  Need an account?{" "}
+                  <Link
+                    href="/register"
+                    className="font-semibold text-emerald-700 underline underline-offset-4 hover:text-emerald-800"
+                  >
+                    Create one
+                  </Link>
+                </p>
+                <p>
+                  Forgot your password?{" "}
+                  <Link
+                    href="/forgot-password"
+                    className="font-semibold text-emerald-700 underline underline-offset-4 hover:text-emerald-800"
+                  >
+                    Reset it
+                  </Link>
+                </p>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>

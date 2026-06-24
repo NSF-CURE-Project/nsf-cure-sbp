@@ -86,18 +86,15 @@ export function ClassroomsShell({ classrooms }: ClassroomsShellProps) {
         ) : null}
 
         {items.length === 0 ? (
-          <section className="rounded-xl border border-border/60 bg-card/40 p-5 text-sm text-muted-foreground">
+          <section className="border-y border-border/60 bg-muted/10 py-5 text-sm text-muted-foreground">
             You are not currently enrolled in any classroom.
           </section>
         ) : (
-          <section className="grid gap-4">
+          <section className="divide-y divide-border/60 border-y border-border/60">
             {items.map((item) => {
               const pct = Math.max(0, Math.min(100, Math.round(item.completionRate * 100)));
               return (
-                <article
-                  key={item.id}
-                  className="rounded-xl border border-border/60 bg-card/50 p-5"
-                >
+                <article key={item.id} className="py-5">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h2 className="text-lg font-semibold text-foreground">

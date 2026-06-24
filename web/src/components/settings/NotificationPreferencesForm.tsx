@@ -96,7 +96,7 @@ export function NotificationPreferencesForm() {
   };
 
   return (
-    <section className="rounded-xl border border-border/60 bg-card/80 p-6 shadow-sm">
+    <section className="border-y border-border/60 bg-background/50 py-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
@@ -118,7 +118,7 @@ export function NotificationPreferencesForm() {
       </div>
 
       {status === "loading" ? (
-        <div className="mt-6 rounded-lg border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+        <div className="mt-6 border-y border-border/60 bg-muted/20 py-3 text-sm text-muted-foreground">
           Loading preferences...
         </div>
       ) : null}
@@ -132,10 +132,7 @@ export function NotificationPreferencesForm() {
       {status === "ready" ? (
         <div className="mt-6 space-y-3">
           {preferenceLabels.map((item) => (
-            <label
-              key={item.key}
-              className="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-muted/20 p-4"
-            >
+            <label key={item.key} className="flex items-center justify-between gap-4 border-y border-border/60 bg-muted/10 py-4">
               <span className="text-sm font-medium text-foreground">{item.label}</span>
               <Switch
                 checked={preferences[item.key]}

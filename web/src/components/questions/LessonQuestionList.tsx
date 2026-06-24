@@ -183,7 +183,7 @@ export function LessonQuestionList({ lessonId, refreshKey = 0 }: Props) {
   }
 
   return (
-    <section className="mt-6 space-y-3 rounded-2xl border border-border/60 bg-muted/10 p-5">
+    <section className="mt-6 space-y-3 border-y border-border/60 bg-muted/10 py-5">
       <div>
         <h3 className="text-base font-semibold text-foreground">
           Your questions
@@ -209,14 +209,11 @@ export function LessonQuestionList({ lessonId, refreshKey = 0 }: Props) {
         </p>
       ) : null}
 
-      <div className="space-y-3">
+      <div className="divide-y divide-border/60 border-y border-border/60">
         {questions.map((question) => {
           const badge = statusBadge(question.status);
           return (
-            <div
-              key={question.id}
-              className="rounded-xl border border-border/60 bg-background/60 px-4 py-3"
-            >
+            <div key={question.id} className="py-4">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant={badge.variant}>{badge.label}</Badge>
                 <span className="text-sm font-semibold text-foreground">
@@ -261,7 +258,7 @@ export function LessonQuestionList({ lessonId, refreshKey = 0 }: Props) {
               </div>
 
               {expandedQuestionId === question.id ? (
-                <div className="mt-3 rounded-lg border border-border/60 bg-muted/35 p-3">
+                <div className="mt-3 border-l-[3px] border-border/60 bg-muted/25 px-3 py-2">
                   {detailLoading === question.id ? (
                     <p className="text-sm text-muted-foreground">Loading thread...</p>
                   ) : (
@@ -272,10 +269,7 @@ export function LessonQuestionList({ lessonId, refreshKey = 0 }: Props) {
                         </p>
                       ) : (
                         (expandedDetails[question.id]?.answers ?? []).map((answer, index) => (
-                          <div
-                            key={`${question.id}-answer-${index}`}
-                            className="rounded-md border border-border/60 bg-background/60 p-3"
-                          >
+                          <div key={`${question.id}-answer-${index}`} className="border-t border-border/60 py-3 first:border-t-0">
                             <p className="mb-2 text-xs text-muted-foreground">
                               {answer.createdAt
                                 ? formatShortDate(answer.createdAt)

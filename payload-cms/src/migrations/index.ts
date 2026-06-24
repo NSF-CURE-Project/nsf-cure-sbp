@@ -42,6 +42,8 @@ import * as migration_20260512_130000_drop_problem_sets from './20260512_130000_
 import * as migration_20260513_140000_repair_admin_help_blocks_tables from './20260513_140000_repair_admin_help_blocks_tables'
 import * as migration_20260513_150000_add_pages_hidden from './20260513_150000_add_pages_hidden'
 import * as migration_20260513_170000_add_lesson_learning_fields from './20260513_170000_add_lesson_learning_fields'
+import * as migration_20260624_064500_repair_lesson_learning_version_tables from './20260624_064500_repair_lesson_learning_version_tables'
+import * as migration_20260624_081500_add_auth_settings from './20260624_081500_add_auth_settings'
 
 export const migrations = [
   {
@@ -263,5 +265,15 @@ export const migrations = [
     up: migration_20260513_170000_add_lesson_learning_fields.up,
     down: migration_20260513_170000_add_lesson_learning_fields.down,
     name: '20260513_170000_add_lesson_learning_fields',
+  },
+  {
+    up: migration_20260624_064500_repair_lesson_learning_version_tables.up,
+    down: migration_20260624_064500_repair_lesson_learning_version_tables.down,
+    name: '20260624_064500_repair_lesson_learning_version_tables',
+  },
+  {
+    up: migration_20260624_081500_add_auth_settings.up,
+    down: migration_20260624_081500_add_auth_settings.down,
+    name: '20260624_081500_add_auth_settings',
   },
 ]

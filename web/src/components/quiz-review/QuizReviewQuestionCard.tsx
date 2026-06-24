@@ -36,7 +36,7 @@ export function QuizReviewQuestionCard({
   const [showExplanation, setShowExplanation] = useState(false);
 
   return (
-    <article className="rounded-xl border border-border/60 bg-card/50 p-5">
+    <article className="border-y border-border/60 py-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-base font-semibold text-foreground">
           {index + 1}. {question.title}
@@ -132,7 +132,7 @@ export function QuizReviewQuestionCard({
       </div>
 
       {!question.isCorrect && question.explanation ? (
-        <div className="mt-4 rounded-lg border border-border/60 bg-muted/35 p-4">
+        <div className="mt-4 border-l-[3px] border-border/60 bg-muted/25 px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Explanation

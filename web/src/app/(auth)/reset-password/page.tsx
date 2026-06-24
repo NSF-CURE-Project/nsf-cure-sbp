@@ -1,6 +1,8 @@
 import { ResetPasswordForm } from "./ResetPasswordForm";
+import { AuthDisabledNotice } from "@/components/auth/AuthDisabledNotice";
 import { buildMetadata } from "@/lib/seo";
 import { LoginLink } from "@/components/auth/LoginLink";
+import { getAuthSettings } from "@/lib/payloadSdk/authSettings";
 
 export const metadata = buildMetadata({
   title: "Reset Password",
@@ -19,10 +21,11 @@ export default async function ResetPasswordPage({
   const sp = (await searchParams) ?? {};
   const rawToken = sp.token;
   const token = Array.isArray(rawToken) ? rawToken[0] : rawToken;
+  const authSettings = await getAuthSettings({ cache: "no-store" });
 
   return (
     <main className="min-h-[70vh] px-6 py-16">
-      <div className="mx-auto w-full max-w-xl rounded-lg border border-border/60 bg-card/80 p-10 shadow-lg">
+      <div className="mx-auto w-full max-w-xl border-y border-border/60 bg-background/50 py-10">
         <div className="space-y-2">
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
             Student Access
@@ -36,7 +39,12 @@ export default async function ResetPasswordPage({
         </div>
 
         <div className="mt-8">
-          {token ? (
+          {!authSettings.studentLoginEnabled ? (
+            <AuthDisabledNotice
+              message={authSettings.studentLoginDisabledMessage}
+              title="Password reset is temporarily unavailable"
+            />
+          ) : token ? (
             <ResetPasswordForm token={token} />
           ) : (
             <p className="text-sm text-red-700">
@@ -45,14 +53,16 @@ export default async function ResetPasswordPage({
           )}
         </div>
 
-        <p className="mt-6 text-sm text-muted-foreground">
-          Back to{" "}
-          <LoginLink
-            className="font-semibold text-primary underline underline-offset-4"
-          >
-            Sign in
-          </LoginLink>
-        </p>
+        {authSettings.studentLoginEnabled ? (
+          <p className="mt-6 text-sm text-muted-foreground">
+            Back to{" "}
+            <LoginLink
+              className="font-semibold text-primary underline underline-offset-4"
+            >
+              Sign in
+            </LoginLink>
+          </p>
+        ) : null}
       </div>
     </main>
   );

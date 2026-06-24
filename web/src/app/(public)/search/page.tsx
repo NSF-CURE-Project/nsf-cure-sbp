@@ -108,7 +108,7 @@ const STOP_WORDS = new Set([
 ]);
 
 const selectClassName =
-  "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground border-border/60 bg-card/70 h-11 w-full min-w-0 rounded-xl border px-3.5 py-2 text-sm text-foreground shadow-sm shadow-black/5 transition-[color,box-shadow,background-color,border-color] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60 dark:bg-muted/30 dark:border-border/70 dark:shadow-black/20 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20";
+  "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground border-border/60 bg-background h-11 w-full min-w-0 rounded-md border px-3.5 py-2 text-sm text-foreground transition-[color,box-shadow,background-color,border-color] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60 dark:bg-muted/30 dark:border-border/70 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20";
 
 export default async function SearchPage({
   searchParams,
@@ -236,7 +236,7 @@ export default async function SearchPage({
           </p>
         </header>
 
-        <section className="rounded-2xl border border-border/70 bg-gradient-to-b from-muted/25 to-background/50 p-4 shadow-sm sm:p-5">
+        <section className="border-y border-border/70 bg-muted/10 py-5">
           <form role="search" action="/search" className="space-y-7">
             <div className="space-y-3">
               <div className="relative">
@@ -245,7 +245,7 @@ export default async function SearchPage({
                   name="q"
                   defaultValue={query ?? ""}
                   placeholder="Search titles, topics, or lesson content..."
-                  className="h-[3.25rem] rounded-xl border-border/70 bg-background/55 pl-12 pr-4 text-[17px] placeholder:text-muted-foreground/80"
+                  className="h-[3.25rem] rounded-md border-border/70 bg-background pl-12 pr-4 text-[17px] placeholder:text-muted-foreground/80"
                 />
               </div>
               {hasSearchIntent ? (
@@ -353,7 +353,7 @@ export default async function SearchPage({
 
               {visibleTagOptions.length > 0 ? (
                 <details
-                  className="rounded-xl border border-border/55 bg-background/25 p-4"
+                  className="border-y border-border/55 bg-background/25 py-4"
                   open={selectedTags.length > 0 || showMoreTagsByDefault}
                 >
                   <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-[0.09em] text-muted-foreground transition hover:text-foreground [&::-webkit-details-marker]:hidden">
@@ -458,11 +458,11 @@ export default async function SearchPage({
         </section>
 
         {!hasSearchIntent ? (
-          <div className="rounded-xl border border-border/60 bg-muted/10 px-4 py-3 text-muted-foreground">
+          <div className="border-y border-border/60 bg-muted/10 py-3 text-muted-foreground">
             Enter a query or apply filters to find matching content.
           </div>
         ) : rankedResults.length === 0 ? (
-          <div className="rounded-xl border border-border/60 bg-muted/10 px-4 py-3 text-muted-foreground">
+          <div className="border-y border-border/60 bg-muted/10 py-3 text-muted-foreground">
             <p>
               No results for{" "}
               <span className="font-semibold text-foreground">
@@ -478,7 +478,7 @@ export default async function SearchPage({
           </div>
         ) : (
           <section className="space-y-5">
-            <div className="rounded-xl border border-primary/30 bg-primary/10 px-4 py-3">
+            <div className="border-y border-primary/30 bg-primary/10 py-3">
               <p className="text-sm font-semibold text-foreground">
                 <span className="text-lg">{rankedResults.length}</span> result
                 {rankedResults.length === 1 ? "" : "s"}
@@ -493,14 +493,14 @@ export default async function SearchPage({
                 ) : null}
               </p>
             </div>
-            <ul className="space-y-4">
+            <ul className="divide-y divide-border/60 border-y border-border/60">
               {rankedResults.map((item) => {
                 const snippet = buildResultSnippet(item, query ?? "", highlightTokens);
                 return (
                   <li key={item.id}>
                     <Link
                       href={item.href}
-                      className="group block rounded-xl border border-border/80 bg-muted/25 px-4 py-4 shadow-sm transition hover:border-primary/50 hover:bg-muted/35 hover:shadow-md sm:px-5"
+                      className="group block px-1 py-4 transition-colors hover:bg-muted/25 sm:px-2"
                     >
                       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                         <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/35 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-primary">

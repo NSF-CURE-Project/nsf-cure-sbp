@@ -30,7 +30,7 @@ export function QuizReviewSummary({
     : "Unknown";
 
   return (
-    <section className="rounded-xl border border-border/60 bg-background/80 p-5">
+    <section className="border-y border-border/60 py-5">
       <p className="text-xs uppercase tracking-wide text-muted-foreground">
         Quiz review
       </p>
@@ -54,7 +54,7 @@ export function QuizReviewSummary({
       </div>
 
       {remediationLink ? (
-        <div className="mt-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
+        <div className="mt-4 border-l-[3px] border-primary/45 bg-primary/5 px-4 py-3">
           <p className="text-sm text-foreground">
             Review the related lesson to close any remaining gaps before your next attempt.
           </p>

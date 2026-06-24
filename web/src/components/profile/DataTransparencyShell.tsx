@@ -47,7 +47,7 @@ export function DataTransparencyShell({ data }: DataTransparencyShellProps) {
           </h1>
         </header>
 
-        <section className="rounded-xl border border-border/60 bg-card/50 p-5">
+        <section className="border-y border-border/60 py-5">
           <h2 className="text-base font-semibold text-foreground">Your Profile Data</h2>
           <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
             <div>Name: {renderValue(data.profile.name)}</div>
@@ -63,7 +63,7 @@ export function DataTransparencyShell({ data }: DataTransparencyShellProps) {
           </div>
         </section>
 
-        <section className="rounded-xl border border-border/60 bg-card/50 p-5">
+        <section className="border-y border-border/60 py-5">
           <h2 className="text-base font-semibold text-foreground">
             Your Participation Data
           </h2>
@@ -82,7 +82,7 @@ export function DataTransparencyShell({ data }: DataTransparencyShellProps) {
           </div>
         </section>
 
-        <section className="rounded-xl border border-border/60 bg-card/50 p-5">
+        <section className="border-y border-border/60 py-5">
           <h2 className="text-base font-semibold text-foreground">Your Activity Data</h2>
           <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
             <div>Lessons completed: {data.counts.lessonsCompleted}</div>
@@ -92,7 +92,7 @@ export function DataTransparencyShell({ data }: DataTransparencyShellProps) {
           </div>
         </section>
 
-        <section className="rounded-xl border border-border/60 bg-card/50 p-5 text-sm text-muted-foreground">
+        <section className="border-y border-border/60 py-5 text-sm text-muted-foreground">
           <h2 className="text-base font-semibold text-foreground">
             What this data is used for
           </h2>

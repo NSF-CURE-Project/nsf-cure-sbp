@@ -48,13 +48,8 @@ export default function LessonFinishCard({
   return (
     <section
       aria-label="Lesson recap"
-      className="relative mt-12 overflow-hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-card to-card p-5 shadow-sm sm:p-6"
+      className="relative mt-12 overflow-hidden border-y border-emerald-500/35 bg-emerald-500/[0.05] py-5 sm:py-6"
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-20 -top-20 h-44 w-44 rounded-full bg-emerald-500/15 blur-3xl"
-      />
-
       <div className="relative grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <div className="min-w-0 space-y-3">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/35 bg-emerald-500/10 px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.1em] text-emerald-700 dark:text-emerald-300">
@@ -114,7 +109,7 @@ export default function LessonFinishCard({
           {next ? (
             <Link
               href={`${hrefPrefix}/${next.slug}`}
-              className="group inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:-translate-y-[1px] hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="group inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               Continue to next lesson
               <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -122,7 +117,7 @@ export default function LessonFinishCard({
           ) : chapter?.title && chapter.slug && chapter.classSlug ? (
             <Link
               href={`/classes/${chapter.classSlug}/chapters/${chapter.slug}`}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90"
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors duration-200 hover:bg-primary/90"
             >
               Back to {chapter.title}
               <ArrowRight className="h-4 w-4" />

@@ -68,7 +68,7 @@ export default function CookieBanner() {
       role="region"
       aria-label="Cookie notice"
       className={cn(
-        "pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-center px-4 pb-4 sm:pb-6",
+        "pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-center",
       )}
     >
       <style>{`
@@ -87,7 +87,7 @@ export default function CookieBanner() {
       <div
         data-cookie-banner
         className={cn(
-          "pointer-events-auto flex w-full max-w-[var(--content-max,72rem)] flex-col gap-3 rounded-2xl border border-border/70 bg-card/95 px-4 py-3.5 shadow-xl backdrop-blur-md sm:flex-row sm:items-center sm:gap-4 sm:px-5 sm:py-4",
+          "pointer-events-auto flex w-full flex-col gap-3 border-t border-border/70 bg-background/95 px-4 py-3.5 backdrop-blur-md sm:flex-row sm:items-center sm:gap-4 sm:px-6 sm:py-4",
         )}
         style={{
           animation: leaving
@@ -97,7 +97,7 @@ export default function CookieBanner() {
       >
         <span
           aria-hidden="true"
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/12 text-primary"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/12 text-primary"
         >
           <Cookie className="h-4 w-4" />
         </span>
@@ -119,7 +119,7 @@ export default function CookieBanner() {
           <button
             type="button"
             onClick={dismiss}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:-translate-y-[1px] hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Got it
           </button>
@@ -127,7 +127,7 @@ export default function CookieBanner() {
             type="button"
             onClick={dismiss}
             aria-label="Dismiss cookie notice"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-background/60 text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 bg-background/60 text-muted-foreground transition-colors hover:border-border hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>

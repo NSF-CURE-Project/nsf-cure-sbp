@@ -329,7 +329,7 @@ function ClassIcon({ variant }: { variant: ClassIconVariant }) {
 }
 
 // ──────────────────────────────────────────────────────────────
-// Cards
+// Class rows
 // ──────────────────────────────────────────────────────────────
 
 type ClassCardProps = {
@@ -371,9 +371,9 @@ function ClassCard({
   return (
     <article
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-xl border border-border/70 bg-card/70 p-4 shadow-sm transition-all duration-200 sm:p-5",
-        "hover:-translate-y-[2px] hover:border-primary/55 hover:shadow-md focus-within:border-primary/65 focus-within:ring-2 focus-within:ring-primary/30 focus-within:ring-offset-2 focus-within:ring-offset-background",
-        featured && "border-primary/45 bg-gradient-to-br from-primary/8 via-card/80 to-card/90",
+        "group relative flex h-full flex-col border-y border-border/70 bg-transparent p-4 transition-colors duration-200 sm:p-5",
+        "hover:bg-muted/20 focus-within:bg-muted/20 focus-within:ring-2 focus-within:ring-primary/30 focus-within:ring-offset-2 focus-within:ring-offset-background",
+        featured && "border-primary/45 bg-primary/[0.04]",
       )}
     >
       <span
@@ -448,7 +448,7 @@ function ClassCard({
           {continueHref ? (
             <Link
               href={continueHref}
-              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               Continue
               <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -456,7 +456,7 @@ function ClassCard({
           ) : (
             <Link
               href={viewHref}
-              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               {hasProgress ? "Open class" : "Start learning"}
               <ArrowRight className="h-3.5 w-3.5" />
@@ -498,12 +498,12 @@ function MetricShell({
   return (
     <div
       className={cn(
-        "flex h-full flex-col rounded-xl border transition-all duration-200 hover:-translate-y-[1px] hover:shadow-sm",
+        "flex h-full flex-col border-y transition-colors duration-200 hover:bg-muted/20",
         compact ? "gap-1.5 px-3.5 py-2.5" : "gap-2.5 p-3.5",
-        tone === "accent" && "border-primary/35 bg-primary/8",
-        tone === "amber" && "border-amber-500/30 bg-amber-500/8",
-        tone === "emerald" && "border-emerald-500/30 bg-emerald-500/8",
-        tone === "default" && "border-border/65 bg-card/60",
+        tone === "accent" && "border-primary/35 bg-primary/[0.04]",
+        tone === "amber" && "border-amber-500/30 bg-amber-500/[0.04]",
+        tone === "emerald" && "border-emerald-500/30 bg-emerald-500/[0.04]",
+        tone === "default" && "border-border/65 bg-transparent",
       )}
     >
       <div className="flex items-center justify-between">
@@ -641,7 +641,7 @@ function StreakCard({
               className={cn(
                 "inline-flex h-1.5 w-1.5 rounded-full",
                 activeToday
-                  ? "bg-amber-500 ring-2 ring-amber-500/30 lp-pulse"
+                  ? "bg-amber-500 ring-2 ring-amber-500/30"
                   : "bg-muted-foreground/40",
               )}
             />
@@ -1189,18 +1189,13 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
   return (
     <section className="lp-shell space-y-5">
       <style>{`
-        @keyframes lp-pulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45); }
-          50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
-        }
-        .lp-pulse { animation: lp-pulse 1.8s ease-out infinite; }
         @keyframes lp-fade-in {
           from { opacity: 0; transform: translateY(4px); }
           to { opacity: 1; transform: translateY(0); }
         }
         .lp-fade-in { animation: lp-fade-in 320ms ease-out both; }
         @media (prefers-reduced-motion: reduce) {
-          .lp-pulse, .lp-fade-in { animation: none !important; }
+          .lp-fade-in { animation: none !important; }
         }
       `}</style>
 
@@ -1221,14 +1216,14 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
       {/* Hero — Resume learning. Two layouts:
           1. Compact bar: signed-out OR signed-in with no resume target.
              Single row, short height, single CTA.
-          2. Rich card: signed-in with an active lesson to resume.
+          2. Rich layout: signed-in with an active lesson to resume.
              Larger layout with progress bar + momentum rail. */}
       <section className="lp-fade-in">
         {heroIsCompact ? (
           <article
             className={cn(
-              "flex flex-col items-start justify-between gap-3 rounded-xl border border-primary/30",
-              "bg-gradient-to-r from-primary/10 via-card to-card px-4 py-3.5 shadow-sm",
+              "flex flex-col items-start justify-between gap-3 border-y border-primary/30",
+              "bg-primary/[0.04] px-1 py-4",
               "sm:flex-row sm:items-center sm:gap-5 sm:px-5 sm:py-4",
             )}
           >
@@ -1278,15 +1273,10 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
         ) : (
           <article
             className={cn(
-              "relative overflow-hidden rounded-2xl border border-primary/35 bg-gradient-to-br from-primary/15 via-card to-card shadow-md",
-              "p-4 sm:p-5",
+              "relative overflow-hidden border-y border-primary/35 bg-primary/[0.04]",
+              "px-1 py-5 sm:px-5",
             )}
           >
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute -right-24 -top-24 h-48 w-48 rounded-full bg-primary/15 blur-3xl"
-            />
-
             <div className="relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_210px]">
               <div className="min-w-0 space-y-3">
                 <div className="flex items-center gap-2">
@@ -1327,7 +1317,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
                     <div className="flex flex-wrap items-center gap-2 pt-1">
                       <Button
                         asChild
-                        className="rounded-lg shadow-sm hover:-translate-y-[1px] hover:shadow-md transition-all duration-200"
+                        className="rounded-lg transition-colors duration-200"
                       >
                         <Link
                           href={`/classes/${resumeSelection.lesson.classSlug}/lessons/${resumeSelection.lesson.slug}`}
@@ -1338,7 +1328,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
                       </Button>
                       <Link
                         href={`/classes/${resumeSelection.lesson.classSlug}`}
-                        className="inline-flex items-center gap-1 rounded-lg border border-border/60 bg-background/40 px-3.5 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-primary/45 hover:bg-background/70"
+                        className="inline-flex items-center gap-1 border-b border-border/60 px-1 py-1.5 text-[13px] font-semibold text-foreground transition-colors hover:border-primary/45 hover:text-primary"
                       >
                         View outline
                       </Link>
@@ -1353,7 +1343,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
               {/* Right rail: momentum at a glance */}
               <aside
                 aria-label="Momentum"
-                className="grid gap-2 self-start rounded-xl border border-border/55 bg-background/55 p-3 backdrop-blur-sm lg:min-w-[200px]"
+                className="grid gap-2 self-start border-y border-border/55 bg-background/35 p-3 backdrop-blur-sm lg:min-w-[200px]"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
@@ -1366,7 +1356,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
                 <ProgressBar value={overallProgramProgress} size="sm" />
 
                 <div className="grid grid-cols-2 gap-2 pt-1.5">
-                  <div className="rounded-lg border border-border/55 bg-background/60 px-2 py-1.5">
+                  <div className="border-t border-border/55 bg-background/40 px-2 py-1.5">
                     <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
                       <Flame
                         className={cn(
@@ -1385,7 +1375,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
                       </span>
                     </div>
                   </div>
-                  <div className="rounded-lg border border-border/55 bg-background/60 px-2 py-1.5">
+                  <div className="border-t border-border/55 bg-background/40 px-2 py-1.5">
                     <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
                       <Target className="h-3 w-3 text-primary/85" />
                       Week
@@ -1494,7 +1484,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
             {[0, 1, 2].map((idx) => (
               <li
                 key={idx}
-                className="h-14 rounded-lg border border-border/55 bg-muted/30 animate-pulse"
+                className="h-14 border-y border-border/55 bg-muted/30 animate-pulse"
               />
             ))}
           </ul>
@@ -1513,7 +1503,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
                 />
                 <Link
                   href={item.href}
-                  className="block rounded-lg border border-border/55 bg-card/60 px-3 py-2.5 transition-all duration-200 hover:-translate-y-[1px] hover:border-primary/45 hover:bg-card hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="block border-y border-border/55 bg-transparent px-3 py-2.5 transition-colors duration-200 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <p className="text-sm font-semibold text-foreground">
@@ -1540,7 +1530,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
             ))}
           </ol>
         ) : (
-          <div className="rounded-lg border border-dashed border-border/55 bg-muted/15 px-4 py-6 text-center">
+          <div className="border-y border-dashed border-border/55 bg-muted/10 px-4 py-6 text-center">
             <p className="text-sm font-medium text-foreground/80">
               {user
                 ? "No recent activity yet."

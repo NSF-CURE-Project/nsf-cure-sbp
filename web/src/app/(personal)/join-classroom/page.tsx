@@ -112,12 +112,12 @@ export default function JoinClassroomPage() {
       </div>
 
       {isLoggedIn === false ? (
-        <div className="rounded-xl border border-border/60 bg-muted/20 p-6 text-sm">
+        <div className="border-y border-border/60 bg-muted/10 py-6 text-sm">
           <p className="text-foreground">
             Please sign in to your student account before joining a classroom.
           </p>
           <LoginLink
-            className="mt-4 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow"
+            className="mt-4 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
           >
             Go to Login
           </LoginLink>
@@ -125,7 +125,7 @@ export default function JoinClassroomPage() {
       ) : (
         <form
           onSubmit={onSubmit}
-          className="rounded-2xl border border-border/60 bg-background p-6 shadow-sm space-y-4"
+          className="border-y border-border/60 bg-background/50 py-6 space-y-4"
         >
           <div>
             <label className="block text-sm font-semibold text-foreground">

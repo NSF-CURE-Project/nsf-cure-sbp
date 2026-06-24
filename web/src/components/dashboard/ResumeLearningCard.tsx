@@ -13,7 +13,7 @@ type ResumeLearningCardProps = {
 
 export function ResumeLearningCard({ item }: ResumeLearningCardProps) {
   return (
-    <section className="rounded-md border border-border/60 bg-background/80 p-5">
+    <section className="border-y border-border/60 py-5">
       <h2 className="text-sm font-semibold text-foreground">Resume learning</h2>
       {!item ? (
         <p className="mt-2 text-sm text-muted-foreground">

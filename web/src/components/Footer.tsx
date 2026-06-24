@@ -339,7 +339,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                     side="top"
                     align="end"
                     sideOffset={8}
-                    className="w-[min(92vw,360px)] rounded-xl border border-border/70 bg-background p-4 shadow-xl"
+                    className="w-[min(92vw,360px)] rounded-lg border border-border/70 bg-background p-4"
                   >
                     <div>
                       <div className="text-sm font-semibold text-foreground">
@@ -366,7 +366,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                           value={email}
                           onChange={(event) => setEmail(event.target.value)}
                           disabled={sending}
-                          className="rounded-xl border-border/70 bg-background shadow-sm"
+                          className="rounded-md border-border/70 bg-background"
                         />
                       </div>
                       <div className="space-y-2">
@@ -383,7 +383,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                           value={message}
                           onChange={(event) => setMessage(event.target.value)}
                           disabled={sending}
-                          className="rounded-xl border-border/70 bg-background shadow-sm"
+                          className="rounded-md border-border/70 bg-background"
                         />
                         {markdownSupported ? (
                           <div className="flex justify-end text-xs text-muted-foreground">
@@ -442,7 +442,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                           type="button"
                           onClick={handleSubmit}
                           disabled={sending || !message.trim()}
-                          className="rounded-lg px-5"
+                          className="rounded-md px-5"
                         >
                           {sending ? "Sending..." : "Send"}
                         </Button>

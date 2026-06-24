@@ -17,7 +17,7 @@ type NextLessonCardProps = {
 export function NextLessonCard({ nextLesson }: NextLessonCardProps) {
   if (!nextLesson) {
     return (
-      <section className="rounded-md border border-border/60 bg-background/80 p-5">
+      <section className="border-y border-border/60 py-5">
         <h2 className="text-sm font-semibold text-foreground">Next lesson</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           You are all caught up across your enrolled classes.
@@ -27,7 +27,7 @@ export function NextLessonCard({ nextLesson }: NextLessonCardProps) {
   }
 
   return (
-    <section className="rounded-md border border-border/60 bg-background/80 p-5">
+    <section className="border-y border-border/60 py-5">
       <h2 className="text-sm font-semibold text-foreground">Next lesson</h2>
       <p className="mt-2 text-xs uppercase tracking-wide text-muted-foreground">
         {nextLesson.classTitle}

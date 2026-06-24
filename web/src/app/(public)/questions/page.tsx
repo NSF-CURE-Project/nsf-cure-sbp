@@ -128,27 +128,24 @@ export default async function QuestionsPage() {
         </header>
 
         {Object.keys(grouped).length === 0 ? (
-          <section className="rounded-xl border border-border/60 bg-card/40 p-5 text-sm text-muted-foreground">
+          <section className="border-y border-border/60 bg-muted/10 py-5 text-sm text-muted-foreground">
             You have not posted any questions yet.
           </section>
         ) : (
           Object.entries(grouped).map(([lessonId, group]) => (
             <section
               key={lessonId}
-              className="rounded-xl border border-border/60 bg-card/40 p-5"
+              className="border-y border-border/60 py-5"
             >
               <h2 className="text-base font-semibold text-foreground">
                 {group.lessonTitle}
               </h2>
-              <div className="mt-3 space-y-3">
+              <div className="mt-3 divide-y divide-border/60 border-y border-border/60">
                 {group.items.map((question) => {
                   const threadHref = `/questions/${encodeURIComponent(String(question.id))}`;
                   const lessonHref = getLessonLink(question.lesson);
                   return (
-                    <div
-                      key={String(question.id)}
-                      className="rounded-lg border border-border/60 bg-background/60 p-4"
-                    >
+                    <div key={String(question.id)} className="py-4">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <QuestionStatusBadge status={question.status} />

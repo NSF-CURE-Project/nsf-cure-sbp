@@ -149,7 +149,7 @@ export default function Toc() {
         {/* Toggle button hanging over the content edge */}
         <button
           className={[
-            "hidden lg:inline-flex fixed z-10 h-7 w-7 items-center justify-center rounded-full bg-background text-xs shadow transition-all duration-200",
+            "hidden lg:inline-flex fixed z-10 h-7 w-7 items-center justify-center rounded-full border border-border/60 bg-background text-xs transition-all duration-200",
           ].join(" ")}
           style={{
             top: "calc(var(--nav-h) + 0.5rem)",

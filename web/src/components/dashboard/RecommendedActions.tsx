@@ -15,16 +15,16 @@ type RecommendedActionsProps = {
 
 export function RecommendedActions({ actions }: RecommendedActionsProps) {
   return (
-    <section className="rounded-md border border-border/60 bg-background/80 p-5">
+    <section className="border-y border-border/60 py-5">
       <h2 className="text-sm font-semibold text-foreground">Recommended next actions</h2>
       {actions.length === 0 ? (
         <p className="mt-2 text-sm text-muted-foreground">
           No pending actions. Keep up the momentum.
         </p>
       ) : (
-        <ul className="mt-3 space-y-2">
+        <ul className="mt-3 divide-y divide-border/60 border-y border-border/60">
           {actions.map((action) => (
-            <li key={action.id} className="rounded-md border border-border/50 bg-muted/20 p-3">
+            <li key={action.id} className="py-3">
               <p className="text-sm font-semibold text-foreground">{action.label}</p>
               <p className="text-xs text-muted-foreground">{action.reason}</p>
               <Link

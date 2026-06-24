@@ -43,6 +43,7 @@ import { ReportingEvidenceLinks } from './collections/ReportingEvidenceLinks'
 import { ReportingProductRecords } from './collections/ReportingProductRecords'
 import { ApiKeys } from './collections/ApiKeys'
 import { AdminHelp } from './globals/AdminHelp'
+import { AuthSettings } from './globals/AuthSettings'
 import { Footer } from './globals/Footer'
 import { SiteBranding } from './globals/SiteBranding'
 import { previewUrlHandler } from './endpoints/previewUrl'
@@ -405,7 +406,7 @@ export default buildConfig({
     Feedback,
     LessonFeedback,
   ],
-  globals: [AdminHelp, Footer, SiteBranding],
+  globals: [AdminHelp, AuthSettings, Footer, SiteBranding],
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [
       ...defaultFeatures,

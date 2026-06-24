@@ -103,7 +103,7 @@ export function LessonHelpfulFeedback({ lessonId }: Props) {
   return (
     <section className="mt-10 flex justify-center">
       <div className="relative">
-        <div className="flex items-center gap-3 rounded-full border border-border/60 bg-background px-5 py-3 text-sm text-muted-foreground shadow-sm">
+        <div className="flex items-center gap-3 border-y border-border/60 bg-background/80 px-3 py-3 text-sm text-muted-foreground">
           <span className="font-medium text-foreground">
             Was this lesson helpful?
           </span>
@@ -125,7 +125,7 @@ export function LessonHelpfulFeedback({ lessonId }: Props) {
         </div>
 
         {open ? (
-          <div className="absolute left-1/2 bottom-full z-20 mb-3 w-[min(92vw,420px)] -translate-x-1/2 rounded-2xl border border-border/60 bg-background p-4 shadow-lg">
+          <div className="absolute left-1/2 bottom-full z-20 mb-3 w-[min(92vw,420px)] -translate-x-1/2 rounded-lg border border-border/60 bg-background p-4">
             <div className="flex items-center justify-between">
               <div className="text-sm font-semibold text-foreground">
                 Share a quick note
@@ -143,7 +143,7 @@ export function LessonHelpfulFeedback({ lessonId }: Props) {
               placeholder="Your feedback..."
               value={message}
               onChange={(event) => setMessage(event.target.value)}
-              className="mt-3 rounded-xl border-border/70 bg-background shadow-sm"
+              className="mt-3 rounded-md border-border/70 bg-background"
               disabled={sending}
             />
             <div className="mt-2 flex justify-end text-xs text-muted-foreground">
@@ -169,7 +169,7 @@ export function LessonHelpfulFeedback({ lessonId }: Props) {
                 type="button"
                 onClick={handleSubmit}
                 disabled={!canSubmit}
-                className="rounded-lg px-5"
+                className="rounded-md px-5"
               >
                 {sending ? "Sending..." : "Send"}
               </Button>

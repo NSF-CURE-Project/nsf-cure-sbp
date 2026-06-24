@@ -15,7 +15,7 @@ export default function AuthBackButton() {
     <button
       type="button"
       onClick={handleBack}
-      className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition hover:bg-muted/60"
+      className="inline-flex items-center gap-2 rounded-md border border-border/60 bg-muted/40 px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-muted/60"
     >
       <span aria-hidden="true">←</span>
       Back

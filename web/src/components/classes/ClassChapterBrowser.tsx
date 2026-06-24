@@ -280,7 +280,7 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="sticky top-[3.75rem] z-20 rounded-xl border border-border/60 bg-background/95 px-3 py-2.5 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <div className="sticky top-[3.75rem] z-20 border-y border-border/60 bg-background/95 px-1 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/85">
         <div className="relative mb-2">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -303,8 +303,8 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                 className={cn(
                   "group/chip inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide transition-all duration-150",
                   active
-                    ? "border-primary/60 bg-primary text-primary-foreground shadow-sm"
-                    : "border-border/60 bg-background text-muted-foreground hover:-translate-y-[1px] hover:border-primary/40 hover:bg-muted/30 hover:text-foreground"
+                    ? "border-primary/60 bg-primary text-primary-foreground"
+                    : "border-transparent bg-transparent text-muted-foreground hover:border-primary/30 hover:bg-muted/25 hover:text-foreground"
                 )}
               >
                 <span>{item.label}</span>
@@ -324,7 +324,7 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="divide-y divide-border/70 border-y border-border/70">
         {visibleChapters.map((chapter) => {
           const baseLessons = chapter.lessons;
           const completedCount = baseLessons.filter(
@@ -357,16 +357,16 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
             <section
               key={chapter.id}
               className={cn(
-                "group/chapter overflow-hidden rounded-2xl border bg-card/80 shadow-sm transition-[transform,box-shadow,border-color,background-color] duration-200",
-                "hover:-translate-y-[1px] hover:bg-muted/25 hover:shadow-md",
+                "group/chapter transition-colors duration-200",
+                "hover:bg-muted/20",
                 chapterIsComplete
-                  ? "border-primary/40 hover:border-primary/55"
-                  : "border-border/60 hover:border-primary/35"
+                  ? "bg-primary/[0.03]"
+                  : "bg-transparent"
               )}
             >
               <header
                 className={cn(
-                  "bg-gradient-to-b from-background to-background/70 px-4 py-3 transition-colors duration-200 group-hover/chapter:bg-muted/25 group-hover/chapter:bg-none",
+                  "px-2 py-4 transition-colors duration-200 sm:px-3",
                   chapterOpen ? "border-b border-border/55" : ""
                 )}
               >
@@ -495,7 +495,7 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                     </p>
                   </div>
                 ) : (
-                  <ul className="grid gap-2 p-2.5 md:grid-cols-2 2xl:grid-cols-3">
+                  <ul className="divide-y divide-border/50 px-2 sm:px-3">
                     {baseLessons.map((lesson) => {
                       const status =
                         progressByLesson[lesson.id] ?? "not-started";
@@ -514,14 +514,14 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                           <Link
                             href={`/classes/${classSlug}/lessons/${lesson.slug}`}
                             className={cn(
-                              "group/lesson relative flex h-full items-start gap-2.5 rounded-lg border border-border/60 bg-background/70 px-3 py-2.5 shadow-sm",
-                              "transition-[transform,box-shadow,border-color,background-color] duration-150 ease-out",
-                              "hover:-translate-y-[1px] hover:border-primary/50 hover:bg-card hover:shadow-md",
-                              "focus-visible:-translate-y-[1px] focus-visible:border-primary/60 focus-visible:bg-card focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                              "group/lesson relative flex items-start gap-2.5 px-1 py-3",
+                              "transition-[background-color,color] duration-150 ease-out",
+                              "hover:bg-muted/25",
+                              "focus-visible:bg-muted/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                               status === "completed"
-                                ? "border-primary/30 bg-primary/[0.04]"
+                                ? "bg-primary/[0.03]"
                                 : status === "in-progress"
-                                  ? "border-blue-500/35 bg-blue-500/[0.04]"
+                                  ? "bg-blue-500/[0.03]"
                                   : ""
                             )}
                           >
@@ -591,7 +591,7 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
             <button
               type="button"
               onClick={() => setVisibleCount((count) => count + 8)}
-              className="rounded-xl border border-border/60 bg-background px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm transition-all duration-150 hover:-translate-y-[1px] hover:border-primary/40 hover:text-foreground hover:shadow-md"
+              className="border-b border-primary/40 px-1 py-2 text-sm font-semibold text-muted-foreground transition-colors duration-150 hover:text-foreground"
             >
               Show more chapters
             </button>
@@ -599,8 +599,8 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
         ) : null}
 
         {filteredChapters.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border/60 bg-muted/20 px-6 py-12 text-center">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-background text-muted-foreground shadow-sm">
+          <div className="flex flex-col items-center justify-center gap-2 border-y border-dashed border-border/60 bg-muted/10 px-6 py-12 text-center">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-background text-muted-foreground">
               <Search className="h-5 w-5" />
             </span>
             <p className="text-sm font-medium text-foreground">

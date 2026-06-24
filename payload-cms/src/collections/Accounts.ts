@@ -1,5 +1,5 @@
 import { buildAuthEmail, buildResetPasswordUrl } from '../utils/authEmails'
-import type { CollectionConfig, PayloadRequest } from 'payload'
+import { APIError, type CollectionConfig, type PayloadRequest } from 'payload'
 import { accountsMeHandler } from '../endpoints/accountsMe'
 import { accountsHeartbeatHandler } from '../endpoints/accountsHeartbeat'
 import {
@@ -9,6 +9,7 @@ import {
 } from '../endpoints/accountEndpoints'
 import { logoutAllSessionsHandler } from '../endpoints/logoutAll'
 import { emailPreviewHandler } from '../endpoints/emailPreview'
+import { getStudentAuthSettings } from '../utils/authSettings'
 
 const cookieSecure = (() => {
   const envValue = process.env.PAYLOAD_COOKIE_SECURE
@@ -32,6 +33,28 @@ const cookieDomain = (() => {
 const isStaffUser = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' &&
   ['admin', 'staff', 'professor'].includes(req.user?.role ?? '')
+
+const publicAuthOperations = new Set(['forgotPassword', 'login', 'resetPassword'])
+
+const blockPublicStudentAuthWhenDisabled = async ({
+  args,
+  operation,
+  req,
+}: {
+  args?: { overrideAccess?: boolean }
+  operation: string
+  req: PayloadRequest
+}) => {
+  const isPublicRegistration =
+    operation === 'create' && !isStaffUser(req) && args?.overrideAccess !== true
+
+  if (!publicAuthOperations.has(operation) && !isPublicRegistration) return
+
+  const settings = await getStudentAuthSettings(req.payload)
+  if (settings.studentLoginEnabled) return
+
+  throw new APIError(settings.studentLoginDisabledMessage, 403)
+}
 
 export const Accounts: CollectionConfig = {
   slug: 'accounts',
@@ -141,6 +164,7 @@ export const Accounts: CollectionConfig = {
       },
     ],
     beforeOperation: [
+      blockPublicStudentAuthWhenDisabled,
       async ({ args, operation, req }) => {
         if (operation === 'forgotPassword' && req?.payload?.config?.email) {
           const emailConfig = req.payload.config.email

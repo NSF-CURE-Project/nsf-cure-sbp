@@ -86,7 +86,7 @@ function runChecks(
   checks.push({
     id: 'content',
     label: blocks.length > 0 ? `${blocks.length} content block${blocks.length === 1 ? '' : 's'}` : 'No content blocks',
-    status: blocks.length > 0 ? 'ok' : 'error',
+    status: blocks.length > 0 ? 'ok' : 'warn',
   })
 
   // Per-block content checks. We only flag blocks that the author can fix.
@@ -380,8 +380,6 @@ export default function PublishReviewModal({
   // against (edit mode, not first publish). The contents may still report
   // "No changes" — that's useful confirmation, so we still render it.
   const showDiff = mode === 'edit' && previousSnapshot != null
-  // When the diff section is mounted the panel needs an extra row.
-  const panelClass = showDiff ? 'prm-panel prm-panel--with-diff' : 'prm-panel'
 
   return (
     <div className="prm-overlay" role="dialog" aria-modal="true" aria-labelledby="prm-title">
@@ -407,10 +405,6 @@ export default function PublishReviewModal({
           border-radius: 14px;
           box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
           overflow: hidden;
-        }
-        /* Extra row for the "Changes in this version" diff section. */
-        .prm-panel--with-diff {
-          grid-template-rows: auto auto auto 1fr auto;
         }
         :root[data-theme='dark'] .prm-panel {
           background: var(--admin-surface, #1e2330);
@@ -645,14 +639,16 @@ export default function PublishReviewModal({
         @media (max-width: 900px) {
           .prm-body { grid-template-columns: minmax(0, 1fr); }
         }
-        .prm-checks {
-          padding: 16px 20px;
+        .prm-side {
           border-right: 1px solid var(--admin-surface-border, #d6dce5);
           overflow-y: auto;
           min-height: 0;
         }
-        :root[data-theme='dark'] .prm-checks {
+        :root[data-theme='dark'] .prm-side {
           border-right-color: var(--admin-surface-border, #2a3140);
+        }
+        .prm-checks {
+          padding: 16px 20px;
         }
         .prm-checks__title {
           font-size: 11px;
@@ -797,7 +793,7 @@ export default function PublishReviewModal({
         .prm-footer__summary--err { color: #b91c1c; }
       `}</style>
 
-      <div className={panelClass}>
+      <div className="prm-panel">
         {/* ---- Header ---- */}
         <header className="prm-header">
           <div>
@@ -879,81 +875,83 @@ export default function PublishReviewModal({
           </div>
         </section>
 
-        {/* ---- Diff: "Changes in this version" ---- */}
-        {showDiff ? (
-          <section className="prm-diff" aria-label="Changes since last publish">
-            <details
-              className="prm-diff__details"
-              open={(diff?.changes.length ?? 0) > 0}
-            >
-              <summary>
-                <span className="prm-diff__chevron" aria-hidden>▸</span>
-                <span>Changes in this version</span>
-                <span
-                  className={`prm-diff__count${diff && diff.changes.length === 0 ? ' prm-diff__count--zero' : ''}`}
-                >
-                  {diffLoading
-                    ? '…'
-                    : diff
-                      ? diff.changes.length === 0
-                        ? 'no changes'
-                        : String(diff.changes.length)
-                      : '…'}
-                </span>
-              </summary>
-              {diffLoading ? (
-                <div className="prm-diff__loading">Comparing against last published version…</div>
-              ) : diff && diff.changes.length === 0 ? (
-                <div className="prm-diff__empty">
-                  This draft is identical to the last published version.
-                </div>
-              ) : diff ? (
-                <ul className="prm-diff__list">
-                  {diff.changes.map((change, i) => {
-                    const glyph =
-                      change.kind === 'block-added'
-                        ? 'add'
-                        : change.kind === 'block-removed'
-                          ? 'remove'
-                          : 'edit'
-                    const sym =
-                      change.kind === 'block-added'
-                        ? '+'
-                        : change.kind === 'block-removed'
-                          ? '−'
-                          : '~'
-                    return (
-                      <li key={i} className="prm-diff__item">
-                        <span className={`prm-diff__glyph prm-diff__glyph--${glyph}`} aria-hidden>
-                          {sym}
-                        </span>
-                        <span>{describeChange(change, entity.capitalLabel)}</span>
-                      </li>
-                    )
-                  })}
-                </ul>
-              ) : null}
-            </details>
-          </section>
-        ) : null}
-
         {/* ---- Body: validation + preview ---- */}
         <div className="prm-body">
-          <aside className="prm-checks" aria-label="Pre-publish checks">
-            <div className="prm-checks__title">Validation</div>
-            {checks.map((check) => (
-              <div key={check.id} className={`prm-check prm-check--${check.status}`}>
-                <span className="prm-check__glyph" aria-hidden>
-                  {check.status === 'ok' ? '✓' : check.status === 'warn' ? '!' : '×'}
-                </span>
-                <div>
-                  <div>{check.label}</div>
-                  {check.detail ? (
-                    <div className="prm-check__detail">{check.detail}</div>
+          <aside className="prm-side" aria-label="Pre-publish checks and changes">
+            {/* ---- Diff: "Changes in this version" ---- */}
+            {showDiff ? (
+              <section className="prm-diff" aria-label="Changes since last publish">
+                <details
+                  className="prm-diff__details"
+                  open={(diff?.changes.length ?? 0) > 0}
+                >
+                  <summary>
+                    <span className="prm-diff__chevron" aria-hidden>▸</span>
+                    <span>Changes in this version</span>
+                    <span
+                      className={`prm-diff__count${diff && diff.changes.length === 0 ? ' prm-diff__count--zero' : ''}`}
+                    >
+                      {diffLoading
+                        ? '…'
+                        : diff
+                          ? diff.changes.length === 0
+                            ? 'no changes'
+                            : String(diff.changes.length)
+                          : '…'}
+                    </span>
+                  </summary>
+                  {diffLoading ? (
+                    <div className="prm-diff__loading">Comparing against last published version…</div>
+                  ) : diff && diff.changes.length === 0 ? (
+                    <div className="prm-diff__empty">
+                      This draft is identical to the last published version.
+                    </div>
+                  ) : diff ? (
+                    <ul className="prm-diff__list">
+                      {diff.changes.map((change, i) => {
+                        const glyph =
+                          change.kind === 'block-added'
+                            ? 'add'
+                            : change.kind === 'block-removed'
+                              ? 'remove'
+                              : 'edit'
+                        const sym =
+                          change.kind === 'block-added'
+                            ? '+'
+                            : change.kind === 'block-removed'
+                              ? '−'
+                              : '~'
+                        return (
+                          <li key={i} className="prm-diff__item">
+                            <span className={`prm-diff__glyph prm-diff__glyph--${glyph}`} aria-hidden>
+                              {sym}
+                            </span>
+                            <span>{describeChange(change, entity.capitalLabel)}</span>
+                          </li>
+                        )
+                      })}
+                    </ul>
                   ) : null}
+                </details>
+              </section>
+            ) : null}
+
+            <div className="prm-checks">
+              <div className="prm-checks__title">Validation</div>
+              {checks.map((check) => (
+                <div key={check.id} className={`prm-check prm-check--${check.status}`}>
+                  <span className="prm-check__glyph" aria-hidden>
+                    {check.status === 'ok' ? '✓' : check.status === 'warn' ? '!' : '×'}
+                  </span>
+                  <div>
+                    <div>{check.label}</div>
+                    {check.detail ? (
+                      <div className="prm-check__detail">{check.detail}</div>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </aside>
 
           <section className="prm-preview" aria-label="Live preview">

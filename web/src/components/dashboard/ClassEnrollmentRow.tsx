@@ -26,7 +26,7 @@ export function ClassEnrollmentRow({ enrollment }: ClassEnrollmentRowProps) {
     : "No activity yet";
 
   return (
-    <article className="rounded-md border border-border/60 bg-background px-4 py-3">
+    <article className="py-3">
       <div className="flex items-center justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-foreground">

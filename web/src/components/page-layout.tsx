@@ -3,6 +3,7 @@
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ExternalLink, Mail, Phone, UserRound } from "lucide-react";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
 import type { PageLayoutBlock } from "@/lib/payloadSdk/types";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
@@ -205,7 +206,7 @@ function SnappingVideo({
     <section className="mx-auto w-full max-w-4xl space-y-3">
       <div
         ref={frameRef}
-        className="w-full min-w-[280px] max-w-full overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-b from-muted/50 to-muted/20 p-1 shadow-lg"
+        className="w-full min-w-[280px] max-w-full overflow-hidden rounded-lg border border-border/60 bg-muted/20 p-1"
         style={{
           resize: "horizontal",
           width: snappedWidth ? `${snappedWidth}px` : undefined,
@@ -214,7 +215,7 @@ function SnappingVideo({
         onMouseUp={snapToNearest}
         onTouchEnd={snapToNearest}
       >
-        <div className="aspect-video w-full overflow-hidden rounded-xl bg-black">
+        <div className="aspect-video w-full overflow-hidden rounded-md bg-black">
           <video
             src={url}
             controls
@@ -261,7 +262,7 @@ function YouTubeVideoCard({
 
   return (
     <section className="mx-auto w-full max-w-4xl space-y-3">
-      <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/70 shadow-lg shadow-black/15">
+      <div className="overflow-hidden rounded-lg border border-border/60 bg-background">
         <div className="relative aspect-video w-full">
           {isPlaying ? (
             <iframe
@@ -564,10 +565,7 @@ export function PageLayout({
               <ul className="space-y-3">
                 {resources.length ? (
                   resources.map((item, itemIdx) => (
-                    <li
-                      key={item.id ?? itemIdx}
-                      className="rounded-lg border border-border/60 bg-card/60 px-4 py-3 shadow-sm"
-                    >
+                    <li key={item.id ?? itemIdx} className="border-t border-border/60 py-4 first:border-t-0">
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <p className="font-semibold leading-tight">
@@ -585,8 +583,9 @@ export function PageLayout({
                       </div>
                       <a
                         href={item.url}
-                        className="mt-2 inline-flex text-primary text-sm underline underline-offset-4 hover:no-underline"
+                        className="mt-2 inline-flex items-center gap-1 text-primary text-sm font-semibold underline underline-offset-4 hover:no-underline"
                       >
+                        <ExternalLink className="h-3.5 w-3.5" />
                         Open
                       </a>
                     </li>
@@ -625,13 +624,9 @@ export function PageLayout({
               ].filter((section) => section.items.length > 0)
             : [{ label: block.title ?? "Contacts", items: contacts }];
           return (
-            <section key={block.id ?? idx} className="space-y-6">
-              <div className="relative overflow-hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/10 via-background to-emerald-500/10 p-6">
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/15 blur-2xl"
-                />
-                <h2 className="text-3xl font-semibold tracking-tight">
+            <section key={block.id ?? idx} className="space-y-7">
+              <div className="border-b border-border/60 pb-5">
+                <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
                   {block.title ?? "Contacts"}
                 </h2>
                 {block.description && (
@@ -645,31 +640,32 @@ export function PageLayout({
                   No contact information available.
                 </p>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-8">
                   {sections.map((section, sectionIdx) => (
                     <section
                       key={sectionIdx}
-                      className="rounded-2xl border border-border/50 bg-background/70 p-5 shadow-sm"
+                      className="space-y-3"
                     >
                       {groupByCategory && (
-                        <div className="mb-4 flex items-center gap-3">
-                          <div className="h-8 w-1.5 rounded-full bg-primary/50" />
+                        <div className="flex items-center gap-3">
+                          <div className="h-px flex-1 bg-border/70" />
                           <h3 className="text-lg font-semibold tracking-tight text-foreground">
                             {section.label}
                           </h3>
+                          <div className="h-px flex-1 bg-border/70" />
                         </div>
                       )}
-                      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                      <div className="divide-y divide-border/60 border-y border-border/60">
                         {section.items.map((person, personIdx) => {
                           const photoUrl = resolveContactPhoto(person.photo);
                           return (
                             <article
                               key={person.id ?? personIdx}
-                              className="group rounded-xl border border-border/50 bg-card/80 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-md"
+                              className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between"
                             >
-                              <div className="flex items-start gap-4">
+                              <div className="flex min-w-0 items-start gap-4">
                                 {photoUrl ? (
-                                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border border-border/40">
+                                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border border-border/40">
                                     <Image
                                       src={photoUrl}
                                       alt={person.name ?? "Contact photo"}
@@ -678,12 +674,12 @@ export function PageLayout({
                                     />
                                   </div>
                                 ) : (
-                                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-border/40 bg-primary/10 text-2xl text-primary">
-                                    👤
+                                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                    <UserRound className="h-6 w-6" />
                                   </div>
                                 )}
                                 <div className="min-w-0 space-y-1">
-                                  <h3 className="truncate text-lg font-semibold text-foreground">
+                                  <h3 className="text-lg font-semibold text-foreground">
                                     {person.name}
                                   </h3>
                                   {person.title ? (
@@ -697,21 +693,23 @@ export function PageLayout({
                                   )}
                                 </div>
                               </div>
-                              <div className="mt-4 space-y-2 text-sm">
+                              <div className="space-y-2 text-sm sm:min-w-[13rem] sm:text-right">
                                 {person.email ? (
                                   <a
                                     href={`mailto:${person.email}`}
-                                    className="block truncate text-emerald-700 underline-offset-2 hover:underline"
+                                    className="inline-flex max-w-full items-center gap-2 text-emerald-700 underline-offset-2 hover:underline"
                                   >
-                                    {person.email}
+                                    <Mail className="h-4 w-4 shrink-0" />
+                                    <span className="truncate">{person.email}</span>
                                   </a>
                                 ) : null}
                                 {person.phone ? (
                                   <a
                                     href={`tel:${person.phone}`}
-                                    className="block text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                                    className="inline-flex max-w-full items-center gap-2 text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
                                   >
-                                    {person.phone}
+                                    <Phone className="h-4 w-4 shrink-0" />
+                                    <span>{person.phone}</span>
                                   </a>
                                 ) : null}
                               </div>
