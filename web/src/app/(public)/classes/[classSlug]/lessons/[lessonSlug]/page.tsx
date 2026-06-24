@@ -27,11 +27,11 @@ export default async function LessonPage({ params, searchParams }: PageProps) {
   return (
     <main className="min-w-0 overflow-x-hidden">
       {/* Outer container widens to fit the TOC sidebar on xl+. The inner
-          article still caps the reading column at ~72ch for long-form text. */}
-      <div className="mx-auto w-full max-w-[var(--content-max,1180px)] px-4 sm:px-6 lg:px-8 py-6">
+          article still caps the reading column at ~78ch for long-form text. */}
+      <div className="mx-auto -mt-3 w-full max-w-[var(--content-max,1280px)] px-4 pb-6 sm:px-6 lg:px-8">
         <LivePreviewLesson
           initialData={resolved.lesson}
-          className="w-full -mt-3 pt-2 pb-10 sm:-mt-4"
+          className="w-full pb-10"
           lessonNav={{
             lessons: resolved.siblingLessons,
             currentSlug:

@@ -278,11 +278,13 @@ export default function SidebarClient({ classes }: Props) {
   };
 
   return (
-    <nav className="text-[13px]">
-      <ul className="space-y-1.5">
+    <nav className="text-[#172033]" aria-label="Study topics">
+      <ul className="space-y-2.5">
         {(classes ?? []).map((cls) => {
           const cSlug = getClassSlug(cls);
           if (!cSlug) return null;
+          const chapters = getChapters(cls);
+          const hasChapters = chapters.length > 0;
           const classOpen = !!openClasses[cSlug];
           const classTitle = getClassTitle(cls);
           const classHasActiveLesson = !!(
@@ -291,6 +293,10 @@ export default function SidebarClient({ classes }: Props) {
           );
           const classIsActive =
             currentClassSlug === cSlug || classHasActiveLesson;
+          const classSelfActive =
+            currentClassSlug === cSlug &&
+            !currentChapterSlug &&
+            !currentLessonSlug;
 
           return (
             <li key={cSlug}>
@@ -299,58 +305,64 @@ export default function SidebarClient({ classes }: Props) {
                 <Link
                   href={`/classes/${cSlug}`}
                   className={cn(
-                    "relative block rounded-md border-l-[3px] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em]",
-                    "transition-[background-color,border-color,color,transform] duration-200",
+                    "flex min-h-8 items-center border-l-[3px] py-1.5 pl-3 pr-3 text-[12px] font-semibold uppercase leading-4 tracking-[0.08em]",
+                    "transition-[background-color,border-color,color] duration-150",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                    "hover:-translate-y-[1px] hover:border-primary/60 hover:bg-muted/30 hover:text-foreground",
-                    classIsActive
-                      ? "border-primary bg-primary/25 text-foreground ring-1 ring-inset ring-primary/15"
-                      : "border-transparent text-muted-foreground/90"
+                    classSelfActive
+                      ? "border-[#14532d] bg-[#eaf7ef] text-[#172033]"
+                      : "border-transparent text-[#667085] hover:bg-[#f2f4f7] hover:text-[#172033]"
                   )}
+                  aria-current={classSelfActive ? "page" : undefined}
                 >
                   {classTitle}
                 </Link>
               ) : (
                 <div
                   className={cn(
-                    "group flex w-full items-center justify-between gap-2 rounded-md border-l-[3px] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em]",
-                    "transition-[background-color,border-color,color,transform] duration-200",
-                    "hover:-translate-y-[1px] hover:border-primary/60 hover:bg-muted/30 hover:text-foreground",
-                    classIsActive
-                      ? "border-primary bg-primary/25 text-foreground ring-1 ring-inset ring-primary/15"
-                      : "border-transparent text-muted-foreground/90"
+                    "grid min-h-8 w-full grid-cols-[minmax(0,1fr)_2rem] items-center border-l-[3px] py-0 pl-3 pr-0 text-[12px] font-semibold uppercase leading-4 tracking-[0.08em]",
+                    "transition-[background-color,border-color,color] duration-150",
+                    classSelfActive
+                      ? "border-[#14532d] bg-[#eaf7ef] text-[#172033]"
+                      : classIsActive
+                        ? "border-transparent text-[#172033] hover:bg-[#f2f4f7]"
+                        : "border-transparent text-[#667085] hover:bg-[#f2f4f7] hover:text-[#172033]"
                   )}
                 >
                   <Link
                     href={`/classes/${cSlug}`}
-                    className="flex-1 text-left text-inherit focus-visible:outline-none"
+                    className="min-w-0 py-1 text-left text-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55"
+                    aria-current={classSelfActive ? "page" : undefined}
                   >
-                    {classTitle}
+                    <span className="block break-words">{classTitle}</span>
                   </Link>
-                  <button
-                    type="button"
-                    aria-expanded={classOpen}
-                    aria-controls={`panel-class-${cSlug}`}
-                    onClick={() => toggleClass(cSlug)}
-                    className={cn(
-                      "flex h-5 w-5 items-center justify-center rounded-md transition-colors",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
-                      classIsActive
-                        ? "text-foreground/80 hover:bg-primary/20"
-                        : "text-muted-foreground/70 hover:bg-muted/25 hover:text-foreground"
-                    )}
-                    aria-label={
-                      classOpen ? "Collapse chapters" : "Expand chapters"
-                    }
-                  >
-                    <ChevronRight
-                      className={[
-                        "h-3 w-3 shrink-0 transition-transform",
-                        classOpen ? "rotate-90 -translate-x-1" : "",
-                      ].join(" ")}
-                      aria-hidden="true"
-                    />
-                  </button>
+                  {hasChapters ? (
+                    <button
+                      type="button"
+                      aria-expanded={classOpen}
+                      aria-controls={`panel-class-${cSlug}`}
+                      onClick={() => toggleClass(cSlug)}
+                      className={cn(
+                        "flex h-8 w-8 items-center justify-center rounded-sm transition-colors",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
+                        classSelfActive
+                          ? "text-[#172033] hover:bg-[#dff1e6]"
+                          : "text-[#667085] hover:bg-[#eaecf0] hover:text-[#172033]"
+                      )}
+                      aria-label={
+                        classOpen ? "Collapse chapters" : "Expand chapters"
+                      }
+                    >
+                      <ChevronRight
+                        className={cn(
+                          "h-4 w-4 shrink-0 transition-transform",
+                          classOpen && "rotate-90"
+                        )}
+                        aria-hidden="true"
+                      />
+                    </button>
+                  ) : (
+                    <span aria-hidden="true" className="h-8 w-8" />
+                  )}
                 </div>
               )}
 
@@ -365,14 +377,15 @@ export default function SidebarClient({ classes }: Props) {
                       : "grid-rows-[0fr] opacity-70",
                   ].join(" ")}
                 >
-                  <ul className="min-h-0 overflow-hidden pl-5 pr-1.5 space-y-0.5">
-                    {getChapters(cls).map((ch) => {
+                  <ul className="mt-1 min-h-0 space-y-0.5 overflow-hidden">
+                    {chapters.map((ch) => {
                       const chSlug = getChapterSlug(ch);
                       if (!chSlug) return null;
                       const chKey = `${cSlug}/${chSlug}`;
                       const chOpen = !!openChapters[chKey];
 
                       const lessons = getLessons(ch);
+                      const hasLessons = lessons.length > 0;
                       const chapterCompleted = lessons.filter((ls) =>
                         completedLessons.has(getLessonId(ls))
                       ).length;
@@ -381,12 +394,7 @@ export default function SidebarClient({ classes }: Props) {
                         currentClassSlug === cSlug &&
                         currentChapterSlug === chSlug;
 
-                      const chapterHasActiveLesson = lessons.some(
-                        (ls) => getLessonSlug(ls) === currentLessonSlug
-                      );
-
-                      const chapterBarActive =
-                        chapterOverviewActive || chapterHasActiveLesson;
+                      const chapterSelfActive = chapterOverviewActive;
 
                       const chapterPercent = lessons.length
                         ? Math.round(
@@ -399,89 +407,90 @@ export default function SidebarClient({ classes }: Props) {
 
                       return (
                         <li key={chSlug}>
-                          <div className="relative pl-3">
+                          <div className="relative">
                             <div
                               className={cn(
-                                "group -ml-3 flex w-[calc(100%+0.75rem)] flex-col gap-0.5 rounded-md border-l-[3px] py-1 pl-3 pr-1.5 text-left",
-                                "transition-[background-color,border-color,color,transform] duration-200",
-                                "hover:-translate-y-[1px]",
-                                chapterBarActive
-                                  ? "border-primary bg-primary/25 text-foreground pl-1 ring-1 ring-inset ring-primary/15"
-                                  : "border-transparent text-muted-foreground/85 hover:border-primary/45 hover:bg-muted/25 hover:text-foreground"
+                                "border-l-[3px] py-0 pl-4 pr-0 text-left transition-[background-color,border-color,color] duration-150",
+                                chapterSelfActive
+                                  ? "border-[#14532d] bg-[#eaf7ef] text-[#172033]"
+                                  : "border-transparent text-[#172033] hover:bg-[#f7f9fb]"
                               )}
                             >
-                              <div className="flex items-center justify-between gap-2">
+                              <div className="grid min-h-8 grid-cols-[minmax(0,1fr)_auto_1.75rem] items-center gap-x-1">
                                 <Link
                                   href={`/classes/${cSlug}/chapters/${chSlug}`}
-                                  className="flex flex-1 items-center justify-between gap-2 text-left text-inherit focus-visible:outline-none"
+                                  className={cn(
+                                    "min-w-0 py-1 text-left text-[14px] font-medium leading-[18px] text-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
+                                    chapterSelfActive && "font-semibold"
+                                  )}
+                                  aria-current={
+                                    chapterSelfActive ? "page" : undefined
+                                  }
                                 >
-                                  <span className="flex min-w-0 items-baseline gap-1.5">
+                                  <span className="flex min-w-0 items-start gap-2">
                                     {getChapterNumber(ch) != null ? (
-                                      <span className="shrink-0 text-[11px] font-semibold tabular-nums text-muted-foreground/55">
+                                      <span className="mt-px shrink-0 text-[12px] font-medium tabular-nums text-[#667085]">
                                         {getChapterNumber(ch)}
                                       </span>
                                     ) : null}
-                                    <span className="truncate">
+                                    <span className="min-w-0 break-words">
                                       {cleanTitle(
                                         getChapterTitle(ch),
                                         "Untitled chapter"
                                       )}
                                     </span>
                                   </span>
-                                  <span
-                                    className={cn(
-                                      "shrink-0 rounded-full px-1.5 py-0 text-[10px] font-semibold tabular-nums uppercase tracking-wide",
-                                      chapterIsComplete
-                                        ? "bg-primary/20 text-primary"
-                                        : chapterCompleted > 0
-                                          ? "bg-blue-500/15 text-blue-600 dark:text-blue-400"
-                                          : "bg-muted/60 text-muted-foreground"
-                                    )}
-                                  >
-                                    {chapterCompleted}/{lessons.length || 0}
-                                  </span>
                                 </Link>
-                              <button
-                                type="button"
-                                aria-expanded={chOpen}
-                                aria-controls={`panel-ch-${chKey}`}
-                                onClick={() => toggleChapter(cSlug, chSlug)}
-                                className={cn(
-                                  "flex h-5 w-5 items-center justify-center rounded-md transition-colors",
-                                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
-                                  chapterBarActive
-                                    ? "text-foreground/80 hover:bg-primary/20"
-                                    : "text-muted-foreground/70 hover:bg-muted/25 hover:text-foreground"
+                                <span className="whitespace-nowrap text-right text-[12px] font-medium leading-4 tabular-nums text-[#667085]">
+                                  {chapterCompleted} of {lessons.length || 0}
+                                </span>
+                                {hasLessons ? (
+                                  <button
+                                    type="button"
+                                    aria-expanded={chOpen}
+                                    aria-controls={`panel-ch-${chKey}`}
+                                    onClick={() => toggleChapter(cSlug, chSlug)}
+                                    className={cn(
+                                      "flex h-8 w-7 items-center justify-center rounded-sm transition-colors",
+                                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
+                                      chapterSelfActive
+                                        ? "text-[#172033] hover:bg-[#dff1e6]"
+                                        : "text-[#667085] hover:bg-[#eaecf0] hover:text-[#172033]"
+                                    )}
+                                    aria-label={
+                                      chOpen
+                                        ? "Collapse lessons"
+                                        : "Expand lessons"
+                                    }
+                                  >
+                                    <ChevronRight
+                                      className={cn(
+                                        "h-4 w-4 shrink-0 transition-transform",
+                                        chOpen && "rotate-90"
+                                      )}
+                                      aria-hidden="true"
+                                    />
+                                  </button>
+                                ) : (
+                                  <span aria-hidden="true" className="h-8 w-7" />
                                 )}
-                                aria-label={
-                                  chOpen ? "Collapse lessons" : "Expand lessons"
-                                }
-                              >
-                                <ChevronRight
-                                  className={[
-                                    "h-3 w-3 shrink-0 transition-transform",
-                                    chOpen ? "rotate-90 -translate-x-1" : "",
-                                  ].join(" ")}
-                                  aria-hidden="true"
-                                />
-                              </button>
                               </div>
                               {lessons.length > 0 ? (
                                 <div
-                                  className="ml-1 h-1 overflow-hidden rounded-full bg-muted/70"
+                                  className="mr-[4rem] h-[3px] overflow-hidden bg-[#eaecf0]"
                                   aria-hidden="true"
                                 >
                                   <div
                                     className={cn(
-                                      "h-full rounded-full transition-[width] duration-500 ease-out",
+                                      "h-full transition-[width] duration-500 ease-out",
                                       chapterIsComplete
-                                        ? "bg-primary"
+                                        ? "bg-[#14532d]"
                                         : chapterCompleted > 0
-                                          ? "bg-gradient-to-r from-primary/60 to-primary"
-                                          : "bg-primary/35"
+                                          ? "bg-[#2e7d32]"
+                                          : "bg-transparent"
                                     )}
                                     style={{
-                                      width: `${Math.max(chapterPercent, chapterPercent > 0 ? 6 : 0)}%`,
+                                      width: `${chapterPercent}%`,
                                     }}
                                   />
                                 </div>
@@ -492,46 +501,61 @@ export default function SidebarClient({ classes }: Props) {
                             <div
                               id={`panel-ch-${chKey}`}
                               className={[
-                                "grid transition-[grid-template-rows,opacity] duration-200 ease-out pl-5",
+                                "ml-4 grid transition-[grid-template-rows,opacity] duration-200 ease-out",
                                 chOpen
                                   ? "grid-rows-[1fr] opacity-100"
                                   : "grid-rows-[0fr] opacity-70",
                               ].join(" ")}
                             >
-                              <ul className="min-h-0 overflow-hidden py-0.5 space-y-0">
+                              <ul className="min-h-0 space-y-0.5 overflow-hidden pt-1">
                                 {lessons.map((ls) => {
                                   const lsSlug = getLessonSlug(ls);
                                   const lsId = getLessonId(ls);
                                   if (!lsSlug) return null;
                                   const active = lsSlug === currentLessonSlug;
+                                  const completed = completedLessons.has(lsId);
                                   return (
                                     <li key={lsSlug}>
                                       <Link
                                         href={`/classes/${cSlug}/lessons/${lsSlug}`}
                                         className={cn(
-                                          "block rounded-md border-l-2 px-2 py-0.5 text-[13px] transition-[background-color,border-color,color,transform] duration-200",
+                                          "grid min-h-8 grid-cols-[1.1rem_minmax(0,1fr)] items-start gap-1.5 border-l-[3px] py-1.5 pl-3 pr-2 text-[14px] leading-[18px]",
+                                          "transition-[background-color,border-color,color] duration-150",
                                           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                                          "hover:-translate-y-[1px]",
                                           active
-                                            ? "border-primary bg-primary/20 text-foreground ring-1 ring-inset ring-primary/25"
-                                            : "border-transparent text-muted-foreground/70 hover:border-primary/40 hover:bg-muted/20 hover:text-foreground"
+                                            ? "border-[#14532d] bg-[#eaf7ef] font-semibold text-[#172033]"
+                                            : "border-transparent text-[#172033] hover:bg-[#f7f9fb]"
                                         )}
+                                        aria-current={
+                                          active ? "page" : undefined
+                                        }
                                       >
-                                        <span className="relative flex items-center gap-2 pl-2">
+                                        <span
+                                          aria-hidden="true"
+                                          className="mt-[3px] flex h-4 w-4 items-center justify-center"
+                                        >
+                                          {completed ? (
+                                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#14532d] text-white">
+                                              <Check className="h-3 w-3" />
+                                            </span>
+                                          ) : active ? (
+                                            <span className="h-3 w-3 rounded-full border border-[#14532d] bg-[#14532d]" />
+                                          ) : (
+                                            <span className="h-3 w-3 rounded-full border border-[#98a2b3] bg-white" />
+                                          )}
+                                        </span>
+                                        <span className="min-w-0 whitespace-normal break-words">
                                           {cleanTitle(
                                             getLessonTitle(ls),
                                             "Untitled lesson"
                                           )}
-                                          {completedLessons.has(lsId) ? (
-                                            <Check className="h-3 w-3 text-emerald-500" />
-                                          ) : null}
                                         </span>
                                       </Link>
                                     </li>
                                   );
                                 })}
                                 {lessons.length === 0 && (
-                                  <li className="text-xs text-muted-foreground px-2 py-1">
+                                  <li className="px-3 py-2 text-[13px] leading-5 text-[#98a2b3]">
                                     No lessons yet.
                                   </li>
                                 )}

@@ -237,13 +237,15 @@ export function LivePreviewLesson({
       }
     />
   ) : null;
+  const isPlaceholderOnlyLesson =
+    blocks.length === 1 && isPlaceholderRichTextBlock(blocks[0]);
 
   return (
     <article className={className}>
       {navTop}
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_260px]">
-        <div className="min-w-0 max-w-[72ch]">
-      <header className="mb-8">
+      <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_260px]">
+        <div className="min-w-0 max-w-[78ch]">
+      <header className="mb-7">
         {chapterInfo &&
         (chapterInfo.classTitle || chapterInfo.chapterTitle) ? (
           <nav
@@ -279,22 +281,21 @@ export function LivePreviewLesson({
         <div className="flex items-start gap-3">
           <span
             className={cn(
-              "mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ring-1",
-              lessonTypeStyle.iconBg,
-              lessonTypeStyle.ring
+              "mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background",
+              lessonTypeStyle.iconText
             )}
             aria-hidden="true"
           >
-            <LessonIcon className={cn("h-5 w-5", lessonTypeStyle.iconText)} />
+            <LessonIcon className="h-[18px] w-[18px]" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
               {lessonType}
             </p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            <h1 className="mt-1 text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-[2.35rem]">
               {title}
             </h1>
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
                 <Clock className="h-3.5 w-3.5" />~{estimatedMinutes} min read
               </span>
@@ -337,16 +338,18 @@ export function LivePreviewLesson({
           </div>
         ) : null}
       </header>
-      {blocks.length > 0 ? (
+      {blocks.length > 0 && !isPlaceholderOnlyLesson ? (
         <PageLayout
           blocks={blocks}
           className="space-y-10"
           lessonId={data?.id ? String(data.id) : undefined}
         />
       ) : (
-        <p className="text-sm text-muted-foreground">
-          No content yet. Add blocks to this lesson.
-        </p>
+        <div className="border-l-[3px] border-border/80 py-1 pl-4">
+          <p className="text-sm leading-6 text-muted-foreground">
+            No lesson content has been added yet.
+          </p>
+        </div>
       )}
       {!hasQuizBlock && assessmentBlock ? (
         <div className="mt-12">
@@ -409,6 +412,29 @@ function formatDate(value: string) {
   });
 }
 
+function isPlaceholderRichTextBlock(block: PageLayoutBlock) {
+  if (block.blockType !== "richTextBlock") return false;
+  const text = extractPlainText(block.body)
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+  return text === "no content" || text === "no content." || text === "empty";
+}
+
+function extractPlainText(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (!value || typeof value !== "object") return "";
+
+  const current = value as { text?: unknown; root?: unknown; children?: unknown };
+  const ownText = typeof current.text === "string" ? current.text : "";
+  const rootText = current.root ? extractPlainText(current.root) : "";
+  const childText = Array.isArray(current.children)
+    ? current.children.map(extractPlainText).join(" ")
+    : "";
+
+  return [ownText, rootText, childText].filter(Boolean).join(" ");
+}
+
 type LessonNavSimpleProps = {
   lessons: { slug: string; title: string }[];
   currentIndex: number;
@@ -430,36 +456,75 @@ function LessonNavSimple({
       ? lessons[currentIndex + 1]
       : null;
 
+  if (placement === "top") {
+    return (
+      <nav
+        aria-label="Lesson navigation"
+        className="mb-2 border-b border-border/70 pb-1"
+      >
+        <div className="flex min-h-8 items-center justify-between gap-4 text-sm">
+          {prev ? (
+            <Link
+              href={`${hrefPrefix}/${prev.slug}`}
+              className="group inline-flex min-w-0 items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <ChevronLeft className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-0.5" />
+              <span className="truncate">{prev.title}</span>
+            </Link>
+          ) : (
+            <div className="inline-flex items-center gap-2 text-muted-foreground">
+              <ChevronLeft className="h-4 w-4" />
+              <span>No previous lesson</span>
+            </div>
+          )}
+
+          {next ? (
+            <Link
+              href={`${hrefPrefix}/${next.slug}`}
+              className="group ml-auto inline-flex min-w-0 items-center gap-2 text-right font-medium text-foreground transition-colors hover:text-primary"
+            >
+              <span className="hidden text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground sm:inline">
+                Next
+              </span>
+              <span className="max-w-[28rem] truncate">{next.title}</span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+            </Link>
+          ) : (
+            <div className="ml-auto inline-flex items-center gap-2 text-muted-foreground">
+              <span>No more lessons</span>
+              <ChevronRight className="h-4 w-4" />
+            </div>
+          )}
+        </div>
+      </nav>
+    );
+  }
+
   return (
-    <div
-      className={
-        placement === "top"
-          ? "mb-2 border-b border-border/60 pb-3"
-          : "mt-4 border-t border-border/60 pt-2"
-      }
+    <nav
+      aria-label="Lesson navigation"
+      className="mt-8 border-t border-border/70 pt-5"
     >
-      {placement === "bottom" ? (
-        <div className="mb-4">{extraContent}</div>
-      ) : null}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {extraContent ? <div className="mb-5">{extraContent}</div> : null}
+      <div className="grid gap-3 sm:grid-cols-2">
         {prev ? (
           <Link
             href={`${hrefPrefix}/${prev.slug}`}
-            className="group inline-flex items-center gap-3 text-left"
+            className="group flex min-h-16 items-center gap-3 text-left"
           >
-            <ChevronLeft className="h-5 w-5 text-muted-foreground transition group-hover:-translate-x-0.5 group-hover:text-foreground" />
-            <div>
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">
+            <ChevronLeft className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:-translate-x-0.5" />
+            <div className="min-w-0">
+              <div className="text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground">
                 Previous
               </div>
-              <div className="text-base font-semibold text-foreground transition group-hover:text-foreground/90">
+              <div className="mt-1 line-clamp-2 text-base font-semibold leading-6 text-foreground transition-colors group-hover:text-primary">
                 {prev.title}
               </div>
             </div>
           </Link>
         ) : (
-          <div className="inline-flex items-center gap-3 text-left text-muted-foreground">
-            <ChevronLeft className="h-5 w-5" />
+          <div className="flex min-h-16 items-center gap-3 text-left text-muted-foreground">
+            <ChevronLeft className="h-5 w-5 shrink-0" />
             <div className="text-sm">No previous lesson</div>
           </div>
         )}
@@ -467,26 +532,26 @@ function LessonNavSimple({
         {next ? (
           <Link
             href={`${hrefPrefix}/${next.slug}`}
-            className="group inline-flex items-center gap-3 text-right sm:ml-auto"
+            className="group flex min-h-16 items-center justify-end gap-3 text-right"
           >
-            <div>
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">
+            <div className="min-w-0">
+              <div className="text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground">
                 Next
               </div>
-              <div className="text-base font-semibold text-foreground transition group-hover:text-foreground/90">
+              <div className="mt-1 line-clamp-2 text-base font-semibold leading-6 text-foreground transition-colors group-hover:text-primary">
                 {next.title}
               </div>
             </div>
-            <ChevronRight className="h-5 w-5 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground" />
+            <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
           </Link>
         ) : (
-          <div className="inline-flex items-center gap-3 text-right text-muted-foreground sm:ml-auto">
+          <div className="flex min-h-16 items-center justify-end gap-3 text-right text-muted-foreground">
             <div className="text-sm">No more lessons</div>
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-5 w-5 shrink-0" />
           </div>
         )}
       </div>
-    </div>
+    </nav>
   );
 }
 

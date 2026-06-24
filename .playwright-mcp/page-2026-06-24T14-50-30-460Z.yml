@@ -1,0 +1,277 @@
+- generic [active] [ref=e1]:
+  - navigation "Primary" [ref=e2]:
+    - generic [ref=e3]:
+      - link "Home" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "Cal Poly Pomona Logo" [ref=e5]
+      - img "NSF Logo" [ref=e6]
+      - generic [ref=e7]: NSF CURE SBP
+    - link "Home" [ref=e9] [cursor=pointer]:
+      - /url: /
+    - generic [ref=e10]:
+      - button "Open search" [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+        - generic [ref=e15]: Search program...
+        - generic [ref=e16]: ⌘K
+      - button [disabled] [ref=e21]:
+        - img [ref=e22]
+  - generic [ref=e25]:
+    - generic [ref=e26]:
+      - complementary [ref=e28]:
+        - generic [ref=e29]:
+          - generic [ref=e30]: Study Topics
+          - button "Collapse sidebar" [ref=e31] [cursor=pointer]:
+            - img [ref=e32]
+        - navigation "Study topics" [ref=e36]:
+          - list [ref=e37]:
+            - listitem [ref=e38]:
+              - link "Review" [ref=e40] [cursor=pointer]:
+                - /url: /classes/review
+                - generic [ref=e41]: Review
+              - generic [ref=e43]:
+                - list
+            - listitem [ref=e44]:
+              - generic [ref=e45]:
+                - link "Statics" [ref=e46] [cursor=pointer]:
+                  - /url: /classes/statics
+                  - generic [ref=e47]: Statics
+                - button "Expand chapters" [ref=e48] [cursor=pointer]:
+                  - img [ref=e49]
+              - generic [ref=e51]:
+                - list:
+                  - listitem [ref=e52]:
+                    - generic [ref=e53]:
+                      - generic [ref=e55]:
+                        - link "1 Force Vectors" [ref=e56] [cursor=pointer]:
+                          - /url: /classes/statics/chapters/force-vectors
+                          - generic [ref=e57]:
+                            - generic [ref=e58]: "1"
+                            - generic [ref=e59]: Force Vectors
+                        - generic [ref=e60]: 0 of 3
+                        - button "Expand lessons" [ref=e61] [cursor=pointer]:
+                          - img [ref=e62]
+                      - list [ref=e66]:
+                        - listitem [ref=e67]:
+                          - link "Vector Addition of Forces (Law of Cosines)" [ref=e68] [cursor=pointer]:
+                            - /url: /classes/statics/lessons/vector-addition-of-forces-law-of-cosines
+                            - generic [ref=e71]: Vector Addition of Forces (Law of Cosines)
+                        - listitem [ref=e72]:
+                          - link "Vector Addition of Forces (Parallelogram Law)" [ref=e73] [cursor=pointer]:
+                            - /url: /classes/statics/lessons/vector-addition-of-forces-parallelogram-law
+                            - generic [ref=e76]: Vector Addition of Forces (Parallelogram Law)
+                        - listitem [ref=e77]:
+                          - link "Finding resultant Force, FR using component" [ref=e78] [cursor=pointer]:
+                            - /url: /classes/statics/lessons/finding-resultant-force-fr-using-components
+                            - generic [ref=e81]: Finding resultant Force, FR using component
+                  - listitem [ref=e82]:
+                    - generic [ref=e83]:
+                      - generic [ref=e85]:
+                        - link "2 Force System Resultants" [ref=e86] [cursor=pointer]:
+                          - /url: /classes/statics/chapters/force-system-resultants
+                          - generic [ref=e87]:
+                            - generic [ref=e88]: "2"
+                            - generic [ref=e89]: Force System Resultants
+                        - generic [ref=e90]: 0 of 0
+                      - list [ref=e93]:
+                        - listitem [ref=e94]: No lessons yet.
+                  - listitem [ref=e95]:
+                    - generic [ref=e96]:
+                      - generic [ref=e98]:
+                        - link "3 Equilibrium of a Rigid Body" [ref=e99] [cursor=pointer]:
+                          - /url: /classes/statics/chapters/equilibrium-of-a-rigid-body
+                          - generic [ref=e100]:
+                            - generic [ref=e101]: "3"
+                            - generic [ref=e102]: Equilibrium of a Rigid Body
+                        - generic [ref=e103]: 0 of 0
+                      - list [ref=e106]:
+                        - listitem [ref=e107]: No lessons yet.
+                  - listitem [ref=e108]:
+                    - generic [ref=e109]:
+                      - generic [ref=e111]:
+                        - link "4 Untitled chapter" [ref=e112] [cursor=pointer]:
+                          - /url: /classes/statics/chapters/test
+                          - generic [ref=e113]:
+                            - generic [ref=e114]: "4"
+                            - generic [ref=e115]: Untitled chapter
+                        - generic [ref=e116]: 0 of 0
+                      - list [ref=e119]:
+                        - listitem [ref=e120]: No lessons yet.
+                  - listitem [ref=e121]:
+                    - generic [ref=e122]:
+                      - generic [ref=e124]:
+                        - link "5 sdsss" [ref=e125] [cursor=pointer]:
+                          - /url: /classes/statics/chapters/sdsss
+                          - generic [ref=e126]:
+                            - generic [ref=e127]: "5"
+                            - generic [ref=e128]: sdsss
+                        - generic [ref=e129]: 0 of 0
+                      - list [ref=e132]:
+                        - listitem [ref=e133]: No lessons yet.
+            - listitem [ref=e134]:
+              - link "Mechanics of Materials" [ref=e136] [cursor=pointer]:
+                - /url: /classes/mechanics-of-materials
+                - generic [ref=e137]: Mechanics of Materials
+              - generic [ref=e139]:
+                - list
+            - listitem [ref=e140]:
+              - generic [ref=e141]:
+                - link "sdsd" [ref=e142] [cursor=pointer]:
+                  - /url: /classes/sdsd
+                  - generic [ref=e143]: sdsd
+                - button "Expand chapters" [ref=e144] [cursor=pointer]:
+                  - img [ref=e145]
+              - generic [ref=e147]:
+                - list:
+                  - listitem [ref=e148]:
+                    - generic [ref=e149]:
+                      - generic [ref=e151]:
+                        - link "1 Untitled chapter" [ref=e152] [cursor=pointer]:
+                          - /url: /classes/sdsd/chapters/sds
+                          - generic [ref=e153]:
+                            - generic [ref=e154]: "1"
+                            - generic [ref=e155]: Untitled chapter
+                        - generic [ref=e156]: 0 of 2
+                        - button "Expand lessons" [ref=e157] [cursor=pointer]:
+                          - img [ref=e158]
+                      - list [ref=e162]:
+                        - listitem [ref=e163]:
+                          - link "sssd" [ref=e164] [cursor=pointer]:
+                            - /url: /classes/sdsd/lessons/sssd
+                            - generic [ref=e167]: sssd
+                        - listitem [ref=e168]:
+                          - link "sdsdsssds" [ref=e169] [cursor=pointer]:
+                            - /url: /classes/sdsd/lessons/sdsdsssds
+                            - generic [ref=e172]: sdsdsssds
+                  - listitem [ref=e173]:
+                    - generic [ref=e174]:
+                      - generic [ref=e176]:
+                        - link "2 sdsds" [ref=e177] [cursor=pointer]:
+                          - /url: /classes/sdsd/chapters/sdsds
+                          - generic [ref=e178]:
+                            - generic [ref=e179]: "2"
+                            - generic [ref=e180]: sdsds
+                        - generic [ref=e181]: 0 of 0
+                      - list [ref=e184]:
+                        - listitem [ref=e185]: No lessons yet.
+      - main [ref=e188]:
+        - main [ref=e190]:
+          - article [ref=e192]:
+            - generic [ref=e193]:
+              - paragraph [ref=e194]: Course
+              - heading "Statics" [level=1] [ref=e195]
+              - generic [ref=e196]:
+                - generic [ref=e197]:
+                  - img [ref=e198]
+                  - term [ref=e202]: Chapters
+                  - definition [ref=e203]: 2 chapters
+                - generic [ref=e204]:
+                  - img [ref=e205]
+                  - term [ref=e207]: Lessons
+                  - definition [ref=e208]: 5 lessons
+                - generic [ref=e209]:
+                  - img [ref=e210]
+                  - term [ref=e213]: Estimated time
+                  - definition [ref=e214]: ~24 min total
+            - generic [ref=e216]:
+              - generic [ref=e217]:
+                - generic [ref=e218]:
+                  - img
+                  - searchbox "Search chapters or lessons..." [ref=e219]
+                - generic [ref=e220]:
+                  - button "All 3" [ref=e221] [cursor=pointer]:
+                    - generic [ref=e222]: All
+                    - generic [ref=e223]: "3"
+                  - button "Not Started 3" [ref=e224] [cursor=pointer]:
+                    - generic [ref=e225]: Not Started
+                    - generic [ref=e226]: "3"
+                  - button "In Progress 0" [ref=e227] [cursor=pointer]:
+                    - generic [ref=e228]: In Progress
+                    - generic [ref=e229]: "0"
+                  - button "Completed 0" [ref=e230] [cursor=pointer]:
+                    - generic [ref=e231]: Completed
+                    - generic [ref=e232]: "0"
+                  - button "Has Quiz 0" [ref=e233] [cursor=pointer]:
+                    - generic [ref=e234]: Has Quiz
+                    - generic [ref=e235]: "0"
+              - generic [ref=e236]:
+                - generic [ref=e238]:
+                  - generic [ref=e239]:
+                    - button "Chapter 1 Force Vectors 3 lessons · ~8 min / lesson" [ref=e240] [cursor=pointer]:
+                      - img [ref=e242]
+                      - generic [ref=e244]:
+                        - generic [ref=e246]: Chapter 1
+                        - heading "Force Vectors" [level=2] [ref=e247]
+                        - generic [ref=e248]:
+                          - generic [ref=e249]:
+                            - img [ref=e250]
+                            - text: 3 lessons
+                          - generic [ref=e254]: ·
+                          - generic [ref=e255]:
+                            - img [ref=e256]
+                            - text: ~8 min / lesson
+                    - link "View chapter →" [ref=e259] [cursor=pointer]:
+                      - /url: /classes/statics/chapters/force-vectors
+                  - generic [ref=e260]:
+                    - generic [ref=e262]: 0/3
+                    - generic [ref=e263]: 0%
+                - generic [ref=e266]:
+                  - button "Chapter 4 Untitled chapter 0 lessons" [ref=e267] [cursor=pointer]:
+                    - img [ref=e269]
+                    - generic [ref=e271]:
+                      - generic [ref=e273]: Chapter 4
+                      - heading "Untitled chapter" [level=2] [ref=e274]
+                      - generic [ref=e276]:
+                        - img [ref=e277]
+                        - text: 0 lessons
+                  - link "View chapter →" [ref=e281] [cursor=pointer]:
+                    - /url: /classes/statics/chapters/test
+    - contentinfo [ref=e282]:
+      - generic [ref=e284]:
+        - generic [ref=e285]:
+          - generic [ref=e286]:
+            - heading "Explore" [level=2] [ref=e287]
+            - list [ref=e288]:
+              - listitem [ref=e289]:
+                - link "Home" [ref=e290] [cursor=pointer]:
+                  - /url: /
+              - listitem [ref=e291]:
+                - link "Learning" [ref=e292] [cursor=pointer]:
+                  - /url: /learning
+              - listitem [ref=e293]:
+                - link "Directory" [ref=e294] [cursor=pointer]:
+                  - /url: /directory
+          - generic [ref=e295]:
+            - heading "Resources" [level=2] [ref=e296]
+            - list [ref=e297]:
+              - listitem [ref=e298]:
+                - link "FAQ" [ref=e299] [cursor=pointer]:
+                  - /url: /faq
+              - listitem [ref=e300]:
+                - link "Resources" [ref=e301] [cursor=pointer]:
+                  - /url: /resources
+          - generic [ref=e302]:
+            - heading "Connect" [level=2] [ref=e303]
+            - list [ref=e304]:
+              - listitem [ref=e305]:
+                - link "nsfcuresbp@gmail.com" [ref=e306] [cursor=pointer]:
+                  - /url: mailto:nsfcuresbp@gmail.com
+              - listitem [ref=e307]:
+                - generic [ref=e308]: 3801 W Temple Ave, Pomona, CA
+                - generic [ref=e309]: "91768"
+              - listitem [ref=e310]:
+                - link "College of Engineering" [ref=e311] [cursor=pointer]:
+                  - /url: https://www.cpp.edu/engineering/
+          - generic [ref=e312]:
+            - heading "Feedback" [level=2] [ref=e313]
+            - paragraph [ref=e314]: Share ideas, report issues, or tell us what to improve.
+            - button "Open feedback" [ref=e315] [cursor=pointer]
+        - generic [ref=e317]:
+          - paragraph [ref=e318]:
+            - generic [ref=e319]: © 2026 Cal Poly Pomona Engineering — NSF CURE Summer Bridge Program
+            - generic [ref=e320]: ·
+            - link "Privacy" [ref=e321] [cursor=pointer]:
+              - /url: /privacy
+          - paragraph [ref=e322]: Supported by the National Science Foundation under Award No. 2318158.
+          - paragraph [ref=e323]: Any opinions, findings, and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of the National Science Foundation.
+  - button "Open Next.js Dev Tools" [ref=e329] [cursor=pointer]:
+    - img [ref=e330]

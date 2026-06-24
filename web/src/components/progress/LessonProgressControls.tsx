@@ -260,7 +260,7 @@ export function LessonProgressControls({ lessonId, lessonTitle }: Props) {
   if (!user) return null;
 
   return (
-    <section className="mt-6 border-y border-border/60 bg-muted/10 py-4">
+    <section className="mt-6 border-t border-border/60 py-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -277,7 +277,6 @@ export function LessonProgressControls({ lessonId, lessonTitle }: Props) {
             type="button"
             onClick={markComplete}
             disabled={loading || saving || isCompleted}
-            className="rounded-full"
           >
             {statusLabel}
           </Button>
@@ -286,7 +285,6 @@ export function LessonProgressControls({ lessonId, lessonTitle }: Props) {
             variant={isBookmarked ? "secondary" : "outline"}
             onClick={toggleBookmark}
             disabled={bookmarkLoading || bookmarkSaving}
-            className="rounded-full"
           >
             {isBookmarked ? (
               <BookmarkCheck className="h-4 w-4" />

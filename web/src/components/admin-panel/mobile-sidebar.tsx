@@ -38,10 +38,10 @@ export function MobileSidebar({ classes }: MobileSidebarProps) {
         </Button>
       </SheetTrigger>
 
-      <SheetContent side="left" className="p-0 w-[min(22rem,90vw)]">
-        <SheetHeader className="px-5 pt-5 pb-3 text-left space-y-1.5">
-          <SheetTitle className="text-lg">Browse topics</SheetTitle>
-          <p className="text-sm text-muted-foreground">
+      <SheetContent side="left" className="w-[min(22rem,90vw)] bg-[#fcfcfd] p-0">
+        <SheetHeader className="space-y-1.5 px-5 pb-3 pt-5 text-left">
+          <SheetTitle className="text-lg text-[#172033]">Browse topics</SheetTitle>
+          <p className="text-sm text-[#667085]">
             Classes, chapters, and lessons in one place.
           </p>
         </SheetHeader>

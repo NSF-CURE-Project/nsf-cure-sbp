@@ -60,7 +60,7 @@ export function Sidebar({
       data-sidebar-collapsible={collapsible}
       data-sidebar-open={open ? "true" : "false"}
       className={cn(
-        "relative flex h-dvh w-64 flex-col bg-[hsl(var(--background)/0.92)] transition-[width] duration-200",
+        "relative flex h-dvh w-64 flex-col bg-[#fcfcfd] transition-[width] duration-200",
         !open && collapsible === "icon" && "w-14",
         className
       )}

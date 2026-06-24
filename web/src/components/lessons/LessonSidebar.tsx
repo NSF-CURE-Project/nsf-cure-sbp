@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Clock, Flame, ListTree } from "lucide-react";
+import { ArrowLeft, Clock, Flame, ListTree } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LessonSection } from "@/lib/lessons/toc";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
@@ -176,194 +176,167 @@ export default function LessonSidebar({
       aria-label="Lesson outline"
       className="hidden xl:block xl:w-[260px] shrink-0"
     >
-      <div className="sticky top-[calc(var(--nav-h,4rem)+1rem)] grid gap-4">
-        {/* Lesson meta */}
-        <section className="border-y border-border/60 bg-muted/10 py-4">
-          <div className="flex items-center justify-between gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/60 px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-foreground/75">
-              {lessonType}
-            </span>
-            <span className="inline-flex items-center gap-1 text-[11.5px] font-medium text-muted-foreground">
-              <Clock className="h-3 w-3" />~{estimatedMinutes} min
-            </span>
-          </div>
-          {hasProgressCaption ? (
-            <div className="mt-3">
-              <div className="flex items-baseline justify-between gap-2 text-[11.5px] text-muted-foreground">
-                <span>
-                  Lesson{" "}
-                  <strong className="text-foreground">{lessonIndex}</strong> of{" "}
-                  {lessonCount}
-                </span>
-                {chapter?.number ? (
-                  <span className="text-[10.5px] uppercase tracking-[0.06em]">
-                    Ch {chapter.number}
+      <div className="sticky top-[calc(var(--nav-h,4rem)+1rem)]">
+        <div className="divide-y divide-border/55 border-y border-border/60 text-sm">
+          {/* Lesson meta */}
+          <section className="py-3.5">
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-medium text-foreground/90">
+                {lessonType}
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                <Clock className="h-3.5 w-3.5" />
+                ~{estimatedMinutes} min
+              </span>
+            </div>
+            {hasProgressCaption ? (
+              <div className="mt-3.5">
+                <div className="flex items-baseline justify-between gap-3 text-muted-foreground">
+                  <span>
+                    Lesson{" "}
+                    <strong className="font-semibold text-foreground">
+                      {lessonIndex}
+                    </strong>{" "}
+                    of {lessonCount}
                   </span>
-                ) : null}
-              </div>
-              <div
-                className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-muted"
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={lessonCount}
-                aria-valuenow={lessonIndex}
-                aria-label="Position in chapter"
-              >
+                  {chapter?.number ? (
+                    <span className="text-xs font-medium uppercase tracking-[0.04em]">
+                      Ch {chapter.number}
+                    </span>
+                  ) : null}
+                </div>
                 <div
-                  className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out"
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      Math.round((lessonIndex / lessonCount) * 100),
-                    )}%`,
-                  }}
-                />
-              </div>
-            </div>
-          ) : null}
-          {chapter?.title && chapter.slug && chapter.classSlug ? (
-            <Link
-              href={`/classes/${chapter.classSlug}/chapters/${chapter.slug}`}
-              className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-medium text-foreground/85 transition-colors hover:text-primary"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Back to {chapter.title}
-            </Link>
-          ) : null}
-        </section>
-
-        {/* Streak / momentum (only shown when we successfully read progress) */}
-        {streak ? (
-          <section
-            className={cn(
-              "border-y py-4 transition-colors",
-              streak.activeToday
-                ? "border-amber-500/35 bg-amber-500/8"
-                : "border-border/60 bg-muted/10",
-            )}
-            aria-label="Learning streak"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-foreground/75">
-                <Flame
-                  className={cn(
-                    "h-3.5 w-3.5",
-                    streak.activeToday
-                      ? "text-amber-500"
-                      : "text-muted-foreground",
-                  )}
-                  aria-hidden="true"
-                />
-                Streak
-              </div>
-              {streak.activeToday ? (
-                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
-                  <span
-                    aria-hidden="true"
-                    className="inline-flex h-1.5 w-1.5 rounded-full bg-amber-500 ring-2 ring-amber-500/30"
+                  className="mt-2 h-0.5 w-full overflow-hidden rounded-full bg-muted"
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={lessonCount}
+                  aria-valuenow={lessonIndex}
+                  aria-label="Position in chapter"
+                >
+                  <div
+                    className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out"
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        Math.round((lessonIndex / lessonCount) * 100),
+                      )}%`,
+                    }}
                   />
-                  Active today
-                </span>
-              ) : null}
-            </div>
-            <div className="mt-2 flex items-baseline gap-1.5">
-              <span
-                className={cn(
-                  "text-2xl font-bold leading-none tabular-nums tracking-tight",
-                  streak.activeToday
-                    ? "text-amber-600 dark:text-amber-400"
-                    : "text-foreground",
-                )}
+                </div>
+              </div>
+            ) : null}
+            {chapter?.title && chapter.slug && chapter.classSlug ? (
+              <Link
+                href={`/classes/${chapter.classSlug}/chapters/${chapter.slug}`}
+                className="mt-4 inline-flex min-h-8 items-center gap-2 font-medium text-foreground/80 transition-colors hover:text-primary"
               >
-                {streak.count}
-              </span>
-              <span className="text-xs font-medium text-muted-foreground">
-                {streak.count === 1 ? "day" : "days"}
-              </span>
-            </div>
-            {streakMessage ? (
-              <p className="mt-1 text-[11.5px] leading-snug text-muted-foreground">
-                {streakMessage}
-              </p>
+                <ArrowLeft className="h-4 w-4" />
+                Back to {chapter.title}
+              </Link>
             ) : null}
           </section>
-        ) : null}
 
-        {/* Table of contents */}
-        {sections.length > 1 ? (
-          <section className="border-y border-border/60 bg-muted/10 py-4">
-            <div className="mb-2 flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-foreground/75">
-              <ListTree className="h-3.5 w-3.5" />
-              In this lesson
-            </div>
-            <ul className="grid gap-0.5">
-              {sections.map((section) => {
-                const isActive = activeId === section.id;
-                return (
-                  <li key={section.id}>
-                    <a
-                      href={`#${section.id}`}
-                      className={cn(
-                        "flex items-start gap-2 rounded-md px-2 py-1.5 text-[12.5px] leading-snug transition-colors",
-                        isActive
-                          ? "bg-primary/10 text-foreground font-semibold"
-                          : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
-                        section.level === "secondary" && "pl-4",
-                      )}
-                    >
-                      <span
-                        aria-hidden="true"
+          {/* Streak / momentum (only shown when we successfully read progress) */}
+          {streak ? (
+            <section className="py-3.5" aria-label="Learning streak">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
+                  <Flame
+                    className={cn(
+                      "h-4 w-4",
+                      streak.activeToday
+                        ? "text-amber-500"
+                        : "text-muted-foreground",
+                    )}
+                    aria-hidden="true"
+                  />
+                  Streak
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  <strong
+                    className={cn(
+                      "font-semibold tabular-nums",
+                      streak.activeToday
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-foreground",
+                    )}
+                  >
+                    {streak.count}
+                  </strong>{" "}
+                  {streak.count === 1 ? "day" : "days"}
+                </span>
+              </div>
+              {streakMessage ? (
+                <p className="mt-1.5 text-xs leading-5 text-muted-foreground/90">
+                  {streakMessage}
+                </p>
+              ) : null}
+            </section>
+          ) : null}
+
+          {/* Table of contents */}
+          {sections.length > 1 ? (
+            <section className="py-3.5">
+              <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
+                <ListTree className="h-3.5 w-3.5" />
+                In this lesson
+              </div>
+              <ul className="grid gap-1">
+                {sections.map((section) => {
+                  const isActive = activeId === section.id;
+                  return (
+                    <li key={section.id}>
+                      <a
+                        href={`#${section.id}`}
                         className={cn(
-                          "mt-1.5 inline-block h-1 w-1 rounded-full transition-colors",
+                          "flex min-h-8 items-start gap-2 border-l-2 py-1.5 pl-3 pr-1 leading-5 transition-colors",
                           isActive
-                            ? "bg-primary"
-                            : "bg-muted-foreground/40",
+                            ? "border-primary font-medium text-foreground"
+                            : "border-transparent text-muted-foreground hover:border-border/80 hover:text-foreground",
+                          section.level === "secondary" && "ml-3",
                         )}
-                      />
-                      <span className="min-w-0 flex-1 truncate">
-                        {section.title}
-                      </span>
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        ) : null}
+                      >
+                        <span className="min-w-0 flex-1 line-clamp-2">
+                          {section.title}
+                        </span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ) : null}
 
-        {/* Next lesson preview */}
-        {next ? (
-          <Link
-            href={`${hrefPrefix}/${next.slug}`}
-            className="group block border-y border-border/60 bg-muted/10 py-4 transition-colors hover:bg-muted/25"
-          >
-            <div className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-              Up next
-            </div>
-            <div className="mt-1 line-clamp-2 text-[13.5px] font-semibold leading-snug text-foreground">
-              {next.title}
-            </div>
-            <div className="mt-2 inline-flex items-center gap-1 text-[11.5px] font-medium text-primary">
-              Continue
-              <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-0.5" />
-            </div>
-          </Link>
-        ) : null}
+          {/* Next lesson preview */}
+          {next ? (
+            <section className="py-3.5">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
+                Up next
+              </div>
+              <Link
+                href={`${hrefPrefix}/${next.slug}`}
+                className="mt-1.5 block line-clamp-3 font-medium leading-5 text-foreground/90 transition-colors hover:text-primary"
+              >
+                {next.title}
+              </Link>
+            </section>
+          ) : null}
 
-        {/* Subtle prev-lesson shortcut if there's no "next" target */}
-        {!next && prev ? (
-          <Link
-            href={`${hrefPrefix}/${prev.slug}`}
-            className="group block border-y border-border/60 bg-muted/10 py-4 transition-colors hover:bg-muted/25"
-          >
-            <div className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-              Previous lesson
-            </div>
-            <div className="mt-1 line-clamp-2 text-[13.5px] font-semibold leading-snug text-foreground">
-              {prev.title}
-            </div>
-          </Link>
-        ) : null}
+          {/* Subtle prev-lesson shortcut if there's no "next" target */}
+          {!next && prev ? (
+            <section className="py-3.5">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
+                Previous lesson
+              </div>
+              <Link
+                href={`${hrefPrefix}/${prev.slug}`}
+                className="mt-1.5 block line-clamp-3 font-medium leading-5 text-foreground/90 transition-colors hover:text-primary"
+              >
+                {prev.title}
+              </Link>
+            </section>
+          ) : null}
+        </div>
       </div>
     </aside>
   );

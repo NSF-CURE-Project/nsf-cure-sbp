@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { MessageSquarePlus } from "lucide-react";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 import { LoginLink } from "@/components/auth/LoginLink";
 import { Input } from "@/components/ui/input";
@@ -192,8 +193,8 @@ export function LessonQuestionDrawer({
   };
 
   return (
-    <section className="mt-10 border-y border-border/60 bg-muted/10 py-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <section className="mt-9 border-t border-border/60 py-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold">Questions about this lesson</h2>
           <p className="text-sm text-muted-foreground">
@@ -204,9 +205,11 @@ export function LessonQuestionDrawer({
           <SheetTrigger asChild>
             <Button
               type="button"
-              className="rounded-full"
+              variant="outline"
+              className="w-full sm:w-auto"
               disabled={!lessonId || (!!user && (!canAskQuestion || eligibilityLoading))}
             >
+              <MessageSquarePlus className="h-4 w-4" />
               Ask a Question about this Lesson
             </Button>
           </SheetTrigger>

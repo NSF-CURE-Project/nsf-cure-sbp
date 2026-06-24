@@ -27,15 +27,15 @@ export default function AppSidebar({ classes, className }: AppSidebarProps) {
   return (
     <Sidebar
       className={cn(
-        "relative h-full min-h-0 flex-col overflow-hidden transition-[width] duration-200",
+        "relative h-full min-h-0 flex-col overflow-hidden bg-[#fcfcfd] transition-[width] duration-200",
         isOpen ? "w-64" : "w-14",
         className
       )}
     >
-      <div className="sticky top-0 z-20 flex items-center gap-2 pr-3 pl-3 py-2 bg-transparent backdrop-blur">
+      <div className="sticky top-0 z-20 flex min-h-10 items-center gap-2 bg-[#fcfcfd]/95 py-1 pl-4 pr-2 backdrop-blur">
         <div
           className={cn(
-            "text-xs font-semibold uppercase tracking-wide text-muted-foreground/80 transition-opacity duration-150",
+            "text-[12px] font-semibold uppercase tracking-[0.08em] text-[#667085] transition-opacity duration-150",
             isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
           )}
         >
@@ -45,8 +45,8 @@ export default function AppSidebar({ classes, className }: AppSidebarProps) {
           type="button"
           onClick={toggle}
           className={cn(
-            "ml-auto flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground/70 transition hover:bg-muted/40 hover:text-foreground/80",
-            !isOpen && "absolute right-2 top-2"
+            "ml-auto flex h-8 w-8 items-center justify-center rounded-sm text-[#667085] transition hover:bg-[#f2f4f7] hover:text-[#172033]",
+            !isOpen && "absolute right-2 top-1"
           )}
           aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
         >
@@ -62,11 +62,11 @@ export default function AppSidebar({ classes, className }: AppSidebarProps) {
       {/* Inner scrollable content of the shell */}
       <SidebarContent
         className={cn(
-          "relative flex-1 min-h-0 px-0 py-4 overflow-hidden transition-[opacity,visibility] duration-150",
+          "relative flex-1 min-h-0 overflow-hidden px-0 py-2 transition-[opacity,visibility] duration-150",
           isOpen ? "opacity-100 visible" : "opacity-0 invisible"
         )}
       >
-        <div className="h-full overflow-y-auto pr-1">
+        <div className="h-full overflow-y-auto px-3 pb-2">
           <SidebarClient classes={classes} />
         </div>
       </SidebarContent>

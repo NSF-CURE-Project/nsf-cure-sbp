@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, ListTree } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { LessonSection } from "@/lib/lessons/toc";
 
 type Props = {
@@ -10,7 +11,7 @@ type Props = {
   next?: { slug: string; title: string } | null;
   hrefPrefix: string;
   // When provided, drives the "Lesson X of Y" caption and the chapter
-  // shortcut at the bottom of the card.
+  // shortcut at the bottom of the recap.
   chapter?: {
     title: string | null;
     slug: string | null;
@@ -24,10 +25,8 @@ type Props = {
   summary?: string | null;
 };
 
-// End-of-lesson recap card. Replaces the abrupt "next lesson" nav with a
-// momentum block: what you just finished, what's coming up, and a clear
-// continue CTA. Keeps the existing prev/next nav at the bottom (rendered
-// elsewhere) — this sits above it.
+// End-of-lesson recap. Keeps the existing prev/next nav at the bottom
+// (rendered elsewhere) and provides a quieter completion checkpoint above it.
 export default function LessonFinishCard({
   lessonTitle,
   sections,
@@ -48,39 +47,51 @@ export default function LessonFinishCard({
   return (
     <section
       aria-label="Lesson recap"
-      className="relative mt-12 overflow-hidden border-y border-emerald-500/35 bg-emerald-500/[0.05] py-5 sm:py-6"
+      className="mt-11 border-t border-border/70 pt-6"
     >
-      <div className="relative grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div className="min-w-0 space-y-3">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/35 bg-emerald-500/10 px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.1em] text-emerald-700 dark:text-emerald-300">
-            <CheckCircle2 className="h-3.5 w-3.5" />
+          <div className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300">
+            <CheckCircle2 className="h-4 w-4" />
             Lesson recap
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-            You finished “{lessonTitle}”
-          </h2>
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+              You finished “{lessonTitle}”
+            </h2>
+            {hasProgressCaption && chapter?.number ? (
+              <p className="text-sm leading-6 text-muted-foreground">
+                Chapter {chapter.number}
+                {chapter.title ? ` · ${chapter.title}` : ""} -{" "}
+                <strong className="font-semibold text-foreground">
+                  {lessonIndex}
+                </strong>{" "}
+                of {lessonCount} lessons complete.
+              </p>
+            ) : null}
+          </div>
           {trimmedSummary ? (
             <div className="space-y-1.5">
-              <p className="text-[12.5px] font-semibold uppercase tracking-[0.08em] text-foreground/75">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
                 In summary
               </p>
-              <p className="whitespace-pre-line text-[14px] leading-6 text-foreground/95">
+              <p className="max-w-3xl whitespace-pre-line text-sm leading-6 text-foreground/90">
                 {trimmedSummary}
               </p>
             </div>
           ) : summaryItems.length > 0 ? (
             <div className="space-y-1.5">
-              <p className="text-[12.5px] font-semibold uppercase tracking-[0.08em] text-foreground/75">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
                 What you covered
               </p>
               <ul className="grid gap-1">
                 {summaryItems.map((section) => (
                   <li
                     key={section.id}
-                    className="flex items-start gap-2 text-[13.5px] text-foreground/90"
+                    className="flex items-start gap-2 text-sm leading-6 text-foreground/90"
                   >
-                    <Sparkles
-                      className="mt-1 h-3 w-3 shrink-0 text-emerald-600/85 dark:text-emerald-400/85"
+                    <span
+                      className="mt-[0.6rem] h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-600/80 dark:bg-emerald-400/80"
                       aria-hidden="true"
                     />
                     <span>{section.title}</span>
@@ -88,48 +99,42 @@ export default function LessonFinishCard({
                 ))}
               </ul>
               {sections.length > summaryItems.length ? (
-                <p className="text-[11.5px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   + {sections.length - summaryItems.length} more section
                   {sections.length - summaryItems.length === 1 ? "" : "s"}
                 </p>
               ) : null}
             </div>
           ) : null}
-          {hasProgressCaption && chapter?.number ? (
-            <p className="text-[12.5px] text-muted-foreground">
-              Chapter {chapter.number}
-              {chapter.title ? ` · ${chapter.title}` : ""} —{" "}
-              <strong className="text-foreground">{lessonIndex}</strong> of{" "}
-              {lessonCount} lessons complete.
-            </p>
-          ) : null}
         </div>
 
-        <div className="flex flex-col items-stretch gap-2 sm:items-end">
+        <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center lg:flex-col lg:items-end lg:pt-8">
           {next ? (
-            <Link
-              href={`${hrefPrefix}/${next.slug}`}
-              className="group inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              Continue to next lesson
-              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-            </Link>
+            <Button asChild className="group w-full sm:w-auto">
+              <Link href={`${hrefPrefix}/${next.slug}`}>
+                Continue to next lesson
+                <ArrowRight className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5" />
+              </Link>
+            </Button>
           ) : chapter?.title && chapter.slug && chapter.classSlug ? (
-            <Link
-              href={`/classes/${chapter.classSlug}/chapters/${chapter.slug}`}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors duration-200 hover:bg-primary/90"
-            >
-              Back to {chapter.title}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            <Button asChild className="group w-full sm:w-auto">
+              <Link href={`/classes/${chapter.classSlug}/chapters/${chapter.slug}`}>
+                Back to {chapter.title}
+                <ArrowRight className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5" />
+              </Link>
+            </Button>
           ) : null}
           {next && chapter?.title && chapter.slug && chapter.classSlug ? (
-            <Link
-              href={`/classes/${chapter.classSlug}/chapters/${chapter.slug}`}
-              className="text-center text-[12px] font-medium text-muted-foreground transition-colors hover:text-foreground sm:text-right"
+            <Button
+              asChild
+              variant="outline"
+              className="w-full sm:w-auto"
             >
-              View chapter outline
-            </Link>
+              <Link href={`/classes/${chapter.classSlug}/chapters/${chapter.slug}`}>
+                <ListTree className="h-4 w-4" />
+                View chapter outline
+              </Link>
+            </Button>
           ) : null}
         </div>
       </div>

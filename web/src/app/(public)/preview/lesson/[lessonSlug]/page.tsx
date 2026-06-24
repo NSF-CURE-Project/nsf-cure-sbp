@@ -70,10 +70,10 @@ export default async function PreviewLessonPage({
 
   return (
     <main className="min-w-0 overflow-x-hidden">
-      <div className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 sm:px-6 lg:px-8 py-6">
+      <div className="mx-auto -mt-3 w-full max-w-[var(--content-max,1280px)] px-4 pb-6 sm:px-6 lg:px-8">
         <LivePreviewLesson
           initialData={resolved.lesson}
-          className="w-full -mt-3 pt-2 pb-10 sm:-mt-4"
+          className="w-full pb-10"
           lessonNav={{
             lessons: resolved.siblingLessons,
             currentSlug:
