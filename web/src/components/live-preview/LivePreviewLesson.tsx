@@ -460,20 +460,20 @@ function LessonNavSimple({
     return (
       <nav
         aria-label="Lesson navigation"
-        className="mb-2 border-b border-border/70 pb-1"
+        className="mb-3 overflow-visible border-b border-border/70 py-2"
       >
-        <div className="flex min-h-8 items-center justify-between gap-4 text-sm">
+        <div className="flex min-h-9 items-center justify-between gap-4 text-sm">
           {prev ? (
             <Link
               href={`${hrefPrefix}/${prev.slug}`}
-              className="group inline-flex min-w-0 items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
+              className="group inline-flex min-w-0 flex-1 items-center gap-2 py-1 pr-2 text-muted-foreground transition-colors hover:text-foreground"
             >
               <ChevronLeft className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-0.5" />
               <span className="truncate">{prev.title}</span>
             </Link>
           ) : (
-            <div className="inline-flex items-center gap-2 text-muted-foreground">
-              <ChevronLeft className="h-4 w-4" />
+            <div className="inline-flex min-w-0 flex-1 items-center gap-2 py-1 pr-2 text-muted-foreground">
+              <ChevronLeft className="h-4 w-4 shrink-0" />
               <span>No previous lesson</span>
             </div>
           )}
@@ -481,7 +481,7 @@ function LessonNavSimple({
           {next ? (
             <Link
               href={`${hrefPrefix}/${next.slug}`}
-              className="group ml-auto inline-flex min-w-0 items-center gap-2 text-right font-medium text-foreground transition-colors hover:text-primary"
+              className="group ml-auto inline-flex min-w-0 flex-1 items-center justify-end gap-2 py-1 pl-2 text-right font-medium text-foreground transition-colors hover:text-primary"
             >
               <span className="hidden text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground sm:inline">
                 Next
@@ -490,9 +490,9 @@ function LessonNavSimple({
               <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
             </Link>
           ) : (
-            <div className="ml-auto inline-flex items-center gap-2 text-muted-foreground">
+            <div className="ml-auto inline-flex min-w-0 flex-1 items-center justify-end gap-2 py-1 pl-2 text-muted-foreground">
               <span>No more lessons</span>
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4 shrink-0" />
             </div>
           )}
         </div>

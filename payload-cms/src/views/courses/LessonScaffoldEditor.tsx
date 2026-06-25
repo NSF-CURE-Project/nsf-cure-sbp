@@ -967,7 +967,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           background: var(--admin-surface, #fff);
           border-radius: 10px;
           box-shadow: var(--admin-shadow-soft);
-          overflow: hidden;
+          overflow: visible;
           transition: var(--admin-transition);
         }
         .lse-block:hover { border-color: var(--admin-surface-border-strong, #c2ccda); }
@@ -985,8 +985,12 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           padding: 8px 10px;
           background: var(--admin-surface-muted, #f3f6fb);
           border-bottom: 1px solid var(--admin-surface-border, #d7dfea);
+          border-radius: 10px 10px 0 0;
         }
-        .lse-block--collapsed .lse-block__header { border-bottom-color: transparent; }
+        .lse-block--collapsed .lse-block__header {
+          border-bottom-color: transparent;
+          border-radius: inherit;
+        }
 
         /* === Block type identity ===
          * Subtle left-edge stripe (via ::before so it survives hover/
@@ -1227,6 +1231,9 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           background: var(--admin-surface, #fff);
         }
         .cw-rt__toolbar {
+          position: sticky;
+          top: 76px;
+          z-index: 30;
           display: flex;
           align-items: center;
           gap: 4px;
@@ -1234,6 +1241,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           border-bottom: 1px solid var(--admin-surface-border, #d6dce5);
           background: var(--admin-surface-muted, #f5f7fa);
           border-radius: 8px 8px 0 0;
+          box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
         }
         .cw-rt__btn {
           display: inline-flex;
