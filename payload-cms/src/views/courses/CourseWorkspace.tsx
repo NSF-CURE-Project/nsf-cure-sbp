@@ -382,67 +382,50 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         .course-workspace .cw-chapter-list {
           display: flex;
           flex-direction: column;
-          gap: 14px;
+          gap: 0;
+          border-top: 1px solid var(--cw-border-strong);
         }
-        /* Chapter card chrome mirrors the lesson editor's BlockCard:
-         * persistent header bar (drag, badge, index, title, count, overflow)
-         * over a body of lesson rows. Same visual grammar across screens.
-         * Stronger elevation here so chapters feel like parent grouping
-         * structures and not just bigger rows. */
+        /* Outline sections are intentionally flatter than the lesson editor's
+         * block cards. This screen is a management list; dense dividers scan
+         * better than nested cards for long curricula. */
         .course-workspace .cw-chapter {
           position: relative;
-          border-radius: 12px;
-          background: var(--cw-surface);
-          border: 1px solid var(--cw-border-strong);
-          box-shadow:
-            0 1px 0 rgba(15, 23, 42, 0.04),
-            0 4px 12px rgba(15, 23, 42, 0.06);
-          overflow: hidden;
-          transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+          background: transparent;
+          border: 0;
+          border-bottom: 1px solid var(--cw-border-strong);
+          border-radius: 0;
+          box-shadow: none;
+          overflow: visible;
+          transition: background 150ms ease, border-color 150ms ease;
         }
         .course-workspace .cw-chapter:hover {
-          border-color: rgba(14, 165, 233, 0.35);
-          box-shadow:
-            0 1px 0 rgba(15, 23, 42, 0.05),
-            0 8px 20px rgba(15, 23, 42, 0.08);
+          background: rgba(148, 163, 184, 0.05);
         }
         .course-workspace .cw-chapter--selected {
-          border-color: rgba(14, 165, 233, 0.6);
-          box-shadow:
-            0 0 0 3px rgba(14, 165, 233, 0.18),
-            0 6px 16px rgba(14, 165, 233, 0.1);
+          background: rgba(14, 165, 233, 0.045);
+          box-shadow: inset 3px 0 0 rgba(14, 165, 233, 0.72);
         }
         :root[data-theme='dark'] .course-workspace .cw-chapter {
-          box-shadow:
-            0 1px 0 rgba(0, 0, 0, 0.4),
-            0 6px 16px rgba(0, 0, 0, 0.35);
+          box-shadow: none;
         }
         :root[data-theme='dark'] .course-workspace .cw-chapter:hover {
-          border-color: rgba(56, 189, 248, 0.45);
+          background: rgba(148, 163, 184, 0.07);
         }
         :root[data-theme='dark'] .course-workspace .cw-chapter--selected {
-          border-color: rgba(56, 189, 248, 0.65);
-          box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.22);
+          background: rgba(56, 189, 248, 0.08);
+          box-shadow: inset 3px 0 0 rgba(56, 189, 248, 0.72);
         }
         .course-workspace .cw-chapter__header {
           display: grid;
           grid-template-columns: auto auto auto auto minmax(0, 1fr) auto auto;
           align-items: center;
           gap: 10px;
-          padding: 9px 12px;
-          background: linear-gradient(
-            180deg,
-            var(--cw-surface-muted) 0%,
-            rgba(148, 163, 184, 0.06) 100%
-          );
-          border-bottom: 1px solid var(--cw-border-strong);
+          padding: 12px 0;
+          background: transparent;
+          border-bottom: 1px solid transparent;
         }
         :root[data-theme='dark'] .course-workspace .cw-chapter__header {
-          background: linear-gradient(
-            180deg,
-            rgba(148, 163, 184, 0.08) 0%,
-            rgba(148, 163, 184, 0.04) 100%
-          );
+          background: transparent;
         }
         .course-workspace .cw-chapter__handle {
           opacity: 0.5;
@@ -543,68 +526,60 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         .course-workspace .cw-chapter__lessons {
           display: flex;
           flex-direction: column;
-          gap: 3px;
-          padding: 8px 10px 10px 10px;
+          gap: 0;
+          margin-left: 34px;
+          padding: 0 0 12px 0;
+          border-top: 1px solid var(--cw-border);
         }
 
         .course-workspace .cw-chapter__add-inline {
           align-self: flex-start;
-          margin-top: 4px;
-          padding: 8px 12px;
+          padding: 4px 0;
           font-size: 13px;
           font-weight: 500;
           color: var(--cpp-muted);
           background: transparent;
-          border: 1px dashed var(--cw-border);
-          border-radius: 8px;
+          border: 0;
+          border-radius: 0;
           cursor: pointer;
-          transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
+          transition: color 140ms ease;
         }
         .course-workspace .cw-chapter__add-inline:hover {
           color: var(--cw-accent);
-          border-color: var(--cw-border-strong);
-          background: var(--cw-accent-soft);
         }
 
-        /* === Lesson row ===
-         * Hovering should feel active: subtle lift, deeper shadow, and a
-         * tinted background so curriculum navigation feels alive instead of
-         * flat. Density tightened (was 7/10) so longer courses scan faster. */
+        /* === Lesson row === */
         .course-workspace .cw-lesson {
           position: relative;
           display: grid;
           grid-template-columns: auto minmax(0, 1fr) auto;
           align-items: center;
           gap: 10px;
-          padding: 5px 10px;
-          background: var(--cw-surface);
-          border: 1px solid var(--cw-border);
-          border-radius: 8px;
+          padding: 9px 0;
+          background: transparent;
+          border: 0;
+          border-bottom: 1px solid var(--cw-border);
+          border-radius: 0;
           cursor: pointer;
           transition:
             background 150ms ease,
             border-color 150ms ease,
-            box-shadow 150ms ease,
-            transform 150ms ease;
+            color 150ms ease;
         }
+        .course-workspace .cw-lesson:last-child { border-bottom: 0; }
         .course-workspace .cw-lesson:hover {
-          border-color: rgba(14, 165, 233, 0.4);
-          background: var(--cw-surface-muted);
-          box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
-          transform: translateY(-1px);
+          background: rgba(148, 163, 184, 0.06);
         }
         :root[data-theme='dark'] .course-workspace .cw-lesson:hover {
-          border-color: rgba(56, 189, 248, 0.4);
-          box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+          background: rgba(148, 163, 184, 0.08);
         }
         .course-workspace .cw-lesson--selected {
-          border-color: rgba(14, 165, 233, 0.6);
           background: rgba(14, 165, 233, 0.04);
-          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18);
+          box-shadow: inset 3px 0 0 rgba(14, 165, 233, 0.72);
         }
         :root[data-theme='dark'] .course-workspace .cw-lesson--selected {
           background: rgba(56, 189, 248, 0.08);
-          box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.22);
+          box-shadow: inset 3px 0 0 rgba(56, 189, 248, 0.72);
         }
         .course-workspace .cw-lesson__handle {
           opacity: 0.3;
@@ -640,8 +615,8 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
         }
         .course-workspace .cw-lesson__title {
           font-size: 15px;
-          font-weight: 500;
-          color: var(--cw-accent);
+          font-weight: 600;
+          color: var(--cpp-ink);
           line-height: 1.35;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -663,34 +638,22 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           gap: 6px;
         }
 
-        /* === Empty chapter card ===
-         * Informational. The "+ Add lesson" / "attach existing" affordances
-         * live in the InlineLessonInput sibling below, so this card is the
-         * announcement, not the action surface. */
+        /* === Empty chapter note === */
         .course-workspace .cw-empty-lessons {
           display: grid;
-          grid-template-columns: auto minmax(0, 1fr);
-          gap: 12px;
-          align-items: center;
-          padding: 12px 14px;
-          background: var(--cw-surface-muted);
-          border: 1px dashed var(--cw-border-strong);
-          border-radius: 10px;
+          gap: 2px;
+          padding: 12px 0;
+          background: transparent;
+          border: 0;
+          border-bottom: 1px solid var(--cw-border);
+          border-radius: 0;
           color: var(--cpp-muted);
         }
         :root[data-theme='dark'] .course-workspace .cw-empty-lessons {
-          background: rgba(148, 163, 184, 0.06);
+          background: transparent;
         }
         .course-workspace .cw-empty-lessons__glyph {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 36px;
-          height: 36px;
-          border-radius: 8px;
-          background: var(--cw-surface);
-          border: 1px solid var(--cw-border);
-          color: var(--cw-accent);
+          display: none;
         }
         .course-workspace .cw-empty-lessons__title {
           font-size: 13px;
@@ -768,7 +731,7 @@ export default function CourseWorkspace({ initialCourse, publicOrigin }: CourseW
           display: flex;
           align-items: center;
           gap: 10px;
-          margin-top: 4px;
+          padding-top: 10px;
         }
         .course-workspace .cw-chapter__add-row--expanded {
           gap: 8px;
