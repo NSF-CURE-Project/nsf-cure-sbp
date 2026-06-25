@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ExternalLink, Mail, Phone, UserRound } from "lucide-react";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
+import { Button } from "@/components/ui/button";
 import type { PageLayoutBlock } from "@/lib/payloadSdk/types";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 import { extractLessonSections } from "@/lib/lessons/toc";
@@ -359,12 +360,9 @@ export function PageLayout({
                 </p>
               )}
               {block.buttonLabel && block.buttonHref && (
-                <a
-                  href={block.buttonHref}
-                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-md font-medium bg-primary text-primary-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors duration-200"
-                >
-                  {block.buttonLabel}
-                </a>
+                <Button asChild>
+                  <a href={block.buttonHref}>{block.buttonLabel}</a>
+                </Button>
               )}
             </section>
           );
@@ -538,12 +536,9 @@ export function PageLayout({
         if (block.blockType === "buttonBlock") {
           return (
             <section key={block.id ?? idx}>
-              <a
-                href={block.href}
-                className="inline-flex items-center justify-center px-5 py-2.5 rounded-md font-medium bg-primary text-primary-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors duration-200"
-              >
-                {block.label}
-              </a>
+              <Button asChild>
+                <a href={block.href}>{block.label}</a>
+              </Button>
             </section>
           );
         }

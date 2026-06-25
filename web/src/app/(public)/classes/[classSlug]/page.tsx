@@ -3,10 +3,12 @@ import { chapterHasReadableLessons, getClassBySlug } from "@/lib/payloadSdk/clas
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 import type { ChapterDoc, LessonDoc } from "@/lib/payloadSdk/types";
-import { BookOpen, Clock, Layers } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, BookOpen, Clock, Layers } from "lucide-react";
 import { ClassProgressSummary } from "@/components/progress/ClassProgressSummary";
 import { ClassChapterBrowser } from "@/components/classes/ClassChapterBrowser";
 import ScrollToTopOnMount from "@/components/layout/ScrollToTopOnMount";
+import { Button } from "@/components/ui/button";
 
 type Params = Promise<{ classSlug: string }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -154,6 +156,18 @@ export default async function ClassPage(props: {
       }, 0)
     );
   }, 0);
+  const firstAvailableChapter = chapterCards.find(
+    (chapter) => chapter.lessons.length > 0
+  );
+  const firstAvailableLesson = firstAvailableChapter?.lessons[0] ?? null;
+  const firstLessonHref =
+    firstAvailableLesson && firstAvailableLesson.slug
+      ? `/classes/${classSlug}/lessons/${firstAvailableLesson.slug}`
+      : null;
+  const firstChapterHref =
+    firstAvailableChapter && firstAvailableChapter.slug
+      ? `/classes/${classSlug}/chapters/${firstAvailableChapter.slug}`
+      : null;
 
   const formatTotalTime = (mins: number) => {
     if (mins <= 0) return "—";
@@ -170,52 +184,110 @@ export default async function ClassPage(props: {
       <div className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 sm:px-6 lg:px-8 py-5">
         <article className="space-y-5">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-              Course
-            </p>
-            <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              {c.title}
-            </h1>
-            {c.description ? (
-              <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">
-                {c.description}
-              </p>
-            ) : null}
-            {visibleChapters.length > 0 ? (
-              <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[13px]">
-                <div className="inline-flex items-center gap-1.5 text-muted-foreground">
-                  <Layers className="h-3.5 w-3.5 text-primary/70" />
-                  <dt className="sr-only">Chapters</dt>
-                  <dd>
-                    <span className="font-semibold tabular-nums text-foreground">
-                      {visibleChapters.length}
-                    </span>{" "}
-                    {visibleChapters.length === 1 ? "chapter" : "chapters"}
-                  </dd>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  Course
+                </p>
+                <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                  {c.title}
+                </h1>
+                {c.description ? (
+                  <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">
+                    {c.description}
+                  </p>
+                ) : null}
+                {visibleChapters.length > 0 ? (
+                  <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[13px]">
+                    <div className="inline-flex items-center gap-1.5 text-muted-foreground">
+                      <Layers className="h-3.5 w-3.5 text-primary/70" />
+                      <dt className="sr-only">Chapters</dt>
+                      <dd>
+                        <span className="font-semibold tabular-nums text-foreground">
+                          {visibleChapters.length}
+                        </span>{" "}
+                        {visibleChapters.length === 1 ? "chapter" : "chapters"}
+                      </dd>
+                    </div>
+                    <div className="inline-flex items-center gap-1.5 text-muted-foreground">
+                      <BookOpen className="h-3.5 w-3.5 text-primary/70" />
+                      <dt className="sr-only">Lessons</dt>
+                      <dd>
+                        <span className="font-semibold tabular-nums text-foreground">
+                          {totalLessons}
+                        </span>{" "}
+                        {totalLessons === 1 ? "lesson" : "lessons"}
+                      </dd>
+                    </div>
+                    {lessonTimeSum > 0 ? (
+                      <div className="inline-flex items-center gap-1.5 text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5 text-primary/70" />
+                        <dt className="sr-only">Estimated time</dt>
+                        <dd>
+                          <span className="font-semibold tabular-nums text-foreground">
+                            {formatTotalTime(lessonTimeSum)}
+                          </span>{" "}
+                          total
+                        </dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                ) : null}
+              </div>
+              {firstLessonHref ? (
+                <div className="flex shrink-0 flex-col items-start gap-1 sm:items-end">
+                  <Button asChild size="sm">
+                    <Link href={firstLessonHref}>
+                      Start course
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <p className="max-w-[15rem] text-left text-[11px] leading-snug text-muted-foreground sm:text-right">
+                    Begins with {firstAvailableLesson?.title}.
+                  </p>
                 </div>
-                <div className="inline-flex items-center gap-1.5 text-muted-foreground">
-                  <BookOpen className="h-3.5 w-3.5 text-primary/70" />
-                  <dt className="sr-only">Lessons</dt>
-                  <dd>
-                    <span className="font-semibold tabular-nums text-foreground">
-                      {totalLessons}
-                    </span>{" "}
-                    {totalLessons === 1 ? "lesson" : "lessons"}
-                  </dd>
+              ) : firstChapterHref ? (
+                <div className="flex shrink-0">
+                  <Button asChild size="sm" variant="outline">
+                    <Link href={firstChapterHref}>
+                      View first chapter
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+            {visibleChapters.length > 0 ? (
+              <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                <div className="border-y border-border/60 bg-muted/10 px-3 py-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Next step
+                  </p>
+                  <p className="mt-0.5 truncate text-sm font-semibold text-foreground">
+                    {firstAvailableLesson?.title ?? "Open the first chapter"}
+                  </p>
+                </div>
+                <div className="border-y border-border/60 bg-muted/10 px-3 py-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Sequence
+                  </p>
+                  <p className="mt-0.5 text-sm font-semibold text-foreground">
+                    {visibleChapters.length}{" "}
+                    {visibleChapters.length === 1 ? "chapter" : "chapters"},{" "}
+                    {totalLessons} {totalLessons === 1 ? "lesson" : "lessons"}
+                  </p>
                 </div>
                 {lessonTimeSum > 0 ? (
-                  <div className="inline-flex items-center gap-1.5 text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5 text-primary/70" />
-                    <dt className="sr-only">Estimated time</dt>
-                    <dd>
-                      <span className="font-semibold tabular-nums text-foreground">
-                        {formatTotalTime(lessonTimeSum)}
-                      </span>{" "}
-                      total
-                    </dd>
+                  <div className="border-y border-border/60 bg-muted/10 px-3 py-2">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Estimated time
+                    </p>
+                    <p className="mt-0.5 text-sm font-semibold text-foreground">
+                      {formatTotalTime(lessonTimeSum)}
+                    </p>
                   </div>
                 ) : null}
-              </dl>
+              </div>
             ) : null}
             <ClassProgressSummary
               classId={c.id}

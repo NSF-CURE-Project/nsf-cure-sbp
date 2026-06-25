@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
+  ArrowRight,
   BookOpen,
   CheckCircle2,
   ChevronDown,
@@ -149,7 +150,11 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
   const [visibleCount, setVisibleCount] = useState(8);
   const [expandedChapters, setExpandedChapters] = useState<
     Record<string, boolean>
-  >({});
+  >(() => {
+    const firstOpenChapter =
+      chapters.find((chapter) => chapter.lessons.length > 0) ?? chapters[0];
+    return firstOpenChapter ? { [firstOpenChapter.id]: true } : {};
+  });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -216,6 +221,17 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
     });
     return counts;
   }, [chapters, progressByLesson]);
+
+  const lessonSequenceById = useMemo(() => {
+    const sequence: Record<string, string> = {};
+    chapters.forEach((chapter, chapterIndex) => {
+      const chapterLabel = chapter.chapterNumber ?? chapterIndex + 1;
+      chapter.lessons.forEach((lesson, lessonIndex) => {
+        sequence[lesson.id] = `${chapterLabel}.${lessonIndex + 1}`;
+      });
+    });
+    return sequence;
+  }, [chapters]);
 
   const filteredChapters = useMemo(() => {
     const query = chapterQuery.trim().toLowerCase();
@@ -295,16 +311,20 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
           {filterLabels.map((item) => {
             const active = filter === item.key;
             const count = filterCounts[item.key];
+            const disabled = item.key !== "all" && count === 0 && !active;
             return (
               <button
                 key={item.key}
                 type="button"
                 onClick={() => setFilter(item.key)}
+                disabled={disabled}
                 className={cn(
                   "group/chip inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide transition-all duration-150",
                   active
                     ? "border-primary/60 bg-primary text-primary-foreground"
-                    : "border-transparent bg-transparent text-muted-foreground hover:border-primary/30 hover:bg-muted/25 hover:text-foreground"
+                    : "border-transparent bg-transparent text-muted-foreground hover:border-primary/30 hover:bg-muted/25 hover:text-foreground",
+                  disabled &&
+                    "cursor-not-allowed opacity-45 hover:border-transparent hover:bg-transparent hover:text-muted-foreground"
                 )}
               >
                 <span>{item.label}</span>
@@ -324,7 +344,7 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
         </div>
       </div>
 
-      <div className="divide-y divide-border/70 border-y border-border/70">
+      <div className="space-y-3">
         {visibleChapters.map((chapter) => {
           const baseLessons = chapter.lessons;
           const completedCount = baseLessons.filter(
@@ -357,8 +377,8 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
             <section
               key={chapter.id}
               className={cn(
-                "group/chapter transition-colors duration-200",
-                "hover:bg-muted/20",
+                "group/chapter overflow-hidden rounded-lg border border-border/70 transition-colors duration-200",
+                "hover:border-primary/25 hover:bg-muted/10",
                 chapterIsComplete
                   ? "bg-primary/[0.03]"
                   : "bg-transparent"
@@ -449,14 +469,24 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                   {chapter.slug ? (
                     <Link
                       href={`/classes/${classSlug}/chapters/${chapter.slug}`}
-                      className="shrink-0 self-start rounded-md border border-transparent px-2 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-border/60 hover:bg-background hover:text-foreground"
+                      className="inline-flex shrink-0 items-center gap-1 self-start rounded-md border border-transparent px-2 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-border/60 hover:bg-background hover:text-foreground"
                     >
-                      View chapter →
+                      View chapter
+                      <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   ) : null}
                 </div>
                 {baseLessons.length > 0 ? (
-                  <div className="mt-2.5 flex items-center gap-2.5">
+                  <div className="mt-3 space-y-1.5">
+                    <div className="flex items-center justify-between gap-3 text-[11px]">
+                      <span className="font-medium text-muted-foreground">
+                        {completedCount} of {baseLessons.length}{" "}
+                        {baseLessons.length === 1 ? "lesson" : "lessons"} complete
+                      </span>
+                      <span className="shrink-0 rounded-full bg-muted px-1.5 py-0 text-[10px] font-semibold tabular-nums text-muted-foreground">
+                        {percent}%
+                      </span>
+                    </div>
                     <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
                       <div
                         className={cn(
@@ -470,12 +500,6 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                         style={{ width: `${Math.max(percent, percent > 0 ? 4 : 0)}%` }}
                       />
                     </div>
-                    <span className="shrink-0 text-[11px] font-semibold tabular-nums text-foreground">
-                      {completedCount}/{baseLessons.length}
-                    </span>
-                    <span className="shrink-0 rounded-full bg-muted px-1.5 py-0 text-[10px] font-semibold tabular-nums text-muted-foreground">
-                      {percent}%
-                    </span>
                   </div>
                 ) : null}
               </header>
@@ -496,12 +520,17 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                   </div>
                 ) : (
                   <ul className="divide-y divide-border/50 px-2 sm:px-3">
-                    {baseLessons.map((lesson) => {
+                    {baseLessons.map((lesson, lessonIndex) => {
                       const status =
                         progressByLesson[lesson.id] ?? "not-started";
                       const type = inferLessonType(lesson);
                       const eta = estimateMinutes(lesson);
                       const accent = lessonTypeAccent[type];
+                      const sequence =
+                        lessonSequenceById[lesson.id] ??
+                        `${chapter.chapterNumber ?? ""}${
+                          chapter.chapterNumber ? "." : ""
+                        }${lessonIndex + 1}`;
                       const statusLabel =
                         status === "completed"
                           ? "Completed"
@@ -513,10 +542,14 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                         <li key={lesson.id}>
                           <Link
                             href={`/classes/${classSlug}/lessons/${lesson.slug}`}
+                            aria-label={`Open lesson ${sequence}: ${cleanTitle(
+                              lesson.title,
+                              "Untitled lesson"
+                            )}`}
                             className={cn(
-                              "group/lesson relative flex items-start gap-2.5 px-1 py-3",
+                              "group/lesson relative flex items-start gap-2.5 px-2 py-3",
                               "transition-[background-color,color] duration-150 ease-out",
-                              "hover:bg-muted/25",
+                              "hover:bg-muted/35",
                               "focus-visible:bg-muted/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                               status === "completed"
                                 ? "bg-primary/[0.03]"
@@ -525,6 +558,9 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                                   : ""
                             )}
                           >
+                            <span className="mt-1 w-8 shrink-0 text-[11px] font-semibold tabular-nums text-muted-foreground">
+                              {sequence}
+                            </span>
                             <span
                               className={cn(
                                 "mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md ring-1 transition-transform duration-150",
@@ -543,13 +579,10 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                                 <p className="text-[13px] font-semibold leading-snug text-foreground">
                                   {cleanTitle(lesson.title, "Untitled lesson")}
                                 </p>
-                                {status === "completed" ? (
-                                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-                                ) : status === "in-progress" ? (
-                                  <CirclePlay className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
-                                ) : (
-                                  <CircleDashed className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
-                                )}
+                                <span className="hidden shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground transition-colors group-hover/lesson:bg-background group-hover/lesson:text-foreground sm:inline-flex">
+                                  Open
+                                  <ArrowRight className="h-3.5 w-3.5" />
+                                </span>
                               </div>
                               <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground">
                                 <span className="font-medium uppercase tracking-wide">
@@ -562,7 +595,7 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                                 <span className="text-border">·</span>
                                 <span
                                   className={cn(
-                                    "rounded-full px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide",
+                                    "inline-flex items-center gap-1 rounded-full px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide",
                                     status === "completed" &&
                                       "bg-primary/15 text-primary",
                                     status === "in-progress" &&
@@ -571,6 +604,13 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                                       "bg-muted text-muted-foreground"
                                   )}
                                 >
+                                  {status === "completed" ? (
+                                    <CheckCircle2 className="h-2.5 w-2.5" />
+                                  ) : status === "in-progress" ? (
+                                    <CirclePlay className="h-2.5 w-2.5" />
+                                  ) : (
+                                    <CircleDashed className="h-2.5 w-2.5" />
+                                  )}
                                   {statusLabel}
                                 </span>
                               </div>

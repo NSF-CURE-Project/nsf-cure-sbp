@@ -5,6 +5,7 @@ import ContentShell from "@/components/layout/ContentShell";
 import CookieBanner from "@/components/layout/CookieBanner";
 import Navbar from "@/components/navigation/navbar";
 import SidebarData from "@/components/layout/SidebarData";
+import { getSiteBranding } from "@/lib/payloadSdk/siteBranding";
 import {
   MobileSidebarFallback,
   SidebarFallback,
@@ -14,14 +15,17 @@ import {
 // nav + sidebar shell. No `cookies()` / `draftMode()` reads — the sidebar
 // open/closed state hydrates from the cookie on the client (see
 // ContentShell), and draft mode is only consulted by the /preview/* routes.
-export default function PublicLayout({
+export default async function PublicLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const siteBranding = await getSiteBranding({ revalidate: 60 });
+  const navHeight = siteBranding.announcement ? "6rem" : "4rem";
+
   return (
-    <>
-      <Navbar />
+    <div style={{ "--nav-h": navHeight } as React.CSSProperties}>
+      <Navbar announcement={siteBranding.announcement} />
       <ContentShell
         sidebarSlot={
           <Suspense fallback={<SidebarFallback />}>
@@ -38,6 +42,6 @@ export default function PublicLayout({
       </ContentShell>
       <AccountHeartbeat />
       <CookieBanner />
-    </>
+    </div>
   );
 }

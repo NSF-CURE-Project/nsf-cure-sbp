@@ -44,5 +44,50 @@ export const SiteBranding: GlobalConfig = {
         description: 'Accessible description for the uploaded program logo.',
       },
     },
+    {
+      name: 'announcement',
+      label: 'Announcement Banner',
+      type: 'group',
+      admin: {
+        description:
+          'Shows a thin announcement banner above the student-facing navigation bar.',
+      },
+      fields: [
+        {
+          name: 'enabled',
+          label: 'Show Announcement Banner',
+          type: 'checkbox',
+          defaultValue: false,
+        },
+        {
+          name: 'message',
+          label: 'Message',
+          type: 'text',
+          maxLength: 160,
+          admin: {
+            condition: (_, siblingData) => siblingData?.enabled === true,
+            description: 'Keep this short so it fits in the thin header banner.',
+          },
+        },
+        {
+          name: 'href',
+          label: 'Optional Link URL',
+          type: 'text',
+          admin: {
+            condition: (_, siblingData) => siblingData?.enabled === true,
+            description: 'Use a relative path like /resources or a full URL.',
+          },
+        },
+        {
+          name: 'linkLabel',
+          label: 'Optional Link Label',
+          type: 'text',
+          defaultValue: 'Learn more',
+          admin: {
+            condition: (_, siblingData) => siblingData?.enabled === true,
+          },
+        },
+      ],
+    },
   ],
 }

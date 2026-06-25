@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, CirclePlay, CircleDashed } from "lucide-react";
+import { CheckCircle2, CirclePlay, CircleDashed, LogIn } from "lucide-react";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const PAYLOAD_URL = getPayloadBaseUrl();
 
@@ -28,6 +30,7 @@ export function ClassProgressSummary({
   totalLessons,
 }: Props) {
   const [user, setUser] = useState<AccountUser | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [completedCount, setCompletedCount] = useState(0);
   const [inProgressCount, setInProgressCount] = useState(0);
 
@@ -48,6 +51,10 @@ export function ClassProgressSummary({
       } catch {
         if (!controller.signal.aborted) {
           setUser(null);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setAuthChecked(true);
         }
       }
     };
@@ -92,7 +99,31 @@ export function ClassProgressSummary({
     return Math.round((completedCount / totalLessons) * 100);
   }, [completedCount, totalLessons]);
 
-  if (!user || totalLessons === 0) return null;
+  if (totalLessons === 0 || !authChecked) return null;
+
+  if (!user) {
+    return (
+      <div className="mt-5 border-y border-border/70 bg-muted/10 py-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              Progress tracking
+            </p>
+            <p className="max-w-2xl text-sm text-muted-foreground">
+              Sign in to save lesson completion, resume where you left off, and
+              keep this course progress synced across devices.
+            </p>
+          </div>
+          <Button asChild size="sm" variant="outline">
+            <Link href="/login">
+              <LogIn className="h-4 w-4" />
+              Sign in to save progress
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const remaining = Math.max(totalLessons - completedCount, 0);
   const isComplete = percent === 100;
@@ -125,8 +156,7 @@ export function ClassProgressSummary({
                 </span>
                 {remaining > 0 ? (
                   <>
-                    {" "}
-                    &mdash; {remaining}{" "}
+                    , with {remaining}{" "}
                     {remaining === 1 ? "lesson" : "lessons"} to go.
                   </>
                 ) : null}
@@ -139,7 +169,7 @@ export function ClassProgressSummary({
             {percent}%
           </p>
           <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            {completedCount} / {totalLessons} lessons
+            {completedCount} of {totalLessons} lessons complete
           </p>
         </div>
       </div>

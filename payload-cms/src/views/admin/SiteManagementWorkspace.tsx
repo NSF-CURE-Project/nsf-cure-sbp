@@ -187,7 +187,7 @@ function GeneralPanel({ canManageAuthSettings }: { canManageAuthSettings: boolea
   const rows = [
     {
       title: 'Branding',
-      description: 'Logo, favicon, theme colors.',
+      description: 'Logo, favicon, and header announcement banner.',
       href: '/admin/globals/site-branding',
     },
     {

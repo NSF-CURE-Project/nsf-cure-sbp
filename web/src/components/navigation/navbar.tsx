@@ -54,6 +54,12 @@ type NavbarPage = {
   hidden?: boolean | null;
 };
 
+export type NavbarAnnouncement = {
+  message: string;
+  href?: string;
+  linkLabel?: string;
+};
+
 function readCachedNavbarUser(): NavbarUser | null {
   if (typeof window === "undefined") return null;
   try {
@@ -113,7 +119,11 @@ function writeCachedNavbarPages(pages: NavbarPage[]): void {
   window.localStorage.setItem(NAVBAR_PAGES_CACHE_KEY, JSON.stringify(pages));
 }
 
-export default function Navbar() {
+export default function Navbar({
+  announcement,
+}: {
+  announcement?: NavbarAnnouncement | null;
+}) {
   const { resolvedTheme, theme, systemTheme } = useTheme();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -352,6 +362,9 @@ export default function Navbar() {
     () => notifications.filter((notification) => !notification.read).length,
     [notifications]
   );
+  const announcementMessage = announcement?.message.trim() ?? "";
+  const announcementHref = announcement?.href?.trim();
+  const announcementLinkLabel = announcement?.linkLabel?.trim() || "Learn more";
 
   const handleNotificationRead = async (notificationId: string) => {
     try {
@@ -382,16 +395,35 @@ export default function Navbar() {
   };
 
   return (
-    <nav
-      aria-label="Primary"
-      className="
-        sticky top-0 z-50
-        flex items-center gap-3
-        h-16 px-4 sm:px-6 border-b
-        bg-background/80 backdrop-blur
-        supports-[backdrop-filter]:bg-background/60
-      "
-    >
+    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {announcementMessage ? (
+        <div
+          role="status"
+          aria-label="Site announcement"
+          className="border-b border-primary/20 bg-primary px-4 py-1.5 text-primary-foreground sm:px-6"
+        >
+          <div className="mx-auto flex min-h-5 max-w-[var(--content-max,1200px)] items-center justify-center gap-2 text-center text-[12px] font-medium leading-5 sm:text-[13px]">
+            <span className="min-w-0 truncate">{announcementMessage}</span>
+            {announcementHref ? (
+              <a
+                href={announcementHref}
+                className="shrink-0 font-semibold text-primary-foreground underline underline-offset-2 transition hover:text-primary-foreground/90"
+              >
+                {announcementLinkLabel}
+              </a>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+      <nav
+        aria-label="Primary"
+        className="
+          flex items-center gap-3
+          h-16 px-4 sm:px-6 border-b
+          bg-background/80
+          supports-[backdrop-filter]:bg-background/60
+        "
+      >
       <div className="flex items-center gap-3 sm:gap-5 min-w-0">
         <Link href="/" aria-label="Home" className="flex items-center gap-2">
           <Image
@@ -891,7 +923,8 @@ export default function Navbar() {
           </div>
         </div>
       ) : null}
-    </nav>
+      </nav>
+    </header>
   );
 }
 

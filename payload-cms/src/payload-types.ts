@@ -2917,6 +2917,21 @@ export interface SiteBranding {
    * Accessible description for the uploaded program logo.
    */
   programLogoAlt?: string | null;
+  /**
+   * Shows a thin announcement banner above the student-facing navigation bar.
+   */
+  announcement?: {
+    enabled?: boolean | null;
+    /**
+     * Keep this short so it fits in the thin header banner.
+     */
+    message?: string | null;
+    /**
+     * Use a relative path like /resources or a full URL.
+     */
+    href?: string | null;
+    linkLabel?: string | null;
+  };
   _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -3070,6 +3085,14 @@ export interface FooterSelect<T extends boolean = true> {
 export interface SiteBrandingSelect<T extends boolean = true> {
   programLogo?: T;
   programLogoAlt?: T;
+  announcement?:
+    | T
+    | {
+        enabled?: T;
+        message?: T;
+        href?: T;
+        linkLabel?: T;
+      };
   _status?: T;
   updatedAt?: T;
   createdAt?: T;
