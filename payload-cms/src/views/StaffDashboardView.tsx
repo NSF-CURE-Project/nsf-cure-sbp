@@ -981,7 +981,7 @@ const StaffDashboardContent = ({
         align-items: center;
         gap: 6px;
         padding: 7px 12px;
-        border-radius: 9px;
+        border-radius: 999px;
         font-size: 12.5px;
         font-weight: 700;
         color: #fff;
@@ -1003,7 +1003,7 @@ const StaffDashboardContent = ({
         display: inline-flex;
         align-items: center;
         padding: 7px 12px;
-        border-radius: 9px;
+        border-radius: 999px;
         font-size: 12.5px;
         font-weight: 600;
         color: var(--cpp-ink);
@@ -1587,7 +1587,7 @@ const StaffDashboardContent = ({
         background: transparent !important;
         border: 0 !important;
         border-bottom: 1px solid var(--admin-surface-border, rgba(15, 23, 42, 0.08)) !important;
-        border-radius: 0 !important;
+        border-radius: 12px !important;
         box-shadow: none !important;
         min-height: auto !important;
         overflow: visible !important;
@@ -1644,7 +1644,7 @@ const StaffDashboardContent = ({
       }
       .dashboard-attention-row {
         background: transparent !important;
-        border-radius: 0 !important;
+        border-radius: 12px !important;
         border-bottom: 1px solid var(--admin-surface-border, rgba(15, 23, 42, 0.08));
         padding: 12px 0 12px 10px !important;
       }

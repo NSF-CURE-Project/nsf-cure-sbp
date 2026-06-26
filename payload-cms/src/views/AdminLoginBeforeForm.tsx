@@ -156,7 +156,7 @@ export default function AdminLoginBeforeForm() {
           height: 38px;
           font-size: 13px;
           font-weight: 600;
-          border-radius: 8px;
+          border-radius: 999px;
           background: #1f7a3a;
           border-color: #1f7a3a;
           transition: background 140ms ease, transform 140ms ease;
@@ -246,6 +246,7 @@ export default function AdminLoginBeforeForm() {
           .template-default--login button[type='submit'] {
             height: 32px;
             font-size: 12px;
+            border-radius: 999px;
           }
         }
       `}</style>

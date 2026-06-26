@@ -146,6 +146,7 @@ export default function Navbar({
   const [authBusy, setAuthBusy] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const searchDialogRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setMounted(true), []);
@@ -183,6 +184,18 @@ export default function Navbar({
       searchInputRef.current?.focus();
       searchInputRef.current?.select();
     });
+  }, [searchOpen]);
+  useEffect(() => {
+    if (!searchOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (target && searchDialogRef.current?.contains(target)) return;
+      setSearchOpen(false);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [searchOpen]);
   useEffect(() => {
     const controller = new AbortController();
@@ -637,7 +650,7 @@ export default function Navbar({
               className="hidden md:inline-flex hover:bg-muted/60"
             />
             <LoginLink
-              className="hidden md:inline-flex h-8 items-center rounded-md border border-border/70 bg-muted/40 px-3 text-sm font-medium text-foreground transition hover:bg-muted/60"
+              className="hidden md:inline-flex h-8 items-center rounded-full border border-border/70 bg-muted/40 px-4 text-sm font-medium text-foreground transition hover:bg-muted/60"
             >
               Sign In
             </LoginLink>
@@ -866,11 +879,12 @@ export default function Navbar({
       </div>
       {searchOpen ? (
         <div
-          className="fixed inset-0 z-[10000] bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[10000] bg-slate-950/15 backdrop-blur-[2px] dark:bg-slate-950/45"
           onClick={() => setSearchOpen(false)}
         >
           <div
-            className="mx-auto mt-24 w-[min(92vw,720px)] rounded-lg border border-border/70 bg-background"
+            ref={searchDialogRef}
+            className="mx-auto mt-24 w-[min(92vw,720px)] rounded-xl border border-border/70 bg-background/95 shadow-[0_24px_70px_rgba(15,23,42,0.18)] ring-1 ring-white/50 backdrop-blur-md supports-[backdrop-filter]:bg-background/90 dark:ring-white/10"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center gap-2 border-b border-border/60 px-4 py-3">

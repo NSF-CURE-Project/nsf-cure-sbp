@@ -330,7 +330,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                     <Button
                       type="button"
                       variant="outline"
-                      className="rounded-lg border-border/60 bg-background/60 text-xs font-semibold mx-auto sm:mx-0"
+                      className="!rounded-full border-border/60 bg-background/60 px-4 text-xs font-semibold mx-auto sm:mx-0"
                     >
                       {content.feedback?.buttonLabel ?? "Open feedback"}
                     </Button>
@@ -442,7 +442,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                           type="button"
                           onClick={handleSubmit}
                           disabled={sending || !message.trim()}
-                          className="rounded-md px-5"
+                          className="!rounded-full px-5"
                         >
                           {sending ? "Sending..." : "Send"}
                         </Button>
