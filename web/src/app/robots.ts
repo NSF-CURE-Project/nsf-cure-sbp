@@ -18,7 +18,6 @@ export default function robots(): MetadataRoute.Robots {
           "/check-email",
           "/settings",
           "/profile",
-          "/arrival-map",
         ],
       },
     ],
