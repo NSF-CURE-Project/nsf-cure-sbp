@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import Footer from "@/components/Footer";
@@ -23,6 +23,11 @@ const readSidebarCookie = (): boolean | null => {
   return null;
 };
 
+const writeSidebarCookie = (open: boolean) => {
+  if (typeof document === "undefined") return;
+  document.cookie = `${SIDEBAR_COOKIE}=${open}; path=/; max-age=31536000; samesite=lax`;
+};
+
 type ContentShellProps = {
   children: React.ReactNode;
   sidebarSlot?: React.ReactNode;
@@ -34,8 +39,7 @@ export default function ContentShell({
   sidebarSlot,
   mobileSidebarSlot,
 }: ContentShellProps) {
-  // Default to collapsed during the first paint to avoid layout shift on
-  // narrow screens; hydrate from the cookie once we're on the client.
+  // Prefer the cookie only until the persisted zustand store hydrates.
   const [defaultOpen, setDefaultOpen] = useState<boolean | null>(null);
   useEffect(() => {
     const cookie = readSidebarCookie();
@@ -45,8 +49,22 @@ export default function ContentShell({
   const sidebarStore = useStore(useSidebar, (s) => s);
   const sidebarOpen = sidebarStore?.getOpenState() ?? defaultOpen ?? true;
 
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      sidebarStore?.setIsOpen(open);
+      writeSidebarCookie(open);
+    },
+    [sidebarStore]
+  );
+
+  // Keep the cookie aligned with zustand toggles from AppSidebar.
+  useEffect(() => {
+    if (!sidebarStore) return;
+    writeSidebarCookie(sidebarStore.getOpenState());
+  }, [sidebarStore, sidebarOpen]);
+
   return (
-    <SidebarProvider defaultOpen={defaultOpen ?? true}>
+    <SidebarProvider open={sidebarOpen} onOpenChange={handleOpenChange}>
       <div className="relative min-h-[calc(100dvh-var(--nav-h,4rem))] bg-background text-foreground flex flex-col">
         <div
           className={cn(
@@ -58,7 +76,7 @@ export default function ContentShell({
         >
           <div
             className={cn(
-              "hidden lg:flex lg:flex-col lg:border-r lg:border-[#eaecf0] lg:bg-[#fcfcfd]",
+              "hidden lg:flex lg:flex-col lg:border-r lg:border-sidebar-border lg:bg-sidebar",
               sidebarOpen
                 ? "lg:sticky lg:top-[var(--nav-h,4rem)] lg:h-[calc(100dvh-var(--nav-h,4rem))]"
                 : "lg:fixed lg:left-0 lg:top-[var(--nav-h,4rem)] lg:h-[calc(100dvh-var(--nav-h,4rem))] lg:w-14 lg:z-30"

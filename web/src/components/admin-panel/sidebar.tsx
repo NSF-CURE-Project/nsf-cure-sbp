@@ -21,32 +21,43 @@ type AppSidebarProps = {
 export default function AppSidebar({ classes, className }: AppSidebarProps) {
   const sidebarStore = useStore(useSidebar, (s) => s);
   const isOpen = sidebarStore?.getOpenState() ?? true;
+  // Skip width transitions until the persisted store has hydrated so the
+  // first paint doesn't animate open→closed (the "tweaking" clip).
+  const [transitionsReady, setTransitionsReady] = React.useState(false);
+  React.useEffect(() => {
+    if (!sidebarStore) return;
+    const id = window.requestAnimationFrame(() => setTransitionsReady(true));
+    return () => window.cancelAnimationFrame(id);
+  }, [sidebarStore]);
 
   const toggle = () => sidebarStore?.toggleOpen();
 
   return (
     <Sidebar
       className={cn(
-        "relative h-full min-h-0 flex-col overflow-hidden bg-[#fcfcfd] transition-[width] duration-200",
+        "relative h-full min-h-0 flex-col overflow-hidden bg-sidebar text-sidebar-foreground",
+        transitionsReady && "transition-[width] duration-200",
         isOpen ? "w-64" : "w-14",
         className
       )}
     >
-      <div className="sticky top-0 z-20 flex min-h-10 items-center gap-2 bg-[#fcfcfd]/95 py-1 pl-4 pr-2 backdrop-blur">
-        <div
-          className={cn(
-            "text-[12px] font-semibold uppercase tracking-[0.08em] text-[#667085] transition-opacity duration-150",
-            isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-          )}
-        >
-          Study Topics
-        </div>
+      <div
+        className={cn(
+          "sticky top-0 z-20 flex min-h-10 items-center bg-sidebar/95 py-1 backdrop-blur",
+          isOpen ? "gap-2 pl-4 pr-2" : "justify-center px-1"
+        )}
+      >
+        {isOpen ? (
+          <div className="text-[12px] font-semibold uppercase tracking-[0.08em] text-sidebar-foreground/70">
+            Study Topics
+          </div>
+        ) : null}
         <button
           type="button"
           onClick={toggle}
           className={cn(
-            "ml-auto flex h-8 w-8 items-center justify-center rounded-sm text-[#667085] transition hover:bg-[#f2f4f7] hover:text-[#172033]",
-            !isOpen && "absolute right-2 top-1"
+            "flex h-8 w-8 items-center justify-center rounded-sm text-sidebar-foreground/70 transition hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            isOpen && "ml-auto"
           )}
           aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
         >
@@ -62,16 +73,15 @@ export default function AppSidebar({ classes, className }: AppSidebarProps) {
       {/* Inner scrollable content of the shell */}
       <SidebarContent
         className={cn(
-          "relative flex-1 min-h-0 overflow-hidden px-0 py-2 transition-[opacity,visibility] duration-150",
+          "relative flex-1 min-h-0 overflow-hidden px-0 py-2",
+          transitionsReady && "transition-[opacity,visibility] duration-150",
           isOpen ? "opacity-100 visible" : "opacity-0 invisible"
         )}
       >
-        <div className="h-full overflow-y-auto px-3 pb-2">
+        <div className="h-full overflow-y-auto overflow-x-hidden px-3 pb-2">
           <SidebarClient classes={classes} />
         </div>
       </SidebarContent>
-
-      {/* Thin rail shown when collapsed (clickable) */}
     </Sidebar>
   );
 }

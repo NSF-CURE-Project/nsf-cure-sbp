@@ -87,6 +87,62 @@ const cleanTitle = (value: string, fallback: string) => {
   return t;
 };
 
+function StudyTopicIcon({ title }: { title: string }) {
+  const normalized = title.toLowerCase();
+  const common = {
+    "aria-hidden": true as const,
+    className: "size-5",
+    viewBox: "0 0 20 20",
+    fill: "none" as const,
+  };
+
+  if (normalized.includes("statics")) {
+    return (
+      <svg {...common}>
+        <path
+          d="M3 15h14M5.5 15v-2.5L10 6l4.5 6.5V15M7.2 10h5.6"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M4 17h3M13 17h3"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+
+  if (normalized.includes("mechanics")) {
+    return (
+      <svg {...common}>
+        <path
+          d="M4.5 4.5h11v11h-11zM2.5 7h2M2.5 13h2M15.5 7h2M15.5 13h2M7 2.5v2M13 2.5v2M7 15.5v2M13 15.5v2M7 8h6M7 11h6"
+          stroke="currentColor"
+          strokeWidth="1.45"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+
+  return (
+    <svg {...common}>
+      <path
+        d="M4 3.5h12v13H4zM7 7h6M7 10h6M7 13h4"
+        stroke="currentColor"
+        strokeWidth="1.55"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function SidebarClient({ classes }: Props) {
   const pathname = usePathname();
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(
@@ -278,8 +334,8 @@ export default function SidebarClient({ classes }: Props) {
   };
 
   return (
-    <nav className="text-[#172033]" aria-label="Study topics">
-      <ul className="space-y-2.5">
+    <nav className="text-sidebar-foreground" aria-label="Study topics">
+      <ul className="flex flex-col gap-1.5">
         {(classes ?? []).map((cls) => {
           const cSlug = getClassSlug(cls);
           if (!cSlug) return null;
@@ -305,16 +361,19 @@ export default function SidebarClient({ classes }: Props) {
                 <Link
                   href={`/classes/${cSlug}`}
                   className={cn(
-                    "flex min-h-8 items-center border-l-[3px] py-1.5 pl-3 pr-3 text-[12px] font-semibold uppercase leading-4 tracking-[0.08em]",
+                    "flex min-h-12 items-center gap-3 border-l-[3px] py-2 pl-3 pr-3 text-[12px] font-semibold uppercase leading-4 tracking-[0.075em]",
                     "transition-[background-color,border-color,color] duration-150",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                     classSelfActive
-                      ? "border-[#14532d] bg-[#eaf7ef] text-[#172033]"
-                      : "border-transparent text-[#667085] hover:bg-[#f2f4f7] hover:text-[#172033]"
+                      ? "border-sidebar-primary bg-sidebar-primary/10 text-sidebar-foreground"
+                      : "border-transparent text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   )}
                   aria-current={classSelfActive ? "page" : undefined}
                 >
-                  {classTitle}
+                  <span className="inline-flex size-7 shrink-0 items-center justify-center text-primary">
+                    <StudyTopicIcon title={classTitle} />
+                  </span>
+                  <span className="min-w-0 break-words">{classTitle}</span>
                 </Link>
               ) : (
                 <div
@@ -322,10 +381,10 @@ export default function SidebarClient({ classes }: Props) {
                     "grid min-h-8 w-full grid-cols-[minmax(0,1fr)_2rem] items-center border-l-[3px] py-0 pl-3 pr-0 text-[12px] font-semibold uppercase leading-4 tracking-[0.08em]",
                     "transition-[background-color,border-color,color] duration-150",
                     classSelfActive
-                      ? "border-[#14532d] bg-[#eaf7ef] text-[#172033]"
+                      ? "border-sidebar-primary bg-sidebar-primary/10 text-sidebar-foreground"
                       : classIsActive
-                        ? "border-transparent text-[#172033] hover:bg-[#f2f4f7]"
-                        : "border-transparent text-[#667085] hover:bg-[#f2f4f7] hover:text-[#172033]"
+                        ? "border-transparent text-sidebar-foreground hover:bg-sidebar-accent"
+                        : "border-transparent text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   )}
                 >
                   <Link
@@ -345,8 +404,8 @@ export default function SidebarClient({ classes }: Props) {
                         "flex h-8 w-8 items-center justify-center rounded-sm transition-colors",
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
                         classSelfActive
-                          ? "text-[#172033] hover:bg-[#dff1e6]"
-                          : "text-[#667085] hover:bg-[#eaecf0] hover:text-[#172033]"
+                          ? "text-sidebar-foreground hover:bg-sidebar-primary/15"
+                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                       )}
                       aria-label={
                         classOpen ? "Collapse chapters" : "Expand chapters"
@@ -397,9 +456,7 @@ export default function SidebarClient({ classes }: Props) {
                       const chapterSelfActive = chapterOverviewActive;
 
                       const chapterPercent = lessons.length
-                        ? Math.round(
-                            (chapterCompleted / lessons.length) * 100
-                          )
+                        ? Math.round((chapterCompleted / lessons.length) * 100)
                         : 0;
                       const chapterIsComplete =
                         lessons.length > 0 &&
@@ -412,8 +469,8 @@ export default function SidebarClient({ classes }: Props) {
                               className={cn(
                                 "border-l-[3px] py-0 pl-4 pr-0 text-left transition-[background-color,border-color,color] duration-150",
                                 chapterSelfActive
-                                  ? "border-[#14532d] bg-[#eaf7ef] text-[#172033]"
-                                  : "border-transparent text-[#172033] hover:bg-[#f7f9fb]"
+                                  ? "border-sidebar-primary bg-sidebar-primary/10 text-sidebar-foreground"
+                                  : "border-transparent text-sidebar-foreground hover:bg-sidebar-accent"
                               )}
                             >
                               <div className="grid min-h-8 grid-cols-[minmax(0,1fr)_auto_1.75rem] items-center gap-x-1">
@@ -429,7 +486,7 @@ export default function SidebarClient({ classes }: Props) {
                                 >
                                   <span className="flex min-w-0 items-start gap-2">
                                     {getChapterNumber(ch) != null ? (
-                                      <span className="mt-px shrink-0 text-[12px] font-medium tabular-nums text-[#667085]">
+                                      <span className="mt-px shrink-0 text-[12px] font-medium tabular-nums text-sidebar-foreground/65">
                                         {getChapterNumber(ch)}
                                       </span>
                                     ) : null}
@@ -441,7 +498,7 @@ export default function SidebarClient({ classes }: Props) {
                                     </span>
                                   </span>
                                 </Link>
-                                <span className="whitespace-nowrap text-right text-[12px] font-medium leading-4 tabular-nums text-[#667085]">
+                                <span className="whitespace-nowrap text-right text-[12px] font-medium leading-4 tabular-nums text-sidebar-foreground/65">
                                   {chapterCompleted} of {lessons.length || 0}
                                 </span>
                                 {hasLessons ? (
@@ -454,8 +511,8 @@ export default function SidebarClient({ classes }: Props) {
                                       "flex h-8 w-7 items-center justify-center rounded-sm transition-colors",
                                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
                                       chapterSelfActive
-                                        ? "text-[#172033] hover:bg-[#dff1e6]"
-                                        : "text-[#667085] hover:bg-[#eaecf0] hover:text-[#172033]"
+                                        ? "text-sidebar-foreground hover:bg-sidebar-primary/15"
+                                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                                     )}
                                     aria-label={
                                       chOpen
@@ -472,21 +529,24 @@ export default function SidebarClient({ classes }: Props) {
                                     />
                                   </button>
                                 ) : (
-                                  <span aria-hidden="true" className="h-8 w-7" />
+                                  <span
+                                    aria-hidden="true"
+                                    className="h-8 w-7"
+                                  />
                                 )}
                               </div>
                               {lessons.length > 0 ? (
                                 <div
-                                  className="mr-[4rem] h-[3px] overflow-hidden bg-[#eaecf0]"
+                                  className="mr-[4rem] h-[3px] overflow-hidden bg-sidebar-border"
                                   aria-hidden="true"
                                 >
                                   <div
                                     className={cn(
                                       "h-full transition-[width] duration-500 ease-out",
                                       chapterIsComplete
-                                        ? "bg-[#14532d]"
+                                        ? "bg-sidebar-primary"
                                         : chapterCompleted > 0
-                                          ? "bg-[#2e7d32]"
+                                          ? "bg-sidebar-primary/75"
                                           : "bg-transparent"
                                     )}
                                     style={{
@@ -523,8 +583,8 @@ export default function SidebarClient({ classes }: Props) {
                                           "transition-[background-color,border-color,color] duration-150",
                                           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                                           active
-                                            ? "border-[#14532d] bg-[#eaf7ef] font-semibold text-[#172033]"
-                                            : "border-transparent text-[#172033] hover:bg-[#f7f9fb]"
+                                            ? "border-sidebar-primary bg-sidebar-primary/10 font-semibold text-sidebar-foreground"
+                                            : "border-transparent text-sidebar-foreground hover:bg-sidebar-accent"
                                         )}
                                         aria-current={
                                           active ? "page" : undefined
@@ -535,13 +595,13 @@ export default function SidebarClient({ classes }: Props) {
                                           className="mt-[3px] flex h-4 w-4 items-center justify-center"
                                         >
                                           {completed ? (
-                                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#14532d] text-white">
+                                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground">
                                               <Check className="h-3 w-3" />
                                             </span>
                                           ) : active ? (
-                                            <span className="h-3 w-3 rounded-full border border-[#14532d] bg-[#14532d]" />
+                                            <span className="h-3 w-3 rounded-full border border-sidebar-primary bg-sidebar-primary" />
                                           ) : (
-                                            <span className="h-3 w-3 rounded-full border border-[#98a2b3] bg-white" />
+                                            <span className="h-3 w-3 rounded-full border border-sidebar-foreground/45 bg-sidebar" />
                                           )}
                                         </span>
                                         <span className="min-w-0 whitespace-normal break-words">
@@ -555,7 +615,7 @@ export default function SidebarClient({ classes }: Props) {
                                   );
                                 })}
                                 {lessons.length === 0 && (
-                                  <li className="px-3 py-2 text-[13px] leading-5 text-[#98a2b3]">
+                                  <li className="px-3 py-2 text-[13px] leading-5 text-sidebar-foreground/55">
                                     No lessons yet.
                                   </li>
                                 )}
