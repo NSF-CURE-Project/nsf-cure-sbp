@@ -381,10 +381,6 @@ export default function Navbar({
   const announcementMessage = announcement?.message.trim() ?? "";
   const announcementHref = announcement?.href?.trim();
   const announcementLinkLabel = announcement?.linkLabel?.trim() || "Learn more";
-  const announcementDuration = `${Math.max(
-    18,
-    Math.ceil(announcementMessage.length / 6)
-  )}s`;
 
   const handleNotificationRead = async (notificationId: string) => {
     try {
@@ -423,14 +419,7 @@ export default function Navbar({
           className="border-b border-primary/20 bg-primary px-4 py-1.5 text-primary-foreground sm:px-6"
         >
           <div className="mx-auto flex min-h-5 max-w-[var(--content-max,1200px)] items-center gap-2 text-[12px] font-medium leading-5 sm:text-[13px]">
-            <div className="announcement-ticker min-w-0 flex-1 overflow-hidden">
-              <span
-                className="announcement-ticker-track block whitespace-nowrap"
-                style={{ animationDuration: announcementDuration }}
-              >
-                {announcementMessage}
-              </span>
-            </div>
+            <p className="min-w-0 flex-1 text-pretty">{announcementMessage}</p>
             {announcementHref ? (
               <a
                 href={announcementHref}

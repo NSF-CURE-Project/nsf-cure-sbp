@@ -51,7 +51,9 @@ export default function AppSidebar({ classes, className }: AppSidebarProps) {
           <div className="text-[12px] font-semibold uppercase tracking-[0.08em] text-sidebar-foreground/70">
             Study Topics
           </div>
-        ) : null}
+        ) : (
+          <span className="sr-only">Study Topics collapsed</span>
+        )}
         <button
           type="button"
           onClick={toggle}
@@ -59,7 +61,8 @@ export default function AppSidebar({ classes, className }: AppSidebarProps) {
             "flex h-8 w-8 items-center justify-center rounded-sm text-sidebar-foreground/70 transition hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
             isOpen && "ml-auto"
           )}
-          aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+          aria-label={isOpen ? "Collapse sidebar" : "Expand study topics"}
+          title={isOpen ? "Collapse sidebar" : "Expand study topics"}
         >
           <ChevronLeft
             className={cn(

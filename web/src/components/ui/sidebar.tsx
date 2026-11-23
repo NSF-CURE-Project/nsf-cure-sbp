@@ -70,11 +70,18 @@ export function Sidebar({
   ...props
 }: SidebarProps) {
   const { open } = useSidebarContext();
+  // Streamed <Suspense> children can hydrate after ContentShell/PracticeFocusMode
+  // have already updated SidebarProvider on the client; match SSR on first render.
+  const hydrated = React.useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false
+  );
 
   return (
     <aside
       data-sidebar-collapsible={collapsible}
-      data-sidebar-open={open ? "true" : "false"}
+      data-sidebar-open={(hydrated ? open : true) ? "true" : "false"}
       className={cn(
         // Width is owned by the caller (AppSidebar) so we don't fight the
         // persisted zustand open-state with a second, unsynced width here.

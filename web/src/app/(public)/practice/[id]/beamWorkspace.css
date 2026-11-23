@@ -1,0 +1,823 @@
+/* Injected into the simulation shadow root. Practice Mode beam workspace. */
+
+.simulation-body.sbp-beam-workspace {
+  --sbp-ref: 34%;
+  --sbp-border: hsl(var(--foreground) / 0.1);
+  --sbp-muted: hsl(var(--muted-foreground));
+  --sbp-panel: hsl(var(--background));
+  --sbp-accent: hsl(var(--primary));
+  --sbp-shear: #2563eb;
+  --sbp-moment: #c2410c;
+  --sbp-ok: #15803d;
+  --sbp-bad: #b91c1c;
+  --sbp-radius: 6px;
+  --sbp-gap: 8px;
+  --sbp-highlight: hsl(var(--primary) / 0.55);
+  background: transparent !important;
+  color: hsl(var(--foreground));
+  padding: 0 !important;
+  margin: 0 !important;
+  min-width: 0;
+  font-family: inherit;
+}
+
+.simulation-body.sbp-beam-workspace.sbp-step-graph {
+  --sbp-ref: 24%;
+}
+
+.simulation-body.sbp-beam-workspace .wrap {
+  max-width: none;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sbp-gap);
+  min-width: 0;
+  min-height: inherit;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-sim-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-instructions-body {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--sbp-muted);
+  line-height: 1.45;
+}
+
+.simulation-body.sbp-beam-workspace .quiz-header .btn {
+  border-radius: var(--sbp-radius);
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-workspace {
+  display: grid;
+  grid-template-columns: minmax(220px, var(--sbp-user-ref, var(--sbp-ref))) 5px minmax(0, 1fr);
+  gap: 0;
+  align-items: start;
+  min-width: 0;
+}
+
+.simulation-body.sbp-beam-workspace.sbp-ref-collapsed .sbp-workspace {
+  grid-template-columns: 40px 0 minmax(0, 1fr);
+}
+
+.simulation-body.sbp-beam-workspace.sbp-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-resize {
+  width: 5px;
+  margin: 0 2px;
+  align-self: stretch;
+  border-radius: 999px;
+  background: transparent;
+  cursor: col-resize;
+  position: relative;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-resize::after {
+  content: "";
+  position: absolute;
+  inset: 12% 1px;
+  border-radius: 999px;
+  background: hsl(var(--foreground) / 0.12);
+}
+
+.simulation-body.sbp-beam-workspace .sbp-resize:hover::after,
+.simulation-body.sbp-beam-workspace .sbp-resize:focus-visible::after {
+  background: hsl(var(--primary) / 0.45);
+}
+
+.simulation-body.sbp-beam-workspace.sbp-ref-collapsed .sbp-resize {
+  display: none;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-ref {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+  padding: 10px;
+  border: 1px solid var(--sbp-border);
+  border-radius: var(--sbp-radius);
+  background: var(--sbp-panel);
+  position: sticky;
+  top: 0;
+  max-height: calc(100dvh - var(--nav-h, 4rem) - 5rem);
+  overflow: auto;
+}
+
+.simulation-body.sbp-beam-workspace.sbp-ref-collapsed .sbp-ref {
+  padding: 8px 4px;
+  overflow: hidden;
+}
+
+.simulation-body.sbp-beam-workspace.sbp-ref-collapsed .sbp-ref > *:not(.sbp-ref-head) {
+  display: none !important;
+}
+
+.simulation-body.sbp-beam-workspace.sbp-ref-collapsed .sbp-ref-title,
+.simulation-body.sbp-beam-workspace.sbp-ref-collapsed .sbp-ref-actions .sbp-icon-btn:not(.sbp-ref-toggle) {
+  display: none;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-ref-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-ref-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sbp-muted);
+}
+
+.simulation-body.sbp-beam-workspace .sbp-ref-actions {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-icon-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--sbp-border);
+  border-radius: var(--sbp-radius);
+  background: transparent;
+  color: var(--sbp-muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  font-style: italic;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-icon-btn:hover,
+.simulation-body.sbp-beam-workspace .sbp-icon-btn.is-active {
+  color: hsl(var(--foreground));
+  background: hsl(var(--foreground) / 0.04);
+}
+
+.simulation-body.sbp-beam-workspace .sbp-ref .panel {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 8px;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-params,
+.simulation-body.sbp-beam-workspace .givens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+}
+
+.simulation-body.sbp-beam-workspace .chip {
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: hsl(var(--primary) / 0.08);
+  border: 1px solid hsl(var(--primary) / 0.18);
+  color: hsl(var(--foreground));
+}
+
+.simulation-body.sbp-beam-workspace .sbp-diagram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 4px 0;
+}
+
+.simulation-body.sbp-beam-workspace #fbdSvg {
+  width: 100%;
+  height: auto;
+  min-height: 190px;
+  max-height: min(46vh, 360px);
+  display: block;
+  margin: 0;
+}
+
+.simulation-body.sbp-beam-workspace #fbdSvg [data-reaction] {
+  cursor: pointer;
+  transition: filter 120ms ease, opacity 120ms ease;
+}
+
+.simulation-body.sbp-beam-workspace[data-sbp-highlight] #fbdSvg [data-reaction] {
+  opacity: 0.35;
+}
+
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="ra"] #fbdSvg [data-reaction="ra"],
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="r1"] #fbdSvg [data-reaction="ra"],
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="rb"] #fbdSvg [data-reaction="rb"],
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="r2"] #fbdSvg [data-reaction="rb"],
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="mb"] #fbdSvg [data-reaction="mb"],
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="vmax"] #fbdSvg [data-reaction="rb"],
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="mmax"] #fbdSvg [data-reaction="mb"] {
+  opacity: 1;
+  filter: drop-shadow(0 0 3px var(--sbp-highlight));
+}
+
+.simulation-body.sbp-beam-workspace .convention,
+.simulation-body.sbp-beam-workspace .sbp-notes {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--sbp-muted);
+  margin: 0;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--sbp-border);
+  border-radius: var(--sbp-radius);
+  background: var(--sbp-panel);
+  padding: 10px 12px;
+  flex: 1;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-steps {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 2px;
+  border: 1px solid var(--sbp-border);
+  border-radius: var(--sbp-radius);
+  background: hsl(var(--foreground) / 0.03);
+}
+
+.simulation-body.sbp-beam-workspace .sbp-step {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--sbp-muted);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  min-height: 30px;
+  position: relative;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-step[aria-current="step"] {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  box-shadow: 0 0 0 1px hsl(var(--foreground) / 0.08);
+}
+
+.simulation-body.sbp-beam-workspace .sbp-step[data-done="true"]::after {
+  content: "";
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--sbp-ok);
+}
+
+.simulation-body.sbp-beam-workspace .sbp-progress-meta {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sbp-muted);
+  margin-left: 4px;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-focus-btn {
+  margin-left: auto;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-active-task {
+  font-size: 15px;
+  font-weight: 650;
+  margin: 2px 0 0;
+  color: hsl(var(--foreground));
+}
+
+.simulation-body.sbp-beam-workspace .sbp-step-panels {
+  flex: 1;
+  min-height: 0;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-step-panels > .panel {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-step-panels > .panel[hidden],
+.simulation-body.sbp-beam-workspace .sbp-step-hidden {
+  display: none !important;
+}
+
+.simulation-body.sbp-beam-workspace .inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+
+.simulation-body.sbp-beam-workspace .field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: var(--sbp-radius);
+  border: 1px solid transparent;
+}
+
+.simulation-body.sbp-beam-workspace .field:focus-within {
+  border-color: hsl(var(--primary) / 0.25);
+  background: hsl(var(--primary) / 0.03);
+}
+
+.simulation-body.sbp-beam-workspace .field label {
+  font-size: 12.5px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.3;
+  padding-right: 1.1rem;
+}
+
+.simulation-body.sbp-beam-workspace .field label small {
+  display: block;
+  margin-top: 1px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--sbp-muted);
+}
+
+.simulation-body.sbp-beam-workspace .field label i,
+.simulation-body.sbp-beam-workspace .field label sub {
+  font-style: italic;
+}
+
+.simulation-body.sbp-beam-workspace .field .input-row {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  border: 1px solid var(--sbp-border);
+  border-radius: var(--sbp-radius);
+  background: hsl(var(--background));
+  overflow: hidden;
+}
+
+.simulation-body.sbp-beam-workspace .field input {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 0;
+  background: transparent;
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.simulation-body.sbp-beam-workspace .field input:focus {
+  outline: none;
+}
+
+.simulation-body.sbp-beam-workspace .field:focus-within .input-row {
+  border-color: var(--sbp-accent);
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.14);
+}
+
+.simulation-body.sbp-beam-workspace .field.ok .input-row {
+  border-color: var(--sbp-ok);
+  background: color-mix(in srgb, var(--sbp-ok) 8%, transparent);
+}
+
+.simulation-body.sbp-beam-workspace .field.bad .input-row {
+  border-color: var(--sbp-bad);
+  background: color-mix(in srgb, var(--sbp-bad) 8%, transparent);
+}
+
+.simulation-body.sbp-beam-workspace .field .unit {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sbp-muted);
+  background: hsl(var(--foreground) / 0.03);
+  border-left: 1px solid var(--sbp-border);
+  white-space: nowrap;
+}
+
+.simulation-body.sbp-beam-workspace .field .fb {
+  min-height: 0;
+  font-size: 11.5px;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.simulation-body.sbp-beam-workspace .field .sbp-check {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--sbp-ok);
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 120ms ease, transform 120ms ease;
+  pointer-events: none;
+}
+
+.simulation-body.sbp-beam-workspace .field.ok .sbp-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.simulation-body.sbp-beam-workspace .panel.how-to {
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.simulation-body.sbp-beam-workspace .panel.how-to > details {
+  border: 1px solid var(--sbp-border);
+  border-radius: var(--sbp-radius);
+  background: hsl(var(--foreground) / 0.02);
+}
+
+.simulation-body.sbp-beam-workspace .panel.how-to summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.simulation-body.sbp-beam-workspace .panel.how-to summary::-webkit-details-marker {
+  display: none;
+}
+
+.simulation-body.sbp-beam-workspace .panel.how-to summary h2 {
+  display: inline;
+  font-size: inherit;
+  margin: 0;
+}
+
+.simulation-body.sbp-beam-workspace .panel.how-to .lead,
+.simulation-body.sbp-beam-workspace .panel.how-to .how-list {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--sbp-muted);
+  margin: 8px 10px;
+}
+
+.simulation-body.sbp-beam-workspace .toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 4px;
+  border: 1px solid var(--sbp-border);
+  border-radius: var(--sbp-radius);
+  background: hsl(var(--foreground) / 0.02);
+}
+
+.simulation-body.sbp-beam-workspace .tool-group {
+  display: inline-flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  padding-right: 6px;
+  border-right: 1px solid var(--sbp-border);
+}
+
+.simulation-body.sbp-beam-workspace .tool-group:last-of-type {
+  border-right: 0;
+  padding-right: 0;
+}
+
+.simulation-body.sbp-beam-workspace .tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+}
+
+.simulation-body.sbp-beam-workspace .tool-btn span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.simulation-body.sbp-beam-workspace .tool-btn.action {
+  width: auto;
+  min-width: 32px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.simulation-body.sbp-beam-workspace .tool-btn.action span {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  clip: auto;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.simulation-body.sbp-beam-workspace .tool-btn:hover {
+  background: hsl(var(--foreground) / 0.05);
+}
+
+.simulation-body.sbp-beam-workspace .tool-btn.active {
+  background: hsl(var(--primary) / 0.1);
+  border-color: hsl(var(--primary) / 0.28);
+  color: var(--sbp-accent);
+}
+
+.simulation-body.sbp-beam-workspace .tool-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.simulation-body.sbp-beam-workspace .curve-opts,
+.simulation-body.sbp-beam-workspace .editor-readout,
+.simulation-body.sbp-beam-workspace .editor-caption,
+.simulation-body.sbp-beam-workspace .editor-msg {
+  font-size: 12px;
+  color: var(--sbp-muted);
+}
+
+.simulation-body.sbp-beam-workspace .editor-readout {
+  font-variant-numeric: tabular-nums;
+  min-height: 1.2rem;
+  margin-bottom: 6px;
+}
+
+.simulation-body.sbp-beam-workspace .editor-shear .editor-svg {
+  --diagram-accent: var(--sbp-shear);
+}
+
+.simulation-body.sbp-beam-workspace .editor-moment .editor-svg {
+  --diagram-accent: var(--sbp-moment);
+}
+
+.simulation-body.sbp-beam-workspace .editor-svg {
+  width: 100%;
+  height: auto;
+  min-height: 320px;
+  display: block;
+  border: 1px solid var(--sbp-border);
+  border-radius: var(--sbp-radius);
+  background: hsl(var(--background));
+}
+
+.simulation-body.sbp-beam-workspace.sbp-step-graph .editor-svg {
+  min-height: min(52vh, 480px);
+}
+
+.simulation-body.sbp-beam-workspace .sbp-plot-scroll {
+  overflow-x: auto;
+  border-radius: var(--sbp-radius);
+}
+
+.simulation-body.sbp-beam-workspace .editor-msg.ok {
+  color: var(--sbp-ok);
+}
+
+.simulation-body.sbp-beam-workspace .editor-msg.bad {
+  color: var(--sbp-bad);
+}
+
+.simulation-body.sbp-beam-workspace .sbp-actionbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--sbp-border);
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(to top, var(--sbp-panel) 75%, transparent);
+  z-index: 2;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-actionbar-nav,
+.simulation-body.sbp-beam-workspace .sbp-actionbar-eval {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-actionbar-eval {
+  justify-content: flex-end;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-core-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-core-actions #btnNew {
+  display: none !important;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-text-action {
+  appearance: none;
+  border: 0;
+  background: none;
+  color: var(--sbp-muted);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 4px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-text-action:hover {
+  color: hsl(var(--foreground));
+}
+
+.simulation-body.sbp-beam-workspace .btn {
+  appearance: none;
+  border: 1px solid var(--sbp-border);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border-radius: var(--sbp-radius);
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.simulation-body.sbp-beam-workspace .btn:hover {
+  background: hsl(var(--foreground) / 0.04);
+}
+
+.simulation-body.sbp-beam-workspace .btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.simulation-body.sbp-beam-workspace .btn.primary {
+  background: var(--sbp-accent);
+  border-color: transparent;
+  color: hsl(var(--primary-foreground, 0 0% 100%));
+}
+
+.simulation-body.sbp-beam-workspace .btn.primary:hover {
+  filter: brightness(0.96);
+}
+
+.simulation-body.sbp-beam-workspace .btn.sbp-btn-secondary,
+.simulation-body.sbp-beam-workspace .sbp-btn-secondary {
+  background: hsl(var(--foreground) / 0.03);
+}
+
+.simulation-body.sbp-beam-workspace .btn.sbp-btn-ghost,
+.simulation-body.sbp-beam-workspace .sbp-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--sbp-muted);
+}
+
+.simulation-body.sbp-beam-workspace .btn.sbp-btn-ghost:hover {
+  color: hsl(var(--foreground));
+  background: hsl(var(--foreground) / 0.05);
+}
+
+.simulation-body.sbp-beam-workspace .summary {
+  font-size: 12.5px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.simulation-body.sbp-beam-workspace.sbp-graph-focus .sbp-ref,
+.simulation-body.sbp-beam-workspace.sbp-graph-focus .sbp-resize {
+  display: none;
+}
+
+.simulation-body.sbp-beam-workspace.sbp-graph-focus .sbp-workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 900px) {
+  .simulation-body.sbp-beam-workspace .sbp-workspace,
+  .simulation-body.sbp-beam-workspace.sbp-ref-collapsed .sbp-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .simulation-body.sbp-beam-workspace .sbp-resize {
+    display: none;
+  }
+
+  .simulation-body.sbp-beam-workspace .sbp-ref {
+    position: relative;
+    max-height: none;
+  }
+
+  .simulation-body.sbp-beam-workspace.sbp-ref-collapsed .sbp-ref > *:not(.sbp-ref-head) {
+    display: revert !important;
+  }
+
+  .simulation-body.sbp-beam-workspace .inputs-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .simulation-body.sbp-beam-workspace .sbp-actionbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .simulation-body.sbp-beam-workspace .sbp-steps {
+    width: 100%;
+  }
+
+  .simulation-body.sbp-beam-workspace .sbp-step {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  .simulation-body.sbp-beam-workspace .sbp-focus-btn {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .simulation-body.sbp-beam-workspace .editor-svg {
+    min-height: 240px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .simulation-body.sbp-beam-workspace * {
+    transition: none !important;
+  }
+}

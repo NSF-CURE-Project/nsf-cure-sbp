@@ -4,6 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import loaders from "@/lib/practice/simulations/loaders.generated.mjs";
 import type { PracticeAssignment } from "@/lib/practice/assignment";
 import { SimulationFrame } from "./SimulationFrame";
+import { beamWorkspaceStyles } from "./beamWorkspaceStyles";
+import {
+  enhanceBeamEditors,
+  isBeamSimulation,
+  mountBeamWorkspace,
+} from "./enhanceBeamWorkspace";
 
 type SimulationOptions = {
   document: object;
@@ -61,18 +67,23 @@ export function NativeSimulation({ id, title, seed, level, content, fallback, as
     let disposed = false;
     let saving = false;
     let pending: { id: string; signature: string } | null = null;
+    const cleanups: Array<() => void> = [];
     const root = target.shadowRoot ?? target.attachShadow({ mode: "open" });
     const body = document.createElement("div");
     body.className = "simulation-body";
     body.dataset.theme = document.documentElement.classList.contains("dark") ? "dark" : "light";
     body.innerHTML = content.html;
     const style = document.createElement("style");
-    style.textContent = content.css + sharedCss;
+    style.textContent = content.css + sharedCss + beamWorkspaceStyles;
     root.replaceChildren(style, body);
     const theme = new MutationObserver(() => {
       body.dataset.theme = document.documentElement.classList.contains("dark") ? "dark" : "light";
     });
     theme.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
+    if (isBeamSimulation(body)) {
+      cleanups.push(mountBeamWorkspace(body) ?? (() => undefined));
+    }
 
     const scopedDocument = {
       getElementById: root.getElementById.bind(root),
@@ -132,6 +143,7 @@ export function NativeSimulation({ id, title, seed, level, content, fallback, as
           chart.before(scroll);
           scroll.append(chart);
         }
+        if (!disposed) cleanups.push(enhanceBeamEditors(root));
       } catch {
         if (!disposed) setFailed(true);
       }
@@ -139,6 +151,7 @@ export function NativeSimulation({ id, title, seed, level, content, fallback, as
     return () => {
       disposed = true;
       theme.disconnect();
+      for (const cleanup of cleanups) cleanup();
       root.replaceChildren();
     };
   }, [id, seed, level, content, assignment]);
@@ -150,8 +163,8 @@ export function NativeSimulation({ id, title, seed, level, content, fallback, as
     </div>
   );
   return (
-    <section aria-label={title}>
-      <div ref={mount} />
+    <section aria-label={title} className="min-w-0">
+      <div ref={mount} className="min-w-0" />
       {tracking ? <p role="status" className="mt-3 text-sm text-muted-foreground">{tracking}</p> : null}
     </section>
   );

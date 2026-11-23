@@ -11,6 +11,8 @@ import { PracticeForm } from "./PracticeForm";
 import { SimulationFrame } from "./SimulationFrame";
 import { PracticeOpened } from "./PracticeOpened";
 import { NativeSimulation } from "./NativeSimulation";
+import { PracticeFocusMode } from "./PracticeFocusMode";
+import { splitPracticeTitle } from "./practiceTitle";
 import simulations from "@/lib/practice/simulations/metadata.generated.json";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +27,9 @@ export default async function PracticeProblemPage({ params, searchParams }: {
   const randomized = hasNumericVariants(problem);
   const simulation = process.env.DISABLE_NATIVE_PRACTICE_SIMULATIONS === "true" ? undefined :
     (simulations as Record<string, { html: string; css: string; version: string } | undefined>)[id];
+  const interactive = Boolean(problem.simulation);
+  const workspace = interactive || Boolean(problem.parts);
+  const { badge, identity } = splitPracticeTitle(problem.title);
   const lessonId = typeof lesson === "string" && /^\d+$/.test(lesson) ? Number(lesson) : 0;
   const context: PracticeAssignment | null = Number.isSafeInteger(lessonId) && lessonId > 0 &&
     typeof assignment === "string" && practiceUuid.test(assignment)
@@ -60,23 +65,40 @@ export default async function PracticeProblemPage({ params, searchParams }: {
   })() : null;
 
   return (
-    <main className="mx-auto w-full min-w-0 max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:py-12">
+    <main className={workspace
+      ? interactive
+        ? "mx-auto w-full min-w-0 max-w-[1680px] space-y-2 px-2 py-2 sm:px-4 lg:px-5 lg:py-3"
+        : "mx-auto w-full min-w-0 max-w-[1200px] space-y-2 px-2 py-2 sm:px-4 lg:px-5 lg:py-3"
+      : "mx-auto w-full min-w-0 max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:py-12"}>
+      {workspace ? <PracticeFocusMode /> : null}
       {context ? <PracticeOpened {...context} /> : null}
-      <Link href={lessonHref ?? "/practice"} className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline underline-offset-4">
-        <ArrowLeft className="size-4" aria-hidden /> {lessonHref ? "Back to lesson" : "All practice problems"}
-      </Link>
-      <header className="flex flex-wrap items-start justify-between gap-4 border-b pb-5">
-        <div className="min-w-0 flex-1 basis-64">
-          <p className="mb-2 text-sm text-muted-foreground">{problem.chapter.replace(/_\s*/g, " · ")}</p>
-          <h1 className="text-pretty text-2xl font-semibold tracking-tight sm:text-3xl">{problem.title}</h1>
-        </div>
-        {randomized ? (
-          <Button asChild variant="outline">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Link
+          href={lessonHref ?? "/practice"}
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-3.5" aria-hidden /> {lessonHref ? "Back to lesson" : "All practice"}
+        </Link>
+        {randomized && !interactive ? (
+          <Button asChild variant="ghost" size="sm" className="h-8 rounded-md px-2 text-xs">
             <Link href={variantHref(randomUUID())} prefetch={false}>
-              <Shuffle className="size-4" aria-hidden /> New variant
+              <Shuffle className="size-3.5" aria-hidden /> New variant
             </Link>
           </Button>
         ) : null}
+      </div>
+      <header className={workspace ? "space-y-0.5" : "flex flex-wrap items-start justify-between gap-4 border-b pb-5"}>
+        <div className="min-w-0 flex-1">
+          <p className={`text-muted-foreground ${workspace ? "mb-0 text-[11px] font-medium uppercase tracking-[0.06em]" : "mb-1 text-sm"}`}>
+            {problem.chapter.replace(/_\s*/g, " / ")}
+            {badge ? <span className="normal-case tracking-normal text-muted-foreground/80"> · {badge}</span> : null}
+          </p>
+          <h1 className={workspace
+            ? "text-pretty text-base font-semibold tracking-tight sm:text-lg"
+            : "text-pretty text-2xl font-semibold tracking-tight sm:text-3xl"}>
+            {identity}
+          </h1>
+        </div>
       </header>
       {problem.simulation ? (
         simulation && variant ? <NativeSimulation key={id} id={id} title={problem.title} seed={variant}

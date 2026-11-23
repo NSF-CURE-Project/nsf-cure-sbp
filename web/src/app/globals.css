@@ -230,45 +230,6 @@ body[data-toc="closed"] #layout {
 }
 
 @layer utilities {
-  @keyframes announcement-ticker {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(-100%);
-    }
-  }
-
-  .announcement-ticker-track {
-    width: max-content;
-    min-width: 100%;
-    padding-left: 100%;
-    animation-name: announcement-ticker;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-    will-change: transform;
-  }
-
-  .announcement-ticker:hover .announcement-ticker-track {
-    animation-play-state: paused;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .announcement-ticker {
-      overflow: visible;
-    }
-
-    .announcement-ticker-track {
-      width: auto;
-      min-width: 0;
-      padding-left: 0;
-      white-space: normal;
-      animation: none !important;
-      transform: none;
-      will-change: auto;
-    }
-  }
-
   .login-input:-webkit-autofill,
   .login-input:-webkit-autofill:hover,
   .login-input:-webkit-autofill:focus {
