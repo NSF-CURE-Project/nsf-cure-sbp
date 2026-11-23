@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import React, { useMemo, useState } from 'react'
 
 type FaqItem = {
@@ -123,9 +124,9 @@ export default function FaqPage() {
               <path d="M21 13.2A8.2 8.2 0 0 1 10.8 3 7 7 0 1 0 21 13.2Z" />
             </svg>
           </button>
-          <a className="faq-signin" href="/admin">
+          <Link className="faq-signin" href="/admin">
             Sign In
-          </a>
+          </Link>
         </div>
       </header>
 
