@@ -69,6 +69,7 @@ export default async function NewLessonScaffoldPage({
           initialTitle={initialTitle}
           initialOrder={initialOrder}
           stagedId={stagedId}
+          practicePreviewOrigin={(process.env.WEB_PREVIEW_URL ?? process.env.FRONTEND_URL ?? 'http://localhost:3001').trim().replace(/\/+$/, '')}
         />
       </div>
     </Gutter>

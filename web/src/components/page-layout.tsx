@@ -2,13 +2,22 @@
 
 import Image from "next/image";
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ExternalLink, Mail, Phone, UserRound } from "lucide-react";
+import {
+  ExternalLink,
+  Mail,
+  Phone,
+  Play,
+  UserRound,
+  Youtube,
+} from "lucide-react";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
 import { Button } from "@/components/ui/button";
 import type { PageLayoutBlock } from "@/lib/payloadSdk/types";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 import { extractLessonSections } from "@/lib/lessons/toc";
+import practiceTitles from "@/lib/practice/titles.generated.json";
 import {
   CalloutBlockView,
   CheckpointBlockView,
@@ -204,10 +213,10 @@ function SnappingVideo({
   }, [snappedWidth]);
 
   return (
-    <section className="mx-auto w-full max-w-4xl space-y-3">
-      <div
+    <section data-wide="true" className="w-full space-y-3">
+      <figure
         ref={frameRef}
-        className="w-full min-w-[280px] max-w-full overflow-hidden rounded-lg border border-border/60 bg-muted/20 p-1"
+        className="w-full min-w-[280px] max-w-full overflow-hidden rounded-lg border border-border/70 bg-card p-1 shadow-[0_12px_32px_rgba(15,23,42,0.08)]"
         style={{
           resize: "horizontal",
           width: snappedWidth ? `${snappedWidth}px` : undefined,
@@ -216,7 +225,7 @@ function SnappingVideo({
         onMouseUp={snapToNearest}
         onTouchEnd={snapToNearest}
       >
-        <div className="aspect-video w-full overflow-hidden rounded-md bg-black">
+        <div className="aspect-video w-full overflow-hidden rounded-md bg-slate-950">
           <video
             src={url}
             controls
@@ -233,8 +242,12 @@ function SnappingVideo({
             }}
           />
         </div>
-      </div>
-      {caption && <p className="text-sm text-muted-foreground">{caption}</p>}
+        {caption && (
+          <figcaption className="px-2 py-2 text-sm leading-6 text-muted-foreground">
+            {caption}
+          </figcaption>
+        )}
+      </figure>
     </section>
   );
 }
@@ -262,8 +275,8 @@ function YouTubeVideoCard({
   const thumbnailUrl = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
 
   return (
-    <section className="mx-auto w-full max-w-4xl space-y-3">
-      <div className="overflow-hidden rounded-lg border border-border/60 bg-background">
+    <section data-wide="true" className="w-full space-y-3">
+      <figure className="overflow-hidden rounded-lg border border-border/70 bg-card shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
         <div className="relative aspect-video w-full">
           {isPlaying ? (
             <iframe
@@ -278,7 +291,7 @@ function YouTubeVideoCard({
           ) : (
             <button
               type="button"
-              className="group absolute inset-0 flex h-full w-full items-center justify-center bg-black/30 transition-colors hover:bg-black/40"
+              className="group absolute inset-0 flex h-full w-full items-center justify-center overflow-hidden bg-slate-950 text-white transition-colors"
               onClick={() => setIsPlaying(true)}
               aria-label="Play YouTube video"
             >
@@ -287,18 +300,36 @@ function YouTubeVideoCard({
                 alt="Video thumbnail"
                 fill
                 sizes="(max-width: 1024px) 100vw, 960px"
-                className="object-cover"
+                className="object-cover opacity-90 transition duration-300 group-hover:scale-[1.02] group-hover:opacity-100"
               />
-              <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
-              <span className="relative z-10 inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/55 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition group-hover:bg-black/65">
-                <span aria-hidden="true">▶</span>
-                Play on YouTube
+              <span className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/25" />
+              <span className="absolute left-4 top-4 z-10 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-white/90 backdrop-blur-sm">
+                <Youtube className="h-3.5 w-3.5" aria-hidden="true" />
+                Video
+              </span>
+              <span className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full border border-white/25 bg-white/95 text-slate-950 shadow-[0_14px_34px_rgba(0,0,0,0.28)] transition duration-200 group-hover:scale-105 group-hover:bg-white">
+                <Play
+                  className="ml-1 h-7 w-7 fill-current"
+                  aria-hidden="true"
+                />
+              </span>
+              <span className="absolute bottom-4 left-4 right-4 z-10 flex items-end justify-between gap-4">
+                <span className="min-w-0 text-left text-sm font-semibold leading-6 text-white">
+                  Play video
+                </span>
+                <span className="hidden rounded-full border border-white/20 bg-black/40 px-3 py-1 text-xs font-semibold text-white/90 backdrop-blur-sm sm:inline-flex">
+                  YouTube
+                </span>
               </span>
             </button>
           )}
         </div>
-      </div>
-      {caption && <p className="text-sm text-muted-foreground">{caption}</p>}
+        {caption && (
+          <figcaption className="px-4 py-3 text-sm leading-6 text-muted-foreground">
+            {caption}
+          </figcaption>
+        )}
+      </figure>
     </section>
   );
 }
@@ -320,6 +351,28 @@ export function PageLayout({
   };
   lessonId?: string;
 }) {
+  const pathname = usePathname();
+  const hasPractice = Boolean(lessonId && blocks?.some((block) => block.blockType === "practiceProblem"));
+  const [practiceProgress, setPracticeProgress] = useState<{ lessonId: string; statuses: Record<string, number> }>();
+  useEffect(() => {
+    if (!hasPractice || !lessonId) return;
+    const controller = new AbortController();
+    function refresh() {
+      void fetch(`/api/practice-attempts/status?lesson=${encodeURIComponent(lessonId!)}`, {
+        signal: controller.signal,
+      }).then(async (response) => {
+        if (!response.ok) return;
+        const result = await response.json();
+        if (!controller.signal.aborted) setPracticeProgress({ lessonId: lessonId!, statuses: result.statuses ?? {} });
+      }).catch(() => undefined);
+    }
+    refresh();
+    window.addEventListener("pageshow", refresh);
+    return () => {
+      controller.abort();
+      window.removeEventListener("pageshow", refresh);
+    };
+  }, [hasPractice, lessonId]);
   if (!blocks?.length) return null;
   const firstHeroIndex = blocks.findIndex(
     (block) => block.blockType === "heroBlock"
@@ -533,6 +586,28 @@ export function PageLayout({
           );
         }
 
+        if (block.blockType === "practiceProblem") {
+          if (!lessonId) return null;
+          const query = new URLSearchParams({ lesson: lessonId, assignment: block.assignmentKey });
+          if (pathname?.startsWith("/classes/")) query.set("from", pathname);
+          const title = (practiceTitles as Record<string, string | undefined>)[block.problemId] ?? "Practice problem";
+          const status = practiceProgress?.lessonId === lessonId
+            ? practiceProgress.statuses[`${block.assignmentKey}:${block.problemId}`]
+            : undefined;
+          return (
+            <section key={block.id ?? idx} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3">
+              <div>
+                <p className="text-sm text-muted-foreground">{block.requiredPractice ? "Required practice" : "Optional practice"}</p>
+                <h3 className="font-semibold">{title}</h3>
+                {status ? <p className="text-sm text-muted-foreground">{status === 3 ? "Completed" : status === 2 ? "Attempted" : "Opened"}</p> : null}
+              </div>
+              <Button asChild variant="outline">
+                <a href={`/practice/${encodeURIComponent(block.problemId)}?${query}`}>Open problem</a>
+              </Button>
+            </section>
+          );
+        }
+
         if (block.blockType === "buttonBlock") {
           return (
             <section key={block.id ?? idx}>
@@ -560,7 +635,10 @@ export function PageLayout({
               <ul className="space-y-3">
                 {resources.length ? (
                   resources.map((item, itemIdx) => (
-                    <li key={item.id ?? itemIdx} className="border-t border-border/60 py-4 first:border-t-0">
+                    <li
+                      key={item.id ?? itemIdx}
+                      className="border-t border-border/60 py-4 first:border-t-0"
+                    >
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <p className="font-semibold leading-tight">
@@ -637,10 +715,7 @@ export function PageLayout({
               ) : (
                 <div className="space-y-8">
                   {sections.map((section, sectionIdx) => (
-                    <section
-                      key={sectionIdx}
-                      className="space-y-3"
-                    >
+                    <section key={sectionIdx} className="space-y-3">
                       {groupByCategory && (
                         <div className="flex items-center gap-3">
                           <div className="h-px flex-1 bg-border/70" />
@@ -695,7 +770,9 @@ export function PageLayout({
                                     className="inline-flex max-w-full items-center gap-2 text-emerald-700 underline-offset-2 hover:underline"
                                   >
                                     <Mail className="h-4 w-4 shrink-0" />
-                                    <span className="truncate">{person.email}</span>
+                                    <span className="truncate">
+                                      {person.email}
+                                    </span>
                                   </a>
                                 ) : null}
                                 {person.phone ? (

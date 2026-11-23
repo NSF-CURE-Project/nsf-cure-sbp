@@ -1,4 +1,5 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
+import { APIError } from 'payload'
 import { computeNextStreak } from '../utils/streak'
 
 const isStaff = (req?: PayloadRequest | null) =>
@@ -36,7 +37,9 @@ export const LessonProgress: CollectionConfig = {
       async ({ data, req, originalDoc }) => {
         if (!data || !req?.payload) return data
 
-        if (!data.user && req.user?.id) {
+        if (req.user?.collection === 'accounts') {
+          data.user = req.user.id
+        } else if (!data.user && req.user?.id) {
           data.user = req.user.id
         }
 
@@ -53,6 +56,21 @@ export const LessonProgress: CollectionConfig = {
             depth: 0,
           })
           if (lesson) {
+            if (req.user?.collection === 'accounts' && data.completed && !originalDoc?.completed) {
+              const required = lesson.layout?.flatMap((block) => block.blockType === 'practiceProblem' &&
+                block.requiredPractice ? [block] : []) ?? []
+              if (required.length) {
+                const { docs } = await req.payload.find({
+                  collection: 'practice-attempts', depth: 0, pagination: false, overrideAccess: true,
+                  where: { and: [{ lesson: { equals: lesson.id } }, { learner: { equals: req.user.id } },
+                    { completed: { equals: true } }, { assignmentKey: { in: required.map((block) => block.assignmentKey) } }] },
+                })
+                const completed = new Set(docs.map((attempt) => `${attempt.assignmentKey}:${attempt.problemId}`))
+                if (required.some((block) => !completed.has(`${block.assignmentKey}:${block.problemId}`))) {
+                  throw new APIError('Complete the required practice problems before marking this lesson complete.', 400)
+                }
+              }
+            }
             data.lesson = lesson.id
             data.chapter =
               (lesson as { chapter?: string | { id?: string } }).chapter ?? data.chapter
@@ -98,6 +116,7 @@ export const LessonProgress: CollectionConfig = {
             id: userId,
             depth: 0,
             overrideAccess: true,
+            req,
           })
 
           const next = computeNextStreak({
@@ -112,6 +131,7 @@ export const LessonProgress: CollectionConfig = {
             collection: 'accounts',
             id: userId,
             overrideAccess: true,
+            req,
             data: {
               currentStreak: next.currentStreak,
               longestStreak: next.longestStreak,

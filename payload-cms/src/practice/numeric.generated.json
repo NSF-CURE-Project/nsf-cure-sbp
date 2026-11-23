@@ -1,0 +1,1549 @@
+[
+  {
+    "id": "9687c0fd83eccfba9bfb",
+    "version": "8864e09381934eacfed5",
+    "parts": [
+      {
+        "name": "stress",
+        "digits": 3,
+        "label": "The average normal stress acting along section a-a in ({{params.unitsStress}}) = "
+      },
+      {
+        "name": "towel",
+        "digits": 3,
+        "label": "The average shear stress acting along section a-a in ({{params.unitsStress}}) = "
+      }
+    ]
+  },
+  {
+    "id": "7bf6645a9f985e6f87ee",
+    "version": "86228eaa81e54b4179eb",
+    "parts": [
+      {
+        "name": "CE",
+        "digits": 3,
+        "label": "The normal strain in wire CE in ({{params.unitsLength}}) = "
+      },
+      {
+        "name": "BD",
+        "digits": 3,
+        "label": "The normal strain in wire BD in ({{params.unitsLength}}) = "
+      }
+    ]
+  },
+  {
+    "id": "55fef2413e4108607a24",
+    "version": "d23a7e0e680f33481b47",
+    "parts": [
+      {
+        "name": "Ix",
+        "digits": 3,
+        "label": "The moment of inertia in the x-axis, $\\, I_{x} \\,$ in ({{params.unitsInertia}}) = "
+      },
+      {
+        "name": "Iy",
+        "digits": 3,
+        "label": "The moment of inertia in the y-axis, $\\, I_{y} \\,$ in ({{params.unitsInertia}}) = "
+      },
+      {
+        "name": "cr",
+        "digits": 3,
+        "label": "The critical load, $\\, P_{cr} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "cs",
+        "digits": 3,
+        "label": "The critical stress, $ \\, \\sigma_{cr} \\,$ in ({{params.unitsStress}}) = "
+      }
+    ]
+  },
+  {
+    "id": "a24ac0d92fb02297b227",
+    "version": "7ffc6f3cca81201c255c",
+    "parts": [
+      {
+        "name": "cr",
+        "digits": 3,
+        "label": "The critical load, $\\, P_{cr} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "cs",
+        "digits": 3,
+        "label": "The critical stress, $\\, \\sigma_{cr} \\,$ in ({{params.unitsStress}}) = "
+      },
+      {
+        "name": "fos",
+        "digits": 3,
+        "label": "The factor of safety with respect to buckling, $\\, F.S. \\,$ = "
+      }
+    ]
+  },
+  {
+    "id": "433640ede153dbd77af0",
+    "version": "496f7e6d84f93ffd9cba",
+    "parts": [
+      {
+        "name": "cr",
+        "digits": 3,
+        "label": "The critical load, $\\, P_{cr} \\,$ in ({{params.unitsForce}}) = "
+      }
+    ]
+  },
+  {
+    "id": "3d27bcfd898b810e1bcc",
+    "version": "41c981c784ec74f3e6b3",
+    "parts": [
+      {
+        "name": "t",
+        "digits": 3,
+        "label": "The increase in temperature that will cause the rod to buckle, $\\, \\Delta T \\,$ in ({{params.unitsTemperature}}) = "
+      },
+      {
+        "name": "P",
+        "digits": 3,
+        "label": "The critical load, $\\, P_{cr} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "cs",
+        "digits": 3,
+        "label": "The critical stress, $\\, \\sigma_{cr} \\,$ in ({{params.unitsStress}}) = "
+      }
+    ]
+  },
+  {
+    "id": "e323e1d338bb38b73686",
+    "version": "ec30a07484dd735018e1",
+    "parts": [
+      {
+        "name": "v",
+        "digits": 3,
+        "label": "The Poisson's ratio for the aluminum alloy is = "
+      }
+    ]
+  },
+  {
+    "id": "23dc66b6e923c3f63b56",
+    "version": "b26d48e1d91325711883",
+    "parts": [
+      {
+        "name": "elastic",
+        "digits": 3,
+        "label": "a. The shear strain developed in the shear plane of the bolt in ({{params.unitsShearstrain}}) = "
+      },
+      {
+        "name": "plastic",
+        "digits": 3,
+        "label": "b. The permanent shear strain that remains in the shear plane of the bolt after unloading in ({{params.unitsShearstrain}}) = "
+      }
+    ]
+  },
+  {
+    "id": "71e861d34c261efa6e0b",
+    "version": "38a847349a15b39bea13",
+    "parts": [
+      {
+        "name": "AD",
+        "digits": 3,
+        "label": "The displacement of end A with respect to end D in ({{params.unitsLength}}) = "
+      }
+    ]
+  },
+  {
+    "id": "9055316a337da8013d1b",
+    "version": "d915198149aacc93172e",
+    "parts": [
+      {
+        "name": "horiz",
+        "digits": 3,
+        "label": "The horizontal displacement of the roller at C in ({{params.unitsDist}}) = "
+      }
+    ]
+  },
+  {
+    "id": "255fbd62c1ec5d7ff81a",
+    "version": "b312587de081b0b51449",
+    "parts": [
+      {
+        "name": "F",
+        "digits": 3,
+        "label": "The force at its bottom needed for equilibrium in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "d_A",
+        "digits": 3,
+        "label": "The displacement of the top of the post A with respect to its bottom B in ({{params.unitsDist}}) = "
+      }
+    ]
+  },
+  {
+    "id": "7c6fa3f26767fa1b50e5",
+    "version": "d0bc1aaa144b38019e81",
+    "parts": [
+      {
+        "name": "vd",
+        "digits": 3,
+        "label": "The vertical displacement of the pointer E in ({{params.unitsLength}}) is = "
+      }
+    ]
+  },
+  {
+    "id": "c772c1b336f04fa501ee",
+    "version": "2e24054ca48416214cb2",
+    "parts": [
+      {
+        "name": "angle",
+        "digits": 3,
+        "label": "The angle of twist of gear C with respect to B in ({{params.unitsAngle}}) = "
+      }
+    ]
+  },
+  {
+    "id": "b2fd295ad9964bdec2ea",
+    "version": "f8c0a1ef2d6f433eb9c9",
+    "parts": [
+      {
+        "name": "ss1",
+        "digits": 3,
+        "label": "The absolute maximum shear stress in the shaft in ({{params.unitsStress}}) = "
+      }
+    ]
+  },
+  {
+    "id": "ab323a55cc2bdeab8020",
+    "version": "5dc2e21d7db5e20b5454",
+    "parts": [
+      {
+        "name": "T1",
+        "digits": 3,
+        "label": "The maximum torque $\\, \\mathbf{T} \\,$ for the solid shaft in ({{params.unitsTorque}}) is = "
+      },
+      {
+        "name": "T2",
+        "digits": 3,
+        "label": "The maximum torque $\\, \\mathbf{T'} \\,$ for the hollow shaft in ({{params.unitsTorque}}) is = "
+      }
+    ]
+  },
+  {
+    "id": "e529001fa96caf5ada67",
+    "version": "ebce3b40f801e7a57861",
+    "parts": [
+      {
+        "name": "T1",
+        "digits": 3,
+        "label": "The largest torque $\\, \\mathrm{T_1} \\,$ that can be applied to the shaft in ({{params.unitsMoment}}) = "
+      },
+      {
+        "name": "t1",
+        "digits": 3,
+        "label": "The maximum shear stress $\\, (\\tau_{max})_{CD} \\,$ within region CD in ({{params.unitsStress}}) = "
+      },
+      {
+        "name": "t2",
+        "digits": 3,
+        "label": "The maximum shear stress $\\, (\\tau_{max})_{DE} \\,$ within region DE in ({{params.unitsStress}}) = "
+      }
+    ]
+  },
+  {
+    "id": "5bdcfb0f2b26542b7cb8",
+    "version": "234ffbb9ac8a49c126d5",
+    "parts": [
+      {
+        "name": "T1",
+        "digits": 3,
+        "label": "The shear stress of the outer surface (maximum) of segment CD in ({{params.unitsStress}}) is = "
+      },
+      {
+        "name": "T2",
+        "digits": 3,
+        "label": "The shear stress of the inner surface of segment CD in ({{params.unitsStress}}) is = "
+      }
+    ]
+  },
+  {
+    "id": "d4e8c7b3c661f3cd4bb1",
+    "version": "1ac03e0e228e09fef8d5",
+    "parts": [
+      {
+        "name": "TB",
+        "digits": 3,
+        "label": "The torque at B, $\\, \\mathrm{T_B} \\,$ in ({{params.unitsTorque}}) = "
+      },
+      {
+        "name": "t1",
+        "digits": 3,
+        "label": "The maximum torsional stress, $\\, \\tau_{max} \\,$ in the rod at a section located at B in ({{params.unitsStress}}) = "
+      }
+    ]
+  },
+  {
+    "id": "a2a2240fa3e5b0771dc5",
+    "version": "a0561eb601933068eb3e",
+    "parts": [
+      {
+        "name": "ts",
+        "digits": 3,
+        "label": "The maximum tensile stress, $\\, (\\sigma_t)_{max}\\,$ in ({{params.unitsStress}}) = "
+      },
+      {
+        "name": "cs",
+        "digits": 3,
+        "label": "The maximum compressive stress, $\\, (\\sigma_c)_{max} \\,$ in ({{params.unitsStress}}) = "
+      }
+    ]
+  },
+  {
+    "id": "f08f59819fd0a728140d",
+    "version": "a4d28738db7d40aede6b",
+    "parts": [
+      {
+        "name": "Fr",
+        "digits": 3,
+        "label": "The resultant force the bending stress produces on the top board, $\\, \\mathrm{F_R} \\,$ in ({{params.unitsForce}}) = "
+      }
+    ]
+  },
+  {
+    "id": "28b22a4d64c061b9be4c",
+    "version": "0f2bbd11cec0d37e24b4",
+    "parts": [
+      {
+        "name": "cs",
+        "digits": 3,
+        "label": "The maximum compressive stress acting in the beam, $\\, (\\sigma_{max})_c \\,$ in ({{params.unitsStress}}) = "
+      },
+      {
+        "name": "ts",
+        "digits": 3,
+        "label": "The maximum tensile stress acting in the beam, $\\, (\\sigma_{max})_t \\,$ in ({{params.unitsStress}}) = "
+      }
+    ]
+  },
+  {
+    "id": "3410b475964298f77abe",
+    "version": "454c6722bf515fc025d6",
+    "parts": [
+      {
+        "name": "M",
+        "digits": 3,
+        "label": "The maximum moment that can be applied to the beam in ({{params.unitsMoment}}) = "
+      }
+    ]
+  },
+  {
+    "id": "28a023dda288558d6c39",
+    "version": "6033053d728cd9e7f1b0",
+    "parts": [
+      {
+        "name": "ta",
+        "digits": 3,
+        "label": "The web's shear stress at A, $\\, \\tau_{A} \\,$ in ({{params.unitsStress}}) = "
+      },
+      {
+        "name": "tb",
+        "digits": 3,
+        "label": "The web's shear stress at B, $\\, \\tau_{B} \\,$ in ({{params.unitsStress}}) = "
+      }
+    ]
+  },
+  {
+    "id": "a95b467a5691a37605dd",
+    "version": "6ed55b6219ce04910062",
+    "parts": [
+      {
+        "name": "w",
+        "digits": 3,
+        "label": "The largest intensity of the distributed load, $\\, w_{max} \\,$ in {{params.unitsDistload}} = "
+      }
+    ]
+  },
+  {
+    "id": "b2dba5751b2ba5366dfc",
+    "version": "7849322fa4b10f703656",
+    "parts": [
+      {
+        "name": "t1",
+        "digits": 3,
+        "label": "The maximum shear stress in the beam, $\\, \\tau_{max} \\,$ in {{params.unitsStress}} = "
+      }
+    ]
+  },
+  {
+    "id": "778410c40496b78e2a65",
+    "version": "6dfd841bff634b2ee8dd",
+    "parts": [
+      {
+        "name": "st",
+        "digits": 3,
+        "label": "The maximum allowable spacing of the top nails, $\\, s_{t} \\,$ in {{params.unitsDist}} = "
+      },
+      {
+        "name": "sb",
+        "digits": 3,
+        "label": "The maximum allowable spacing of the bottom nails, $\\, s_{b} \\,$ in {{params.unitsDist}} = "
+      }
+    ]
+  },
+  {
+    "id": "84c0d013249184fd8018",
+    "version": "6044ca2504c3ab80822a",
+    "parts": [
+      {
+        "name": "ls",
+        "digits": 3,
+        "label": "The longitudinal stress developed in the wall of the pipe at point B, $\\, \\sigma_{long} \\,$ in ({{params.unitsStress}}) = "
+      },
+      {
+        "name": "hs",
+        "digits": 3,
+        "label": "The hoop stress developed in the wall of the pipe at point B, $\\, \\sigma_{hoop} \\,$ in ({{params.unitsStress}}) = "
+      }
+    ]
+  },
+  {
+    "id": "e3694b3addeb735a1cc5",
+    "version": "edcb69e6f6c1973d32d6",
+    "parts": [
+      {
+        "name": "sa",
+        "digits": 3,
+        "label": "The normal stress at point A that is in compression with magnitude, $\\, \\sigma_{A} \\,$ in ({{params.unitsStress}}) = "
+      },
+      {
+        "name": "sb",
+        "digits": 3,
+        "label": "The normal stress at point B that is in tension with magnitude, $\\, \\sigma_{B} \\,$ in ({{params.unitsStress}}) = "
+      }
+    ]
+  },
+  {
+    "id": "7058c414463091e948d5",
+    "version": "d38639961782d88096cd",
+    "parts": [
+      {
+        "name": "sigma",
+        "digits": 3,
+        "label": "The normal stress, $\\, \\sigma_B \\,$ at point B on the shank in ({{params.unitsStress}}) = "
+      }
+    ]
+  },
+  {
+    "id": "b29cd838cc5718d0418b",
+    "version": "5f809cad6ef977355fb5",
+    "parts": [
+      {
+        "name": "sa",
+        "digits": 3,
+        "label": "The normal stress at point A that is in compression with magnitude, $\\, \\sigma_{A} \\,$ in ({{params.unitsStress}}) = "
+      },
+      {
+        "name": "sb",
+        "digits": 3,
+        "label": "The normal stress at point B that is in compression with magnitude, $\\, \\sigma_{B} \\,$ in ({{params.unitsStress}}) = "
+      }
+    ]
+  },
+  {
+    "id": "bc1555faecfa05cc5d4b",
+    "version": "0233ad1ecf1e575411e1",
+    "parts": [
+      {
+        "name": "s",
+        "digits": 3,
+        "label": "The normal stress, $\\, \\sigma_{x^\\prime} \\, $ acting on the inclined plane AB in ({{params.unitsStress}}) = "
+      },
+      {
+        "name": "t",
+        "digits": 3,
+        "label": "The shear stress, $\\, \\tau_{x^\\prime y^\\prime} \\, $ acting on the inclined plane AB in ({{params.unitsStress}}) = "
+      }
+    ]
+  },
+  {
+    "id": "58ed4ed6b92ddb6d0229",
+    "version": "8aa73b9f9a57b14d5941",
+    "parts": [
+      {
+        "name": "sigmax",
+        "digits": 3,
+        "label": "The normal stress, $\\, \\sigma_{x^\\prime} \\,$ acting on the element in ({{params.unitsStress}}) = "
+      },
+      {
+        "name": "sigmay",
+        "digits": 3,
+        "label": "The shear stress, $\\, \\sigma_{y^\\prime} \\,$  acting on the element in ({{params.unitsStress}}) = "
+      },
+      {
+        "name": "tauxy",
+        "digits": 3,
+        "label": "The normal stress, $\\, \\tau_{x^\\prime y^\\prime} \\,$ acting on the element in ({{params.unitsStress}}) = "
+      }
+    ]
+  },
+  {
+    "id": "971a21646736725f0067",
+    "version": "e751db09bb48654c7661",
+    "parts": [
+      {
+        "name": "s1",
+        "digits": 3,
+        "label": "The normal stress, $\\, \\sigma_1 \\,$ acting on the element in ({{params.unitsStress}}) = "
+      },
+      {
+        "name": "s2",
+        "digits": 3,
+        "label": "The normal stress, $\\, \\sigma_2 \\,$ acting on the element in ({{params.unitsStress}}) = "
+      },
+      {
+        "name": "theta1",
+        "digits": 3,
+        "label": "The orientation of principal stress, $\\, \\theta_{p1} \\,$ acting on the element in ({{params.unitsDegrees}}) = "
+      },
+      {
+        "name": "theta2",
+        "digits": 3,
+        "label": "The orientation of principle stress, $\\, \\theta_{p2} \\,$ acting on the element in ({{params.unitsDegrees}}) = "
+      },
+      {
+        "name": "tmax",
+        "digits": 3,
+        "label": "The maximum in-plane shear stress, $\\, \\tau_{max} \\,$ acting on the element in ({{params.unitsStress}}) = "
+      },
+      {
+        "name": "savg",
+        "digits": 3,
+        "label": "The orientation of the average principle stress, $\\, \\theta_{avg} \\,$ acting on the element in ({{params.unitsDegrees}}) = "
+      },
+      {
+        "name": "thetas1",
+        "digits": 3,
+        "label": "The maximum in-plane shear stress orientation, $\\, \\theta_{s1} \\,$ in ({{params.unitsDegrees}}) ="
+      },
+      {
+        "name": "thetas2",
+        "digits": 3,
+        "label": "The maximum in-plane shear stress orientation, $\\, \\theta_{s2} \\,$ in ({{params.unitsDegrees}}) ="
+      }
+    ]
+  },
+  {
+    "id": "218b129b5eb73b0175e1",
+    "version": "5607c5a1ee5b064f2fac",
+    "parts": [
+      {
+        "name": "sigma1",
+        "digits": 3,
+        "label": "The normal stress, $\\, \\sigma_1 \\,$ perpendicular to the grains ({{params.unitsStress}}) ="
+      },
+      {
+        "name": "sigma2",
+        "digits": 3,
+        "label": "The shear stress, $\\, \\sigma_2 \\,$ perpendicular to the grains ({{params.unitsStress}}) = "
+      },
+      {
+        "name": "thetap",
+        "digits": 3,
+        "label": "The normal stress, $\\, \\theta_p \\,$ acting on the element in ({{params.unitsDegrees}}) = "
+      }
+    ]
+  },
+  {
+    "id": "89c0a30731b11150f106",
+    "version": "1a563ea4c6d334751c2c",
+    "parts": [
+      {
+        "name": "theta",
+        "digits": 3,
+        "label": "The direction of the resultant force measured from the horizontal in ({{params.unitsAngle}}) = "
+      },
+      {
+        "name": "F",
+        "digits": 3,
+        "label": "The magnitude of the resultant force in ({{params.unitsForce}}) = "
+      }
+    ]
+  },
+  {
+    "id": "479a0bfdcae55701df78",
+    "version": "3c793fe3894b98082d00",
+    "parts": [
+      {
+        "name": "F_u",
+        "digits": 3,
+        "label": "The magnitude of the vector component $\\, \\mathbf{F_u} \\,$ in ({{params.unitsForce}}) =  "
+      },
+      {
+        "name": "F_v",
+        "digits": 3,
+        "label": "The magnitude of the vector component $\\, \\mathbf{F_v} \\,$ in ({{params.unitsForce}}) =  "
+      }
+    ]
+  },
+  {
+    "id": "be11f48ff3d95e7ffd45",
+    "version": "496426f1def62c7fde9e",
+    "parts": [
+      {
+        "name": "F_1x",
+        "digits": 3,
+        "label": "The horizontal force $\\, \\mathbf{F_{1x}} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "F_1y",
+        "digits": 3,
+        "label": "The vertical force $\\, \\mathbf{F_{1y}}\\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "F_2x",
+        "digits": 3,
+        "label": "The horizontal force $\\, \\mathbf{F_{2x}}\\,$ in ({{params.unitsForce}}) =  "
+      },
+      {
+        "name": "F_2y",
+        "digits": 3,
+        "label": "The vertical force $\\, \\mathbf{F_{2y}}\\,$ in ({{params.unitsForce}}) = "
+      }
+    ]
+  },
+  {
+    "id": "fe74ce162dc8ea13d432",
+    "version": "54a9de9ff2a7e16b6298",
+    "parts": [
+      {
+        "name": "F_R",
+        "digits": 3,
+        "label": "The magnitude of the resultant force ($\\mathrm{F_R}$) in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "theta",
+        "digits": 3,
+        "label": "The angle of $\\, \\mathrm{F_R} \\,$ measured from the postive axis in ({{params.unitsAngle}}) = "
+      }
+    ]
+  },
+  {
+    "id": "7b4f86843f4706a6d076",
+    "version": "fc0a6d8acfa36c114c94",
+    "parts": [
+      {
+        "name": "T_A",
+        "digits": 3,
+        "label": "The tension in cables BA in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "T_C",
+        "digits": 3,
+        "label": "The tension in cables BC in ({{params.unitsForce}}) = "
+      }
+    ]
+  },
+  {
+    "id": "ee1e0e70de60693296cf",
+    "version": "454c1314e9c45b39a4f9",
+    "parts": [
+      {
+        "name": "l_ac",
+        "digits": 3,
+        "label": "The required length of cord AC in ({{params.unitsDist}}) = "
+      }
+    ]
+  },
+  {
+    "id": "5cb977d5065bbc005fa1",
+    "version": "a7938173a26e8bc543f4",
+    "parts": [
+      {
+        "name": "Bx",
+        "digits": 3,
+        "label": " Reaction force Bx ="
+      },
+      {
+        "name": "By",
+        "digits": 3,
+        "label": " Reaction force By ="
+      },
+      {
+        "name": "theta",
+        "digits": 3,
+        "label": " Angle of equilibrium in degrees="
+      }
+    ]
+  },
+  {
+    "id": "7216723c02d0fa914f14",
+    "version": "a69dc50b13d1c4f8bcea",
+    "parts": [
+      {
+        "name": "Mom",
+        "digits": 3,
+        "label": "The resultant couple moment $\\, \\mathbf{M_R} \\,$ of the three couples in ({{params.unitsMoment}}) = "
+      }
+    ]
+  },
+  {
+    "id": "0dcc3a93ed92fb46ff15",
+    "version": "4c7620ebf2f3749d1150",
+    "parts": [
+      {
+        "name": "M_A",
+        "digits": 3,
+        "label": "The moment $\\,\\mathbf{M_A}\\,$ applied to the bolt in ({{params.unitsMoment}}) = "
+      },
+      {
+        "name": "F_A",
+        "digits": 3,
+        "label": "The force $\\,\\mathbf{F_A}\\,$ of the wrench on the bolt in ({{params.unitsForce}}) = "
+      }
+    ]
+  },
+  {
+    "id": "4e8b8db082b32bb6a410",
+    "version": "04432fd9cd1dcc7254ad",
+    "parts": [
+      {
+        "name": "Ax",
+        "digits": 3,
+        "label": "reaction Ax ="
+      },
+      {
+        "name": "Ay",
+        "digits": 3,
+        "label": "reaction Ay ="
+      },
+      {
+        "name": "Az",
+        "digits": 3,
+        "label": "reaction Az ="
+      },
+      {
+        "name": "Bx",
+        "digits": 3,
+        "label": "reaction Bx ="
+      },
+      {
+        "name": "By",
+        "digits": 3,
+        "label": "reaction By ="
+      },
+      {
+        "name": "Bz",
+        "digits": 3,
+        "label": "reaction Bz ="
+      },
+      {
+        "name": "Cx",
+        "digits": 3,
+        "label": "reaction Cx ="
+      },
+      {
+        "name": "Cy",
+        "digits": 3,
+        "label": "reaction Cy ="
+      },
+      {
+        "name": "Cz",
+        "digits": 3,
+        "label": "reaction Cz ="
+      }
+    ]
+  },
+  {
+    "id": "905b62b7c3f1e7d3d59c",
+    "version": "a8fc831ca135a5f6402f",
+    "parts": [
+      {
+        "name": "momentx",
+        "digits": 3,
+        "label": "Moment about x-axis ="
+      },
+      {
+        "name": "momenty",
+        "digits": 3,
+        "label": "Moment about y-axis ="
+      },
+      {
+        "name": "momentz",
+        "digits": 3,
+        "label": "Moment about z-axis ="
+      }
+    ]
+  },
+  {
+    "id": "633de88616ac013b2478",
+    "version": "4dfa3336afe9b565c1d9",
+    "parts": [
+      {
+        "name": "Ax",
+        "digits": 3,
+        "label": "$ A_x $ (kN)",
+        "fixed": 0
+      },
+      {
+        "name": "Ay",
+        "digits": 3,
+        "label": "$ A_y $ (kN)",
+        "fixed": 6
+      },
+      {
+        "name": "Ma",
+        "digits": 3,
+        "label": "$ M_A $ (kN-m)",
+        "fixed": 12
+      },
+      {
+        "name": "x",
+        "digits": 3,
+        "label": "$ Distance (m) $",
+        "fixed": 2
+      }
+    ]
+  },
+  {
+    "id": "6bdc2c00ca64c6c6c804",
+    "version": "82acda222e0f415b519f",
+    "parts": [
+      {
+        "name": "F_gc",
+        "digits": 3,
+        "label": "The force of the member GC in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "F_df",
+        "digits": 3,
+        "label": "The force of the member DF in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "F_fc",
+        "digits": 3,
+        "label": "The force of the member FC in ({{params.unitsForce}}) = "
+      }
+    ]
+  },
+  {
+    "id": "2dce689d99161c62ae1e",
+    "version": "70f9e24f4d356b6d9f86",
+    "parts": [
+      {
+        "name": "reactionFx",
+        "digits": 3,
+        "label": " reaction Fx ="
+      },
+      {
+        "name": "reactionFy",
+        "digits": 3,
+        "label": " reaction Fy ="
+      },
+      {
+        "name": "reactionAx",
+        "digits": 3,
+        "label": " reaction Ax ="
+      },
+      {
+        "name": "reactionAy",
+        "digits": 3,
+        "label": " reaction Ay ="
+      },
+      {
+        "name": "AB",
+        "digits": 3,
+        "label": "Member AB ="
+      },
+      {
+        "name": "BC",
+        "digits": 3,
+        "label": "Member BC ="
+      },
+      {
+        "name": "CD",
+        "digits": 3,
+        "label": "Member CD ="
+      },
+      {
+        "name": "DE",
+        "digits": 3,
+        "label": "Member DE ="
+      },
+      {
+        "name": "EF",
+        "digits": 3,
+        "label": "Member EF ="
+      },
+      {
+        "name": "FG",
+        "digits": 3,
+        "label": "Member FG ="
+      },
+      {
+        "name": "GH",
+        "digits": 3,
+        "label": "Member GH ="
+      },
+      {
+        "name": "HI",
+        "digits": 3,
+        "label": "Member HI ="
+      },
+      {
+        "name": "IJ",
+        "digits": 3,
+        "label": "Member IJ ="
+      },
+      {
+        "name": "AJ",
+        "digits": 3,
+        "label": "Member AJ ="
+      },
+      {
+        "name": "BJ",
+        "digits": 3,
+        "label": "Member BJ ="
+      },
+      {
+        "name": "BI",
+        "digits": 3,
+        "label": "Member BI ="
+      },
+      {
+        "name": "CI",
+        "digits": 3,
+        "label": "Member CI ="
+      },
+      {
+        "name": "CH",
+        "digits": 3,
+        "label": "Member CH ="
+      },
+      {
+        "name": "DH",
+        "digits": 3,
+        "label": "Member DH ="
+      },
+      {
+        "name": "DG",
+        "digits": 3,
+        "label": "Member DG ="
+      },
+      {
+        "name": "EG",
+        "digits": 3,
+        "label": "Member EG ="
+      }
+    ]
+  },
+  {
+    "id": "ec183411383e4d7e2ba3",
+    "version": "4edd0f77aa18da85e63a",
+    "parts": [
+      {
+        "name": "reactionEx",
+        "digits": 3,
+        "label": " reaction Ex ="
+      },
+      {
+        "name": "reactionEy",
+        "digits": 3,
+        "label": " reaction Ey ="
+      },
+      {
+        "name": "reactionAx",
+        "digits": 3,
+        "label": " reaction Ax ="
+      },
+      {
+        "name": "reactionAy",
+        "digits": 3,
+        "label": " reaction Ay ="
+      },
+      {
+        "name": "AB",
+        "digits": 3,
+        "label": "Member AB ="
+      },
+      {
+        "name": "BC",
+        "digits": 3,
+        "label": "Member BC ="
+      },
+      {
+        "name": "CD",
+        "digits": 3,
+        "label": "Member CD ="
+      },
+      {
+        "name": "DE",
+        "digits": 3,
+        "label": "Member DE ="
+      },
+      {
+        "name": "AD",
+        "digits": 3,
+        "label": "Member AD ="
+      },
+      {
+        "name": "AE",
+        "digits": 3,
+        "label": "Member AE ="
+      },
+      {
+        "name": "BD",
+        "digits": 3,
+        "label": "Member BD ="
+      }
+    ]
+  },
+  {
+    "id": "c7e68688ec23e61f4f47",
+    "version": "89f42e40cffcd0458998",
+    "parts": [
+      {
+        "name": "reactionNx",
+        "digits": 3,
+        "label": " reaction Nx ="
+      },
+      {
+        "name": "reactionNy",
+        "digits": 3,
+        "label": " reaction Ny ="
+      },
+      {
+        "name": "reactionAx",
+        "digits": 3,
+        "label": " reaction Ax ="
+      },
+      {
+        "name": "reactionAy",
+        "digits": 3,
+        "label": " reaction Ay ="
+      },
+      {
+        "name": "DE",
+        "digits": 3,
+        "label": " Member DE ="
+      },
+      {
+        "name": "LK",
+        "digits": 3,
+        "label": " Member LK ="
+      },
+      {
+        "name": "EL",
+        "digits": 3,
+        "label": " Member EL ="
+      },
+      {
+        "name": "DL",
+        "digits": 3,
+        "label": " Member DL ="
+      }
+    ]
+  },
+  {
+    "id": "b8084d4657bc3469613f",
+    "version": "9387ec652ca7ffc1e52a",
+    "parts": [
+      {
+        "name": "N_B",
+        "digits": 3,
+        "label": "The normal force $\\, \\mathbf{N_B} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "V_B",
+        "digits": 3,
+        "label": "The shear force $\\, \\mathbf{V_B} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "M_B",
+        "digits": 3,
+        "label": "The bending moment $\\, \\mathbf{M_B} \\,$ in ({{params.unitsMoment}}) = "
+      },
+      {
+        "name": "N_C",
+        "digits": 3,
+        "label": "The normal force $\\, \\mathbf{N_C} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "V_C",
+        "digits": 3,
+        "label": "The shear force $\\, \\mathbf{V_C} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "M_C",
+        "digits": 3,
+        "label": "The bending moment $\\, \\mathbf{M_C} \\,$ in ({{params.unitsMoment}}) = "
+      }
+    ]
+  },
+  {
+    "id": "d82c5bc022c3ccc6c609",
+    "version": "f06ed86c4dbc979b6a99",
+    "parts": [
+      {
+        "name": "location1",
+        "digits": 3,
+        "label": "The location where shear is zero in ({{params.unitsDist}}) = "
+      },
+      {
+        "name": "M_max",
+        "digits": 3,
+        "label": "The maximum moment $\\, \\mathrm{M_max} \\,$ in ({{params.unitsMoment}}) = "
+      },
+      {
+        "name": "location2",
+        "digits": 3,
+        "label": "The location where maximum moment occurs in ({{params.unitsDist}}) = "
+      },
+      {
+        "name": "M_x3",
+        "digits": 3,
+        "label": "The moment at $\\, \\mathrm{x} = 3 \\, \\mathrm{m} \\,$ in ({{params.unitsMoment}}) = "
+      }
+    ]
+  },
+  {
+    "id": "ae49a348663292206dfd",
+    "version": "dcdce92b52395df38bea",
+    "parts": [
+      {
+        "name": "V_max",
+        "digits": 3,
+        "label": "The maximum shear $\\, \\mathrm{V_max}\\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "M_max",
+        "digits": 3,
+        "label": "The maximum moment $\\, \\mathrm{M_max}\\,$ in ({{params.unitsMoment}}) = "
+      }
+    ]
+  },
+  {
+    "id": "cba0a7cb7153a3f83277",
+    "version": "81d81afc1a5138a8d237",
+    "parts": [
+      {
+        "name": "V_max",
+        "digits": 3,
+        "label": "The maximum shear $\\, \\mathrm{V_max} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "M_max",
+        "digits": 3,
+        "label": "The maximum moment $\\, \\mathrm{M_max} \\,$ in ({{params.unitsMoment}}) = "
+      }
+    ]
+  },
+  {
+    "id": "dde2c06b9ce66321bb96",
+    "version": "b51abbfdd28ef74fe9ef",
+    "parts": [
+      {
+        "name": "location1",
+        "digits": 3,
+        "label": "The location where shear is zero in ({{params.unitsDist}}) = "
+      },
+      {
+        "name": "M_max",
+        "digits": 3,
+        "label": "The maximum moment $\\, \\mathrm{M_max} \\,$ in ({{params.unitsMoment}}) = "
+      },
+      {
+        "name": "location2",
+        "digits": 3,
+        "label": "The location where maximum moment occurs in ({{params.unitsDist}}) = "
+      },
+      {
+        "name": "M_x7",
+        "digits": 3,
+        "label": "The moment at $\\, \\mathrm{x} = 7 \\, \\mathrm{m} \\,$ in ({{params.unitsMoment}}) = "
+      }
+    ]
+  },
+  {
+    "id": "7d0dfb8ad4279abac45a",
+    "version": "7add856bd9eb8f07f654",
+    "parts": [
+      {
+        "name": "x",
+        "digits": 3,
+        "label": "The centroid location $\\, \\bar{x} \\,$ of the area in ({{params.unitsDist}}) = "
+      },
+      {
+        "name": "y",
+        "digits": 3,
+        "label": "The centroid location $\\, \\bar{y} \\,$ of the area in ({{params.unitsDist}}) = "
+      }
+    ]
+  },
+  {
+    "id": "86bbdc857dd44114254a",
+    "version": "c0473792c588a10b25ba",
+    "parts": [
+      {
+        "name": "x",
+        "digits": 3,
+        "label": "The centroid location $\\, \\bar{x} \\,$ in ({{params.unitsDist}}) = "
+      },
+      {
+        "name": "y",
+        "digits": 3,
+        "label": "The centroid location $\\, \\bar{y} \\,$ in ({{params.unitsDist}}) = "
+      }
+    ]
+  },
+  {
+    "id": "d77b51fee450ce5a2626",
+    "version": "7890c1b0d444f95a01dc",
+    "parts": [
+      {
+        "name": "x",
+        "digits": 3,
+        "label": "The centroid location $\\, \\bar{x} \\,$ in ({{params.unitsDist}}) is = "
+      }
+    ]
+  },
+  {
+    "id": "17e71872091c06923f80",
+    "version": "23d5b4b09932a646f201",
+    "parts": [
+      {
+        "name": "xBar_dx",
+        "digits": 3,
+        "label": "The centroid location $\\, \\bar{x} \\,$ for $\\, \\textit{dx} \\,$ in ({{params.unitsDist}}) = "
+      },
+      {
+        "name": "yBar_dx",
+        "digits": 3,
+        "label": "The centroid location $\\, \\bar{y} \\,$ for $\\, \\textit{dx} \\,$ in ({{params.unitsDist}}) = "
+      },
+      {
+        "name": "xBar_dy",
+        "digits": 3,
+        "label": "The centroid location $\\, \\bar{x} \\,$ for $\\, \\textit{dy} \\,$ in ({{params.unitsDist}}) = "
+      },
+      {
+        "name": "yBar_dy",
+        "digits": 3,
+        "label": "The centroid location $\\, \\bar{y} \\,$ for $\\, \\textit{dy} \\,$ in ({{params.unitsDist}}) = "
+      }
+    ]
+  },
+  {
+    "id": "48e242ddd5795134fb77",
+    "version": "c825f1ae334a6230bd3b",
+    "parts": [
+      {
+        "name": "I_x",
+        "digits": 3,
+        "label": "The moment of inertia $\\, \\mathrm{I_x} \\,$ for the shaded region in ({{params.unitsInertia}}) = "
+      }
+    ]
+  },
+  {
+    "id": "2cc62442bd317cad8f69",
+    "version": "646ef48ce37e72578a16",
+    "parts": [
+      {
+        "name": "I_x",
+        "digits": 3,
+        "label": "The moment of inertia $\\, \\mathrm{I_x} \\,$ for the shaded region in ({{params.unitsInertia}}) = "
+      }
+    ]
+  },
+  {
+    "id": "86661cc08474df33487f",
+    "version": "fc9f5d565fd6b701a908",
+    "parts": [
+      {
+        "name": "I_x1",
+        "digits": 3,
+        "label": "The moment of inertia $\\, \\mathrm{I_x} \\,$ for rectangle A about the x centroidal axes in ({{params.unitsInertia}}) = "
+      },
+      {
+        "name": "I_x2",
+        "digits": 3,
+        "label": "The moment of inertia $\\, \\mathrm{I_x} \\,$ for rectangle B about the x centroidal axes in ({{params.unitsInertia}}) = "
+      },
+      {
+        "name": "I_x3",
+        "digits": 3,
+        "label": "The moment of inertia $\\, \\mathrm{I_x} \\,$ for rectangle D about the x centroidal axes in ({{params.unitsInertia}}) = "
+      },
+      {
+        "name": "I_x",
+        "digits": 3,
+        "label": "$\\Sigma{I_x} \\,$ for rectangles A, B, and D about the x centroidal axes in ({{params.unitsInertia}}) = "
+      },
+      {
+        "name": "I_y1",
+        "digits": 3,
+        "label": "The moment of inertia $\\, \\mathrm{I_y} \\,$ for rectangle A about the y centroidal axes in ({{params.unitsInertia}}) = "
+      },
+      {
+        "name": "I_x2",
+        "digits": 3,
+        "label": "The moment of inertia $\\, \\mathrm{I_y} \\,$ for rectangle B about the y centroidal axes in ({{params.unitsInertia}}) = "
+      },
+      {
+        "name": "I_x3",
+        "digits": 3,
+        "label": "The moment of inertia $\\, \\mathrm{I_y} \\,$ for rectangle D about the y centroidal axes in ({{params.unitsInertia}}) = "
+      },
+      {
+        "name": "I_y",
+        "digits": 3,
+        "label": "$\\Sigma {I_y} \\,$ for rectangles A, B, and D about the y centroidal axes in ({{params.unitsInertia}}) = "
+      }
+    ]
+  },
+  {
+    "id": "83df854184592cc65455",
+    "version": "05361d4c7fc64d46057a",
+    "parts": [
+      {
+        "name": "Ix",
+        "digits": 3,
+        "label": "The moment of inertia about the x-axis in ({{params.unitsInertia}}) = "
+      }
+    ]
+  },
+  {
+    "id": "11c4b8910ca90eb1b65f",
+    "version": "3f8a7b94db257b6d035c",
+    "parts": [
+      {
+        "name": "Iy",
+        "digits": 3,
+        "label": "The moment of inertia about the y-axis in ({{params.unitsInertia}}) is "
+      }
+    ]
+  },
+  {
+    "id": "68a20853f8b466d8c066",
+    "version": "9600761f45ace415a16b",
+    "parts": [
+      {
+        "name": "Ix",
+        "digits": 3,
+        "label": "The moment of inertia about the x-axis in ({{params.unitsInertia}}) is "
+      }
+    ]
+  },
+  {
+    "id": "220cf3055703234dc998",
+    "version": "4ba8f20b03f5408d4a69",
+    "parts": [
+      {
+        "name": "f1x",
+        "digits": 3,
+        "label": "The x-component of  $\\, \\mathrm{F_1} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "f1y",
+        "digits": 3,
+        "label": "The y-component of   $\\, \\mathrm{F_1} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "f2x",
+        "digits": 3,
+        "label": "The x-component of   $\\, \\mathrm{F_2} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "f2y",
+        "digits": 3,
+        "label": "The y-component of   $\\, \\mathrm{F_2} \\,$ in ({{params.unitsForce}}) = "
+      }
+    ]
+  },
+  {
+    "id": "06085d07fa90e77a1de1",
+    "version": "0c151792b3f7b280d51a",
+    "parts": [
+      {
+        "name": "f1x",
+        "digits": 3,
+        "label": "The x-component of $\\, \\mathrm{F_1} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "f1y",
+        "digits": 3,
+        "label": "The y-component of $\\, \\mathrm{F_1} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "f2x",
+        "digits": 3,
+        "label": "The x-component of $\\, \\mathrm{F_2} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "f2y",
+        "digits": 3,
+        "label": "The y-component of $\\, \\mathrm{F_2} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "f3x",
+        "digits": 3,
+        "label": "The x-component of $\\, \\mathrm{F_3} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "f3y",
+        "digits": 3,
+        "label": "The y-component of $\\, \\mathrm{F_3} \\,$ in ({{params.unitsForce}}) = "
+      }
+    ]
+  },
+  {
+    "id": "9a25e8c1e15f6bcc9f19",
+    "version": "3bd0658fefc3caa038cd",
+    "parts": [
+      {
+        "name": "f1x",
+        "digits": 3,
+        "label": "The x-component of $\\, \\mathrm{F_1} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "f1y",
+        "digits": 3,
+        "label": "The y-component of $\\, \\mathrm{F_1} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "f2x",
+        "digits": 3,
+        "label": "The x-component of $\\, \\mathrm{F_2} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "f2y",
+        "digits": 3,
+        "label": "The y-component of $\\, \\mathrm{F_2} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "f3x",
+        "digits": 3,
+        "label": "The x-component of $\\, \\mathrm{F_3} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "f3y",
+        "digits": 3,
+        "label": "The y-component of $\\, \\mathrm{F_3} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "f4x",
+        "digits": 3,
+        "label": "The x-component of $\\, \\mathrm{F_4} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "f4y",
+        "digits": 3,
+        "label": "The y-component of $\\, \\mathrm{F_4} \\,$ in ({{params.unitsForce}}) = "
+      }
+    ]
+  },
+  {
+    "id": "91444a05c089e72f572b",
+    "version": "0e695caebae798dcb427",
+    "parts": [
+      {
+        "name": "TCDx",
+        "digits": 3,
+        "label": "The x-component of $\\, \\mathrm{T_CD} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "TCDy",
+        "digits": 3,
+        "label": "The y-component of $\\, \\mathrm{T_CD} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "TBDx",
+        "digits": 3,
+        "label": "The x-component of $\\, \\mathrm{T_BD} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "TBDy",
+        "digits": 3,
+        "label": "The y-component of $\\, \\mathrm{T_BD} \\,$ in ({{params.unitsForce}}) = "
+      }
+    ]
+  },
+  {
+    "id": "f6641d6592c65d1e55e8",
+    "version": "b6539e9d8d9c9f3d7894",
+    "parts": [
+      {
+        "name": "TADx",
+        "digits": 3,
+        "label": "The x-component of $\\, \\mathrm{T_AD} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "TADy",
+        "digits": 3,
+        "label": "The y-component of $\\, \\mathrm{T_AD} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "TBCx",
+        "digits": 3,
+        "label": "The x-component of $\\, \\mathrm{T_BC} \\,$ in ({{params.unitsForce}}) = "
+      },
+      {
+        "name": "TBCy",
+        "digits": 3,
+        "label": "The y-component of $\\, \\mathrm{T_BC} \\,$ in ({{params.unitsForce}}) = "
+      }
+    ]
+  },
+  {
+    "id": "685231c340cfe87126a9",
+    "version": "e1d5c4ce0e8e06fbd88a",
+    "parts": [
+      {
+        "name": "Bx",
+        "digits": 3,
+        "label": "The x-component ($\\mathrm{N_Bx}$) = $\\mathrm{N_B}\\cdot$ "
+      },
+      {
+        "name": "By",
+        "digits": 3,
+        "label": "The y-component ($\\mathrm{N_By}$) = $\\mathrm{N_B}\\cdot$ "
+      }
+    ]
+  },
+  {
+    "id": "8278b0f87231cb07bd5d",
+    "version": "b040177b595cc6ce0107",
+    "parts": [
+      {
+        "name": "Ax",
+        "digits": 3,
+        "label": "The x-component ($\\mathrm{N_Ax}$) = $\\mathrm{N_A}\\cdot$ "
+      },
+      {
+        "name": "Ay",
+        "digits": 3,
+        "label": "The y-component ($\\mathrm{N_Ay}$) = $\\mathrm{N_A}\\cdot$ "
+      }
+    ]
+  },
+  {
+    "id": "0e08c0466f9c13b365e7",
+    "version": "401eb445dd96fbf94925",
+    "parts": [
+      {
+        "name": "Ax",
+        "digits": 3,
+        "label": "The x-component ($\\mathrm{N_Ax}$) = $\\mathrm{N_A}\\cdot$ "
+      },
+      {
+        "name": "Ay",
+        "digits": 3,
+        "label": "The y-component ($\\mathrm{N_Ay}$) = $\\mathrm{N_A}\\cdot$ "
+      },
+      {
+        "name": "Bx",
+        "digits": 3,
+        "label": "The x-component ($\\mathrm{N_Bx}$) = $\\mathrm{N_B}\\cdot$ "
+      },
+      {
+        "name": "By",
+        "digits": 3,
+        "label": "The y-component ($\\mathrm{N_By}$) = $\\mathrm{N_B}\\cdot$ "
+      }
+    ]
+  }
+]

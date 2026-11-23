@@ -16,6 +16,7 @@ import type {
 import LexicalRichTextEditor from './LexicalRichTextEditor'
 import QuizPicker from './QuizPicker'
 import MediaPicker from './MediaPicker'
+import practiceCatalog from '../../../practice/catalog.generated.json'
 
 // view='canvas'    → editable content stream (titles, rich text, items —
 //                    what the reader will see on the public site).
@@ -36,6 +37,55 @@ const inputCls =
   'rounded-md border border-[var(--admin-surface-border)] bg-[var(--admin-surface)] px-3 py-2 text-sm text-[var(--cpp-ink)] focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200'
 const labelCls =
   'text-xs font-semibold uppercase tracking-wide text-[var(--cpp-muted)]'
+
+export const PracticePreviewOrigin = React.createContext('')
+const practiceSubject = (subject: string) =>
+  subject === 'Static_problems' ? 'Statics' : 'Mechanics of Materials'
+
+function PracticePicker({ block, onChange }: {
+  block: Extract<ScaffoldBlock, { blockType: 'practiceProblem' }>
+  onChange: (next: ScaffoldBlock) => void
+}) {
+  const [query, setQuery] = React.useState('')
+  const previewOrigin = React.useContext(PracticePreviewOrigin)
+  const needle = query.trim().toLowerCase()
+  const choices = practiceCatalog.filter((item) =>
+    item.id === block.problemId ||
+    `${item.title} ${item.chapter.replaceAll('_', ' ')} ${practiceSubject(item.subject)}`.toLowerCase().includes(needle),
+  )
+  return (
+    <div className="grid gap-2">
+      <label className="grid gap-1">
+        <span className={labelCls}>Find a practice problem</span>
+        <input className={inputCls} value={query} onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search by title, course, or chapter" />
+      </label>
+      <label className="grid gap-1">
+        <span className={labelCls}>Practice problem</span>
+        <select className={inputCls} value={block.problemId} onChange={(event) => {
+          const problemId = event.target.value
+          if (problemId !== block.problemId) onChange({ ...block, problemId, assignmentKey: crypto.randomUUID() })
+        }}>
+          <option value="">Choose a problem</option>
+          {choices.map((item) => <option key={item.id} value={item.id}>
+            {item.title} · {practiceSubject(item.subject)} · {item.chapter.replaceAll('_', ' ')}
+          </option>)}
+        </select>
+      </label>
+      {block.problemId && previewOrigin ? (
+        <a href={`${previewOrigin}/practice/${encodeURIComponent(block.problemId)}`}
+          target="_blank" rel="noopener noreferrer" className="text-sm underline">
+          Preview problem
+        </a>
+      ) : null}
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={block.requiredPractice}
+          onChange={(event) => onChange({ ...block, requiredPractice: event.target.checked })} />
+        Required practice
+      </label>
+    </div>
+  )
+}
 
 // Merge a partial update into the block while preserving `_key` and the
 // discriminator. The cast is safe because `patch` is a Partial of the same
@@ -139,6 +189,9 @@ export default function BlockEditor({ block, view, onChange }: BlockEditorProps)
         </label>
       )
     }
+
+    case 'practiceProblem':
+      return <PracticePicker key={block._key} block={block} onChange={onChange} />
 
     case 'buttonBlock': {
       if (view === 'inspector') {

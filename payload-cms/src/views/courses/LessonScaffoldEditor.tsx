@@ -15,6 +15,7 @@ import VersionsPanel from './scaffold/VersionsPanel'
 import PublishReviewModal from './scaffold/PublishReviewModal'
 import OutlinePanel from './scaffold/OutlinePanel'
 import InspectorPanel from './scaffold/InspectorPanel'
+import { PracticePreviewOrigin } from './scaffold/BlockEditor'
 import { fromPersistedLayout, type ScaffoldBlock, toPersistedLayout } from './scaffold/types'
 
 type CreateModeProps = {
@@ -26,6 +27,7 @@ type CreateModeProps = {
   initialTitle: string
   initialOrder: number
   stagedId: string | null
+  practicePreviewOrigin?: string
 }
 
 type EditModeProps = {
@@ -42,6 +44,7 @@ type EditModeProps = {
   // When null (missing env, missing slug), the publish-review modal drops the
   // iframe and just shows a summary.
   previewUrl?: string | null
+  practicePreviewOrigin?: string
 }
 
 export type LessonScaffoldEditorProps = CreateModeProps | EditModeProps
@@ -213,6 +216,9 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
       if (block.blockType === 'buttonBlock') {
         if (!block.label.trim()) return `Block ${i + 1} (button) needs a label.`
         if (!block.href.trim()) return `Block ${i + 1} (button) needs a link.`
+      }
+      if (block.blockType === 'practiceProblem' && !block.problemId) {
+        return `Block ${i + 1} (practice problem) needs a problem.`
       }
       if (block.blockType === 'stepsList') {
         const steps = block.steps ?? []
@@ -431,6 +437,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
     props.mode === 'create' || props.initialStatus === 'draft' ? 'lse-chip--draft' : 'lse-chip--ok'
 
   return (
+    <PracticePreviewOrigin.Provider value={props.practicePreviewOrigin ?? ''}>
     <div className="lse-shell">
       <style>{`
         /* === Shell + sticky toolbar === */
@@ -1591,5 +1598,6 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         savingDraft={busy === 'draft'}
       />
     </div>
+    </PracticePreviewOrigin.Provider>
   )
 }

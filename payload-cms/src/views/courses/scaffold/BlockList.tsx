@@ -48,6 +48,7 @@ const DEFAULT_BLOCK_TYPE_ORDER: AuthorableBlockTypeSlug[] = [
   'checkpoint',
   'lessonSummary',
   'quizBlock',
+  'practiceProblem',
 ]
 
 // Hover-revealed insertion point between blocks. When the user clicks, the

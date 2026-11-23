@@ -1,4 +1,5 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
+import { APIError } from 'payload'
 import { lessonBlocks } from '../blocks/pageBlocks'
 import { canReceiveNotification } from '../utils/notificationPreferences'
 import { ensureUniqueSlug, slugify } from '../utils/slug'
@@ -437,6 +438,14 @@ export const Lessons: CollectionConfig = {
     beforeValidate: [
       async ({ data, req, originalDoc }) => {
         if (!data) return data
+        if (Array.isArray(data.layout)) {
+          const assignments = new Set<string>()
+          for (const block of data.layout) {
+            if (block.blockType !== 'practiceProblem' || !block.assignmentKey) continue
+            if (assignments.has(block.assignmentKey)) throw new APIError('Each practice block needs a unique assignment.', 400)
+            assignments.add(block.assignmentKey)
+          }
+        }
         if (!data.slug) {
           const title = data.title ?? originalDoc?.title ?? ''
           const base = slugify(String(title))

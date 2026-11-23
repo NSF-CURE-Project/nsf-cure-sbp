@@ -93,6 +93,7 @@ export interface Config {
     'quiz-questions': QuizQuestion;
     quizzes: Quiz;
     'quiz-attempts': QuizAttempt;
+    'practice-attempts': PracticeAttempt;
     notifications: Notification;
     'lesson-progress': LessonProgress;
     'lesson-bookmarks': LessonBookmark;
@@ -130,6 +131,7 @@ export interface Config {
     'quiz-questions': QuizQuestionsSelect<false> | QuizQuestionsSelect<true>;
     quizzes: QuizzesSelect<false> | QuizzesSelect<true>;
     'quiz-attempts': QuizAttemptsSelect<false> | QuizAttemptsSelect<true>;
+    'practice-attempts': PracticeAttemptsSelect<false> | PracticeAttemptsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'lesson-progress': LessonProgressSelect<false> | LessonProgressSelect<true>;
     'lesson-bookmarks': LessonBookmarksSelect<false> | LessonBookmarksSelect<true>;
@@ -481,6 +483,14 @@ export interface Lesson {
             id?: string | null;
             blockName?: string | null;
             blockType: 'quizBlock';
+          }
+        | {
+            assignmentKey: string;
+            problemId: string;
+            requiredPractice?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'practiceProblem';
           }
       )[]
     | null;
@@ -1485,6 +1495,33 @@ export interface QuizAttempt {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "practice-attempts".
+ */
+export interface PracticeAttempt {
+  id: number;
+  lesson: number | Lesson;
+  learner: number | Account;
+  assignmentKey: string;
+  problemId: string;
+  key: string;
+  submitted?: boolean | null;
+  completed?: boolean | null;
+  score?: number | null;
+  maxScore?: number | null;
+  snapshot?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "notifications".
  */
 export interface Notification {
@@ -1950,6 +1987,15 @@ export interface LessonsSelect<T extends boolean = true> {
               showAnswers?: T;
               maxAttempts?: T;
               timeLimitSec?: T;
+              id?: T;
+              blockName?: T;
+            };
+        practiceProblem?:
+          | T
+          | {
+              assignmentKey?: T;
+              problemId?: T;
+              requiredPractice?: T;
               id?: T;
               blockName?: T;
             };
@@ -2554,6 +2600,24 @@ export interface QuizAttemptsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "practice-attempts_select".
+ */
+export interface PracticeAttemptsSelect<T extends boolean = true> {
+  lesson?: T;
+  learner?: T;
+  assignmentKey?: T;
+  problemId?: T;
+  key?: T;
+  submitted?: T;
+  completed?: T;
+  score?: T;
+  maxScore?: T;
+  snapshot?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "notifications_select".
  */
 export interface NotificationsSelect<T extends boolean = true> {
@@ -2923,7 +2987,7 @@ export interface SiteBranding {
   announcement?: {
     enabled?: boolean | null;
     /**
-     * Keep this short so it fits in the thin header banner.
+     * Long messages scroll across the thin header banner so the full announcement remains visible.
      */
     message?: string | null;
     /**

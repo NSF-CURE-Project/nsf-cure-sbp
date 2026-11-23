@@ -22,17 +22,13 @@ type ProgressDoc = {
 const toLocalDayKey = (value: string): string | null => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
-  return new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-  )
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
     .toISOString()
     .slice(0, 10);
 };
 
 const computeStreak = (
-  docs: ProgressDoc[],
+  docs: ProgressDoc[]
 ): { count: number; activeToday: boolean } => {
   const daySet = new Set<string>();
   for (const doc of docs) {
@@ -44,7 +40,11 @@ const computeStreak = (
   if (daySet.size === 0) return { count: 0, activeToday: false };
   const today = new Date();
   const todayKey = toLocalDayKey(today.toISOString());
-  const cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const cursor = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
   let count = 0;
   while (true) {
     const key = toLocalDayKey(cursor.toISOString());
@@ -94,11 +94,12 @@ export default function LessonSidebar({
   lessonCount,
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(
-    sections[0]?.id ?? null,
+    sections[0]?.id ?? null
   );
-  const [streak, setStreak] = useState<{ count: number; activeToday: boolean } | null>(
-    null,
-  );
+  const [streak, setStreak] = useState<{
+    count: number;
+    activeToday: boolean;
+  } | null>(null);
 
   // Pull the student's recent progress to compute the streak. Anonymous
   // visitors get a 401 and we just skip rendering the streak card.
@@ -108,7 +109,7 @@ export default function LessonSidebar({
       try {
         const res = await fetch(
           `${PAYLOAD_URL}/api/lesson-progress?limit=200&sort=-updatedAt&depth=0`,
-          { credentials: "include", signal: controller.signal },
+          { credentials: "include", signal: controller.signal }
         );
         if (!res.ok) {
           setStreak(null);
@@ -159,7 +160,7 @@ export default function LessonSidebar({
       {
         rootMargin: "-96px 0px -60% 0px",
         threshold: [0, 1],
-      },
+      }
     );
 
     nodes.forEach((node) => observer.observe(node));
@@ -174,19 +175,18 @@ export default function LessonSidebar({
   return (
     <aside
       aria-label="Lesson outline"
-      className="hidden xl:block xl:w-[260px] shrink-0"
+      className="hidden shrink-0 xl:block xl:w-[280px]"
     >
       <div className="sticky top-[calc(var(--nav-h,4rem)+1rem)]">
-        <div className="divide-y divide-border/55 border-y border-border/60 text-sm">
+        <div className="overflow-hidden rounded-lg border border-border/70 bg-card text-sm shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
           {/* Lesson meta */}
-          <section className="py-3.5">
+          <section className="border-b border-border/60 px-4 py-4">
             <div className="flex items-center justify-between gap-3">
               <span className="font-medium text-foreground/90">
                 {lessonType}
               </span>
               <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                <Clock className="h-3.5 w-3.5" />
-                ~{estimatedMinutes} min
+                <Clock className="h-3.5 w-3.5" />~{estimatedMinutes} min
               </span>
             </div>
             {hasProgressCaption ? (
@@ -218,7 +218,7 @@ export default function LessonSidebar({
                     style={{
                       width: `${Math.min(
                         100,
-                        Math.round((lessonIndex / lessonCount) * 100),
+                        Math.round((lessonIndex / lessonCount) * 100)
                       )}%`,
                     }}
                   />
@@ -228,7 +228,7 @@ export default function LessonSidebar({
             {chapter?.title && chapter.slug && chapter.classSlug ? (
               <Link
                 href={`/classes/${chapter.classSlug}/chapters/${chapter.slug}`}
-                className="mt-4 inline-flex min-h-8 items-center gap-2 font-medium text-foreground/80 transition-colors hover:text-primary"
+                className="mt-4 inline-flex min-h-8 items-center gap-2 rounded-md text-sm font-semibold text-foreground/80 transition-colors hover:text-primary"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to {chapter.title}
@@ -238,7 +238,10 @@ export default function LessonSidebar({
 
           {/* Streak / momentum (only shown when we successfully read progress) */}
           {streak ? (
-            <section className="py-3.5" aria-label="Learning streak">
+            <section
+              className="border-b border-border/60 px-4 py-4"
+              aria-label="Learning streak"
+            >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
                   <Flame
@@ -246,7 +249,7 @@ export default function LessonSidebar({
                       "h-4 w-4",
                       streak.activeToday
                         ? "text-amber-500"
-                        : "text-muted-foreground",
+                        : "text-muted-foreground"
                     )}
                     aria-hidden="true"
                   />
@@ -258,7 +261,7 @@ export default function LessonSidebar({
                       "font-semibold tabular-nums",
                       streak.activeToday
                         ? "text-amber-600 dark:text-amber-400"
-                        : "text-foreground",
+                        : "text-foreground"
                     )}
                   >
                     {streak.count}
@@ -276,7 +279,7 @@ export default function LessonSidebar({
 
           {/* Table of contents */}
           {sections.length > 1 ? (
-            <section className="py-3.5">
+            <section className="border-b border-border/60 px-4 py-4">
               <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
                 <ListTree className="h-3.5 w-3.5" />
                 In this lesson
@@ -289,11 +292,11 @@ export default function LessonSidebar({
                       <a
                         href={`#${section.id}`}
                         className={cn(
-                          "flex min-h-8 items-start gap-2 border-l-2 py-1.5 pl-3 pr-1 leading-5 transition-colors",
+                          "flex min-h-8 items-start gap-2 rounded-md border-l-2 py-1.5 pl-3 pr-2 leading-5 transition-colors",
                           isActive
-                            ? "border-primary font-medium text-foreground"
-                            : "border-transparent text-muted-foreground hover:border-border/80 hover:text-foreground",
-                          section.level === "secondary" && "ml-3",
+                            ? "border-primary bg-primary/[0.055] font-medium text-foreground"
+                            : "border-transparent text-muted-foreground hover:border-border/80 hover:bg-muted/35 hover:text-foreground",
+                          section.level === "secondary" && "ml-3"
                         )}
                       >
                         <span className="min-w-0 flex-1 line-clamp-2">
@@ -309,7 +312,7 @@ export default function LessonSidebar({
 
           {/* Next lesson preview */}
           {next ? (
-            <section className="py-3.5">
+            <section className="px-4 py-4">
               <div className="text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
                 Up next
               </div>
@@ -324,7 +327,7 @@ export default function LessonSidebar({
 
           {/* Subtle prev-lesson shortcut if there's no "next" target */}
           {!next && prev ? (
-            <section className="py-3.5">
+            <section className="px-4 py-4">
               <div className="text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
                 Previous lesson
               </div>

@@ -185,6 +185,7 @@ export type ScaffoldBlockData =
   | TextSectionData
   | RichTextBlockData
   | QuizBlockData
+  | { blockType: 'practiceProblem'; assignmentKey: string; problemId: string; requiredPractice: boolean }
   | HeroBlockData
   | ResourcesListBlockData
   | ContactsListBlockData
@@ -215,6 +216,7 @@ export const BLOCK_TYPE_LABELS: Record<BlockTypeSlug, string> = {
   textSection: 'Text section',
   richTextBlock: 'Rich text',
   quizBlock: 'Quiz',
+  practiceProblem: 'Practice problem',
   heroBlock: 'Hero',
   resourcesList: 'Resources',
   contactsList: 'Contacts',
@@ -249,6 +251,8 @@ export const emptyBlockFor = (type: AuthorableBlockTypeSlug): ScaffoldBlock => {
       return { _key: newKey(), blockType: 'textSection', size: 'md' }
     case 'richTextBlock':
       return { _key: newKey(), blockType: 'richTextBlock', body: null }
+    case 'practiceProblem':
+      return { _key: newKey(), blockType: 'practiceProblem', assignmentKey: '', problemId: '', requiredPractice: false }
     case 'quizBlock':
       return {
         _key: newKey(),
@@ -461,6 +465,15 @@ export const fromPersistedLayout = (
           _key: newKey(),
           blockType: 'richTextBlock',
           body: asRichText(block.body),
+        })
+        break
+      case 'practiceProblem':
+        out.push({
+          _key: newKey(),
+          blockType: 'practiceProblem',
+          assignmentKey: asString(block.assignmentKey),
+          problemId: asString(block.problemId),
+          requiredPractice: block.requiredPractice === true,
         })
         break
       case 'quizBlock':

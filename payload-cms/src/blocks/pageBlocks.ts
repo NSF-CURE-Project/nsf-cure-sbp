@@ -1,4 +1,7 @@
 import type { Block } from 'payload'
+import practiceCatalog from '../practice/catalog.generated.json'
+
+const practiceIds = new Set(practiceCatalog.map((item) => item.id))
 
 const sectionTitleBlock: Block = {
   slug: 'sectionTitle',
@@ -487,6 +490,24 @@ const lessonSummaryBlock: Block = {
   ],
 }
 
+const practiceBlock: Block = {
+  slug: 'practiceProblem',
+  labels: { singular: 'Practice problem', plural: 'Practice problems' },
+  fields: [
+    {
+      name: 'assignmentKey', type: 'text', required: true, admin: { hidden: true },
+      validate: (value: string | null | undefined) =>
+        typeof value === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(value) || 'Invalid assignment identifier.',
+    },
+    {
+      name: 'problemId', type: 'text', required: true,
+      validate: (value: string | null | undefined) =>
+        typeof value === 'string' && practiceIds.has(value) || 'Choose a problem from the practice library.',
+    },
+    { name: 'requiredPractice', type: 'checkbox', defaultValue: false },
+  ],
+}
+
 export const lessonBlocks: Block[] = [
   textSectionBlock,
   sectionTitleBlock,
@@ -501,6 +522,7 @@ export const lessonBlocks: Block[] = [
   checkpointBlock,
   lessonSummaryBlock,
   quizBlock,
+  practiceBlock,
 ]
 
 export const pageBlocks: Block[] = [

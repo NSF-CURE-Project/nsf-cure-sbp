@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
   Bell,
@@ -29,12 +29,14 @@ import {
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { LoginLink } from "@/components/auth/LoginLink";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
+import { cn } from "@/lib/utils";
 
 const PAYLOAD_URL = getPayloadBaseUrl();
 const NAVBAR_USER_CACHE_KEY = "sbp-navbar-user";
@@ -126,6 +128,7 @@ export default function Navbar({
 }) {
   const { resolvedTheme, theme, systemTheme } = useTheme();
   const router = useRouter();
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<NavbarUser | null>(() => readCachedNavbarUser());
   const [notifications, setNotifications] = useState<
@@ -378,6 +381,10 @@ export default function Navbar({
   const announcementMessage = announcement?.message.trim() ?? "";
   const announcementHref = announcement?.href?.trim();
   const announcementLinkLabel = announcement?.linkLabel?.trim() || "Learn more";
+  const announcementDuration = `${Math.max(
+    18,
+    Math.ceil(announcementMessage.length / 6)
+  )}s`;
 
   const handleNotificationRead = async (notificationId: string) => {
     try {
@@ -415,8 +422,15 @@ export default function Navbar({
           aria-label="Site announcement"
           className="border-b border-primary/20 bg-primary px-4 py-1.5 text-primary-foreground sm:px-6"
         >
-          <div className="mx-auto flex min-h-5 max-w-[var(--content-max,1200px)] items-center justify-center gap-2 text-center text-[12px] font-medium leading-5 sm:text-[13px]">
-            <span className="min-w-0 truncate">{announcementMessage}</span>
+          <div className="mx-auto flex min-h-5 max-w-[var(--content-max,1200px)] items-center gap-2 text-[12px] font-medium leading-5 sm:text-[13px]">
+            <div className="announcement-ticker min-w-0 flex-1 overflow-hidden">
+              <span
+                className="announcement-ticker-track block whitespace-nowrap"
+                style={{ animationDuration: announcementDuration }}
+              >
+                {announcementMessage}
+              </span>
+            </div>
             {announcementHref ? (
               <a
                 href={announcementHref}
@@ -437,14 +451,14 @@ export default function Navbar({
           supports-[backdrop-filter]:bg-background/60
         "
       >
-      <div className="flex items-center gap-3 sm:gap-5 min-w-0">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-5">
         <Link href="/" aria-label="Home" className="flex items-center gap-2">
           <Image
             src={cppLogo}
             alt="Cal Poly Pomona Logo"
             width={300}
             height={150}
-            className="h-10 w-auto sm:h-12"
+            className="h-8 w-auto sm:h-12"
             sizes="(min-width: 640px) 96px, 80px"
           />
         </Link>
@@ -454,12 +468,12 @@ export default function Navbar({
           alt="NSF Logo"
           width={80}
           height={80}
-          className="h-10 w-10 sm:h-12 sm:w-12"
+          className="size-8 sm:size-12"
           sizes="(min-width: 640px) 48px, 40px"
           priority
         />
 
-        <span className="font-semibold text-base sm:text-xl text-foreground truncate">
+        <span className="truncate text-[13px] font-semibold text-foreground sm:text-xl">
           NSF CURE SBP
         </span>
       </div>
@@ -468,17 +482,30 @@ export default function Navbar({
       <div className="hidden lg:flex items-center gap-5 ml-6 text-sm font-medium text-foreground">
         <Link
           href="/"
-          className="relative transition-colors hover:text-foreground after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:bg-foreground/70 after:origin-left after:scale-x-0 after:transition-transform after:duration-200 hover:after:scale-x-100"
+          className={cn(
+            "relative py-1 transition-colors after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:origin-left after:transition-transform after:duration-200 hover:text-foreground hover:after:scale-x-100",
+            pathname === "/"
+              ? "font-semibold text-primary after:bg-primary after:scale-x-100"
+              : "after:bg-foreground/70 after:scale-x-0"
+          )}
+          aria-current={pathname === "/" ? "page" : undefined}
         >
           Home
         </Link>
         {pages.map((page) => {
           const href = page.slug === "learning" ? "/learning" : `/${page.slug}`;
+          const isActive = pathname === href || pathname.startsWith(`${href}/`);
           return (
             <Link
               key={page.id}
               href={href}
-              className="relative transition-colors hover:text-foreground after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:bg-foreground/70 after:origin-left after:scale-x-0 after:transition-transform after:duration-200 hover:after:scale-x-100"
+              className={cn(
+                "relative py-1 transition-colors after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:origin-left after:transition-transform after:duration-200 hover:text-foreground hover:after:scale-x-100",
+                isActive
+                  ? "font-semibold text-primary after:bg-primary after:scale-x-100"
+                  : "after:bg-foreground/70 after:scale-x-0"
+              )}
+              aria-current={isActive ? "page" : undefined}
             >
               {page.title}
             </Link>
@@ -488,6 +515,16 @@ export default function Navbar({
 
       {/* Right cluster */}
       <div className="ml-auto flex items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-sm"
+          className="rounded-md shadow-none md:hidden"
+          onClick={() => setSearchOpen(true)}
+          aria-label="Open search"
+        >
+          <Search aria-hidden="true" />
+        </Button>
         <button
           type="button"
           className="hidden md:flex items-center gap-2 rounded-md border border-border/70 bg-muted/40 px-3 py-1 text-[13px] text-muted-foreground transition hover:bg-muted/60"
@@ -647,7 +684,7 @@ export default function Navbar({
           <>
             <ThemeToggle
               variant="icon"
-              className="hidden md:inline-flex hover:bg-muted/60"
+              className="hover:bg-muted/60"
             />
             <LoginLink
               className="hidden md:inline-flex h-8 items-center rounded-full border border-border/70 bg-muted/40 px-4 text-sm font-medium text-foreground transition hover:bg-muted/60"
@@ -754,21 +791,22 @@ export default function Navbar({
         {/* Mobile menu */}
         <Sheet>
           <SheetTrigger asChild>
-            <button
+            <Button
               type="button"
-              className="inline-flex items-center gap-2 rounded-md border border-border/70 bg-muted/40 px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:hidden"
+              variant="outline"
+              size="icon-sm"
+              className="rounded-md shadow-none lg:hidden"
               aria-label="Open navigation"
             >
-              <Menu className="h-4 w-4" />
-              Menu
-            </button>
+              <Menu aria-hidden="true" />
+            </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-[min(22rem,90vw)]">
-            <SheetHeader className="px-5 pt-5 pb-3 text-left space-y-1.5">
+            <SheetHeader className="px-5 pt-5 pb-3 text-left">
               <SheetTitle className="text-lg">NSF CURE SBP</SheetTitle>
-              <p className="text-sm text-muted-foreground">
+              <SheetDescription className="text-sm text-muted-foreground">
                 Quick links and search
-              </p>
+              </SheetDescription>
             </SheetHeader>
 
             <div className="px-5 pb-6 space-y-4">

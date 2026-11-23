@@ -2,10 +2,10 @@ import type { AdminViewServerProps } from 'payload'
 import { Gutter } from '@payloadcms/ui'
 import React from 'react'
 import Link from 'next/link'
-import { getReportingSummary } from '../utils/analyticsSummary'
 import { findAllDocs } from '../reporting/data'
 import AnimatedNumber from './dashboard/AnimatedNumber'
 import { Sparkline } from './reporting/charts'
+import StaffDashboardRedesign from './dashboard/StaffDashboardRedesign'
 
 const cppInk = 'var(--cpp-ink)'
 
@@ -259,8 +259,7 @@ const moduleRowStyle: React.CSSProperties = {
   background:
     'linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 255, 0.96) 100%)',
   padding: '14px 16px',
-  boxShadow:
-    '0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 6px 14px rgba(15, 23, 42, 0.04)',
+  boxShadow: '0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 6px 14px rgba(15, 23, 42, 0.04)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -562,10 +561,14 @@ const ModuleCard = ({
       <div className="dashboard-module-card-head">
         <ModuleIcon tone={tone}>{icon}</ModuleIcon>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--cpp-ink)', letterSpacing: -0.1 }}>
+          <div
+            style={{ fontSize: 14, fontWeight: 800, color: 'var(--cpp-ink)', letterSpacing: -0.1 }}
+          >
             {title}
           </div>
-          <div style={{ fontSize: 12.5, color: 'var(--cpp-muted)', marginTop: 2, lineHeight: 1.45 }}>
+          <div
+            style={{ fontSize: 12.5, color: 'var(--cpp-muted)', marginTop: 2, lineHeight: 1.45 }}
+          >
             {description}
           </div>
         </div>
@@ -648,18 +651,14 @@ const NeedsAttentionPanel = ({
       href: '/admin/courses/drafts',
       label: 'Unpublished lessons',
       count: unpublished,
-      description: unpublished
-        ? 'Drafts not yet visible to students'
-        : 'Every lesson is published',
+      description: unpublished ? 'Drafts not yet visible to students' : 'Every lesson is published',
       tone: unpublished > 0 ? 'warning' : 'positive',
     },
     {
       href: '/admin/feedback',
       label: 'Unread feedback',
       count: stats.unreadFeedback,
-      description: stats.unreadFeedback
-        ? 'Sitewide feedback waiting on a read'
-        : 'Inbox is clear',
+      description: stats.unreadFeedback ? 'Sitewide feedback waiting on a read' : 'Inbox is clear',
       tone: stats.unreadFeedback > 0 ? 'warning' : 'positive',
     },
     {
@@ -675,9 +674,7 @@ const NeedsAttentionPanel = ({
       href: '/admin/collections/questions?where[status][equals]=open',
       label: 'Unanswered questions',
       count: stats.unanswered,
-      description: stats.unanswered
-        ? 'Open questions from students'
-        : 'No open questions',
+      description: stats.unanswered ? 'Open questions from students' : 'No open questions',
       tone: stats.unanswered > 0 ? 'danger' : 'positive',
     },
   ]
@@ -708,8 +705,7 @@ const NeedsAttentionPanel = ({
             fontWeight: 700,
             padding: '3px 8px',
             borderRadius: 999,
-            background:
-              flagged > 0 ? 'rgba(217, 119, 6, 0.12)' : 'rgba(20, 131, 92, 0.12)',
+            background: flagged > 0 ? 'rgba(217, 119, 6, 0.12)' : 'rgba(20, 131, 92, 0.12)',
             color: flagged > 0 ? '#b45309' : '#127455',
           }}
         >
@@ -1920,24 +1916,25 @@ const StaffDashboardContent = ({
                   }}
                 >
                   {(() => {
-                    const activeSeries = (kpiHistory?.activeStudents?.length
-                      ? kpiHistory.activeStudents
-                      : [stats.activeStudents]) as number[]
-                    const lessonsSeries = (kpiHistory?.publishedLessons?.length
-                      ? kpiHistory.publishedLessons
-                      : [stats.publishedLessons]) as number[]
-                    const completionSeries = (kpiHistory?.completionRate?.length
-                      ? kpiHistory.completionRate
-                      : [
-                          stats.avgCompletion != null
-                            ? Math.round(stats.avgCompletion * 100)
-                            : 0,
-                        ]) as number[]
+                    const activeSeries = (
+                      kpiHistory?.activeStudents?.length
+                        ? kpiHistory.activeStudents
+                        : [stats.activeStudents]
+                    ) as number[]
+                    const lessonsSeries = (
+                      kpiHistory?.publishedLessons?.length
+                        ? kpiHistory.publishedLessons
+                        : [stats.publishedLessons]
+                    ) as number[]
+                    const completionSeries = (
+                      kpiHistory?.completionRate?.length
+                        ? kpiHistory.completionRate
+                        : [stats.avgCompletion != null ? Math.round(stats.avgCompletion * 100) : 0]
+                    ) as number[]
 
                     const computeDelta = (
                       series: number[],
-                      formatter: (v: number) => string = (v) =>
-                        `${v >= 0 ? '+' : ''}${v}`,
+                      formatter: (v: number) => string = (v) => `${v >= 0 ? '+' : ''}${v}`,
                     ) => {
                       if (series.length < 2) return null
                       const last = series[series.length - 1]
@@ -2088,10 +2085,7 @@ const StaffDashboardContent = ({
                         {kpi.rawValue == null ? (
                           '—'
                         ) : (
-                          <AnimatedNumber
-                            value={kpi.rawValue}
-                            suffix={kpi.suffix ?? ''}
-                          />
+                          <AnimatedNumber value={kpi.rawValue} suffix={kpi.suffix ?? ''} />
                         )}
                       </div>
                       <div
@@ -2123,8 +2117,7 @@ const StaffDashboardContent = ({
                 background:
                   'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248, 250, 255, 0.96) 100%)',
                 border: '1px solid rgba(15, 23, 42, 0.06)',
-                boxShadow:
-                  '0 1px 0 rgba(255,255,255,0.7) inset, 0 8px 20px rgba(15, 23, 42, 0.04)',
+                boxShadow: '0 1px 0 rgba(255,255,255,0.7) inset, 0 8px 20px rgba(15, 23, 42, 0.04)',
               }}
               className="dashboard-panel"
             >
@@ -2479,8 +2472,7 @@ const StaffDashboardContent = ({
               return `${Math.floor(days / 365)}y ago`
             }
             const lastWeekActive =
-              reporting.weeklyEngagement[reporting.weeklyEngagement.length - 1]?.activeStudents ??
-              0
+              reporting.weeklyEngagement[reporting.weeklyEngagement.length - 1]?.activeStudents ?? 0
             return (
               <div className="reporting-gateway">
                 <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -2505,9 +2497,9 @@ const StaffDashboardContent = ({
                     NSF institutional analytics &amp; RPPR workspace
                   </div>
                   <div className="reporting-gateway-sub">
-                    Period-scoped cohort analytics, snapshot-backed RPPR drafts, and
-                    audit-grade exports — purpose-built for federal reporting and program
-                    review at Cal Poly Pomona.
+                    Period-scoped cohort analytics, snapshot-backed RPPR drafts, and audit-grade
+                    exports — purpose-built for federal reporting and program review at Cal Poly
+                    Pomona.
                   </div>
                   <div className="reporting-gateway-cta-row">
                     <Link href="/admin/reporting" className="reporting-gateway-primary">
@@ -2551,9 +2543,7 @@ const StaffDashboardContent = ({
                   <div className="reporting-gateway-stat">
                     <div className="reporting-gateway-stat-label">Active period</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                      <span className={periodChipClass}>
-                        {period ? 'Active' : 'None'}
-                      </span>
+                      <span className={periodChipClass}>{period ? 'Active' : 'None'}</span>
                     </div>
                     <div
                       className="reporting-gateway-stat-meta"
@@ -2563,7 +2553,7 @@ const StaffDashboardContent = ({
                       {period?.label ?? 'No active reporting period'}
                     </div>
                     <div className="reporting-gateway-stat-meta">
-                      {period ? fmtRange(period.startDate, period.endDate) ?? '—' : '—'}
+                      {period ? (fmtRange(period.startDate, period.endDate) ?? '—') : '—'}
                     </div>
                   </div>
                   <div className="reporting-gateway-stat">
@@ -2601,9 +2591,7 @@ const StaffDashboardContent = ({
                     <div className="reporting-gateway-stat-value">
                       <AnimatedNumber value={lastWeekActive} durationMs={900} />
                     </div>
-                    <div className="reporting-gateway-stat-meta">
-                      this week (rolling 7-day)
-                    </div>
+                    <div className="reporting-gateway-stat-meta">this week (rolling 7-day)</div>
                   </div>
                 </div>
               </div>
@@ -2620,57 +2608,28 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
   const user = req.user
   const payload = req.payload
 
-  let unansweredCount = 0
-  let unreadFeedbackCount = 0
-  let awaitingLessonFeedbackCount = 0
-  let accountsCount = 0
-  let activeStudentsCount = 0
-  let publishedLessonsCount = 0
+  let unansweredCount: number | null = null
+  let unreadFeedbackCount: number | null = null
+  let awaitingLessonFeedbackCount: number | null = null
+  let accountsCount: number | null = null
+  let activeStudentsCount: number | null = null
+  let publishedLessonsCount: number | null = null
   let avgCompletionRate: number | null = null
   let helpfulnessAvg: number | null = null
   const LOW_COMPLETION_THRESHOLD = 0.4
   const HIGH_QUESTION_THRESHOLD = 5
   const LOW_HELPFULNESS_THRESHOLD = 2.5
   let contentHealth = {
+    available: false,
     lowCompletion: [] as { id: string | number; title: string; rate: number }[],
     highQuestions: [] as { id: string | number; title: string; count: number }[],
     lowHelpfulness: [] as { id: string | number; title: string; rating: number }[],
   }
-  let reporting = {
-    classCompletion: [] as {
-      id: string
-      title: string
-      uniqueLearnersStarted: number
-      uniqueLearnersCompleted: number
-      completionRate: number
-    }[],
-    chapterCompletion: [] as {
-      id: string
-      title: string
-      uniqueLearnersStarted: number
-      uniqueLearnersCompleted: number
-      completionRate: number
-    }[],
-    quizPerformance: [] as {
-      quizId: string
-      title: string
-      uniqueLearnersAttempted: number
-      uniqueLearnersMastered: number
-      masteryRate: number
-      attempts: number
-    }[],
-    weeklyEngagement: [] as {
-      weekStart: string
-      activeStudents: number
-      weekOverWeekChange: number | null
-    }[],
-  }
-
   try {
-    const unanswered = await payload.find({
+    const unanswered = await payload.count({
       collection: 'questions',
-      depth: 0,
-      limit: 0,
+      overrideAccess: false,
+      req,
       where: {
         status: {
           equals: 'open',
@@ -2679,25 +2638,25 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     })
     unansweredCount = unanswered.totalDocs ?? 0
   } catch {
-    unansweredCount = 0
+    unansweredCount = null
   }
 
   try {
-    const accounts = await payload.find({
+    const accounts = await payload.count({
       collection: 'accounts',
-      depth: 0,
-      limit: 0,
+      overrideAccess: false,
+      req,
     })
     accountsCount = accounts.totalDocs ?? 0
   } catch {
-    accountsCount = 0
+    accountsCount = null
   }
 
   try {
-    const unreadFeedback = await payload.find({
+    const unreadFeedback = await payload.count({
       collection: 'feedback',
-      depth: 0,
-      limit: 0,
+      overrideAccess: false,
+      req,
       where: {
         read: {
           equals: false,
@@ -2706,14 +2665,14 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     })
     unreadFeedbackCount = unreadFeedback.totalDocs ?? 0
   } catch {
-    unreadFeedbackCount = 0
+    unreadFeedbackCount = null
   }
 
   try {
-    const publishedLessons = await payload.find({
+    const publishedLessons = await payload.count({
       collection: 'lessons',
-      depth: 0,
-      limit: 0,
+      overrideAccess: false,
+      req,
       where: {
         _status: {
           equals: 'published',
@@ -2722,18 +2681,19 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     })
     publishedLessonsCount = publishedLessons.totalDocs ?? 0
   } catch {
-    publishedLessonsCount = 0
+    publishedLessonsCount = null
   }
 
-  // Operational counts shown inline in the management cards. Fail open so
-  // a single broken collection doesn't black out the whole dashboard.
-  let coursesTotal = 0
-  let chaptersTotal = 0
-  let lessonsTotal = 0
-  let quizzesTotal = 0
-  let quizQuestionsTotal = 0
-  let classroomsTotal = 0
-  let classroomEnrollmentsTotal = 0
+  // Operational counts shown inline in the management cards. Fail soft with
+  // null so an unavailable query is never presented as a true zero.
+  let coursesTotal: number | null = null
+  let chaptersTotal: number | null = null
+  let lessonsTotal: number | null = null
+  let quizzesTotal: number | null = null
+  let quizQuestionsTotal: number | null = null
+  let classroomsTotal: number | null = null
+  let classroomEnrollmentsTotal: number | null = null
+  let pagesTotal: number | null = null
   let lastLessonUpdatedAt: string | null = null
   try {
     const [
@@ -2744,29 +2704,53 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
       qbank,
       classrooms,
       classroomMemberships,
+      pages,
       recentLesson,
     ] = await Promise.all([
-      payload.find({ collection: 'classes', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
-      payload.find({ collection: 'chapters', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
-      payload.find({ collection: 'lessons', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
-      payload.find({ collection: 'quizzes', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
-      payload.find({ collection: 'quiz-questions', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
-      payload.find({ collection: 'classrooms', depth: 0, limit: 0 }).catch(() => ({ totalDocs: 0 })),
       payload
-        .find({ collection: 'classroom-memberships', depth: 0, limit: 0 })
-        .catch(() => ({ totalDocs: 0 })),
+        .count({ collection: 'classes', overrideAccess: false, req })
+        .catch(() => ({ totalDocs: null })),
       payload
-        .find({ collection: 'lessons', depth: 0, limit: 1, sort: '-updatedAt' })
+        .count({ collection: 'chapters', overrideAccess: false, req })
+        .catch(() => ({ totalDocs: null })),
+      payload
+        .count({ collection: 'lessons', overrideAccess: false, req })
+        .catch(() => ({ totalDocs: null })),
+      payload
+        .count({ collection: 'quizzes', overrideAccess: false, req })
+        .catch(() => ({ totalDocs: null })),
+      payload
+        .count({ collection: 'quiz-questions', overrideAccess: false, req })
+        .catch(() => ({ totalDocs: null })),
+      payload
+        .count({ collection: 'classrooms', overrideAccess: false, req })
+        .catch(() => ({ totalDocs: null })),
+      payload
+        .count({ collection: 'classroom-memberships', overrideAccess: false, req })
+        .catch(() => ({ totalDocs: null })),
+      payload
+        .count({ collection: 'pages', overrideAccess: false, req })
+        .catch(() => ({ totalDocs: null })),
+      payload
+        .find({
+          collection: 'lessons',
+          depth: 0,
+          limit: 1,
+          overrideAccess: false,
+          req,
+          sort: '-updatedAt',
+        })
         .catch(() => ({ docs: [] as Array<{ updatedAt?: string }> })),
     ])
-    coursesTotal = (courses as { totalDocs?: number }).totalDocs ?? 0
-    chaptersTotal = (chapters as { totalDocs?: number }).totalDocs ?? 0
-    lessonsTotal = (lessonsAll as { totalDocs?: number }).totalDocs ?? 0
-    quizzesTotal = (quizzes as { totalDocs?: number }).totalDocs ?? 0
-    quizQuestionsTotal = (qbank as { totalDocs?: number }).totalDocs ?? 0
-    classroomsTotal = (classrooms as { totalDocs?: number }).totalDocs ?? 0
+    coursesTotal = (courses as { totalDocs?: number | null }).totalDocs ?? null
+    chaptersTotal = (chapters as { totalDocs?: number | null }).totalDocs ?? null
+    lessonsTotal = (lessonsAll as { totalDocs?: number | null }).totalDocs ?? null
+    quizzesTotal = (quizzes as { totalDocs?: number | null }).totalDocs ?? null
+    quizQuestionsTotal = (qbank as { totalDocs?: number | null }).totalDocs ?? null
+    classroomsTotal = (classrooms as { totalDocs?: number | null }).totalDocs ?? null
     classroomEnrollmentsTotal =
-      (classroomMemberships as { totalDocs?: number }).totalDocs ?? 0
+      (classroomMemberships as { totalDocs?: number | null }).totalDocs ?? null
+    pagesTotal = (pages as { totalDocs?: number | null }).totalDocs ?? null
     const lessonDoc = (recentLesson as { docs?: Array<{ updatedAt?: string }> }).docs?.[0]
     lastLessonUpdatedAt = lessonDoc?.updatedAt ?? null
   } catch {
@@ -2776,6 +2760,8 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
   try {
     const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
     const recentProgress = await findAllDocs(payload, 'lesson-progress', {
+      overrideAccess: false,
+      req,
       where: {
         updatedAt: {
           greater_than: since,
@@ -2797,29 +2783,30 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     })
     activeStudentsCount = activeUsers.size
   } catch {
-    activeStudentsCount = 0
+    activeStudentsCount = null
   }
 
   try {
-    const lessons = await findAllDocs(payload, 'lessons')
+    const [lessons, lessonFeedback, progress, completed, questions] = await Promise.all([
+      findAllDocs(payload, 'lessons', { overrideAccess: false, req }),
+      findAllDocs(payload, 'lesson-feedback', { overrideAccess: false, req }),
+      findAllDocs(payload, 'lesson-progress', { overrideAccess: false, req }),
+      findAllDocs(payload, 'lesson-progress', {
+        overrideAccess: false,
+        req,
+        where: {
+          completed: {
+            equals: true,
+          },
+        },
+      }),
+      findAllDocs(payload, 'questions', { overrideAccess: false, req }),
+    ])
 
-    const lessonFeedback = await findAllDocs(payload, 'lesson-feedback')
     awaitingLessonFeedbackCount = lessonFeedback.filter((doc) => {
       const reply = (doc as { reply?: unknown }).reply
       return !(typeof reply === 'string' && reply.trim())
     }).length
-
-    const progress = await findAllDocs(payload, 'lesson-progress')
-
-    const completed = await findAllDocs(payload, 'lesson-progress', {
-      where: {
-        completed: {
-          equals: true,
-        },
-      },
-    })
-
-    const questions = await findAllDocs(payload, 'questions')
 
     const lessonById = new Map<string, { id: string | number; title: string }>()
     lessons.forEach((lesson) => {
@@ -2895,6 +2882,7 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     })
 
     contentHealth = {
+      available: true,
       lowCompletion: lowCompletion.sort((a, b) => a.rate - b.rate).slice(0, 6),
       highQuestions: highQuestions.sort((a, b) => b.count - a.count).slice(0, 6),
       lowHelpfulness: [],
@@ -2950,19 +2938,8 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     avgCompletionRate = totalProgressCount ? totalCompletedCount / totalProgressCount : null
     contentHealth.lowHelpfulness = lowHelpfulness.sort((a, b) => a.rating - b.rating).slice(0, 6)
   } catch {
-    contentHealth = { lowCompletion: [], highQuestions: [], lowHelpfulness: [] }
-    awaitingLessonFeedbackCount = 0
-  }
-
-  try {
-    reporting = await getReportingSummary(payload)
-  } catch {
-    reporting = {
-      classCompletion: [],
-      chapterCompletion: [],
-      quizPerformance: [],
-      weeklyEngagement: [],
-    }
+    contentHealth = { available: false, lowCompletion: [], highQuestions: [], lowHelpfulness: [] }
+    awaitingLessonFeedbackCount = null
   }
 
   // Reporting Suite gateway: a tiny set of headline numbers + the active period
@@ -2982,17 +2959,19 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
       createdAt: string
       versionLabel: string | null
     } | null
-    rpprDraftCount: number
-    snapshotCount: number
-    savedViewCount: number
-    productCount: number
+    available: boolean
+    rpprDraftCount: number | null
+    snapshotCount: number | null
+    savedViewCount: number | null
+    productCount: number | null
   } = {
+    available: false,
     activePeriod: null,
     latestSnapshot: null,
-    rpprDraftCount: 0,
-    snapshotCount: 0,
-    savedViewCount: 0,
-    productCount: 0,
+    rpprDraftCount: null,
+    snapshotCount: null,
+    savedViewCount: null,
+    productCount: null,
   }
   try {
     const [periodRes, snapshotRes, rpprRes, savedViewsRes, productsRes] = await Promise.all([
@@ -3002,16 +2981,20 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
         sort: '-startDate',
         limit: 1,
         depth: 0,
+        overrideAccess: false,
+        req,
       }),
       payload.find({
         collection: 'reporting-snapshots',
         sort: '-createdAt',
         limit: 1,
         depth: 0,
+        overrideAccess: false,
+        req,
       }),
-      payload.count({ collection: 'rppr-reports' }),
-      payload.count({ collection: 'reporting-saved-views' }),
-      payload.count({ collection: 'reporting-product-records' }),
+      payload.count({ collection: 'rppr-reports', overrideAccess: false, req }),
+      payload.count({ collection: 'reporting-saved-views', overrideAccess: false, req }),
+      payload.count({ collection: 'reporting-product-records', overrideAccess: false, req }),
     ])
     const period = periodRes.docs[0] as
       | {
@@ -3051,99 +3034,10 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     reportingGateway.rpprDraftCount = rpprRes.totalDocs ?? 0
     reportingGateway.savedViewCount = savedViewsRes.totalDocs ?? 0
     reportingGateway.productCount = productsRes.totalDocs ?? 0
+    reportingGateway.available = true
   } catch {
     // leave defaults; dashboard still renders
   }
-
-  // Compute weekly history series so the dashboard sparklines + delta chips
-  // come from real data instead of placeholder series. Anchored to the same
-  // 8-week window as reporting.weeklyEngagement.
-  const HISTORY_WEEKS = 8
-  const computeKpiHistory = async () => {
-    // Build the week-start anchor list from reporting; pad to 8 weeks if needed.
-    const fromReporting = (reporting?.weeklyEngagement ?? [])
-      .map((w) => w.weekStart)
-      .filter((s): s is string => typeof s === 'string')
-
-    const today = new Date()
-    today.setUTCHours(0, 0, 0, 0)
-    const dow = today.getUTCDay()
-    const offset = (dow + 6) % 7
-    today.setUTCDate(today.getUTCDate() - offset)
-    const weekStarts: string[] = []
-    for (let i = HISTORY_WEEKS - 1; i >= 0; i -= 1) {
-      const d = new Date(today)
-      d.setUTCDate(today.getUTCDate() - i * 7)
-      weekStarts.push(d.toISOString().slice(0, 10))
-    }
-    // Prefer reporting's anchors when they cover the window — keeps charts
-    // consistent with the reporting view.
-    const anchors = fromReporting.length >= HISTORY_WEEKS ? fromReporting.slice(-HISTORY_WEEKS) : weekStarts
-
-    const weekIndex = (iso: string | null | undefined): number => {
-      if (!iso) return -1
-      const ts = new Date(iso).getTime()
-      if (Number.isNaN(ts)) return -1
-      for (let i = anchors.length - 1; i >= 0; i -= 1) {
-        if (ts >= new Date(anchors[i]).getTime()) return i
-      }
-      return -1
-    }
-
-    const activeStudents: number[] = anchors.map((anchor) => {
-      const w = (reporting?.weeklyEngagement ?? []).find((x) => x.weekStart === anchor)
-      return w?.activeStudents ?? 0
-    })
-
-    // Cumulative published-lesson count as of each anchor's end-of-week.
-    let publishedLessons: number[] = anchors.map(() => 0)
-    try {
-      const lessonsAll = await findAllDocs(payload, 'lessons')
-      const sorted = (lessonsAll as Array<{ _status?: string; createdAt?: string; publishedAt?: string }>)
-        .filter((l) => (l._status ?? 'published') !== 'draft')
-        .map((l) => l.publishedAt || l.createdAt)
-        .filter((d): d is string => typeof d === 'string' && !!d)
-        .sort()
-      publishedLessons = anchors.map((anchor) => {
-        const cutoff = new Date(anchor).getTime() + 7 * 24 * 60 * 60 * 1000
-        return sorted.filter((d) => new Date(d).getTime() < cutoff).length
-      })
-    } catch {
-      publishedLessons = anchors.map((_, i) => Math.max(0, publishedLessonsCount - (HISTORY_WEEKS - 1 - i)))
-    }
-
-    // Per-week completion ratio over lesson-progress entries that updated in that week.
-    const completionRate: number[] = anchors.map(() => 0)
-    try {
-      const progress = await findAllDocs(payload, 'lesson-progress')
-      const buckets: Array<{ total: number; done: number }> = anchors.map(() => ({ total: 0, done: 0 }))
-      ;(progress as Array<{ updatedAt?: string; completed?: boolean }>).forEach((p) => {
-        const idx = weekIndex(p.updatedAt)
-        if (idx < 0) return
-        buckets[idx].total += 1
-        if (p.completed) buckets[idx].done += 1
-      })
-      buckets.forEach((b, i) => {
-        completionRate[i] = b.total ? Math.round((b.done / b.total) * 100) : 0
-      })
-    } catch {
-      // leave zeros
-    }
-
-    return { activeStudents, publishedLessons, completionRate }
-  }
-
-  const kpiHistory = await (async () => {
-    try {
-      return await computeKpiHistory()
-    } catch {
-      return {
-        activeStudents: Array(HISTORY_WEEKS).fill(0),
-        publishedLessons: Array(HISTORY_WEEKS).fill(0),
-        completionRate: Array(HISTORY_WEEKS).fill(0),
-      }
-    }
-  })()
 
   const stats = {
     accounts: accountsCount,
@@ -3165,16 +3059,15 @@ export default async function StaffDashboardView({ initPageResult }: AdminViewSe
     quizQuestionsTotal,
     classroomsTotal,
     classroomEnrollmentsTotal,
+    pagesTotal,
     lastLessonUpdatedAt,
   }
 
   return (
-    <StaffDashboardContent
+    <StaffDashboardRedesign
       user={user}
       stats={stats}
       contentHealth={contentHealth}
-      reporting={reporting}
-      kpiHistory={kpiHistory}
       managementCounts={managementCounts}
       reportingGateway={reportingGateway}
     />

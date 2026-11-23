@@ -272,6 +272,14 @@ export type LessonSummaryBlock = {
   points?: LessonSummaryPoint[];
 };
 
+export type PracticeProblemBlock = {
+  id?: string;
+  blockType: "practiceProblem";
+  problemId: string;
+  assignmentKey: string;
+  requiredPractice?: boolean | null;
+};
+
 export type PageLayoutBlock =
   | HeroBlock
   | SectionTitleBlock
@@ -286,6 +294,7 @@ export type PageLayoutBlock =
   | ResourcesListBlock
   | ContactsListBlock
   | QuizBlock
+  | PracticeProblemBlock
   | CalloutBlock
   | DefinitionBlock
   | WorkedExampleBlock

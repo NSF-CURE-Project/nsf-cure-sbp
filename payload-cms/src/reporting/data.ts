@@ -1,5 +1,10 @@
-import type { Payload } from 'payload'
-import { buildPeriodWhere, mergeWhere, resolveReportingPeriod, type ReportingPeriod } from './period.ts'
+import type { Payload, PayloadRequest } from 'payload'
+import {
+  buildPeriodWhere,
+  mergeWhere,
+  resolveReportingPeriod,
+  type ReportingPeriod,
+} from './period.ts'
 import { isMissingColumnError, isSchemaMismatchError } from './schema.ts'
 
 type PayloadFindResult = {
@@ -11,7 +16,9 @@ type PayloadFindFn = (args: {
   collection: string
   depth?: number
   limit?: number
+  overrideAccess?: boolean
   page?: number
+  req?: PayloadRequest
   sort?: string
   where?: Record<string, unknown>
 }) => Promise<PayloadFindResult>
@@ -24,6 +31,8 @@ export const findAllDocs = async (
     sort?: string
     depth?: number
     limit?: number
+    overrideAccess?: boolean
+    req?: PayloadRequest
     failSoftOnSchemaMismatch?: boolean
     retryWithoutWhereOnMissingColumn?: boolean
   },
@@ -42,7 +51,9 @@ export const findAllDocs = async (
         collection,
         depth: options?.depth ?? 0,
         limit,
+        overrideAccess: options?.overrideAccess,
         page,
+        req: options?.req,
         sort: options?.sort ?? 'id',
         where: options?.where,
       })
@@ -56,7 +67,9 @@ export const findAllDocs = async (
             collection,
             depth: options?.depth ?? 0,
             limit,
+            overrideAccess: options?.overrideAccess,
             page,
+            req: options?.req,
             sort: options?.sort ?? 'id',
           })
         } catch (retryError) {
@@ -147,7 +160,8 @@ export const resolvePeriodFromQuery = async (
       startDate: String((periodDoc as { startDate?: string }).startDate ?? ''),
       endDate: String((periodDoc as { endDate?: string }).endDate ?? ''),
       label: (periodDoc as { label?: string | null }).label ?? null,
-      budgetPeriodName: (periodDoc as { budgetPeriodName?: string | null }).budgetPeriodName ?? null,
+      budgetPeriodName:
+        (periodDoc as { budgetPeriodName?: string | null }).budgetPeriodName ?? null,
       reportType:
         ((periodDoc as { reportType?: 'annual' | 'final' | 'internal' | 'custom' }).reportType as
           | 'annual'
@@ -167,8 +181,7 @@ export const resolvePeriodFromQuery = async (
     startDate,
     endDate,
     label: typeof query?.label === 'string' ? query.label : null,
-    budgetPeriodName:
-      typeof query?.budgetPeriodName === 'string' ? query.budgetPeriodName : null,
+    budgetPeriodName: typeof query?.budgetPeriodName === 'string' ? query.budgetPeriodName : null,
     reportType:
       typeof query?.reportType === 'string' &&
       ['annual', 'final', 'internal', 'custom'].includes(query.reportType)

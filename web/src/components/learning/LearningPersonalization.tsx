@@ -5,13 +5,16 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   Award,
+  BarChart3,
   Bookmark,
   BookmarkCheck,
+  CheckCircle2,
   Flame,
   PlayCircle,
   Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { LoginLink } from "@/components/auth/LoginLink";
 import { cn } from "@/lib/utils";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
@@ -134,7 +137,8 @@ type WeeklyPip = {
 // ──────────────────────────────────────────────────────────────
 
 const getRelationId = (value: RelationValue): string | null => {
-  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (typeof value === "string" || typeof value === "number")
+    return String(value);
   if (typeof value === "object" && value && "id" in value && value.id != null) {
     return String(value.id);
   }
@@ -246,16 +250,13 @@ function ProgressBar({
 }) {
   const width = Math.max(0, Math.min(100, Math.round(value)));
   const height = size === "sm" ? "h-1" : "h-1.5";
-  const fill =
-    tone === "emerald"
-      ? "bg-emerald-500/90"
-      : "bg-gradient-to-r from-primary via-primary to-primary/80";
+  const fill = tone === "emerald" ? "bg-emerald-600" : "bg-primary";
   return (
     <div
       className={cn(
         height,
-        "w-full overflow-hidden rounded-full bg-muted/70",
-        className,
+        "w-full overflow-hidden rounded-full bg-muted/75",
+        className
       )}
       role="progressbar"
       aria-valuemin={0}
@@ -263,7 +264,11 @@ function ProgressBar({
       aria-valuenow={width}
     >
       <div
-        className={cn(height, "rounded-full transition-[width] duration-500 ease-out", fill)}
+        className={cn(
+          height,
+          "rounded-full transition-[width] duration-500 ease-out",
+          fill
+        )}
         style={{ width: `${width}%` }}
       />
     </div>
@@ -360,68 +365,55 @@ function ClassCard({
   featured = false,
 }: ClassCardProps) {
   const isComplete = hasProgress && progressPercent >= 100;
-  const accentColor = featured
-    ? "bg-primary"
-    : isComplete
-      ? "bg-emerald-500"
-      : hasProgress
-        ? "bg-primary/70"
-        : "bg-muted-foreground/25";
 
   return (
     <article
       className={cn(
-        "group relative flex h-full flex-col border-y border-border/70 bg-transparent p-4 transition-colors duration-200 sm:p-5",
-        "hover:bg-muted/20 focus-within:bg-muted/20 focus-within:ring-2 focus-within:ring-primary/30 focus-within:ring-offset-2 focus-within:ring-offset-background",
-        featured && "border-primary/45 bg-primary/[0.04]",
+        "group relative flex h-full min-h-[242px] flex-col overflow-hidden rounded-md border border-border/85 border-t-2 border-t-primary bg-card p-5",
+        "shadow-[0_1px_2px_rgba(16,24,40,0.03)] transition-[background-color,border-color,box-shadow,transform] duration-200",
+        "hover:-translate-y-0.5 hover:border-primary/30 hover:border-t-primary hover:bg-primary/[0.012] hover:shadow-[0_10px_26px_rgba(16,24,40,0.07)]",
+        "focus-within:ring-2 focus-within:ring-primary/25 focus-within:ring-offset-2 focus-within:ring-offset-background",
+        featured && "border-primary/45 bg-primary/[0.025]"
       )}
     >
-      <span
-        aria-hidden="true"
-        className={cn(
-          "absolute inset-y-0 left-0 w-[3px] transition-colors",
-          accentColor,
-        )}
-      />
-
-      <header className="mb-2 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
+      <header className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <span
             className={cn(
-              "inline-flex h-8 w-8 items-center justify-center rounded-lg border",
+              "inline-flex size-10 shrink-0 items-center justify-center rounded-md border",
               featured
-                ? "border-primary/40 bg-primary/15 text-primary"
-                : "border-border/60 bg-muted/30 text-primary/85",
+                ? "border-primary/35 bg-primary/[0.07] text-primary"
+                : "border-border bg-background text-primary"
             )}
           >
             <ClassIcon variant={iconVariant} />
           </span>
-          <h3 className="truncate text-base font-semibold text-foreground">{title}</h3>
+          <h3 className="truncate text-[17px] font-semibold leading-6 tracking-[-0.01em] text-foreground">
+            {title}
+          </h3>
         </div>
         {featured ? (
-          <span className="inline-flex shrink-0 items-center rounded-full border border-primary/35 bg-primary/12 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-primary">
+          <span className="inline-flex shrink-0 items-center rounded-full border border-primary/30 bg-primary/[0.06] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">
             Up next
           </span>
         ) : null}
       </header>
 
       {description ? (
-        <p
-          className={cn(
-            "mb-3 line-clamp-2 text-[13px] leading-relaxed text-muted-foreground",
-          )}
-        >
+        <p className="mb-4 line-clamp-2 text-[13px] leading-relaxed text-muted-foreground">
           {description}
         </p>
       ) : null}
 
-      <div className="mt-auto space-y-2.5">
+      <div className="mt-auto flex flex-col gap-3">
         <div className="flex items-baseline justify-between">
-          <span className="text-2xl font-bold tabular-nums tracking-tight text-foreground">
+          <span className="text-[32px] font-bold leading-none tabular-nums tracking-[-0.04em] text-foreground">
             {progressPercent}
-            <span className="ml-0.5 text-base font-semibold text-muted-foreground">%</span>
+            <span className="ml-0.5 text-base font-semibold tracking-normal text-muted-foreground">
+              %
+            </span>
           </span>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-[12px] text-muted-foreground">
             {hasProgress
               ? `${completedLessons}/${totalLessons} lessons`
               : totalLessons > 0
@@ -434,7 +426,7 @@ function ClassCard({
           tone={isComplete ? "emerald" : "primary"}
         />
 
-        <div className="flex items-center justify-between pt-1 text-[11px] text-muted-foreground">
+        <div className="flex items-center justify-between text-[12px] text-muted-foreground">
           <span>
             {lastActivityLabel
               ? `Last active ${lastActivityLabel}`
@@ -444,31 +436,33 @@ function ClassCard({
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 pt-1.5">
+        <div className="flex flex-wrap items-center gap-2 pt-1">
           {continueHref ? (
-            <Link
-              href={continueHref}
-              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              Continue
-              <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-            </Link>
+            <Button asChild className="min-w-36 flex-1 rounded-md shadow-none">
+              <Link href={continueHref}>
+                Continue
+                <ArrowRight
+                  data-icon="inline-end"
+                  className="transition-transform duration-200 group-hover:translate-x-0.5"
+                />
+              </Link>
+            </Button>
           ) : (
-            <Link
-              href={viewHref}
-              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              {hasProgress ? "Open class" : "Start learning"}
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
+            <Button asChild className="min-w-36 flex-1 rounded-md shadow-none">
+              <Link href={viewHref}>
+                {hasProgress ? "Open class" : "Start learning"}
+                <ArrowRight data-icon="inline-end" />
+              </Link>
+            </Button>
           )}
           {continueHref ? (
-            <Link
-              href={viewHref}
-              className="inline-flex items-center justify-center rounded-lg border border-border/65 bg-background/50 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/45 hover:bg-muted/30"
+            <Button
+              asChild
+              variant="outline"
+              className="rounded-md shadow-none"
             >
-              Outline
-            </Link>
+              <Link href={viewHref}>Outline</Link>
+            </Button>
           ) : null}
         </div>
       </div>
@@ -498,44 +492,53 @@ function MetricShell({
   return (
     <div
       className={cn(
-        "flex h-full flex-col border-y transition-colors duration-200 hover:bg-muted/20",
-        compact ? "gap-1.5 px-3.5 py-2.5" : "gap-2.5 p-3.5",
-        tone === "accent" && "border-primary/35 bg-primary/[0.04]",
-        tone === "amber" && "border-amber-500/30 bg-amber-500/[0.04]",
-        tone === "emerald" && "border-emerald-500/30 bg-emerald-500/[0.04]",
-        tone === "default" && "border-border/65 bg-transparent",
+        "grid h-full grid-cols-[2.5rem_minmax(0,1fr)] content-start gap-x-3 gap-y-1 px-4 py-4 transition-colors duration-200 hover:bg-muted/20 sm:px-5",
+        compact ? "min-h-[82px]" : "min-h-[132px]",
+        tone === "accent" && "bg-primary/[0.018]",
+        tone === "amber" && "bg-secondary/[0.035]",
+        tone === "emerald" && "bg-primary/[0.025]",
+        tone === "default" && "bg-transparent"
       )}
     >
-      <div className="flex items-center justify-between">
-        <h3 className="text-[10.5px] font-bold uppercase tracking-[0.1em] text-foreground/75">
-          {title}
-        </h3>
+      <span
+        className={cn(
+          "row-span-2 inline-flex size-9 items-center justify-center self-start rounded-md text-primary",
+          tone === "amber" && "text-secondary-foreground"
+        )}
+      >
         <Icon
           className={cn(
-            "h-4 w-4",
+            "size-6",
             tone === "accent" && "text-primary",
-            tone === "amber" && "text-amber-500",
-            tone === "emerald" && "text-emerald-500",
-            tone === "default" && "text-muted-foreground",
+            tone === "amber" && "text-primary",
+            tone === "emerald" && "text-primary",
+            tone === "default" && "text-primary"
           )}
         />
+      </span>
+      <div className="flex min-w-0 items-center justify-between">
+        <h3 className="text-[10.5px] font-bold uppercase leading-4 tracking-[0.12em] text-foreground/80">
+          {title}
+        </h3>
       </div>
-      {children}
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }
 
 function MetricLoading() {
   return (
-    <div className="space-y-2">
-      <div className="h-7 w-16 rounded-md bg-muted/60 animate-pulse" />
-      <div className="h-3 w-32 rounded-md bg-muted/40 animate-pulse" />
+    <div className="flex flex-col gap-2 pt-1">
+      <Skeleton className="h-6 w-16 bg-muted" />
+      <Skeleton className="h-3 w-32 bg-muted/70" />
     </div>
   );
 }
 
 function MetricEmpty({ copy }: { copy: string }) {
-  return <p className="text-[11.5px] leading-snug text-muted-foreground">{copy}</p>;
+  return (
+    <p className="text-[12px] leading-[1.45] text-muted-foreground">{copy}</p>
+  );
 }
 
 function WeeklyGoalCard({
@@ -553,7 +556,12 @@ function WeeklyGoalCard({
   const reached = completed >= WEEKLY_GOAL_TARGET;
   const isEmpty = !loading && !signedIn;
   return (
-    <MetricShell icon={Target} title="Weekly Goal" tone="accent" compact={isEmpty}>
+    <MetricShell
+      icon={Target}
+      title="Weekly Goal"
+      tone="accent"
+      compact={isEmpty}
+    >
       {loading ? (
         <MetricLoading />
       ) : !signedIn ? (
@@ -580,7 +588,7 @@ function WeeklyGoalCard({
                     ? "bg-primary"
                     : pip.isToday
                       ? "bg-primary/30 ring-1 ring-primary/40"
-                      : "bg-muted",
+                      : "bg-muted"
                 )}
               />
             ))}
@@ -627,7 +635,9 @@ function StreakCard({
             <span
               className={cn(
                 "text-[28px] font-bold leading-none tabular-nums tracking-tight",
-                activeToday ? "text-amber-600 dark:text-amber-400" : "text-foreground",
+                activeToday
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-foreground"
               )}
             >
               {count}
@@ -642,7 +652,7 @@ function StreakCard({
                 "inline-flex h-1.5 w-1.5 rounded-full",
                 activeToday
                   ? "bg-amber-500 ring-2 ring-amber-500/30"
-                  : "bg-muted-foreground/40",
+                  : "bg-muted-foreground/40"
               )}
             />
             <span className="text-[11px] font-medium text-muted-foreground">
@@ -692,7 +702,9 @@ function MilestonesCard({
             <span className="text-[28px] font-bold leading-none tabular-nums tracking-tight text-foreground">
               {earned}
             </span>
-            <span className="text-sm font-medium text-muted-foreground">/ {total}</span>
+            <span className="text-sm font-medium text-muted-foreground">
+              / {total}
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
             {tiers.map((tier) => (
@@ -704,7 +716,7 @@ function MilestonesCard({
                   "inline-flex h-5 w-5 items-center justify-center rounded-full border text-[9px] font-bold transition-colors",
                   tier.earned
                     ? "border-primary/35 bg-primary/15 text-primary"
-                    : "border-border/60 bg-background text-muted-foreground/70",
+                    : "border-border/60 bg-background text-muted-foreground/70"
                 )}
               >
                 {tier.tier}
@@ -712,7 +724,8 @@ function MilestonesCard({
             ))}
           </div>
           <p className="text-[11.5px] leading-snug text-muted-foreground">
-            {completedLessons} lesson{completedLessons === 1 ? "" : "s"} completed overall
+            {completedLessons} lesson{completedLessons === 1 ? "" : "s"}{" "}
+            completed overall
           </p>
         </>
       )}
@@ -779,7 +792,10 @@ function SavedCard({
 // Main component
 // ──────────────────────────────────────────────────────────────
 
-export function LearningPersonalization({ lessonIndex, classSummaries }: Props) {
+export function LearningPersonalization({
+  lessonIndex,
+  classSummaries,
+}: Props) {
   const [user, setUser] = useState<AccountUser | null>(null);
   const [resolvedUser, setResolvedUser] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
@@ -788,7 +804,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
 
   const orderedLessons = useMemo(
     () => [...lessonIndex].sort((a, b) => a.order - b.order),
-    [lessonIndex],
+    [lessonIndex]
   );
 
   const lessonsById = useMemo(() => {
@@ -804,7 +820,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
         const bStamp = toTimestamp(b.updatedAt ?? b.completedAt);
         return bStamp - aStamp;
       }),
-    [progressDocs],
+    [progressDocs]
   );
 
   useEffect(() => {
@@ -844,28 +860,35 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
       setLoadingData(true);
       try {
         const [progressRes, bookmarksRes] = await Promise.all([
-          fetch(`${PAYLOAD_URL}/api/lesson-progress?limit=500&sort=-updatedAt`, {
-            credentials: "include",
-            signal: controller.signal,
-          }),
+          fetch(
+            `${PAYLOAD_URL}/api/lesson-progress?limit=500&sort=-updatedAt`,
+            {
+              credentials: "include",
+              signal: controller.signal,
+            }
+          ),
           fetch(
             `${PAYLOAD_URL}/api/lesson-bookmarks?limit=100&sort=-updatedAt&depth=2`,
             {
               credentials: "include",
               signal: controller.signal,
-            },
+            }
           ),
         ]);
 
         if (progressRes.ok) {
-          const progressData = (await progressRes.json()) as { docs?: ProgressDoc[] };
+          const progressData = (await progressRes.json()) as {
+            docs?: ProgressDoc[];
+          };
           setProgressDocs(progressData.docs ?? []);
         } else {
           setProgressDocs([]);
         }
 
         if (bookmarksRes.ok) {
-          const bookmarkData = (await bookmarksRes.json()) as { docs?: BookmarkDoc[] };
+          const bookmarkData = (await bookmarksRes.json()) as {
+            docs?: BookmarkDoc[];
+          };
           setBookmarkDocs(bookmarkData.docs ?? []);
         } else {
           setBookmarkDocs([]);
@@ -955,7 +978,11 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
     if (!daySet.size) return { count: 0, activeToday: false };
     const today = new Date();
     const todayKey = toLocalDayKey(today.toISOString());
-    const cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const cursor = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
     let count = 0;
     while (true) {
       const key = toLocalDayKey(cursor.toISOString());
@@ -974,9 +1001,11 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
   // Class progress is built first so the resume hero can reference it.
   const classDashboardCards = useMemo<ClassDashboardCard[]>(() => {
     return classSummaries.map((classSummary) => {
-      const lessonIdSet = new Set(classSummary.lessons.map((lesson) => lesson.id));
+      const lessonIdSet = new Set(
+        classSummary.lessons.map((lesson) => lesson.id)
+      );
       const completedLessons = classSummary.lessons.filter((lesson) =>
-        completedLessonIds.has(lesson.id),
+        completedLessonIds.has(lesson.id)
       ).length;
       const totalLessons = classSummary.lessons.length;
       const progressPercent = totalLessons
@@ -988,15 +1017,21 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
         const lessonId = getRelationId(doc.lesson);
         return !!lessonId && lessonIdSet.has(lessonId);
       });
-      const inProgressId = inProgressDoc ? getRelationId(inProgressDoc.lesson) : null;
-      const inProgressLesson = inProgressId ? lessonsById.get(inProgressId) : null;
+      const inProgressId = inProgressDoc
+        ? getRelationId(inProgressDoc.lesson)
+        : null;
+      const inProgressLesson = inProgressId
+        ? lessonsById.get(inProgressId)
+        : null;
 
       return {
         key: classSummary.id,
         classSlug: classSummary.slug,
         title: classSummary.title,
         description: classSummary.description,
-        viewHref: classSummary.slug ? `/classes/${classSummary.slug}` : "/learning",
+        viewHref: classSummary.slug
+          ? `/classes/${classSummary.slug}`
+          : "/learning",
         continueHref: inProgressLesson
           ? `/classes/${inProgressLesson.classSlug}/lessons/${inProgressLesson.slug}`
           : undefined,
@@ -1029,10 +1064,12 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
 
     const findClassData = (lesson: LearningLessonIndexEntry) => {
       const classCard = classDashboardCards.find(
-        (item) => item.classSlug === lesson.classSlug,
+        (item) => item.classSlug === lesson.classSlug
       );
       const classProgressPercent =
-        classProgressBySlug.get(lesson.classSlug) ?? classCard?.progressPercent ?? 0;
+        classProgressBySlug.get(lesson.classSlug) ??
+        classCard?.progressPercent ??
+        0;
       const lessonsRemainingInClass = classCard
         ? Math.max(classCard.totalLessons - classCard.completedLessons, 0)
         : 0;
@@ -1067,7 +1104,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
       const recentId = getRelationId(mostRecent.lesson);
       if (recentId) {
         const recentIndex = orderedLessons.findIndex(
-          (lesson) => lesson.id === recentId,
+          (lesson) => lesson.id === recentId
         );
         if (recentIndex >= 0) {
           const nextIncomplete = orderedLessons
@@ -1124,7 +1161,9 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
         const classSlug =
           fromIndex?.classSlug ?? getRelationSlug(bookmark.class) ?? null;
         const classTitle =
-          fromIndex?.classTitle ?? getRelationTitle(bookmark.class) ?? "Learning";
+          fromIndex?.classTitle ??
+          getRelationTitle(bookmark.class) ??
+          "Learning";
         const chapterTitle =
           fromIndex?.chapterTitle ?? getRelationTitle(bookmark.chapter) ?? "";
 
@@ -1137,7 +1176,9 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
           key,
           href: `/classes/${classSlug}/lessons/${lessonSlug}`,
           title: lessonTitle,
-          subtitle: chapterTitle ? `${classTitle} · ${chapterTitle}` : classTitle,
+          subtitle: chapterTitle
+            ? `${classTitle} · ${chapterTitle}`
+            : classTitle,
           savedAt: bookmark.updatedAt,
         });
       });
@@ -1169,7 +1210,9 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
 
   const firstName = getFirstName(user);
   const greetingPrefix = useMemo(() => getGreetingPrefix(new Date()), []);
-  const greeting = firstName ? `${greetingPrefix}, ${firstName}` : greetingPrefix;
+  const greeting = firstName
+    ? `${greetingPrefix}, ${firstName}`
+    : greetingPrefix;
 
   const totalLessonCount = orderedLessons.length;
   const overallProgramProgress = totalLessonCount
@@ -1177,7 +1220,9 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
     : 0;
 
   const loadingState = !resolvedUser || loadingData;
-  const earnedBadgeCount = milestoneBadges.filter((badge) => badge.earned).length;
+  const earnedBadgeCount = milestoneBadges.filter(
+    (badge) => badge.earned
+  ).length;
   const firstClassHref = classDashboardCards[0]?.viewHref ?? "/learning";
   const latestSaved = savedLessons[0] ?? null;
   const featuredClassSlug = resumeSelection?.lesson.classSlug ?? null;
@@ -1186,63 +1231,50 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
   // (signed-out, or signed-in but no resume target yet). Avoids burning a
   // half-screen of vertical space on what's essentially a CTA.
   const heroIsCompact = !user || !resumeSelection;
+
   return (
-    <section className="lp-shell space-y-5">
+    <section className="lp-shell flex flex-col gap-6">
       <style>{`
         @keyframes lp-fade-in {
-          from { opacity: 0; transform: translateY(4px); }
+          from { opacity: 0; transform: translateY(5px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        .lp-fade-in { animation: lp-fade-in 320ms ease-out both; }
+        .lp-fade-in { animation: lp-fade-in 360ms ease-out both; }
         @media (prefers-reduced-motion: reduce) {
           .lp-fade-in { animation: none !important; }
         }
       `}</style>
 
-      {/* Greeting — only render the subtitle when we have real momentum
-          to talk about. Signed-out / no-progress states are already covered
-          by the hero CTA right below, so the subtitle was redundant. */}
-      <div className="space-y-0.5">
-        <h2 className="text-[22px] font-semibold tracking-tight text-foreground sm:text-2xl">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-[24px] font-semibold leading-tight tracking-[-0.025em] text-foreground sm:text-[28px]">
           {greeting}
         </h2>
         {user && resumeSelection ? (
-          <p className="text-[13px] text-muted-foreground">
+          <p className="text-[13px] leading-5 text-muted-foreground">
             Pick up your next lesson and check your momentum below.
           </p>
         ) : null}
       </div>
 
-      {/* Hero — Resume learning. Two layouts:
-          1. Compact bar: signed-out OR signed-in with no resume target.
-             Single row, short height, single CTA.
-          2. Rich layout: signed-in with an active lesson to resume.
-             Larger layout with progress bar + momentum rail. */}
       <section className="lp-fade-in">
         {heroIsCompact ? (
-          <article
-            className={cn(
-              "flex flex-col items-start justify-between gap-3 border-y border-primary/30",
-              "bg-primary/[0.04] px-1 py-4",
-              "sm:flex-row sm:items-center sm:gap-5 sm:px-5 sm:py-4",
-            )}
-          >
-            <div className="min-w-0 flex-1 space-y-1">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">
-                <PlayCircle className="h-3 w-3" />
+          <article className="flex flex-col items-stretch justify-between gap-5 rounded-md border border-primary/25 bg-primary/[0.025] p-5 shadow-[0_8px_26px_rgba(0,80,48,0.045)] sm:flex-row sm:items-center sm:gap-8 sm:px-6 sm:py-5">
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
+              <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-primary/40 bg-background/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.13em] text-primary">
+                <PlayCircle className="size-3.5" aria-hidden="true" />
                 Resume learning
               </span>
               {loadingState ? (
-                <div className="h-5 w-3/5 rounded-md bg-muted/60 animate-pulse" />
+                <Skeleton className="h-5 w-full max-w-xl bg-muted" />
               ) : user ? (
-                <p className="text-[15px] font-semibold leading-snug text-foreground sm:text-base">
-                  You haven't started a lesson yet.{" "}
+                <p className="text-[15px] font-semibold leading-6 text-foreground sm:text-base">
+                  You haven&apos;t started a lesson yet.{" "}
                   <span className="font-normal text-muted-foreground">
                     Pick a class to get your first recommendation.
                   </span>
                 </p>
               ) : (
-                <p className="text-[15px] font-semibold leading-snug text-foreground sm:text-base">
+                <p className="text-[15px] font-semibold leading-6 text-foreground sm:text-base">
                   Sign in to continue your coursework.{" "}
                   <span className="font-normal text-muted-foreground">
                     Progress and bookmarks are tied to your account.
@@ -1250,42 +1282,45 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
                 </p>
               )}
             </div>
-            <div className="shrink-0">
+            <div className="shrink-0 sm:min-w-36">
               {loadingState ? (
-                <div className="h-9 w-28 rounded-lg bg-muted/60 animate-pulse" />
+                <Skeleton className="h-11 w-full bg-muted sm:w-36" />
               ) : user ? (
-                <Button asChild className="rounded-lg">
+                <Button
+                  asChild
+                  size="lg"
+                  className="w-full rounded-md sm:w-auto"
+                >
                   <Link href={firstClassHref}>
                     Browse classes
-                    <ArrowRight className="ml-1 h-4 w-4" />
+                    <ArrowRight data-icon="inline-end" />
                   </Link>
                 </Button>
               ) : (
-                <Button asChild className="rounded-lg">
+                <Button
+                  asChild
+                  size="lg"
+                  className="w-full rounded-md sm:w-auto"
+                >
                   <LoginLink>
                     Sign in
-                    <ArrowRight className="ml-1 h-4 w-4" />
+                    <ArrowRight data-icon="inline-end" />
                   </LoginLink>
                 </Button>
               )}
             </div>
           </article>
         ) : (
-          <article
-            className={cn(
-              "relative overflow-hidden border-y border-primary/35 bg-primary/[0.04]",
-              "px-1 py-5 sm:px-5",
-            )}
-          >
-            <div className="relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_210px]">
-              <div className="min-w-0 space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">
-                    <PlayCircle className="h-3 w-3" />
+          <article className="relative overflow-hidden rounded-md border border-primary/30 border-t-2 border-t-primary bg-primary/[0.025] p-5 shadow-[0_8px_26px_rgba(0,80,48,0.045)] sm:p-6">
+            <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_230px]">
+              <div className="flex min-w-0 flex-col gap-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.13em] text-primary">
+                    <PlayCircle className="size-3.5" aria-hidden="true" />
                     Resume learning
                   </span>
                   {resumeSelection ? (
-                    <span className="text-[11px] font-medium text-muted-foreground">
+                    <span className="text-[11px] font-medium leading-4 text-muted-foreground">
                       {resumeSelection.lesson.classTitle} ·{" "}
                       {resumeSelection.lesson.chapterTitle}
                     </span>
@@ -1294,12 +1329,12 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
 
                 {resumeSelection ? (
                   <>
-                    <h2 className="text-xl font-bold leading-tight tracking-tight text-foreground sm:text-[26px]">
+                    <h2 className="text-[24px] font-bold leading-tight tracking-[-0.025em] text-foreground sm:text-[28px]">
                       {resumeSelection.lesson.title}
                     </h2>
 
-                    <div className="space-y-1.5">
-                      <div className="flex flex-wrap items-center justify-between gap-2 text-[12px]">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] leading-4">
                         <span className="font-medium text-foreground/80">
                           {resumeSelection.classProgressPercent}% through{" "}
                           {resumeSelection.lesson.classTitle}
@@ -1307,23 +1342,25 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
                         {resumeSelection.lessonsRemainingInClass > 0 ? (
                           <span className="text-muted-foreground">
                             {resumeSelection.lessonsRemainingInClass} lesson
-                            {resumeSelection.lessonsRemainingInClass === 1 ? "" : "s"} left
+                            {resumeSelection.lessonsRemainingInClass === 1
+                              ? ""
+                              : "s"}{" "}
+                            left
                           </span>
                         ) : null}
                       </div>
-                      <ProgressBar value={resumeSelection.classProgressPercent} />
+                      <ProgressBar
+                        value={resumeSelection.classProgressPercent}
+                      />
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <Button
-                        asChild
-                        className="rounded-lg transition-colors duration-200"
-                      >
+                    <div className="flex flex-wrap items-center gap-3 pt-1">
+                      <Button asChild size="lg" className="rounded-md">
                         <Link
                           href={`/classes/${resumeSelection.lesson.classSlug}/lessons/${resumeSelection.lesson.slug}`}
                         >
                           Resume lesson
-                          <ArrowRight className="ml-1 h-4 w-4" />
+                          <ArrowRight data-icon="inline-end" />
                         </Link>
                       </Button>
                       <Link
@@ -1343,10 +1380,10 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
               {/* Right rail: momentum at a glance */}
               <aside
                 aria-label="Momentum"
-                className="grid gap-2 self-start border-y border-border/55 bg-background/35 p-3 backdrop-blur-sm lg:min-w-[200px]"
+                className="grid gap-3 self-start rounded-md border border-border/80 bg-background/75 p-4 lg:min-w-[220px]"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
                     Program
                   </span>
                   <span className="text-[11px] font-semibold tabular-nums text-foreground">
@@ -1355,15 +1392,15 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
                 </div>
                 <ProgressBar value={overallProgramProgress} size="sm" />
 
-                <div className="grid grid-cols-2 gap-2 pt-1.5">
-                  <div className="border-t border-border/55 bg-background/40 px-2 py-1.5">
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div className="border-t border-border/70 px-1 py-2">
                     <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
                       <Flame
                         className={cn(
                           "h-3 w-3",
                           streak.activeToday
                             ? "text-amber-500"
-                            : "text-muted-foreground",
+                            : "text-muted-foreground"
                         )}
                       />
                       Streak
@@ -1375,7 +1412,7 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
                       </span>
                     </div>
                   </div>
-                  <div className="border-t border-border/55 bg-background/40 px-2 py-1.5">
+                  <div className="border-t border-border/70 px-1 py-2">
                     <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
                       <Target className="h-3 w-3 text-primary/85" />
                       Week
@@ -1394,45 +1431,51 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
         )}
       </section>
 
-      {/* Program snapshot */}
-      <section className="space-y-2">
-        <h2 className="text-[12px] font-bold uppercase tracking-[0.1em] text-foreground/80">
+      <section className="flex flex-col gap-2.5">
+        <h2 className="text-[12px] font-bold uppercase leading-4 tracking-[0.12em] text-foreground/80">
           Program snapshot
         </h2>
-        <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
-          <WeeklyGoalCard
-            loading={loadingState}
-            signedIn={!!user}
-            completed={weeklyCompleted}
-            pips={weeklyPips}
-          />
-          <StreakCard
-            loading={loadingState}
-            signedIn={!!user}
-            count={streak.count}
-            activeToday={streak.activeToday}
-          />
-          <MilestonesCard
-            loading={loadingState}
-            signedIn={!!user}
-            earned={earnedBadgeCount}
-            total={milestoneBadges.length}
-            completedLessons={completedCount}
-            tiers={milestoneBadges}
-          />
-          <SavedCard
-            loading={loadingState}
-            signedIn={!!user}
-            count={savedLessons.length}
-            latest={latestSaved}
-          />
+        <div className="grid grid-cols-2 overflow-hidden border-y border-border/90 xl:grid-cols-4">
+          <div className="border-b border-r border-border/90 xl:border-b-0">
+            <WeeklyGoalCard
+              loading={loadingState}
+              signedIn={!!user}
+              completed={weeklyCompleted}
+              pips={weeklyPips}
+            />
+          </div>
+          <div className="border-b border-border/90 xl:border-b-0 xl:border-r">
+            <StreakCard
+              loading={loadingState}
+              signedIn={!!user}
+              count={streak.count}
+              activeToday={streak.activeToday}
+            />
+          </div>
+          <div className="border-r border-border/90">
+            <MilestonesCard
+              loading={loadingState}
+              signedIn={!!user}
+              earned={earnedBadgeCount}
+              total={milestoneBadges.length}
+              completedLessons={completedCount}
+              tiers={milestoneBadges}
+            />
+          </div>
+          <div>
+            <SavedCard
+              loading={loadingState}
+              signedIn={!!user}
+              count={savedLessons.length}
+              latest={latestSaved}
+            />
+          </div>
         </div>
       </section>
 
-      {/* Your classes */}
-      <section className="space-y-2.5">
+      <section className="flex flex-col gap-3">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-lg font-bold tracking-tight text-foreground">
+          <h2 className="text-[20px] font-bold leading-7 tracking-[-0.02em] text-foreground">
             Your classes
           </h2>
           {user ? (
@@ -1442,9 +1485,10 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
           ) : null}
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {classDashboardCards.map((classCard) => {
-            const featured = !!featuredClassSlug && classCard.classSlug === featuredClassSlug;
+            const featured =
+              !!featuredClassSlug && classCard.classSlug === featuredClassSlug;
             const lastActivityLabel =
               user && classCard.lastActivityAt
                 ? formatRelativeTime(classCard.lastActivityAt)
@@ -1469,27 +1513,27 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
         </div>
 
         {classDashboardCards.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No classes available yet.</p>
+          <p className="text-sm text-muted-foreground">
+            No classes available yet.
+          </p>
         ) : null}
       </section>
 
-      {/* Recent lesson activity */}
-      <section className="space-y-2">
-        <h2 className="text-[12px] font-bold uppercase tracking-[0.1em] text-foreground/80">
+      <section className="flex flex-col gap-2.5">
+        <h2 className="text-[12px] font-bold uppercase leading-4 tracking-[0.12em] text-foreground/80">
           Recent activity
         </h2>
 
         {loadingState ? (
-          <ul className="space-y-2">
+          <ul className="flex flex-col gap-2">
             {[0, 1, 2].map((idx) => (
-              <li
-                key={idx}
-                className="h-14 border-y border-border/55 bg-muted/30 animate-pulse"
-              />
+              <li key={idx}>
+                <Skeleton className="h-14 w-full rounded-md bg-muted" />
+              </li>
             ))}
           </ul>
         ) : recentActivity.length ? (
-          <ol className="relative space-y-2 border-l border-border/55 pl-5">
+          <ol className="relative flex flex-col gap-2 border-l border-border/70 pl-5">
             {recentActivity.map((item) => (
               <li key={item.key} className="relative">
                 <span
@@ -1497,13 +1541,13 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
                   className={cn(
                     "absolute -left-[26px] top-3 inline-flex h-2.5 w-2.5 rounded-full ring-4",
                     item.completed
-                      ? "bg-emerald-500 ring-emerald-500/15"
-                      : "bg-primary ring-primary/15",
+                      ? "bg-primary ring-primary/15"
+                      : "bg-primary ring-primary/15"
                   )}
                 />
                 <Link
                   href={item.href}
-                  className="block border-y border-border/55 bg-transparent px-3 py-2.5 transition-colors duration-200 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="block rounded-md border border-border/75 bg-card px-4 py-3 transition-colors duration-200 hover:border-primary/25 hover:bg-primary/[0.015] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <p className="text-sm font-semibold text-foreground">
@@ -1513,13 +1557,14 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
                       {item.timeLabel}
                     </span>
                   </div>
-                  <div className="mt-0.5 flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
+                  <div className="mt-1 flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
                     {item.completed ? (
-                      <span className="inline-flex items-center rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.08em] text-emerald-600 dark:text-emerald-400">
-                        Done
+                      <span className="inline-flex items-center gap-1 font-bold uppercase tracking-[0.08em] text-primary">
+                        <CheckCircle2 className="size-3" aria-hidden="true" />
+                        Complete
                       </span>
                     ) : (
-                      <span className="inline-flex items-center rounded-full bg-primary/15 px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.08em] text-primary">
+                      <span className="inline-flex items-center font-bold uppercase tracking-[0.08em] text-primary">
                         In&nbsp;progress
                       </span>
                     )}
@@ -1530,17 +1575,24 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
             ))}
           </ol>
         ) : (
-          <div className="border-y border-dashed border-border/55 bg-muted/10 px-4 py-6 text-center">
-            <p className="text-sm font-medium text-foreground/80">
-              {user
-                ? "No recent activity yet."
-                : "Sign in to see your lesson activity."}
-            </p>
-            <p className="mt-1 text-[12px] text-muted-foreground">
-              {user
-                ? "Start a class above to build your timeline."
-                : "Your timeline appears here once you sign in."}
-            </p>
+          <div className="flex min-h-28 items-center justify-center gap-4 rounded-md border border-dashed border-border bg-muted/[0.08] px-5 py-7 text-left sm:min-h-32">
+            <BarChart3
+              className="size-10 shrink-0 text-muted-foreground/40"
+              strokeWidth={1.5}
+              aria-hidden="true"
+            />
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium text-foreground/85 sm:text-[15px]">
+                {user
+                  ? "No recent activity yet."
+                  : "Sign in to see your lesson activity."}
+              </p>
+              <p className="text-[12px] leading-5 text-muted-foreground">
+                {user
+                  ? "Start a class above to build your timeline."
+                  : "Your timeline appears here once you sign in."}
+              </p>
+            </div>
           </div>
         )}
       </section>

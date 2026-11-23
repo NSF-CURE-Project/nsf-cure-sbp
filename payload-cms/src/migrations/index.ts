@@ -1,4 +1,5 @@
 import * as migration_20251220_024730_add_versions from './20251220_024730_add_versions'
+import * as practiceMigration from './20261123_160000_add_lesson_practice'
 import * as migration_20251220_041833_add_layout_blocks from './20251220_041833_add_layout_blocks'
 import * as migration_20251225_182747 from './20251225_182747'
 import * as migration_20251228_190000_lesson_feedback_nav_order from './20251228_190000_lesson_feedback_nav_order'
@@ -281,5 +282,10 @@ export const migrations = [
     up: migration_20260624_230000_add_site_announcement_banner.up,
     down: migration_20260624_230000_add_site_announcement_banner.down,
     name: '20260624_230000_add_site_announcement_banner',
+  },
+  {
+    up: practiceMigration.up,
+    down: practiceMigration.down,
+    name: '20261123_160000_add_lesson_practice',
   },
 ]

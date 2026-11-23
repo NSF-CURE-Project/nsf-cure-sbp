@@ -62,11 +62,11 @@ export const SiteBranding: GlobalConfig = {
         {
           name: 'message',
           label: 'Message',
-          type: 'text',
-          maxLength: 160,
+          type: 'textarea',
           admin: {
             condition: (_, siblingData) => siblingData?.enabled === true,
-            description: 'Keep this short so it fits in the thin header banner.',
+            description:
+              'Long messages scroll across the thin header banner so the full announcement remains visible.',
           },
         },
         {

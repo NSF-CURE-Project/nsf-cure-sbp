@@ -24,6 +24,7 @@ import { PrePostAssessments } from './collections/PrePostAssessments'
 import { SavedViews } from './collections/SavedViews'
 import { Quizzes } from './collections/Quizzes'
 import { QuizAttempts } from './collections/QuizAttempts'
+import { PracticeAttempts } from './collections/PracticeAttempts'
 import { MathFeature } from './lexical/math/MathFeature'
 import { Questions } from './collections/Questions'
 import { Notifications } from './collections/Notifications'
@@ -400,6 +401,7 @@ export default buildConfig({
     QuizQuestions,
     Quizzes,
     QuizAttempts,
+    PracticeAttempts,
     Notifications,
     LessonProgress,
     LessonBookmarks,

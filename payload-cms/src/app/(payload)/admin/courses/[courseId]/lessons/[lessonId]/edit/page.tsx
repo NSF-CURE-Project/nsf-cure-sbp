@@ -1,9 +1,11 @@
 import React from 'react'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { Gutter } from '@payloadcms/ui'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import LessonScaffoldEditor from '@/views/courses/LessonScaffoldEditor'
+import { LessonPracticeProgress } from '@/views/courses/LessonPracticeProgress'
 import { fromPersistedLayout } from '@/views/courses/scaffold/types'
 
 // Stage 3: custom editor for existing lessons. Hydrates the persisted lesson
@@ -17,6 +19,10 @@ export default async function EditLessonPage({
   const { courseId, lessonId } = await params
 
   const payload = await getPayload({ config: configPromise })
+  const { user } = await payload.auth({ headers: await headers() })
+  if (user?.collection !== 'users' || !['admin', 'staff', 'professor'].includes(user.role ?? '')) {
+    redirect('/admin/login')
+  }
 
   const lesson = await payload
     .findByID({
@@ -26,6 +32,7 @@ export default async function EditLessonPage({
       // and parent class; deeper would also populate any quiz relationships,
       // which is fine — `fromPersistedLayout` extracts ids either way.
       depth: 1,
+      draft: true,
       overrideAccess: true,
     })
     .catch(() => null)
@@ -140,7 +147,9 @@ export default async function EditLessonPage({
           initialBlocks={initialBlocks}
           initialStatus={initialStatus}
           previewUrl={previewUrl}
+          practicePreviewOrigin={previewBase}
         />
+        <LessonPracticeProgress payload={payload} lesson={lesson} courseId={course.id} actor={user} />
       </div>
     </Gutter>
   )

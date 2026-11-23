@@ -5,6 +5,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { BLOCK_TYPE_LABELS, type ScaffoldBlock } from './types'
 import BlockEditor from './BlockEditor'
+import practiceCatalog from '../../../practice/catalog.generated.json'
 
 // Compact summary for the collapsed state. Each block type gets a short
 // preview line so authors can scan the outline without expanding everything.
@@ -33,6 +34,8 @@ function previewText(block: ScaffoldBlock): string {
     }
     case 'quizBlock':
       return block.quiz != null ? `Quiz #${block.quiz}` : 'Quiz — not selected'
+    case 'practiceProblem':
+      return practiceCatalog.find((item) => item.id === block.problemId)?.title ?? 'Choose a practice problem'
     case 'heroBlock':
       return block.title || 'Hero — needs headline'
     case 'resourcesList': {

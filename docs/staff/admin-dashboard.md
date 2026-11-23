@@ -11,9 +11,15 @@ For the complete staff manual, see [`docs/staff/payload-admin-handbook.md`](../s
 
 `/admin` is rendered by `StaffDashboardView` (`payload-cms/src/views/StaffDashboardView.tsx`). It surfaces:
 
-- A "Today" summary: drafts in flight, unread feedback, open questions, pending lesson feedback.
-- Action cards for the main staff workspaces.
-- A reporting gateway (entry into the RPPR workspace) when the caller has reporting access.
+- **Needs attention:** one prioritized task list for open questions, pending lesson replies,
+  unread site feedback, and draft lessons. When every queue is empty, the dashboard shows one
+  compact "You're all caught up" state instead of repeating zero-value alerts.
+- **Program snapshot:** active learners, classroom enrollments, completion context, and published content.
+  Values share a clear timeframe, and unavailable metrics explain why data is missing.
+- **Workspaces:** direct entry points for courses, classrooms, quizzes, and site management.
+- **Content health:** lesson-level completion, question-volume, and helpfulness signals.
+- **NSF reporting:** the active reporting period, RPPR drafts, latest snapshot, and reporting-suite
+  shortcuts.
 
 Each card primary action is one click; secondary actions appear underneath.
 

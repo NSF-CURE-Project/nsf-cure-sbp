@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { BLOCK_TYPE_LABELS, type ScaffoldBlock } from './types'
+import practiceCatalog from '../../../practice/catalog.generated.json'
 
 type OutlinePanelProps = {
   blocks: ScaffoldBlock[]
@@ -35,6 +36,8 @@ function summarize(block: ScaffoldBlock): string {
     }
     case 'quizBlock':
       return block.title || 'Quiz'
+    case 'practiceProblem':
+      return practiceCatalog.find((item) => item.id === block.problemId)?.title ?? 'Practice problem'
     case 'heroBlock':
       return block.title || 'Hero'
     case 'resourcesList': {
