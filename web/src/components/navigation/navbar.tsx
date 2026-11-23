@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
@@ -14,7 +14,6 @@ import {
   Settings,
   User as UserIcon,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/theme/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,6 +36,7 @@ import {
 import { LoginLink } from "@/components/auth/LoginLink";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 import { cn } from "@/lib/utils";
+import { GlobalSearchDialog } from "@/components/navigation/global-search/GlobalSearchDialog";
 
 const PAYLOAD_URL = getPayloadBaseUrl();
 const NAVBAR_USER_CACHE_KEY = "sbp-navbar-user";
@@ -148,9 +148,6 @@ export default function Navbar({
   const [pages, setPages] = useState<NavbarPage[]>(() => readCachedNavbarPages());
   const [authBusy, setAuthBusy] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
-  const searchDialogRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
@@ -169,37 +166,12 @@ export default function Navbar({
       ) {
         event.preventDefault();
         setSearchOpen(true);
-        return;
-      }
-
-      if (event.key === "Escape" && searchOpen) {
-        setSearchOpen(false);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [searchOpen]);
-
-  useEffect(() => {
-    if (!searchOpen) return;
-    requestAnimationFrame(() => {
-      searchInputRef.current?.focus();
-      searchInputRef.current?.select();
-    });
-  }, [searchOpen]);
-  useEffect(() => {
-    if (!searchOpen) return;
-
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node | null;
-      if (target && searchDialogRef.current?.contains(target)) return;
-      setSearchOpen(false);
-    };
-
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [searchOpen]);
+  }, []);
   useEffect(() => {
     const controller = new AbortController();
     const loadUser = async () => {
@@ -333,14 +305,6 @@ export default function Navbar({
       setAuthBusy(false);
       window.location.href = "/";
     }
-  };
-
-  const handleSearchSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
-    event?.preventDefault();
-    const query = searchValue.trim();
-    if (!query) return;
-    setSearchOpen(false);
-    router.push(`/search?q=${encodeURIComponent(query)}`);
   };
 
   const mode = useMemo(() => {
@@ -516,13 +480,13 @@ export default function Navbar({
         </Button>
         <button
           type="button"
-          className="hidden md:flex items-center gap-2 rounded-md border border-border/70 bg-muted/40 px-3 py-1 text-[13px] text-muted-foreground transition hover:bg-muted/60"
+          className="hidden md:flex items-center gap-2 rounded-[10px] border border-border/70 bg-muted/30 px-3 py-1.5 text-[13px] text-muted-foreground transition hover:border-border hover:bg-muted/50"
           onClick={() => setSearchOpen(true)}
           aria-label="Open search"
         >
-          <Search className="h-4 w-4" />
-          <span className="text-sm">Search program...</span>
-          <span className="ml-2 rounded-md border border-border/60 bg-background px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-foreground/70">
+          <Search className="h-3.5 w-3.5" />
+          <span className="text-[13px]">Search…</span>
+          <span className="ml-1 rounded-md border border-border/60 bg-background px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-foreground/70">
             ⌘K
           </span>
         </button>
@@ -819,14 +783,14 @@ export default function Navbar({
                   </div>
                 </div>
               ) : null}
-              <form role="search" action="/search" className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  name="q"
-                  placeholder="Search program..."
-                  className="h-10 rounded-md border-border/80 bg-muted/40 pl-9 pr-3 text-sm transition focus-visible:ring-2 focus-visible:ring-primary/50"
-                />
-              </form>
+              <button
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                className="flex w-full items-center gap-2 rounded-[10px] border border-border/70 bg-muted/30 px-3 py-2.5 text-left text-sm text-muted-foreground transition hover:bg-muted/50"
+              >
+                <Search className="h-4 w-4 shrink-0" aria-hidden />
+                <span>Search lessons, topics, and resources…</span>
+              </button>
 
               <div className="grid gap-2 text-foreground text-base">
                 <Link
@@ -904,66 +868,7 @@ export default function Navbar({
           </SheetContent>
         </Sheet>
       </div>
-      {searchOpen ? (
-        <div
-          className="fixed inset-0 z-[10000] bg-slate-950/15 backdrop-blur-[2px] dark:bg-slate-950/45"
-          onClick={() => setSearchOpen(false)}
-        >
-          <div
-            ref={searchDialogRef}
-            className="mx-auto mt-24 w-[min(92vw,720px)] rounded-xl border border-border/70 bg-background/95 shadow-[0_24px_70px_rgba(15,23,42,0.18)] ring-1 ring-white/50 backdrop-blur-md supports-[backdrop-filter]:bg-background/90 dark:ring-white/10"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="flex items-center gap-2 border-b border-border/60 px-4 py-3">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <form className="flex-1" onSubmit={handleSearchSubmit}>
-                <Input
-                  ref={searchInputRef}
-                  value={searchValue}
-                  onChange={(event) => setSearchValue(event.target.value)}
-                  placeholder="What are you searching for?"
-                  className="w-full border-border/60 bg-muted/20 px-3 text-sm"
-                />
-              </form>
-              <button
-                type="button"
-                className="rounded-md border border-border/60 bg-muted/40 px-2 py-1 text-[11px] font-semibold text-muted-foreground transition hover:bg-muted/60"
-                onClick={() => setSearchOpen(false)}
-                aria-label="Close search"
-              >
-                Esc
-              </button>
-            </div>
-            <div className="p-4">
-              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Quick links
-              </div>
-              <div className="mt-2 grid gap-2">
-                <Link
-                  href="/directory"
-                  className="flex items-center justify-between border-y border-border/60 bg-muted/10 px-3 py-2 text-sm text-foreground transition hover:bg-muted/40"
-                  onClick={() => setSearchOpen(false)}
-                >
-                  Site Directory
-                  <span className="text-xs text-muted-foreground">
-                    Browse all pages
-                  </span>
-                </Link>
-                <Link
-                  href="/classes"
-                  className="flex items-center justify-between border-b border-border/60 bg-muted/10 px-3 py-2 text-sm text-foreground transition hover:bg-muted/40"
-                  onClick={() => setSearchOpen(false)}
-                >
-                  Classes
-                  <span className="text-xs text-muted-foreground">
-                    Explore lessons
-                  </span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <GlobalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
       </nav>
     </header>
   );
