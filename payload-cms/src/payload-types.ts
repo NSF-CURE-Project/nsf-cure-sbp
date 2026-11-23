@@ -807,6 +807,10 @@ export interface Page {
                   title: string;
                   description?: string | null;
                   url: string;
+                  /**
+                   * Optional action text (defaults to "Open").
+                   */
+                  linkLabel?: string | null;
                   type?: ('link' | 'video' | 'download' | 'other') | null;
                   id?: string | null;
                 }[]
@@ -2108,6 +2112,7 @@ export interface PagesSelect<T extends boolean = true> {
                     title?: T;
                     description?: T;
                     url?: T;
+                    linkLabel?: T;
                     type?: T;
                     id?: T;
                   };

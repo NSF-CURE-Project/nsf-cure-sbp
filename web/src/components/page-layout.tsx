@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ArrowRight,
   ExternalLink,
   Mail,
   Phone,
@@ -654,13 +656,23 @@ export function PageLayout({
                           {item.type ?? "link"}
                         </span>
                       </div>
-                      <a
-                        href={item.url}
-                        className="mt-2 inline-flex items-center gap-1 text-primary text-sm font-semibold underline underline-offset-4 hover:no-underline"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                        Open
-                      </a>
+                      {item.url?.startsWith("/") ? (
+                        <Link
+                          href={item.url}
+                          className="mt-2 inline-flex items-center gap-1 text-primary text-sm font-semibold underline underline-offset-4 hover:no-underline"
+                        >
+                          {item.linkLabel?.trim() || "Open"}
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      ) : (
+                        <a
+                          href={item.url}
+                          className="mt-2 inline-flex items-center gap-1 text-primary text-sm font-semibold underline underline-offset-4 hover:no-underline"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          {item.linkLabel?.trim() || "Open"}
+                        </a>
+                      )}
                     </li>
                   ))
                 ) : (

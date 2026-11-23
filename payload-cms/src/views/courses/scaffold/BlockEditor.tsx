@@ -633,16 +633,27 @@ export default function BlockEditor({ block, view, onChange }: BlockEditorProps)
                     Remove
                   </button>
                 </div>
-                <div className="grid gap-2 sm:grid-cols-2">
+                <div className="grid gap-2 sm:grid-cols-3">
                   <input
-                    type="url"
+                    type="text"
                     value={resource.url ?? ''}
                     onChange={(event) => {
                       const next = resources.slice()
                       next[index] = { ...next[index], url: event.target.value }
                       updateResources(next)
                     }}
-                    placeholder="https://…"
+                    placeholder="https://… or /path"
+                    className={inputCls}
+                  />
+                  <input
+                    type="text"
+                    value={resource.linkLabel ?? ''}
+                    onChange={(event) => {
+                      const next = resources.slice()
+                      next[index] = { ...next[index], linkLabel: event.target.value }
+                      updateResources(next)
+                    }}
+                    placeholder="Link label (default: Open)"
                     className={inputCls}
                   />
                   <input
@@ -653,7 +664,7 @@ export default function BlockEditor({ block, view, onChange }: BlockEditorProps)
                       next[index] = { ...next[index], type: event.target.value }
                       updateResources(next)
                     }}
-                    placeholder="Type (article, video, etc.)"
+                    placeholder="Type (link, video, etc.)"
                     className={inputCls}
                   />
                 </div>

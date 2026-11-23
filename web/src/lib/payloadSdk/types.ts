@@ -146,6 +146,7 @@ export type ResourceItem = {
   title?: string;
   description?: string;
   url?: string;
+  linkLabel?: string | null;
   type?: string;
 };
 

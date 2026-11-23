@@ -271,6 +271,15 @@ const resourcesListBlock: Block = {
           required: true,
         },
         {
+          name: 'linkLabel',
+          label: 'Link Label',
+          type: 'text',
+          admin: {
+            placeholder: 'Open',
+            description: 'Optional action text (defaults to "Open").',
+          },
+        },
+        {
           name: 'type',
           type: 'select',
           options: [

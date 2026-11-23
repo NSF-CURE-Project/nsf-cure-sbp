@@ -46,6 +46,7 @@ import * as migration_20260513_170000_add_lesson_learning_fields from './2026051
 import * as migration_20260624_064500_repair_lesson_learning_version_tables from './20260624_064500_repair_lesson_learning_version_tables'
 import * as migration_20260624_081500_add_auth_settings from './20260624_081500_add_auth_settings'
 import * as migration_20260624_230000_add_site_announcement_banner from './20260624_230000_add_site_announcement_banner'
+import * as migration_20261123_193000_add_resource_item_link_label from './20261123_193000_add_resource_item_link_label'
 
 export const migrations = [
   {
@@ -287,5 +288,10 @@ export const migrations = [
     up: practiceMigration.up,
     down: practiceMigration.down,
     name: '20261123_160000_add_lesson_practice',
+  },
+  {
+    up: migration_20261123_193000_add_resource_item_link_label.up,
+    down: migration_20261123_193000_add_resource_item_link_label.down,
+    name: '20261123_193000_add_resource_item_link_label',
   },
 ]

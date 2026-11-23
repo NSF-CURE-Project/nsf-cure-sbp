@@ -99,6 +99,7 @@ export type ResourceItemData = {
   title?: string
   description?: string
   url?: string
+  linkLabel?: string
   type?: string
 }
 
@@ -504,6 +505,7 @@ export const fromPersistedLayout = (
               title: asOptionalString(r.title),
               description: asOptionalString(r.description),
               url: asOptionalString(r.url),
+              linkLabel: asOptionalString(r.linkLabel),
               type: asOptionalString(r.type),
             }))
           : []
