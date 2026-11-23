@@ -4,23 +4,19 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
-  Award,
-  BarChart3,
   Bookmark,
-  BookmarkCheck,
+  BookOpen,
+  Calculator,
   CheckCircle2,
-  Flame,
-  PlayCircle,
-  Target,
+  Clock,
+  Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { LoginLink } from "@/components/auth/LoginLink";
 import { cn } from "@/lib/utils";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
 const PAYLOAD_URL = getPayloadBaseUrl();
-const WEEKLY_GOAL_TARGET = 5;
 
 export type LearningLessonIndexEntry = {
   id: string;
@@ -42,9 +38,15 @@ export type LearningClassSummary = {
   lessons: LearningLessonIndexEntry[];
 };
 
+export type LearningPracticeSummary = {
+  enabled: boolean;
+  totalProblems: number;
+};
+
 type Props = {
   lessonIndex: LearningLessonIndexEntry[];
   classSummaries: LearningClassSummary[];
+  practiceSummary?: LearningPracticeSummary;
 };
 
 type AccountUser = {
@@ -96,7 +98,6 @@ type SavedLessonItem = {
   href: string;
   title: string;
   subtitle: string;
-  savedAt?: string;
 };
 
 type RecentActivity = {
@@ -114,22 +115,17 @@ type ClassDashboardCard = {
   key: string;
   classSlug: string;
   title: string;
-  description?: string | null;
+  description: string;
   viewHref: string;
+  firstLessonHref?: string;
   continueHref?: string;
   progressPercent: number;
   completedLessons: number;
+  totalChapters: number;
   totalLessons: number;
   hasProgress: boolean;
   iconVariant: ClassIconVariant;
   lastActivityAt?: string | null;
-};
-
-// Day-of-week pip data for the weekly-goal mini visualization.
-type WeeklyPip = {
-  label: string;
-  active: boolean;
-  isToday: boolean;
 };
 
 // ──────────────────────────────────────────────────────────────
@@ -168,21 +164,6 @@ const toTimestamp = (value?: string | null) => {
   return Number.isNaN(timestamp) ? 0 : timestamp;
 };
 
-const toLocalDayKey = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  const local = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  return local.toISOString().slice(0, 10);
-};
-
-const getWeekStart = (date: Date) => {
-  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const day = start.getDay();
-  start.setDate(start.getDate() - day);
-  start.setHours(0, 0, 0, 0);
-  return start;
-};
-
 const getFirstName = (user: AccountUser | null) => {
   if (!user) return null;
   const raw =
@@ -197,11 +178,9 @@ const getFirstName = (user: AccountUser | null) => {
 
 const getGreetingPrefix = (now: Date): string => {
   const hours = now.getHours();
-  if (hours < 5) return "Still going";
   if (hours < 12) return "Good morning";
   if (hours < 17) return "Good afternoon";
-  if (hours < 21) return "Good evening";
-  return "Late night session";
+  return "Good evening";
 };
 
 const formatRelativeTime = (value?: string | null) => {
@@ -233,6 +212,24 @@ const pickClassIconVariant = (title: string): ClassIconVariant => {
   return "default";
 };
 
+const fallbackCourseDescription = (
+  variant: ClassIconVariant,
+  hasLessons: boolean
+): string => {
+  if (variant === "review") {
+    return "Foundational algebra, trigonometry, vectors, and free-body diagram essentials for engineering courses.";
+  }
+  if (variant === "statics") {
+    return "Force systems, particle and rigid-body equilibrium, structural analysis, internal forces, and moments of inertia.";
+  }
+  if (variant === "mechanics") {
+    return "Stress, strain, axial loading, torsion, beam bending, combined loading, and deflection of deformable bodies.";
+  }
+  return hasLessons
+    ? "Structured chapters, guided examples, and conceptual checks."
+    : "Course modules and worked examples are currently being prepared.";
+};
+
 // ──────────────────────────────────────────────────────────────
 // Atoms
 // ──────────────────────────────────────────────────────────────
@@ -241,21 +238,17 @@ function ProgressBar({
   value,
   className,
   tone = "primary",
-  size = "md",
 }: {
   value: number;
   className?: string;
   tone?: "primary" | "emerald";
-  size?: "sm" | "md";
 }) {
   const width = Math.max(0, Math.min(100, Math.round(value)));
-  const height = size === "sm" ? "h-1" : "h-1.5";
   const fill = tone === "emerald" ? "bg-emerald-600" : "bg-primary";
   return (
     <div
       className={cn(
-        height,
-        "w-full overflow-hidden rounded-full bg-muted/75",
+        "h-1.5 w-full overflow-hidden rounded-full bg-muted/80",
         className
       )}
       role="progressbar"
@@ -265,8 +258,7 @@ function ProgressBar({
     >
       <div
         className={cn(
-          height,
-          "rounded-full transition-[width] duration-500 ease-out",
+          "h-1.5 rounded-full transition-[width] duration-300 ease-out",
           fill
         )}
         style={{ width: `${width}%` }}
@@ -334,132 +326,179 @@ function ClassIcon({ variant }: { variant: ClassIconVariant }) {
 }
 
 // ──────────────────────────────────────────────────────────────
-// Class rows
+// Course Card
 // ──────────────────────────────────────────────────────────────
 
 type ClassCardProps = {
-  title: string;
-  description?: string | null;
-  viewHref: string;
-  continueHref?: string;
-  progressPercent: number;
-  completedLessons: number;
-  totalLessons: number;
-  hasProgress: boolean;
-  iconVariant: ClassIconVariant;
+  card: ClassDashboardCard;
+  signedIn: boolean;
+  isPrimaryAction: boolean;
   lastActivityLabel: string | null;
-  featured?: boolean;
 };
 
 function ClassCard({
-  title,
-  description,
-  viewHref,
-  continueHref,
-  progressPercent,
-  completedLessons,
-  totalLessons,
-  hasProgress,
-  iconVariant,
+  card,
+  signedIn,
+  isPrimaryAction,
   lastActivityLabel,
-  featured = false,
 }: ClassCardProps) {
-  const isComplete = hasProgress && progressPercent >= 100;
+  const {
+    title,
+    description,
+    viewHref,
+    continueHref,
+    progressPercent,
+    completedLessons,
+    totalChapters,
+    totalLessons,
+    hasProgress,
+    iconVariant,
+  } = card;
+
+  const isEmptyCourse = totalLessons === 0;
+  const isComplete = signedIn && hasProgress && progressPercent >= 100;
+
+  if (isEmptyCourse) {
+    return (
+      <article className="flex h-full flex-col justify-between rounded-xl border border-border/65 bg-muted/[0.16] p-5 dark:bg-muted/[0.08]">
+        <div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background/80 text-muted-foreground">
+              <ClassIcon variant={iconVariant} />
+            </span>
+            <span className="inline-flex items-center rounded-full border border-border/70 bg-background/70 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+              Coming soon
+            </span>
+          </div>
+
+          <h3 className="mt-3.5 text-[17px] font-semibold tracking-tight text-foreground/90">
+            {title}
+          </h3>
+          <p className="mt-1.5 line-clamp-3 text-[13.5px] leading-relaxed text-muted-foreground">
+            {description}
+          </p>
+        </div>
+
+        <div className="mt-5 flex items-center justify-between border-t border-border/60 pt-3.5 text-xs">
+          <span className="text-muted-foreground">
+            Curriculum in preparation
+          </span>
+          <Link
+            href={viewHref}
+            className="inline-flex items-center gap-1 font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Overview
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      </article>
+    );
+  }
+
+  const chapterText =
+    totalChapters > 0
+      ? `${totalChapters} ${totalChapters === 1 ? "chapter" : "chapters"}`
+      : null;
+  const lessonText = `${totalLessons} ${totalLessons === 1 ? "lesson" : "lessons"}`;
+  const scopeLabel = chapterText ? `${chapterText} · ${lessonText}` : lessonText;
+
+  const actionHref = signedIn && continueHref ? continueHref : viewHref;
+  const actionLabel =
+    signedIn && continueHref
+      ? "Continue"
+      : signedIn && hasProgress
+        ? "Open course"
+        : "Start course";
 
   return (
     <article
       className={cn(
-        "group relative flex h-full min-h-[242px] flex-col overflow-hidden rounded-md border border-border/85 border-t-2 border-t-primary bg-card p-5",
-        "shadow-[0_1px_2px_rgba(16,24,40,0.03)] transition-[background-color,border-color,box-shadow,transform] duration-200",
-        "hover:-translate-y-0.5 hover:border-primary/30 hover:border-t-primary hover:bg-primary/[0.012] hover:shadow-[0_10px_26px_rgba(16,24,40,0.07)]",
-        "focus-within:ring-2 focus-within:ring-primary/25 focus-within:ring-offset-2 focus-within:ring-offset-background",
-        featured && "border-primary/45 bg-primary/[0.025]"
+        "group flex h-full flex-col justify-between rounded-xl border bg-card p-5 transition-[border-color,box-shadow] duration-150",
+        "hover:border-primary/35 hover:shadow-[0_6px_20px_rgba(16,24,40,0.06)]",
+        isPrimaryAction ? "border-primary/30" : "border-border/80"
       )}
     >
-      <header className="mb-4 flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
+      <div>
+        <div className="flex items-center justify-between gap-3">
           <span
             className={cn(
-              "inline-flex size-10 shrink-0 items-center justify-center rounded-md border",
-              featured
-                ? "border-primary/35 bg-primary/[0.07] text-primary"
-                : "border-border bg-background text-primary"
+              "inline-flex size-9 shrink-0 items-center justify-center rounded-lg border text-primary",
+              isPrimaryAction
+                ? "border-primary/25 bg-primary/[0.07]"
+                : "border-border/75 bg-muted/30"
             )}
           >
             <ClassIcon variant={iconVariant} />
           </span>
-          <h3 className="truncate text-[17px] font-semibold leading-6 tracking-[-0.01em] text-foreground">
-            {title}
-          </h3>
-        </div>
-        {featured ? (
-          <span className="inline-flex shrink-0 items-center rounded-full border border-primary/30 bg-primary/[0.06] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">
-            Up next
-          </span>
-        ) : null}
-      </header>
 
-      {description ? (
-        <p className="mb-4 line-clamp-2 text-[13px] leading-relaxed text-muted-foreground">
+          {isComplete ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-600/25 bg-emerald-600/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+              <CheckCircle2 className="h-3 w-3" />
+              Completed
+            </span>
+          ) : signedIn && hasProgress ? (
+            <span className="inline-flex items-center rounded-full border border-primary/25 bg-primary/[0.06] px-2.5 py-0.5 text-[11px] font-medium text-primary">
+              In progress
+            </span>
+          ) : (
+            <span className="text-xs font-medium text-muted-foreground">
+              {scopeLabel}
+            </span>
+          )}
+        </div>
+
+        <h3 className="mt-3.5 text-[17px] font-semibold tracking-tight text-foreground">
+          {title}
+        </h3>
+        <p className="mt-1.5 line-clamp-3 text-[13.5px] leading-relaxed text-muted-foreground">
           {description}
         </p>
-      ) : null}
+      </div>
 
-      <div className="mt-auto flex flex-col gap-3">
-        <div className="flex items-baseline justify-between">
-          <span className="text-[32px] font-bold leading-none tabular-nums tracking-[-0.04em] text-foreground">
-            {progressPercent}
-            <span className="ml-0.5 text-base font-semibold tracking-normal text-muted-foreground">
-              %
-            </span>
-          </span>
-          <span className="text-[12px] text-muted-foreground">
-            {hasProgress
-              ? `${completedLessons}/${totalLessons} lessons`
-              : totalLessons > 0
-                ? `${totalLessons} lessons`
-                : "No lessons yet"}
-          </span>
-        </div>
-        <ProgressBar
-          value={progressPercent}
-          tone={isComplete ? "emerald" : "primary"}
-        />
+      <div className="mt-5 flex flex-col gap-3.5 border-t border-border/60 pt-3.5">
+        {signedIn ? (
+          <div className="space-y-2">
+            <div className="flex items-baseline justify-between gap-2 text-xs">
+              <span className="text-muted-foreground">
+                <span className="font-medium tabular-nums text-foreground">
+                  {completedLessons}
+                </span>{" "}
+                of {totalLessons} lessons completed
+              </span>
+              <span className="font-semibold tabular-nums text-foreground">
+                {progressPercent}%
+              </span>
+            </div>
+            <ProgressBar
+              value={progressPercent}
+              tone={isComplete ? "emerald" : "primary"}
+            />
+            {lastActivityLabel ? (
+              <p className="text-[11.5px] text-muted-foreground">
+                Last active {lastActivityLabel}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
-        <div className="flex items-center justify-between text-[12px] text-muted-foreground">
-          <span>
-            {lastActivityLabel
-              ? `Last active ${lastActivityLabel}`
-              : hasProgress
-                ? "Keep up the momentum"
-                : "Ready when you are"}
-          </span>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          {continueHref ? (
-            <Button asChild className="min-w-36 flex-1 rounded-md shadow-none">
-              <Link href={continueHref}>
-                Continue
-                <ArrowRight
-                  data-icon="inline-end"
-                  className="transition-transform duration-200 group-hover:translate-x-0.5"
-                />
-              </Link>
-            </Button>
-          ) : (
-            <Button asChild className="min-w-36 flex-1 rounded-md shadow-none">
-              <Link href={viewHref}>
-                {hasProgress ? "Open class" : "Start learning"}
-                <ArrowRight data-icon="inline-end" />
-              </Link>
-            </Button>
-          )}
-          {continueHref ? (
+        <div className="flex items-center gap-2">
+          <Button
+            asChild
+            variant={isPrimaryAction ? "default" : "outline"}
+            size="sm"
+            className="flex-1 rounded-lg shadow-none"
+          >
+            <Link href={actionHref}>
+              {actionLabel}
+              <ArrowRight className="h-3.5 w-3.5 transition-transform duration-150 group-hover:translate-x-0.5" />
+            </Link>
+          </Button>
+          {signedIn && continueHref ? (
             <Button
               asChild
-              variant="outline"
-              className="rounded-md shadow-none"
+              variant="ghost"
+              size="sm"
+              className="rounded-lg text-muted-foreground hover:text-foreground"
             >
               <Link href={viewHref}>Outline</Link>
             </Button>
@@ -471,334 +510,16 @@ function ClassCard({
 }
 
 // ──────────────────────────────────────────────────────────────
-// Metric cards (snapshot row)
-// ──────────────────────────────────────────────────────────────
-
-function MetricShell({
-  icon: Icon,
-  title,
-  tone = "default",
-  compact = false,
-  children,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  tone?: "default" | "accent" | "amber" | "emerald";
-  // Compact: drop internal gap and inner vertical padding so empty/loading
-  // states don't take three lines worth of space.
-  compact?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className={cn(
-        "grid h-full grid-cols-[2.5rem_minmax(0,1fr)] content-start gap-x-3 gap-y-1 px-4 py-4 transition-colors duration-200 hover:bg-muted/20 sm:px-5",
-        compact ? "min-h-[82px]" : "min-h-[132px]",
-        tone === "accent" && "bg-primary/[0.018]",
-        tone === "amber" && "bg-secondary/[0.035]",
-        tone === "emerald" && "bg-primary/[0.025]",
-        tone === "default" && "bg-transparent"
-      )}
-    >
-      <span
-        className={cn(
-          "row-span-2 inline-flex size-9 items-center justify-center self-start rounded-md text-primary",
-          tone === "amber" && "text-secondary-foreground"
-        )}
-      >
-        <Icon
-          className={cn(
-            "size-6",
-            tone === "accent" && "text-primary",
-            tone === "amber" && "text-primary",
-            tone === "emerald" && "text-primary",
-            tone === "default" && "text-primary"
-          )}
-        />
-      </span>
-      <div className="flex min-w-0 items-center justify-between">
-        <h3 className="text-[10.5px] font-bold uppercase leading-4 tracking-[0.12em] text-foreground/80">
-          {title}
-        </h3>
-      </div>
-      <div className="min-w-0">{children}</div>
-    </div>
-  );
-}
-
-function MetricLoading() {
-  return (
-    <div className="flex flex-col gap-2 pt-1">
-      <Skeleton className="h-6 w-16 bg-muted" />
-      <Skeleton className="h-3 w-32 bg-muted/70" />
-    </div>
-  );
-}
-
-function MetricEmpty({ copy }: { copy: string }) {
-  return (
-    <p className="text-[12px] leading-[1.45] text-muted-foreground">{copy}</p>
-  );
-}
-
-function WeeklyGoalCard({
-  loading,
-  signedIn,
-  completed,
-  pips,
-}: {
-  loading: boolean;
-  signedIn: boolean;
-  completed: number;
-  pips: WeeklyPip[];
-}) {
-  const remaining = Math.max(WEEKLY_GOAL_TARGET - completed, 0);
-  const reached = completed >= WEEKLY_GOAL_TARGET;
-  const isEmpty = !loading && !signedIn;
-  return (
-    <MetricShell
-      icon={Target}
-      title="Weekly Goal"
-      tone="accent"
-      compact={isEmpty}
-    >
-      {loading ? (
-        <MetricLoading />
-      ) : !signedIn ? (
-        <MetricEmpty copy="Sign in to track weekly lessons." />
-      ) : (
-        <>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-[28px] font-bold leading-none tabular-nums tracking-tight text-foreground">
-              {completed}
-            </span>
-            <span className="text-sm font-medium text-muted-foreground">
-              / {WEEKLY_GOAL_TARGET}
-            </span>
-          </div>
-          <div className="flex items-center justify-between gap-1.5">
-            {pips.map((pip, idx) => (
-              <span
-                key={`${pip.label}-${idx}`}
-                aria-hidden="true"
-                title={pip.label}
-                className={cn(
-                  "h-1.5 flex-1 rounded-full transition-colors",
-                  pip.active
-                    ? "bg-primary"
-                    : pip.isToday
-                      ? "bg-primary/30 ring-1 ring-primary/40"
-                      : "bg-muted"
-                )}
-              />
-            ))}
-          </div>
-          <p className="text-[11.5px] leading-snug text-muted-foreground">
-            {reached
-              ? "🎯 Goal reached. Nice run."
-              : remaining === 1
-                ? "One lesson to hit this week's goal."
-                : `${remaining} lessons to this week's goal.`}
-          </p>
-        </>
-      )}
-    </MetricShell>
-  );
-}
-
-function StreakCard({
-  loading,
-  signedIn,
-  count,
-  activeToday,
-}: {
-  loading: boolean;
-  signedIn: boolean;
-  count: number;
-  activeToday: boolean;
-}) {
-  const isEmpty = !loading && !signedIn;
-  return (
-    <MetricShell
-      icon={Flame}
-      title="Streak"
-      tone={activeToday ? "amber" : "default"}
-      compact={isEmpty}
-    >
-      {loading ? (
-        <MetricLoading />
-      ) : !signedIn ? (
-        <MetricEmpty copy="Sign in to track your daily streak." />
-      ) : (
-        <>
-          <div className="flex items-baseline gap-1.5">
-            <span
-              className={cn(
-                "text-[28px] font-bold leading-none tabular-nums tracking-tight",
-                activeToday
-                  ? "text-amber-600 dark:text-amber-400"
-                  : "text-foreground"
-              )}
-            >
-              {count}
-            </span>
-            <span className="text-sm font-medium text-muted-foreground">
-              {count === 1 ? "day" : "days"}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span
-              className={cn(
-                "inline-flex h-1.5 w-1.5 rounded-full",
-                activeToday
-                  ? "bg-amber-500 ring-2 ring-amber-500/30"
-                  : "bg-muted-foreground/40"
-              )}
-            />
-            <span className="text-[11px] font-medium text-muted-foreground">
-              {activeToday ? "Active today" : "Inactive today"}
-            </span>
-          </div>
-          <p className="text-[11.5px] leading-snug text-muted-foreground">
-            {count === 0
-              ? "Complete one lesson to start a streak."
-              : activeToday
-                ? count >= 3
-                  ? "Consistency pays — keep it going."
-                  : "Nice. Same time tomorrow keeps it alive."
-                : "One short lesson today keeps it alive."}
-          </p>
-        </>
-      )}
-    </MetricShell>
-  );
-}
-
-function MilestonesCard({
-  loading,
-  signedIn,
-  earned,
-  total,
-  completedLessons,
-  tiers,
-}: {
-  loading: boolean;
-  signedIn: boolean;
-  earned: number;
-  total: number;
-  completedLessons: number;
-  tiers: { tier: number; earned: boolean }[];
-}) {
-  const isEmpty = !loading && !signedIn;
-  return (
-    <MetricShell icon={Award} title="Milestones" compact={isEmpty}>
-      {loading ? (
-        <MetricLoading />
-      ) : !signedIn ? (
-        <MetricEmpty copy="Sign in to unlock milestones." />
-      ) : (
-        <>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-[28px] font-bold leading-none tabular-nums tracking-tight text-foreground">
-              {earned}
-            </span>
-            <span className="text-sm font-medium text-muted-foreground">
-              / {total}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            {tiers.map((tier) => (
-              <span
-                key={tier.tier}
-                aria-hidden="true"
-                title={`${tier.tier} lessons`}
-                className={cn(
-                  "inline-flex h-5 w-5 items-center justify-center rounded-full border text-[9px] font-bold transition-colors",
-                  tier.earned
-                    ? "border-primary/35 bg-primary/15 text-primary"
-                    : "border-border/60 bg-background text-muted-foreground/70"
-                )}
-              >
-                {tier.tier}
-              </span>
-            ))}
-          </div>
-          <p className="text-[11.5px] leading-snug text-muted-foreground">
-            {completedLessons} lesson{completedLessons === 1 ? "" : "s"}{" "}
-            completed overall
-          </p>
-        </>
-      )}
-    </MetricShell>
-  );
-}
-
-function SavedCard({
-  loading,
-  signedIn,
-  count,
-  latest,
-}: {
-  loading: boolean;
-  signedIn: boolean;
-  count: number;
-  latest: SavedLessonItem | null;
-}) {
-  const isEmpty = !loading && !signedIn;
-  return (
-    <MetricShell
-      icon={count > 0 ? BookmarkCheck : Bookmark}
-      title="Saved"
-      compact={isEmpty}
-    >
-      {loading ? (
-        <MetricLoading />
-      ) : !signedIn ? (
-        <MetricEmpty copy="Sign in to view bookmarks." />
-      ) : (
-        <>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-[28px] font-bold leading-none tabular-nums tracking-tight text-foreground">
-              {count}
-            </span>
-            <span className="text-sm font-medium text-muted-foreground">
-              {count === 1 ? "lesson" : "lessons"}
-            </span>
-          </div>
-          {latest ? (
-            <Link
-              href={latest.href}
-              className="block truncate text-[12px] font-medium text-foreground/85 hover:text-primary"
-            >
-              Latest: {latest.title}
-            </Link>
-          ) : (
-            <span className="text-[12px] font-medium text-muted-foreground">
-              Bookmark lessons to revisit faster.
-            </span>
-          )}
-          <p className="text-[11.5px] leading-snug text-muted-foreground">
-            {count === 0
-              ? "Tap the bookmark icon on any lesson."
-              : "Pinned for quick access from anywhere."}
-          </p>
-        </>
-      )}
-    </MetricShell>
-  );
-}
-
-// ──────────────────────────────────────────────────────────────
 // Main component
 // ──────────────────────────────────────────────────────────────
 
 export function LearningPersonalization({
   lessonIndex,
   classSummaries,
+  practiceSummary,
 }: Props) {
   const [user, setUser] = useState<AccountUser | null>(null);
   const [resolvedUser, setResolvedUser] = useState(false);
-  const [loadingData, setLoadingData] = useState(false);
   const [progressDocs, setProgressDocs] = useState<ProgressDoc[]>([]);
   const [bookmarkDocs, setBookmarkDocs] = useState<BookmarkDoc[]>([]);
 
@@ -813,14 +534,23 @@ export function LearningPersonalization({
     return map;
   }, [orderedLessons]);
 
+  const activeProgressDocs = useMemo(
+    () => (user?.id ? progressDocs : []),
+    [progressDocs, user?.id]
+  );
+  const activeBookmarkDocs = useMemo(
+    () => (user?.id ? bookmarkDocs : []),
+    [bookmarkDocs, user?.id]
+  );
+
   const progressByActivity = useMemo(
     () =>
-      [...progressDocs].sort((a, b) => {
+      [...activeProgressDocs].sort((a, b) => {
         const aStamp = toTimestamp(a.updatedAt ?? a.completedAt);
         const bStamp = toTimestamp(b.updatedAt ?? b.completedAt);
         return bStamp - aStamp;
       }),
-    [progressDocs]
+    [activeProgressDocs]
   );
 
   useEffect(() => {
@@ -848,16 +578,10 @@ export function LearningPersonalization({
   }, []);
 
   useEffect(() => {
-    if (!user?.id) {
-      setProgressDocs([]);
-      setBookmarkDocs([]);
-      setLoadingData(false);
-      return;
-    }
+    if (!user?.id) return;
 
     const controller = new AbortController();
     const loadPersonalizationData = async () => {
-      setLoadingData(true);
       try {
         const [progressRes, bookmarksRes] = await Promise.all([
           fetch(
@@ -898,8 +622,6 @@ export function LearningPersonalization({
           setProgressDocs([]);
           setBookmarkDocs([]);
         }
-      } finally {
-        if (!controller.signal.aborted) setLoadingData(false);
       }
     };
 
@@ -909,17 +631,16 @@ export function LearningPersonalization({
 
   const completedLessonIds = useMemo(() => {
     const ids = new Set<string>();
-    progressDocs.forEach((doc) => {
+    activeProgressDocs.forEach((doc) => {
       if (!doc.completed) return;
       const lessonId = getRelationId(doc.lesson);
       if (lessonId) ids.add(lessonId);
     });
     return ids;
-  }, [progressDocs]);
+  }, [activeProgressDocs]);
 
   const completedCount = completedLessonIds.size;
 
-  // Latest activity per class — drives "Last active 3d ago" on class cards.
   const lastActivityByClassSlug = useMemo(() => {
     const map = new Map<string, string>();
     progressByActivity.forEach((doc) => {
@@ -934,71 +655,6 @@ export function LearningPersonalization({
     return map;
   }, [lessonsById, progressByActivity]);
 
-  // Weekly pip set: one entry per day of the current week (Sun → Sat).
-  const weeklyPips = useMemo<WeeklyPip[]>(() => {
-    const weekStart = getWeekStart(new Date());
-    const today = new Date();
-    const todayKey = toLocalDayKey(today.toISOString());
-
-    const activeDays = new Set<string>();
-    progressDocs.forEach((doc) => {
-      if (!doc.completed) return;
-      const stamp = doc.completedAt ?? doc.updatedAt;
-      if (!stamp) return;
-      const date = new Date(stamp);
-      if (Number.isNaN(date.getTime())) return;
-      if (date < weekStart) return;
-      const key = toLocalDayKey(stamp);
-      if (key) activeDays.add(key);
-    });
-
-    const labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    return labels.map((label, idx) => {
-      const day = new Date(weekStart);
-      day.setDate(weekStart.getDate() + idx);
-      const key = toLocalDayKey(day.toISOString());
-      return {
-        label,
-        active: !!key && activeDays.has(key),
-        isToday: !!todayKey && key === todayKey,
-      };
-    });
-  }, [progressDocs]);
-
-  const weeklyCompleted = weeklyPips.filter((pip) => pip.active).length;
-
-  const streak = useMemo(() => {
-    const daySet = new Set<string>();
-    progressDocs.forEach((doc) => {
-      const stamp = doc.updatedAt ?? doc.completedAt;
-      if (!stamp) return;
-      const key = toLocalDayKey(stamp);
-      if (key) daySet.add(key);
-    });
-    if (!daySet.size) return { count: 0, activeToday: false };
-    const today = new Date();
-    const todayKey = toLocalDayKey(today.toISOString());
-    const cursor = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate()
-    );
-    let count = 0;
-    while (true) {
-      const key = toLocalDayKey(cursor.toISOString());
-      if (!key || !daySet.has(key)) break;
-      count += 1;
-      cursor.setDate(cursor.getDate() - 1);
-    }
-    return { count, activeToday: !!todayKey && daySet.has(todayKey) };
-  }, [progressDocs]);
-
-  const milestoneBadges = useMemo(() => {
-    const tiers = [1, 3, 5, 10, 20];
-    return tiers.map((tier) => ({ tier, earned: completedCount >= tier }));
-  }, [completedCount]);
-
-  // Class progress is built first so the resume hero can reference it.
   const classDashboardCards = useMemo<ClassDashboardCard[]>(() => {
     return classSummaries.map((classSummary) => {
       const lessonIdSet = new Set(
@@ -1024,22 +680,31 @@ export function LearningPersonalization({
         ? lessonsById.get(inProgressId)
         : null;
 
+      const firstLesson = classSummary.lessons[0];
+      const iconVariant = pickClassIconVariant(classSummary.title);
+      const trimmedDesc = classSummary.description?.trim();
+
       return {
         key: classSummary.id,
         classSlug: classSummary.slug,
         title: classSummary.title,
-        description: classSummary.description,
+        description:
+          trimmedDesc || fallbackCourseDescription(iconVariant, totalLessons > 0),
         viewHref: classSummary.slug
           ? `/classes/${classSummary.slug}`
           : "/learning",
+        firstLessonHref: firstLesson
+          ? `/classes/${firstLesson.classSlug}/lessons/${firstLesson.slug}`
+          : undefined,
         continueHref: inProgressLesson
           ? `/classes/${inProgressLesson.classSlug}/lessons/${inProgressLesson.slug}`
           : undefined,
         progressPercent,
         completedLessons,
+        totalChapters: classSummary.totalChapters,
         totalLessons,
-        hasProgress: completedLessons > 0,
-        iconVariant: pickClassIconVariant(classSummary.title),
+        hasProgress: completedLessons > 0 || !!inProgressLesson,
+        iconVariant,
         lastActivityAt: lastActivityByClassSlug.get(classSummary.slug) ?? null,
       };
     });
@@ -1089,7 +754,7 @@ export function LearningPersonalization({
           const meta = findClassData(lesson);
           return {
             lesson,
-            hint: "Pick up where you paused.",
+            hint: "Continue where you paused",
             ...meta,
           };
         }
@@ -1114,7 +779,7 @@ export function LearningPersonalization({
             const meta = findClassData(nextIncomplete);
             return {
               lesson: nextIncomplete,
-              hint: "Recommended next lesson.",
+              hint: "Next recommended lesson",
               ...meta,
             };
           }
@@ -1123,7 +788,7 @@ export function LearningPersonalization({
             const meta = findClassData(current);
             return {
               lesson: current,
-              hint: "Pick up your most recently viewed lesson.",
+              hint: "Most recently viewed lesson",
               ...meta,
             };
           }
@@ -1144,7 +809,7 @@ export function LearningPersonalization({
   const savedLessons = useMemo<SavedLessonItem[]>(() => {
     const dedupe = new Set<string>();
     const items: SavedLessonItem[] = [];
-    [...bookmarkDocs]
+    [...activeBookmarkDocs]
       .sort((a, b) => toTimestamp(b.updatedAt) - toTimestamp(a.updatedAt))
       .forEach((bookmark) => {
         const lessonId = getRelationId(bookmark.lesson);
@@ -1179,11 +844,10 @@ export function LearningPersonalization({
           subtitle: chapterTitle
             ? `${classTitle} · ${chapterTitle}`
             : classTitle,
-          savedAt: bookmark.updatedAt,
         });
       });
-    return items.slice(0, 8);
-  }, [bookmarkDocs, lessonsById]);
+    return items.slice(0, 5);
+  }, [activeBookmarkDocs, lessonsById]);
 
   const recentActivity = useMemo<RecentActivity[]>(() => {
     const items: RecentActivity[] = [];
@@ -1210,392 +874,395 @@ export function LearningPersonalization({
 
   const firstName = getFirstName(user);
   const greetingPrefix = useMemo(() => getGreetingPrefix(new Date()), []);
-  const greeting = firstName
+  const signedInEyebrow = firstName
     ? `${greetingPrefix}, ${firstName}`
     : greetingPrefix;
 
   const totalLessonCount = orderedLessons.length;
-  const overallProgramProgress = totalLessonCount
-    ? Math.round((completedCount / totalLessonCount) * 100)
-    : 0;
-
-  const loadingState = !resolvedUser || loadingData;
-  const earnedBadgeCount = milestoneBadges.filter(
-    (badge) => badge.earned
+  const activeCourseCount = classDashboardCards.filter(
+    (c) => c.totalLessons > 0
   ).length;
-  const firstClassHref = classDashboardCards[0]?.viewHref ?? "/learning";
-  const latestSaved = savedLessons[0] ?? null;
-  const featuredClassSlug = resumeSelection?.lesson.classSlug ?? null;
+  const totalCourseCount = classDashboardCards.length;
 
-  // Hero collapses to a slim compact bar when there's nothing rich to show
-  // (signed-out, or signed-in but no resume target yet). Avoids burning a
-  // half-screen of vertical space on what's essentially a CTA.
-  const heroIsCompact = !user || !resumeSelection;
+  // Highlight the active resume course when signed in with progress;
+  // otherwise all courses with published lessons share a consistent primary CTA.
+  const featuredClassSlug =
+    user && resumeSelection?.lesson.classSlug
+      ? resumeSelection.lesson.classSlug
+      : null;
+
+  const showPersonalLists =
+    !!user && (savedLessons.length > 0 || recentActivity.length > 0);
+  const bothPersonalLists =
+    !!user && savedLessons.length > 0 && recentActivity.length > 0;
 
   return (
-    <section className="lp-shell flex flex-col gap-6">
-      <style>{`
-        @keyframes lp-fade-in {
-          from { opacity: 0; transform: translateY(5px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .lp-fade-in { animation: lp-fade-in 360ms ease-out both; }
-        @media (prefers-reduced-motion: reduce) {
-          .lp-fade-in { animation: none !important; }
-        }
-      `}</style>
+    <div className="flex flex-col gap-8">
+      {/* Header */}
+      <header className="border-b border-border/70 pb-5">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          {user ? signedInEyebrow : "Summer Bridge Curriculum"}
+        </p>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          Learning Portal
+        </h1>
+        <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          Explore engineering coursework, work through guided lessons, and check
+          your understanding with interactive practice problems.
+        </p>
 
-      <div className="flex flex-col gap-1">
-        <h2 className="text-[24px] font-semibold leading-tight tracking-[-0.025em] text-foreground sm:text-[28px]">
-          {greeting}
-        </h2>
-        {user && resumeSelection ? (
-          <p className="text-[13px] leading-5 text-muted-foreground">
-            Pick up your next lesson and check your momentum below.
-          </p>
-        ) : null}
-      </div>
+        <dl className="mt-3.5 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[13px] text-muted-foreground">
+          {totalCourseCount > 0 ? (
+            <div className="inline-flex items-center gap-1.5">
+              <Layers className="h-3.5 w-3.5 text-primary/75" />
+              <dt className="sr-only">Courses</dt>
+              <dd>
+                <span className="font-semibold tabular-nums text-foreground">
+                  {totalCourseCount}
+                </span>{" "}
+                {totalCourseCount === 1 ? "course" : "courses"}
+                {activeCourseCount > 0 && activeCourseCount < totalCourseCount
+                  ? ` (${activeCourseCount} active)`
+                  : ""}
+              </dd>
+            </div>
+          ) : null}
 
-      <section className="lp-fade-in">
-        {heroIsCompact ? (
-          <article className="flex flex-col items-stretch justify-between gap-5 rounded-md border border-primary/25 bg-primary/[0.025] p-5 shadow-[0_8px_26px_rgba(0,80,48,0.045)] sm:flex-row sm:items-center sm:gap-8 sm:px-6 sm:py-5">
-            <div className="flex min-w-0 flex-1 flex-col gap-2">
-              <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-primary/40 bg-background/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.13em] text-primary">
-                <PlayCircle className="size-3.5" aria-hidden="true" />
-                Resume learning
-              </span>
-              {loadingState ? (
-                <Skeleton className="h-5 w-full max-w-xl bg-muted" />
-              ) : user ? (
-                <p className="text-[15px] font-semibold leading-6 text-foreground sm:text-base">
-                  You haven&apos;t started a lesson yet.{" "}
-                  <span className="font-normal text-muted-foreground">
-                    Pick a class to get your first recommendation.
-                  </span>
-                </p>
-              ) : (
-                <p className="text-[15px] font-semibold leading-6 text-foreground sm:text-base">
-                  Sign in to continue your coursework.{" "}
-                  <span className="font-normal text-muted-foreground">
-                    Progress and bookmarks are tied to your account.
-                  </span>
-                </p>
-              )}
+          {totalLessonCount > 0 ? (
+            <div className="inline-flex items-center gap-1.5">
+              <BookOpen className="h-3.5 w-3.5 text-primary/75" />
+              <dt className="sr-only">Lessons</dt>
+              <dd>
+                <span className="font-semibold tabular-nums text-foreground">
+                  {totalLessonCount}
+                </span>{" "}
+                {totalLessonCount === 1 ? "lesson" : "lessons"}
+              </dd>
             </div>
-            <div className="shrink-0 sm:min-w-36">
-              {loadingState ? (
-                <Skeleton className="h-11 w-full bg-muted sm:w-36" />
-              ) : user ? (
-                <Button
-                  asChild
-                  size="lg"
-                  className="w-full rounded-md sm:w-auto"
-                >
-                  <Link href={firstClassHref}>
-                    Browse classes
-                    <ArrowRight data-icon="inline-end" />
-                  </Link>
-                </Button>
-              ) : (
-                <Button
-                  asChild
-                  size="lg"
-                  className="w-full rounded-md sm:w-auto"
-                >
-                  <LoginLink>
-                    Sign in
-                    <ArrowRight data-icon="inline-end" />
-                  </LoginLink>
-                </Button>
-              )}
+          ) : null}
+
+          {practiceSummary?.enabled && practiceSummary.totalProblems > 0 ? (
+            <div className="inline-flex items-center gap-1.5">
+              <Calculator className="h-3.5 w-3.5 text-primary/75" />
+              <dt className="sr-only">Practice problems</dt>
+              <dd>
+                <span className="font-semibold tabular-nums text-foreground">
+                  {practiceSummary.totalProblems}
+                </span>{" "}
+                practice problems
+              </dd>
             </div>
-          </article>
-        ) : (
-          <article className="relative overflow-hidden rounded-md border border-primary/30 border-t-2 border-t-primary bg-primary/[0.025] p-5 shadow-[0_8px_26px_rgba(0,80,48,0.045)] sm:p-6">
-            <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_230px]">
-              <div className="flex min-w-0 flex-col gap-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.13em] text-primary">
-                    <PlayCircle className="size-3.5" aria-hidden="true" />
-                    Resume learning
+          ) : null}
+
+          {user && completedCount > 0 && totalLessonCount > 0 ? (
+            <div className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary/75" />
+              <dt className="sr-only">Completed</dt>
+              <dd>
+                <span className="font-semibold tabular-nums text-foreground">
+                  {completedCount}/{totalLessonCount}
+                </span>{" "}
+                completed
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+      </header>
+
+      {/* Signed-in Continue Card */}
+      {user && resumeSelection ? (
+        <section aria-label="Continue learning">
+          <article className="flex flex-col justify-between gap-5 rounded-xl border border-primary/25 bg-primary/[0.03] p-5 sm:flex-row sm:items-center sm:px-6 dark:bg-primary/[0.06]">
+            <div className="min-w-0 flex-1 space-y-2.5">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                <span className="font-semibold uppercase tracking-[0.12em] text-primary">
+                  {resumeSelection.hint}
+                </span>
+                <span aria-hidden="true" className="text-muted-foreground/50">
+                  ·
+                </span>
+                <span className="text-muted-foreground">
+                  {resumeSelection.lesson.classTitle} ·{" "}
+                  {resumeSelection.lesson.chapterTitle}
+                </span>
+              </div>
+
+              <h2 className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+                {resumeSelection.lesson.title}
+              </h2>
+
+              <div className="max-w-md space-y-1.5 pt-0.5">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>
+                    {resumeSelection.classProgressPercent}% through{" "}
+                    {resumeSelection.lesson.classTitle}
                   </span>
-                  {resumeSelection ? (
-                    <span className="text-[11px] font-medium leading-4 text-muted-foreground">
-                      {resumeSelection.lesson.classTitle} ·{" "}
-                      {resumeSelection.lesson.chapterTitle}
+                  {resumeSelection.lessonsRemainingInClass > 0 ? (
+                    <span>
+                      {resumeSelection.lessonsRemainingInClass}{" "}
+                      {resumeSelection.lessonsRemainingInClass === 1
+                        ? "lesson"
+                        : "lessons"}{" "}
+                      remaining
                     </span>
                   ) : null}
                 </div>
-
-                {resumeSelection ? (
-                  <>
-                    <h2 className="text-[24px] font-bold leading-tight tracking-[-0.025em] text-foreground sm:text-[28px]">
-                      {resumeSelection.lesson.title}
-                    </h2>
-
-                    <div className="flex flex-col gap-2">
-                      <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] leading-4">
-                        <span className="font-medium text-foreground/80">
-                          {resumeSelection.classProgressPercent}% through{" "}
-                          {resumeSelection.lesson.classTitle}
-                        </span>
-                        {resumeSelection.lessonsRemainingInClass > 0 ? (
-                          <span className="text-muted-foreground">
-                            {resumeSelection.lessonsRemainingInClass} lesson
-                            {resumeSelection.lessonsRemainingInClass === 1
-                              ? ""
-                              : "s"}{" "}
-                            left
-                          </span>
-                        ) : null}
-                      </div>
-                      <ProgressBar
-                        value={resumeSelection.classProgressPercent}
-                      />
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3 pt-1">
-                      <Button asChild size="lg" className="rounded-md">
-                        <Link
-                          href={`/classes/${resumeSelection.lesson.classSlug}/lessons/${resumeSelection.lesson.slug}`}
-                        >
-                          Resume lesson
-                          <ArrowRight data-icon="inline-end" />
-                        </Link>
-                      </Button>
-                      <Link
-                        href={`/classes/${resumeSelection.lesson.classSlug}`}
-                        className="inline-flex items-center gap-1 border-b border-border/60 px-1 py-1.5 text-[13px] font-semibold text-foreground transition-colors hover:border-primary/45 hover:text-primary"
-                      >
-                        View outline
-                      </Link>
-                      <span className="text-[11.5px] text-muted-foreground">
-                        {resumeSelection.hint}
-                      </span>
-                    </div>
-                  </>
-                ) : null}
+                <ProgressBar value={resumeSelection.classProgressPercent} />
               </div>
+            </div>
 
-              {/* Right rail: momentum at a glance */}
-              <aside
-                aria-label="Momentum"
-                className="grid gap-3 self-start rounded-md border border-border/80 bg-background/75 p-4 lg:min-w-[220px]"
+            <div className="flex shrink-0 flex-wrap items-center gap-2.5">
+              <Button asChild className="rounded-lg shadow-none">
+                <Link
+                  href={`/classes/${resumeSelection.lesson.classSlug}/lessons/${resumeSelection.lesson.slug}`}
+                >
+                  Resume lesson
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="rounded-lg bg-background/80 shadow-none"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                    Program
-                  </span>
-                  <span className="text-[11px] font-semibold tabular-nums text-foreground">
-                    {overallProgramProgress}%
-                  </span>
-                </div>
-                <ProgressBar value={overallProgramProgress} size="sm" />
-
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div className="border-t border-border/70 px-1 py-2">
-                    <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-                      <Flame
-                        className={cn(
-                          "h-3 w-3",
-                          streak.activeToday
-                            ? "text-amber-500"
-                            : "text-muted-foreground"
-                        )}
-                      />
-                      Streak
-                    </div>
-                    <div className="mt-0.5 text-base font-bold leading-none tabular-nums text-foreground">
-                      {streak.count}
-                      <span className="ml-0.5 text-[10px] font-medium text-muted-foreground">
-                        d
-                      </span>
-                    </div>
-                  </div>
-                  <div className="border-t border-border/70 px-1 py-2">
-                    <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-                      <Target className="h-3 w-3 text-primary/85" />
-                      Week
-                    </div>
-                    <div className="mt-0.5 text-base font-bold leading-none tabular-nums text-foreground">
-                      {weeklyCompleted}
-                      <span className="ml-0.5 text-[10px] font-medium text-muted-foreground">
-                        /{WEEKLY_GOAL_TARGET}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </aside>
+                <Link href={`/classes/${resumeSelection.lesson.classSlug}`}>
+                  Course outline
+                </Link>
+              </Button>
             </div>
           </article>
+        </section>
+      ) : null}
+
+      {/* Courses */}
+      <section className="space-y-3.5" aria-labelledby="lp-courses-heading">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2
+            id="lp-courses-heading"
+            className="text-lg font-semibold tracking-tight text-foreground"
+          >
+            Courses
+          </h2>
+        </div>
+
+        {classDashboardCards.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {classDashboardCards.map((card) => {
+              const lastActivityLabel =
+                user && card.lastActivityAt
+                  ? formatRelativeTime(card.lastActivityAt)
+                  : null;
+              return (
+                <ClassCard
+                  key={card.key}
+                  card={card}
+                  signedIn={!!user}
+                  isPrimaryAction={
+                    card.totalLessons > 0 &&
+                    (featuredClassSlug
+                      ? card.classSlug === featuredClassSlug
+                      : true)
+                  }
+                  lastActivityLabel={lastActivityLabel}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            No courses available yet.
+          </p>
         )}
       </section>
 
-      <section className="flex flex-col gap-2.5">
-        <h2 className="text-[12px] font-bold uppercase leading-4 tracking-[0.12em] text-foreground/80">
-          Program snapshot
-        </h2>
-        <div className="grid grid-cols-2 overflow-hidden border-y border-border/90 xl:grid-cols-4">
-          <div className="border-b border-r border-border/90 xl:border-b-0">
-            <WeeklyGoalCard
-              loading={loadingState}
-              signedIn={!!user}
-              completed={weeklyCompleted}
-              pips={weeklyPips}
-            />
-          </div>
-          <div className="border-b border-border/90 xl:border-b-0 xl:border-r">
-            <StreakCard
-              loading={loadingState}
-              signedIn={!!user}
-              count={streak.count}
-              activeToday={streak.activeToday}
-            />
-          </div>
-          <div className="border-r border-border/90">
-            <MilestonesCard
-              loading={loadingState}
-              signedIn={!!user}
-              earned={earnedBadgeCount}
-              total={milestoneBadges.length}
-              completedLessons={completedCount}
-              tiers={milestoneBadges}
-            />
-          </div>
+      {/* Practice Problem Library */}
+      {practiceSummary?.enabled ? (
+        <section
+          className="space-y-3.5"
+          aria-labelledby="lp-practice-section-heading"
+        >
           <div>
-            <SavedCard
-              loading={loadingState}
-              signedIn={!!user}
-              count={savedLessons.length}
-              latest={latestSaved}
-            />
+            <h2
+              id="lp-practice-section-heading"
+              className="text-lg font-semibold tracking-tight text-foreground"
+            >
+              Engineering Practice
+            </h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Strengthen your engineering skills through interactive, randomized
+              practice problems.
+            </p>
           </div>
-        </div>
-      </section>
 
-      <section className="flex flex-col gap-3">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-[20px] font-bold leading-7 tracking-[-0.02em] text-foreground">
-            Your classes
-          </h2>
-          {user ? (
-            <span className="text-[11.5px] text-muted-foreground">
-              Pick up where you left off
-            </span>
-          ) : null}
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {classDashboardCards.map((classCard) => {
-            const featured =
-              !!featuredClassSlug && classCard.classSlug === featuredClassSlug;
-            const lastActivityLabel =
-              user && classCard.lastActivityAt
-                ? formatRelativeTime(classCard.lastActivityAt)
-                : null;
-            return (
-              <ClassCard
-                key={classCard.key}
-                title={classCard.title}
-                description={classCard.description}
-                viewHref={classCard.viewHref}
-                continueHref={user ? classCard.continueHref : undefined}
-                progressPercent={user ? classCard.progressPercent : 0}
-                completedLessons={user ? classCard.completedLessons : 0}
-                totalLessons={classCard.totalLessons}
-                hasProgress={user ? classCard.hasProgress : false}
-                iconVariant={classCard.iconVariant}
-                lastActivityLabel={lastActivityLabel}
-                featured={featured}
-              />
-            );
-          })}
-        </div>
-
-        {classDashboardCards.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No classes available yet.
-          </p>
-        ) : null}
-      </section>
-
-      <section className="flex flex-col gap-2.5">
-        <h2 className="text-[12px] font-bold uppercase leading-4 tracking-[0.12em] text-foreground/80">
-          Recent activity
-        </h2>
-
-        {loadingState ? (
-          <ul className="flex flex-col gap-2">
-            {[0, 1, 2].map((idx) => (
-              <li key={idx}>
-                <Skeleton className="h-14 w-full rounded-md bg-muted" />
-              </li>
-            ))}
-          </ul>
-        ) : recentActivity.length ? (
-          <ol className="relative flex flex-col gap-2 border-l border-border/70 pl-5">
-            {recentActivity.map((item) => (
-              <li key={item.key} className="relative">
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "absolute -left-[26px] top-3 inline-flex h-2.5 w-2.5 rounded-full ring-4",
-                    item.completed
-                      ? "bg-primary ring-primary/15"
-                      : "bg-primary ring-primary/15"
-                  )}
-                />
-                <Link
-                  href={item.href}
-                  className="block rounded-md border border-border/75 bg-card px-4 py-3 transition-colors duration-200 hover:border-primary/25 hover:bg-primary/[0.015] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                >
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <p className="text-sm font-semibold text-foreground">
-                      {item.title}
-                    </p>
-                    <span className="text-[11px] font-medium text-muted-foreground">
-                      {item.timeLabel}
+          <div className="flex flex-col justify-between gap-4 rounded-xl border border-border/80 bg-card p-5 sm:flex-row sm:items-center sm:px-6">
+            <div className="flex min-w-0 items-start gap-3.5">
+              <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/75 bg-muted/35 text-primary">
+                <Calculator className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <div className="min-w-0 space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-[16px] font-semibold tracking-tight text-foreground">
+                    Practice Problem Library
+                  </h3>
+                  {practiceSummary.totalProblems > 0 ? (
+                    <span className="rounded-full border border-border/70 bg-muted/35 px-2 py-0.5 text-[11px] font-medium tabular-nums text-muted-foreground">
+                      {practiceSummary.totalProblems} problems
                     </span>
-                  </div>
-                  <div className="mt-1 flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
-                    {item.completed ? (
-                      <span className="inline-flex items-center gap-1 font-bold uppercase tracking-[0.08em] text-primary">
-                        <CheckCircle2 className="size-3" aria-hidden="true" />
-                        Complete
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center font-bold uppercase tracking-[0.08em] text-primary">
-                        In&nbsp;progress
-                      </span>
-                    )}
-                    <span>{item.breadcrumb}</span>
-                  </div>
+                  ) : null}
+                </div>
+                <p className="text-[13.5px] leading-relaxed text-muted-foreground">
+                  Browse problems by subject and chapter, apply engineering
+                  concepts, and check your solutions.
+                </p>
+              </div>
+            </div>
+
+            <div className="shrink-0 sm:pl-4">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="w-full rounded-lg shadow-none sm:w-auto"
+              >
+                <Link href="/practice">
+                  Browse Problems
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <div className="flex min-h-28 items-center justify-center gap-4 rounded-md border border-dashed border-border bg-muted/[0.08] px-5 py-7 text-left sm:min-h-32">
-            <BarChart3
-              className="size-10 shrink-0 text-muted-foreground/40"
-              strokeWidth={1.5}
-              aria-hidden="true"
-            />
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-foreground/85 sm:text-[15px]">
-                {user
-                  ? "No recent activity yet."
-                  : "Sign in to see your lesson activity."}
-              </p>
-              <p className="text-[12px] leading-5 text-muted-foreground">
-                {user
-                  ? "Start a class above to build your timeline."
-                  : "Your timeline appears here once you sign in."}
-              </p>
+              </Button>
             </div>
           </div>
-        )}
-      </section>
-    </section>
+        </section>
+      ) : null}
+
+      {/* Signed-in Bookmarks & Recent Activity */}
+      {showPersonalLists ? (
+        <div
+          className={cn(
+            "grid gap-6",
+            bothPersonalLists ? "lg:grid-cols-2" : "grid-cols-1"
+          )}
+        >
+          {savedLessons.length > 0 ? (
+            <section
+              className="space-y-3"
+              aria-labelledby="lp-saved-heading"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <h2
+                  id="lp-saved-heading"
+                  className="text-sm font-semibold tracking-tight text-foreground"
+                >
+                  Saved bookmarks
+                </h2>
+                <Link
+                  href="/saved-lessons"
+                  className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  View all
+                </Link>
+              </div>
+              <ul className="divide-y divide-border/70 overflow-hidden rounded-xl border border-border/80 bg-card">
+                {savedLessons.map((item) => (
+                  <li key={item.key}>
+                    <Link
+                      href={item.href}
+                      className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-muted/30"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {item.title}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {item.subtitle}
+                        </p>
+                      </div>
+                      <Bookmark
+                        className="h-3.5 w-3.5 shrink-0 text-primary"
+                        aria-hidden="true"
+                      />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {recentActivity.length > 0 ? (
+            <section
+              className="space-y-3"
+              aria-labelledby="lp-recent-heading"
+            >
+              <h2
+                id="lp-recent-heading"
+                className="text-sm font-semibold tracking-tight text-foreground"
+              >
+                Recent activity
+              </h2>
+              <ul className="divide-y divide-border/70 overflow-hidden rounded-xl border border-border/80 bg-card">
+                {recentActivity.map((item) => (
+                  <li key={item.key}>
+                    <Link
+                      href={item.href}
+                      className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-muted/30"
+                    >
+                      <div className="flex min-w-0 items-start gap-2.5">
+                        {item.completed ? (
+                          <CheckCircle2
+                            className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <Clock
+                            className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
+                            aria-hidden="true"
+                          />
+                        )}
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-foreground">
+                            {item.title}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {item.breadcrumb}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                        {item.timeLabel}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* Single subtle Sign-in bar when signed out */}
+      {resolvedUser && !user ? (
+        <section aria-label="Account progress">
+          <div className="flex flex-col justify-between gap-3 rounded-xl border border-border/75 bg-muted/20 px-5 py-3.5 sm:flex-row sm:items-center">
+            <p className="text-[13px] leading-relaxed text-muted-foreground">
+              <span className="font-medium text-foreground">
+                Track your coursework.
+              </span>{" "}
+              Sign in to save bookmarked lessons and keep your progress synced
+              across sessions.
+            </p>
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="w-full shrink-0 rounded-lg bg-background shadow-none sm:w-auto"
+            >
+              <LoginLink>
+                Sign in
+                <ArrowRight className="h-3.5 w-3.5" />
+              </LoginLink>
+            </Button>
+          </div>
+        </section>
+      ) : null}
+    </div>
   );
 }

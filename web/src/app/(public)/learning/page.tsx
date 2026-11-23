@@ -1,15 +1,16 @@
-import Link from "next/link";
 import {
   chapterHasReadableLessons,
   getClassesTree,
 } from "@/lib/payloadSdk/classes";
 import type { ChapterDoc, ClassDoc, LessonDoc } from "@/lib/payloadSdk/types";
+import { practiceEnabled, problems } from "@/lib/practice/library";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 import {
   LearningPersonalization,
   type LearningClassSummary,
   type LearningLessonIndexEntry,
+  type LearningPracticeSummary,
 } from "@/components/learning/LearningPersonalization";
 
 export const revalidate = 60;
@@ -75,45 +76,18 @@ export default async function LearningPage() {
     });
   });
 
-  return (
-    <div className="mx-auto w-full max-w-[1280px] pb-14 pt-2 sm:pt-4 lg:pb-20">
-      <header className="relative isolate mb-4 overflow-hidden pb-1 sm:mb-5">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-12 -top-8 -z-10 hidden h-28 w-[min(52vw,620px)] text-primary/[0.075] sm:block"
-        >
-          <svg
-            viewBox="0 0 640 150"
-            fill="none"
-            className="size-full"
-            preserveAspectRatio="xMidYMid meet"
-          >
-            <g stroke="currentColor" strokeWidth="1.25">
-              <path d="M4 126H636M20 96H622M72 66H596M168 36H548" />
-              <path
-                d="M36 22V142M126 18V142M216 14V142M306 10V142M396 14V142M486 18V142M576 22V142"
-                strokeDasharray="5 7"
-              />
-              <path d="M76 126V96M166 126V66M256 126V96M346 126V66M436 126V96M526 126V66M616 126V96" />
-              <path d="M76 96L166 66L256 96L346 66L436 96L526 66L616 96" />
-              <path d="M76 96H256M256 96H436M436 96H616" />
-              <path d="M166 66H346M346 66H526" />
-            </g>
-          </svg>
-        </div>
-        <h1 className="text-[32px] font-semibold leading-tight tracking-[-0.035em] text-foreground sm:text-[38px] lg:text-[40px]">
-          Learning Portal
-        </h1>
-      </header>
+  const isPracticeEnabled = practiceEnabled();
+  const practiceSummary: LearningPracticeSummary = {
+    enabled: isPracticeEnabled,
+    totalProblems: isPracticeEnabled ? problems.length : 0,
+  };
 
-      {process.env.ENABLE_PRACTICE_LIBRARY === "true" || process.env.NODE_ENV === "development" ? (
-        <Link href="/practice" className="mb-5 inline-block text-primary underline underline-offset-4">
-          Engineering Practice
-        </Link>
-      ) : null}
+  return (
+    <div className="mx-auto w-full pb-12 pt-2 sm:pt-3 lg:pb-16">
       <LearningPersonalization
         lessonIndex={lessonIndex}
         classSummaries={classSummaries}
+        practiceSummary={practiceSummary}
       />
     </div>
   );
