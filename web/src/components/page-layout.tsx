@@ -21,6 +21,7 @@ import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 import { extractLessonSections } from "@/lib/lessons/toc";
 import practiceTitles from "@/lib/practice/titles.generated.json";
 import { practicePath } from "@/lib/practice/slugs";
+import { LessonPracticeCard } from "@/components/lessons/LessonPracticeCard";
 import {
   CalloutBlockView,
   CheckpointBlockView,
@@ -591,23 +592,29 @@ export function PageLayout({
 
         if (block.blockType === "practiceProblem") {
           if (!lessonId) return null;
-          const query = new URLSearchParams({ lesson: lessonId, assignment: block.assignmentKey });
+          const query = new URLSearchParams({
+            lesson: lessonId,
+            assignment: block.assignmentKey,
+          });
           if (pathname?.startsWith("/classes/")) query.set("from", pathname);
-          const title = (practiceTitles as Record<string, string | undefined>)[block.problemId] ?? "Practice problem";
-          const status = practiceProgress?.lessonId === lessonId
-            ? practiceProgress.statuses[`${block.assignmentKey}:${block.problemId}`]
-            : undefined;
+          const title =
+            (practiceTitles as Record<string, string | undefined>)[
+              block.problemId
+            ] ?? "Practice problem";
+          const status =
+            practiceProgress?.lessonId === lessonId
+              ? practiceProgress.statuses[
+                  `${block.assignmentKey}:${block.problemId}`
+                ]
+              : undefined;
           return (
-            <section key={block.id ?? idx} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3">
-              <div>
-                <p className="text-sm text-muted-foreground">{block.requiredPractice ? "Required practice" : "Optional practice"}</p>
-                <h3 className="font-semibold">{title}</h3>
-                {status ? <p className="text-sm text-muted-foreground">{status === 3 ? "Completed" : status === 2 ? "Attempted" : "Opened"}</p> : null}
-              </div>
-              <Button asChild variant="outline">
-                <a href={practicePath(block.problemId, query)}>Open problem</a>
-              </Button>
-            </section>
+            <LessonPracticeCard
+              key={block.id ?? idx}
+              href={practicePath(block.problemId, query)}
+              title={title}
+              required={Boolean(block.requiredPractice)}
+              status={status}
+            />
           );
         }
 

@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import loaders from "@/lib/practice/simulations/loaders.generated.mjs";
 import type { PracticeAssignment } from "@/lib/practice/assignment";
 import { SimulationFrame } from "./SimulationFrame";
@@ -48,7 +50,16 @@ const sharedCss = `
   }
 `;
 
-export function NativeSimulation({ id, title, seed, level, content, fallback, assignment }: {
+export function NativeSimulation({
+  id,
+  title,
+  seed,
+  level,
+  content,
+  fallback,
+  assignment,
+  lessonHref = null,
+}: {
   id: string;
   title: string;
   seed: string;
@@ -56,10 +67,12 @@ export function NativeSimulation({ id, title, seed, level, content, fallback, as
   content: { html: string; css: string; version: string };
   fallback: string;
   assignment: PracticeAssignment | null;
+  lessonHref?: string | null;
 }) {
   const mount = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
   const [tracking, setTracking] = useState("");
+  const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
     const target = mount.current;
@@ -126,11 +139,29 @@ export function NativeSimulation({ id, title, seed, level, content, fallback, as
             }).then(async (response) => {
               const result = await response.json().catch(() => null);
               if (response.status < 500) pending = null;
-              if (!disposed) setTracking(response.ok
-                ? result?.completed ? "Practice completed. Your attempt was saved." : "Attempt saved."
-                : result?.error ?? "Your attempt could not be saved. Check your answers again to retry.");
+              if (disposed) return;
+              if (!response.ok) {
+                setCompleted(false);
+                setTracking(
+                  result?.error ??
+                    "Your attempt could not be saved. Check your answers again to retry."
+                );
+                return;
+              }
+              if (result?.completed) {
+                setCompleted(true);
+                setTracking("Practice completed. Your attempt was saved.");
+              } else {
+                setCompleted(false);
+                setTracking("Attempt saved.");
+              }
             }).catch(() => {
-              if (!disposed) setTracking("Your attempt could not be saved. Check your answers again to retry.");
+              if (!disposed) {
+                setCompleted(false);
+                setTracking(
+                  "Your attempt could not be saved. Check your answers again to retry."
+                );
+              }
             }).finally(() => { saving = false; });
           },
         });
@@ -165,7 +196,39 @@ export function NativeSimulation({ id, title, seed, level, content, fallback, as
   return (
     <section aria-label={title} className="min-w-0">
       <div ref={mount} className="min-w-0" />
-      {tracking ? <p role="status" className="mt-3 text-sm text-muted-foreground">{tracking}</p> : null}
+      {tracking ? (
+        <div
+          role="status"
+          className={
+            completed
+              ? "mt-3 flex flex-col gap-2 rounded-lg border border-primary/25 bg-primary/[0.05] px-3.5 py-3 sm:flex-row sm:items-center sm:justify-between"
+              : "mt-3 text-sm text-muted-foreground"
+          }
+        >
+          {completed ? (
+            <>
+              <p className="inline-flex items-start gap-2 text-sm text-foreground">
+                <CheckCircle2
+                  className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                  aria-hidden
+                />
+                <span>{tracking}</span>
+              </p>
+              {lessonHref ? (
+                <Link
+                  href={lessonHref}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition-colors hover:text-primary/80"
+                >
+                  Return to lesson
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                </Link>
+              ) : null}
+            </>
+          ) : (
+            <p>{tracking}</p>
+          )}
+        </div>
+      ) : null}
     </section>
   );
 }

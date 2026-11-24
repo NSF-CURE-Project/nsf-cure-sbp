@@ -149,6 +149,19 @@ export default function SidebarClient({ classes }: Props) {
     new Set()
   );
   const [userId, setUserId] = useState<string | null>(null);
+  const [hashChapterSlug, setHashChapterSlug] = useState<string | null>(null);
+
+  useEffect(() => {
+    const readHash = () => {
+      const hash = window.location.hash.replace(/^#/, "");
+      setHashChapterSlug(
+        hash.startsWith("chapter-") ? hash.slice("chapter-".length) : null
+      );
+    };
+    readHash();
+    window.addEventListener("hashchange", readHash);
+    return () => window.removeEventListener("hashchange", readHash);
+  }, [pathname]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -423,10 +436,17 @@ export default function SidebarClient({ classes }: Props) {
                         lessonOwner[currentLessonSlug]?.classSlug === cSlug &&
                         lessonOwner[currentLessonSlug]?.chapterSlug === chSlug
                       );
+                      const chapterPageActive =
+                        currentClassSlug === cSlug &&
+                        currentChapterSlug === chSlug;
                       const chapterSelfActive =
-                        (currentClassSlug === cSlug &&
-                          currentChapterSlug === chSlug) ||
-                        chapterOwnsActiveLesson;
+                        chapterPageActive || chapterOwnsActiveLesson;
+                      const chapterHashFocus =
+                        !chapterSelfActive &&
+                        currentClassSlug === cSlug &&
+                        !currentLessonSlug &&
+                        !currentChapterSlug &&
+                        hashChapterSlug === chSlug;
                       const showLessonRail = chapterOwnsActiveLesson;
 
                       return (
@@ -439,7 +459,9 @@ export default function SidebarClient({ classes }: Props) {
                                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
                                 chapterSelfActive
                                   ? "border-sidebar-primary bg-sidebar-primary/10 text-sidebar-foreground"
-                                  : "border-transparent text-sidebar-foreground hover:bg-sidebar-accent"
+                                  : chapterHashFocus
+                                    ? "border-transparent bg-sidebar-accent/60 font-medium text-sidebar-foreground"
+                                    : "border-transparent text-sidebar-foreground hover:bg-sidebar-accent"
                               )}
                               aria-current={
                                 chapterSelfActive && !currentLessonSlug

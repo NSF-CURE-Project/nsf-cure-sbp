@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Shuffle } from "lucide-react";
+import { Shuffle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   getPracticeSlug,
@@ -21,6 +21,7 @@ import { SimulationFrame } from "./SimulationFrame";
 import { PracticeOpened } from "./PracticeOpened";
 import { NativeSimulation } from "./NativeSimulation";
 import { PracticeFocusMode } from "./PracticeFocusMode";
+import { PracticeLessonNav } from "./PracticeLessonNav";
 import { splitPracticeTitle } from "./practiceTitle";
 import simulations from "@/lib/practice/simulations/metadata.generated.json";
 
@@ -89,18 +90,15 @@ export default async function PracticeProblemPage({ params, searchParams }: {
   return (
     <main className={workspace
       ? interactive
-        ? "mx-auto w-full min-w-0 max-w-[1680px] space-y-2 px-2 py-2 sm:px-4 lg:px-5 lg:py-3"
-        : "mx-auto w-full min-w-0 max-w-[1200px] space-y-2 px-2 py-2 sm:px-4 lg:px-5 lg:py-3"
-      : "mx-auto w-full min-w-0 max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:py-12"}>
+        ? `mx-auto w-full min-w-0 max-w-[1680px] space-y-2 px-2 py-2 sm:px-4 lg:px-5 lg:py-3${lessonHref ? " pb-24" : ""}`
+        : `mx-auto w-full min-w-0 max-w-[1200px] space-y-2 px-2 py-2 sm:px-4 lg:px-5 lg:py-3${lessonHref ? " pb-24" : ""}`
+      : `mx-auto w-full min-w-0 max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:py-12${lessonHref ? " pb-24" : ""}`}>
       {workspace ? <PracticeFocusMode /> : null}
       {context ? <PracticeOpened {...context} /> : null}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Link
-          href={lessonHref ?? "/practice"}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="size-3.5" aria-hidden /> {lessonHref ? "Back to lesson" : "All practice"}
-        </Link>
+        <div className="min-w-0 flex-1">
+          <PracticeLessonNav lessonHref={lessonHref} />
+        </div>
         {randomized && !interactive ? (
           <Button asChild variant="ghost" size="sm" className="h-8 rounded-md px-2 text-xs">
             <Link href={variantHref(randomUUID())} prefetch={false}>
@@ -125,7 +123,8 @@ export default async function PracticeProblemPage({ params, searchParams }: {
       {problem.simulation ? (
         simulation && variant ? <NativeSimulation key={id} id={id} title={problem.title} seed={variant}
           level={level === "medium" || level === "hard" ? level : "easy"} content={simulation}
-          fallback={prepareSimulation(problem.simulation)} assignment={context} />
+          fallback={prepareSimulation(problem.simulation)} assignment={context}
+          lessonHref={lessonHref} />
           : <SimulationFrame key={id} title={problem.title} document={prepareSimulation(problem.simulation)} />
       ) : form}
     </main>

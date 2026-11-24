@@ -145,13 +145,13 @@ export function ClassProgressSummary({
 
   if (!user) {
     return (
-      <div className="mt-4 flex flex-col gap-3 rounded-lg border border-border/60 bg-muted/15 px-3.5 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-3 flex flex-col gap-2.5 rounded-lg border border-border/50 bg-muted/10 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-0.5">
           <p className="text-sm font-medium text-foreground">
-            Save your learning progress
+            Save your progress
           </p>
           <p className="text-[13px] text-muted-foreground">
-            Sign in to track completed lessons across devices.
+            Sign in to resume lessons across devices.
           </p>
         </div>
         <Button asChild size="sm" variant="outline" className="shrink-0">
@@ -169,7 +169,7 @@ export function ClassProgressSummary({
   const hasStarted = progressDocs.length > 0;
 
   return (
-    <div className="mt-4 flex flex-col gap-3 rounded-lg border border-border/60 bg-muted/15 px-3.5 py-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mt-3 flex flex-col gap-2.5 rounded-lg border border-border/50 bg-muted/10 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0 flex-1 space-y-1.5">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <p className="text-sm font-medium text-foreground">

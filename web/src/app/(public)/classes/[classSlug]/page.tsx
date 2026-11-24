@@ -204,82 +204,83 @@ export default async function ClassPage(props: {
     }))
   );
 
+  const upNextMeta = [
+    firstAvailableChapter?.chapterNumber
+      ? `Chapter ${firstAvailableChapter.chapterNumber}`
+      : null,
+    firstLessonSequence ? `Lesson ${firstLessonSequence}` : null,
+    firstLessonType,
+    firstAvailableLesson
+      ? `~${estimateMinutes(firstAvailableLesson)} min`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <main className="min-w-0 overflow-x-hidden">
       <ScrollToTopOnMount />
-      <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
-        <article className="space-y-6">
-          <header className="space-y-4">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                Course
-              </p>
-              <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-                {c.title}
-              </h1>
-              {c.description ? (
-                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                  {c.description}
+      <div className="mx-auto w-full max-w-[1040px] py-3">
+        <article className="space-y-5">
+          <header className="space-y-3">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  Course
                 </p>
+                <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+                  {c.title}
+                </h1>
+                {c.description ? (
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                    {c.description}
+                  </p>
+                ) : null}
+                {visibleChapters.length > 0 ? (
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">
+                      {visibleChapters.length}
+                    </span>{" "}
+                    {visibleChapters.length === 1 ? "chapter" : "chapters"}
+                    <span className="mx-1.5 text-border">·</span>
+                    <span className="font-medium text-foreground">
+                      {totalLessons}
+                    </span>{" "}
+                    {totalLessons === 1 ? "lesson" : "lessons"}
+                    {totalTimeLabel ? (
+                      <>
+                        <span className="mx-1.5 text-border">·</span>
+                        <span className="font-medium text-foreground">
+                          {totalTimeLabel}
+                        </span>
+                      </>
+                    ) : null}
+                  </p>
+                ) : null}
+              </div>
+
+              {firstLessonHref ? (
+                <Button asChild className="shrink-0 self-start">
+                  <Link href={firstLessonHref}>
+                    Start course
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
               ) : null}
             </div>
 
-            {visibleChapters.length > 0 ? (
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">
-                    {visibleChapters.length}
-                  </span>{" "}
-                  {visibleChapters.length === 1 ? "chapter" : "chapters"}
-                  <span className="mx-1.5 text-border">·</span>
-                  <span className="font-medium text-foreground">
-                    {totalLessons}
-                  </span>{" "}
-                  {totalLessons === 1 ? "lesson" : "lessons"}
-                  {totalTimeLabel ? (
-                    <>
-                      <span className="mx-1.5 text-border">·</span>
-                      <span className="font-medium text-foreground">
-                        {totalTimeLabel}
-                      </span>
-                    </>
-                  ) : null}
-                </p>
-
-                {firstLessonHref ? (
-                  <div className="flex shrink-0 flex-col items-start gap-1.5 sm:items-end">
-                    <Button asChild>
-                      <Link href={firstLessonHref}>
-                        Start course
-                        <ArrowRight className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    {firstAvailableLesson ? (
-                      <div className="max-w-[18rem] text-left sm:text-right">
-                        <p className="text-[13px] font-medium text-foreground">
-                          Start with {firstAvailableLesson.title}
-                        </p>
-                        <p className="mt-0.5 text-[12px] text-muted-foreground">
-                          {[
-                            firstAvailableChapter?.chapterNumber
-                              ? `Chapter ${firstAvailableChapter.chapterNumber}`
-                              : null,
-                            firstLessonSequence
-                              ? `Lesson ${firstLessonSequence}`
-                              : null,
-                            firstLessonType,
-                            firstAvailableLesson
-                              ? `~${estimateMinutes(firstAvailableLesson)} min`
-                              : null,
-                          ]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </p>
-                      </div>
-                    ) : null}
-                  </div>
+            {firstAvailableLesson ? (
+              <p className="text-[13px] text-muted-foreground">
+                <span className="font-medium text-foreground">
+                  Up next: {firstAvailableLesson.title}
+                </span>
+                {upNextMeta ? (
+                  <>
+                    <span className="mx-1.5 text-border">·</span>
+                    {upNextMeta}
+                  </>
                 ) : null}
-              </div>
+              </p>
             ) : null}
 
             <ClassProgressSummary

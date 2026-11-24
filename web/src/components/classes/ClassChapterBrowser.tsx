@@ -293,73 +293,76 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
     });
   }, [filteredChapters, progressByLesson]);
 
-  const showFilters = signedIn || filterLabels.length > 1;
+  const showFilters = signedIn;
+  const totalChapterCount = chapters.length;
+  const totalLessonCount = filterCounts.all;
 
   return (
-    <div className="space-y-5">
-      <div className="space-y-3">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight text-foreground">
-            Course curriculum
-          </h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            {signedIn
-              ? "Browse chapters and continue where you left off."
-              : "Browse the full syllabus and open any lesson."}
-          </p>
-        </div>
-
-        <div className="sticky top-[3.75rem] z-20 space-y-2 border-b border-border/50 bg-background/95 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/85">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+    <div className="space-y-4">
+      <div className="sticky top-[3.75rem] z-20 space-y-2.5 border-b border-border/40 bg-background/95 pb-3 pt-1 backdrop-blur supports-[backdrop-filter]:bg-background/85">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold tracking-tight text-foreground">
+              Course curriculum
+            </h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {totalChapterCount}{" "}
+              {totalChapterCount === 1 ? "chapter" : "chapters"}
+              <span className="mx-1.5 text-border">·</span>
+              {totalLessonCount}{" "}
+              {totalLessonCount === 1 ? "lesson" : "lessons"}
+            </p>
+          </div>
+          <div className="relative w-full sm:max-w-[16rem]">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
               type="search"
               value={chapterQuery}
               onChange={(event) => setChapterQuery(event.target.value)}
               placeholder="Find a lesson…"
-              className="h-9 w-full rounded-lg border border-border/60 bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus-visible:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+              className="h-8 w-full rounded-md border border-border/60 bg-background pl-8 pr-3 text-[13px] text-foreground placeholder:text-muted-foreground transition-colors focus-visible:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
             />
           </div>
-          {showFilters ? (
-            <div className="flex flex-wrap items-center gap-1.5">
-              {filterLabels.map((item) => {
-                const active = filter === item.key;
-                const count = filterCounts[item.key];
-                const disabled = item.key !== "all" && count === 0 && !active;
-                return (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => setFilter(item.key)}
-                    disabled={disabled}
-                    className={cn(
-                      "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors duration-150",
-                      active
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-                      disabled &&
-                        "cursor-not-allowed opacity-45 hover:bg-transparent hover:text-muted-foreground"
-                    )}
-                  >
-                    <span>{item.label}</span>
-                    {item.key !== "all" || signedIn ? (
-                      <span
-                        className={cn(
-                          "tabular-nums text-[11px]",
-                          active
-                            ? "text-primary-foreground/80"
-                            : "text-muted-foreground"
-                        )}
-                      >
-                        {count}
-                      </span>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
-          ) : null}
         </div>
+        {showFilters ? (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {filterLabels.map((item) => {
+              const active = filter === item.key;
+              const count = filterCounts[item.key];
+              const disabled = item.key !== "all" && count === 0 && !active;
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => setFilter(item.key)}
+                  disabled={disabled}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors duration-150",
+                    active
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                    disabled &&
+                      "cursor-not-allowed opacity-45 hover:bg-transparent hover:text-muted-foreground"
+                  )}
+                >
+                  <span>{item.label}</span>
+                  {item.key !== "all" ? (
+                    <span
+                      className={cn(
+                        "tabular-nums text-[11px]",
+                        active
+                          ? "text-primary-foreground/80"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      {count}
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
 
       <div className="space-y-3">
@@ -392,7 +395,7 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
               key={chapter.id}
               id={chapter.slug ? `chapter-${chapter.slug}` : undefined}
               className={cn(
-                "overflow-hidden rounded-lg border border-border/55 bg-background",
+                "scroll-mt-28 overflow-hidden rounded-lg border border-border/50 bg-background",
                 chapterIsComplete && "border-primary/25 bg-primary/[0.02]"
               )}
             >
@@ -405,29 +408,22 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                   }))
                 }
                 className={cn(
-                  "flex w-full items-start gap-3 px-3.5 py-3.5 text-left transition-colors duration-150",
-                  "hover:bg-muted/25",
+                  "flex w-full items-start gap-2.5 px-3.5 py-3 text-left transition-colors duration-150",
+                  "hover:bg-muted/30",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40",
-                  chapterOpen && "border-b border-border/45"
+                  chapterOpen && "border-b border-border/40"
                 )}
                 aria-expanded={chapterOpen}
               >
-                <span
+                <ChevronDown
                   className={cn(
-                    "mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border",
-                    chapterIsComplete
-                      ? "border-primary/35 bg-primary/10 text-primary"
-                      : "border-border/55 bg-background text-muted-foreground"
+                    "mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
+                    chapterOpen ? "rotate-0" : "-rotate-90",
+                    chapterIsComplete && "text-primary"
                   )}
-                >
-                  <ChevronDown
-                    className={cn(
-                      "h-3.5 w-3.5 transition-transform duration-200",
-                      chapterOpen ? "rotate-0" : "-rotate-90"
-                    )}
-                  />
-                </span>
-                <div className="min-w-0 flex-1 space-y-1">
+                  aria-hidden
+                />
+                <div className="min-w-0 flex-1 space-y-0.5">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     {chapter.chapterNumber != null ? (
                       <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -446,7 +442,7 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
                       </span>
                     ) : null}
                   </div>
-                  <h3 className="text-base font-semibold leading-snug tracking-tight text-foreground sm:text-lg">
+                  <h3 className="text-base font-semibold leading-snug tracking-tight text-foreground">
                     {cleanTitle(chapter.title, "Untitled chapter")}
                   </h3>
                   <p className="text-[13px] text-muted-foreground">
