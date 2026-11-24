@@ -1,18 +1,20 @@
 /* Injected into the simulation shadow root. Practice Mode beam workspace. */
 
 .simulation-body.sbp-beam-workspace {
-  --sbp-ref: 34%;
-  --sbp-border: hsl(var(--foreground) / 0.1);
+  --sbp-ref: 35%;
+  --sbp-border: hsl(var(--foreground) / 0.11);
+  --sbp-border-subtle: hsl(var(--foreground) / 0.07);
   --sbp-muted: hsl(var(--muted-foreground));
   --sbp-panel: hsl(var(--background));
+  --sbp-ref-bg: hsl(var(--foreground) / 0.018);
   --sbp-accent: hsl(var(--primary));
-  --sbp-shear: #2563eb;
-  --sbp-moment: #c2410c;
+  --sbp-shear: #1f6fb2;
+  --sbp-moment: #c0392b;
   --sbp-ok: #15803d;
   --sbp-bad: #b91c1c;
-  --sbp-radius: 6px;
+  --sbp-radius: 10px;
+  --sbp-control-radius: 6px;
   --sbp-gap: 8px;
-  --sbp-highlight: hsl(var(--primary) / 0.55);
   background: transparent !important;
   color: hsl(var(--foreground));
   padding: 0 !important;
@@ -21,8 +23,13 @@
   font-family: inherit;
 }
 
+.simulation-body.sbp-beam-workspace[data-theme="dark"] {
+  --sbp-ref-bg: hsl(var(--foreground) / 0.03);
+  --sbp-border: hsl(var(--foreground) / 0.14);
+}
+
 .simulation-body.sbp-beam-workspace.sbp-step-graph {
-  --sbp-ref: 24%;
+  --sbp-ref: 28%;
 }
 
 .simulation-body.sbp-beam-workspace .wrap {
@@ -30,7 +37,7 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--sbp-gap);
+  gap: 8px;
   min-width: 0;
   min-height: inherit;
 }
@@ -39,35 +46,46 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 12px;
   margin: 0;
-  padding: 0;
+  padding: 0 0 2px;
   border: 0;
 }
 
 .simulation-body.sbp-beam-workspace .sbp-instructions-body {
   margin: 0;
-  font-size: 13.5px;
+  font-size: 13px;
   color: var(--sbp-muted);
   line-height: 1.45;
 }
 
 .simulation-body.sbp-beam-workspace .quiz-header .btn {
-  border-radius: var(--sbp-radius);
-  padding: 6px 10px;
+  border-radius: var(--sbp-control-radius);
+  padding: 5px 10px;
   font-size: 12px;
 }
 
+/* ── Unified two-pane application container ── */
 .simulation-body.sbp-beam-workspace .sbp-workspace {
   display: grid;
-  grid-template-columns: minmax(220px, var(--sbp-user-ref, var(--sbp-ref))) 5px minmax(0, 1fr);
+  grid-template-columns: minmax(240px, var(--sbp-user-ref, var(--sbp-ref))) 1px minmax(0, 1fr);
   gap: 0;
-  align-items: start;
+  align-items: stretch;
   min-width: 0;
+  min-height: 460px;
+  border: 1px solid var(--sbp-border);
+  border-radius: var(--sbp-radius);
+  background: var(--sbp-panel);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  overflow: hidden;
+}
+
+.simulation-body.sbp-beam-workspace.sbp-step-graph .sbp-workspace {
+  min-height: clamp(500px, calc(100dvh - var(--nav-h, 4rem) - 9.75rem), 620px);
 }
 
 .simulation-body.sbp-beam-workspace.sbp-ref-collapsed .sbp-workspace {
-  grid-template-columns: 40px 0 minmax(0, 1fr);
+  grid-template-columns: 42px 1px minmax(0, 1fr);
 }
 
 .simulation-body.sbp-beam-workspace.sbp-resizing {
@@ -76,50 +94,44 @@
 }
 
 .simulation-body.sbp-beam-workspace .sbp-resize {
-  width: 5px;
-  margin: 0 2px;
+  width: 1px;
+  margin: 0;
   align-self: stretch;
-  border-radius: 999px;
-  background: transparent;
+  background: var(--sbp-border);
   cursor: col-resize;
   position: relative;
+  z-index: 3;
+  transition: background-color 120ms ease;
 }
 
-.simulation-body.sbp-beam-workspace .sbp-resize::after {
+.simulation-body.sbp-beam-workspace .sbp-resize::before {
   content: "";
   position: absolute;
-  inset: 12% 1px;
-  border-radius: 999px;
-  background: hsl(var(--foreground) / 0.12);
+  inset: 0 -4px;
 }
 
-.simulation-body.sbp-beam-workspace .sbp-resize:hover::after,
-.simulation-body.sbp-beam-workspace .sbp-resize:focus-visible::after {
-  background: hsl(var(--primary) / 0.45);
+.simulation-body.sbp-beam-workspace .sbp-resize:hover,
+.simulation-body.sbp-beam-workspace .sbp-resize:focus-visible,
+.simulation-body.sbp-beam-workspace.sbp-resizing .sbp-resize {
+  background: hsl(var(--primary) / 0.55);
 }
 
-.simulation-body.sbp-beam-workspace.sbp-ref-collapsed .sbp-resize {
-  display: none;
-}
-
+/* ── Left reference inspector pane ── */
 .simulation-body.sbp-beam-workspace .sbp-ref {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
   min-height: 0;
-  padding: 10px;
-  border: 1px solid var(--sbp-border);
-  border-radius: var(--sbp-radius);
-  background: var(--sbp-panel);
-  position: sticky;
-  top: 0;
-  max-height: calc(100dvh - var(--nav-h, 4rem) - 5rem);
-  overflow: auto;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 0;
+  background: var(--sbp-ref-bg);
 }
 
 .simulation-body.sbp-beam-workspace.sbp-ref-collapsed .sbp-ref {
-  padding: 8px 4px;
+  padding: 10px 6px;
+  align-items: center;
   overflow: hidden;
 }
 
@@ -141,8 +153,8 @@
 
 .simulation-body.sbp-beam-workspace .sbp-ref-title {
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 650;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--sbp-muted);
 }
@@ -153,26 +165,33 @@
 }
 
 .simulation-body.sbp-beam-workspace .sbp-icon-btn {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border: 1px solid var(--sbp-border);
-  border-radius: var(--sbp-radius);
-  background: transparent;
+  border-radius: var(--sbp-control-radius);
+  background: hsl(var(--background) / 0.7);
   color: var(--sbp-muted);
   font: inherit;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 650;
   font-style: italic;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-ref-toggle {
+  font-style: normal;
+  font-size: 14px;
 }
 
 .simulation-body.sbp-beam-workspace .sbp-icon-btn:hover,
 .simulation-body.sbp-beam-workspace .sbp-icon-btn.is-active {
   color: hsl(var(--foreground));
-  background: hsl(var(--foreground) / 0.04);
+  border-color: hsl(var(--foreground) / 0.22);
+  background: hsl(var(--background));
 }
 
 .simulation-body.sbp-beam-workspace .sbp-ref .panel {
@@ -184,7 +203,7 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  gap: 8px;
+  gap: 10px;
 }
 
 .simulation-body.sbp-beam-workspace .sbp-params,
@@ -196,70 +215,170 @@
 }
 
 .simulation-body.sbp-beam-workspace .chip {
-  border-radius: 999px;
+  border-radius: 6px;
   padding: 3px 8px;
   font-size: 11.5px;
   font-weight: 600;
-  background: hsl(var(--primary) / 0.08);
-  border: 1px solid hsl(var(--primary) / 0.18);
+  font-variant-numeric: tabular-nums;
+  background: hsl(var(--background));
+  border: 1px solid var(--sbp-border);
   color: hsl(var(--foreground));
 }
 
 .simulation-body.sbp-beam-workspace .sbp-diagram {
+  position: relative;
   display: flex;
+  flex: 1;
   align-items: center;
   justify-content: center;
   min-height: 200px;
-  padding: 4px 0;
+  padding: 10px 8px;
+  border: 1px solid var(--sbp-border-subtle);
+  border-radius: 8px;
+  background: hsl(var(--background));
 }
 
 .simulation-body.sbp-beam-workspace #fbdSvg {
   width: 100%;
   height: auto;
-  min-height: 190px;
-  max-height: min(46vh, 360px);
+  min-height: 175px;
+  max-height: 290px;
   display: block;
   margin: 0;
 }
 
+.simulation-body.sbp-beam-workspace .sbp-diagram-hud {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  max-width: calc(100% - 16px);
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--sbp-border);
+  background: hsl(var(--background) / 0.94);
+  color: hsl(var(--foreground));
+  font-size: 11px;
+  font-weight: 550;
+  line-height: 1.3;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 120ms ease, transform 120ms ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-diagram-hud[data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Subtle engineering diagram <-> input feedback ── */
 .simulation-body.sbp-beam-workspace #fbdSvg [data-reaction] {
   cursor: pointer;
-  transition: filter 120ms ease, opacity 120ms ease;
+  transition: opacity 140ms ease, stroke-width 140ms ease;
 }
 
-.simulation-body.sbp-beam-workspace[data-sbp-highlight] #fbdSvg [data-reaction] {
-  opacity: 0.35;
+.simulation-body.sbp-beam-workspace #fbdSvg [data-load-label] {
+  transition: opacity 140ms ease;
 }
 
-.simulation-body.sbp-beam-workspace[data-sbp-highlight="ra"] #fbdSvg [data-reaction="ra"],
-.simulation-body.sbp-beam-workspace[data-sbp-highlight="r1"] #fbdSvg [data-reaction="ra"],
-.simulation-body.sbp-beam-workspace[data-sbp-highlight="rb"] #fbdSvg [data-reaction="rb"],
-.simulation-body.sbp-beam-workspace[data-sbp-highlight="r2"] #fbdSvg [data-reaction="rb"],
-.simulation-body.sbp-beam-workspace[data-sbp-highlight="mb"] #fbdSvg [data-reaction="mb"],
-.simulation-body.sbp-beam-workspace[data-sbp-highlight="vmax"] #fbdSvg [data-reaction="rb"],
-.simulation-body.sbp-beam-workspace[data-sbp-highlight="mmax"] #fbdSvg [data-reaction="mb"] {
+.simulation-body.sbp-beam-workspace #fbdSvg [data-fbd-part="beam"] {
+  transition: stroke 140ms ease, stroke-width 140ms ease, opacity 140ms ease;
+}
+
+.simulation-body.sbp-beam-workspace[data-sbp-highlight] #fbdSvg [data-reaction]:not(.sbp-hit-target) {
+  opacity: 0.28;
+}
+
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="ra"] #fbdSvg [data-reaction="ra"]:not(.sbp-hit-target),
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="r1"] #fbdSvg [data-reaction="ra"]:not(.sbp-hit-target),
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="rb"] #fbdSvg [data-reaction="rb"]:not(.sbp-hit-target),
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="r2"] #fbdSvg [data-reaction="rb"]:not(.sbp-hit-target),
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="mb"] #fbdSvg [data-reaction="mb"]:not(.sbp-hit-target) {
   opacity: 1;
-  filter: drop-shadow(0 0 3px var(--sbp-highlight));
+}
+
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="ra"] #fbdSvg line[data-reaction="ra"]:not(.sbp-hit-target),
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="r1"] #fbdSvg line[data-reaction="ra"]:not(.sbp-hit-target),
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="rb"] #fbdSvg line[data-reaction="rb"]:not(.sbp-hit-target),
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="r2"] #fbdSvg line[data-reaction="rb"]:not(.sbp-hit-target),
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="mb"] #fbdSvg path[data-reaction="mb"]:not(.sbp-hit-target) {
+  stroke-width: 4.2;
+}
+
+/* Peak shear / moment highlight span cleanly without leaking numeric answers */
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="vmax"] #fbdSvg [data-reaction]:not(.sbp-hit-target),
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="mmax"] #fbdSvg [data-reaction]:not(.sbp-hit-target) {
+  opacity: 0.55;
+}
+
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="vmax"] #fbdSvg [data-fbd-part="beam"] {
+  stroke: var(--sbp-shear);
+  stroke-width: 2.4;
+}
+
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="mmax"] #fbdSvg [data-fbd-part="beam"] {
+  stroke: var(--sbp-moment);
+  stroke-width: 2.4;
+}
+
+.simulation-body.sbp-beam-workspace[data-sbp-highlight="mmax"] #fbdSvg [data-reaction="mb"]:not(.sbp-hit-target) {
+  opacity: 1;
+}
+
+/* ── Compact 2-line reference summary + optional info drawer ── */
+.simulation-body.sbp-beam-workspace .sbp-ref-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: auto;
+  padding-top: 2px;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-ref-summary-primary {
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: hsl(var(--foreground) / 0.85);
+}
+
+.simulation-body.sbp-beam-workspace .sbp-ref-summary-sub {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--sbp-muted);
 }
 
 .simulation-body.sbp-beam-workspace .convention,
 .simulation-body.sbp-beam-workspace .sbp-notes {
   font-size: 11.5px;
-  line-height: 1.4;
+  line-height: 1.45;
   color: var(--sbp-muted);
   margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--sbp-control-radius);
+  border: 1px solid var(--sbp-border);
+  background: hsl(var(--background));
 }
 
+.simulation-body.sbp-beam-workspace .sbp-notes[hidden] {
+  display: none !important;
+}
+
+/* ── Right active workspace pane ── */
 .simulation-body.sbp-beam-workspace .sbp-main {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
   min-height: 0;
-  border: 1px solid var(--sbp-border);
-  border-radius: var(--sbp-radius);
+  border: 0;
+  border-radius: 0;
   background: var(--sbp-panel);
-  padding: 10px 12px;
+  padding: 14px 18px;
   flex: 1;
 }
 
@@ -267,17 +386,26 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
 }
 
+.simulation-body.sbp-beam-workspace .sbp-toolbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+/* Native macOS-style segmented control */
 .simulation-body.sbp-beam-workspace .sbp-steps {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 0;
-  padding: 2px;
+  gap: 2px;
+  padding: 3px;
   border: 1px solid var(--sbp-border);
-  border-radius: var(--sbp-radius);
-  background: hsl(var(--foreground) / 0.03);
+  border-radius: 8px;
+  background: hsl(var(--foreground) / 0.04);
 }
 
 .simulation-body.sbp-beam-workspace .sbp-step {
@@ -288,44 +416,42 @@
   font: inherit;
   font-size: 12.5px;
   font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 4px;
+  padding: 5px 13px;
+  border-radius: 5.5px;
   cursor: pointer;
-  min-height: 30px;
-  position: relative;
+  min-height: 29px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-step:hover {
+  color: hsl(var(--foreground));
 }
 
 .simulation-body.sbp-beam-workspace .sbp-step[aria-current="step"] {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  box-shadow: 0 0 0 1px hsl(var(--foreground) / 0.08);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 0 0 1px hsl(var(--foreground) / 0.07);
 }
 
-.simulation-body.sbp-beam-workspace .sbp-step[data-done="true"]::after {
-  content: "";
-  position: absolute;
-  right: 5px;
-  top: 5px;
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--sbp-ok);
+.simulation-body.sbp-beam-workspace .sbp-step-check {
+  display: none;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--sbp-ok);
+  line-height: 1;
 }
 
-.simulation-body.sbp-beam-workspace .sbp-progress-meta {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--sbp-muted);
-  margin-left: 4px;
-}
-
-.simulation-body.sbp-beam-workspace .sbp-focus-btn {
-  margin-left: auto;
+.simulation-body.sbp-beam-workspace .sbp-step[data-done="true"] .sbp-step-check {
+  display: inline;
 }
 
 .simulation-body.sbp-beam-workspace .sbp-active-task {
   font-size: 15px;
   font-weight: 650;
+  letter-spacing: -0.01em;
   margin: 2px 0 0;
   color: hsl(var(--foreground));
 }
@@ -333,6 +459,8 @@
 .simulation-body.sbp-beam-workspace .sbp-step-panels {
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .simulation-body.sbp-beam-workspace .sbp-step-panels > .panel {
@@ -347,41 +475,68 @@
   display: none !important;
 }
 
-.simulation-body.sbp-beam-workspace .inputs-grid {
+/* ── Grouped, deliberately sized reaction inputs ── */
+.simulation-body.sbp-beam-workspace .inputs-grid.sbp-grouped-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 560px;
+  margin-top: 4px;
+}
+
+.simulation-body.sbp-beam-workspace .inputs-grid:not(.sbp-grouped-inputs) {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 12px;
+  gap: 12px 16px;
+  max-width: 560px;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-field-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-field-section-title {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sbp-muted);
+}
+
+.simulation-body.sbp-beam-workspace .sbp-field-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
 }
 
 .simulation-body.sbp-beam-workspace .field {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 6px 8px;
-  border-radius: var(--sbp-radius);
-  border: 1px solid transparent;
-}
-
-.simulation-body.sbp-beam-workspace .field:focus-within {
-  border-color: hsl(var(--primary) / 0.25);
-  background: hsl(var(--primary) / 0.03);
+  gap: 5px;
+  padding: 0;
+  border-radius: var(--sbp-control-radius);
 }
 
 .simulation-body.sbp-beam-workspace .field label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
   font-size: 12.5px;
   font-weight: 600;
   margin: 0;
   line-height: 1.3;
-  padding-right: 1.1rem;
+  color: hsl(var(--foreground));
 }
 
 .simulation-body.sbp-beam-workspace .field label small {
-  display: block;
-  margin-top: 1px;
   font-size: 11px;
   font-weight: 500;
   color: var(--sbp-muted);
+  white-space: nowrap;
 }
 
 .simulation-body.sbp-beam-workspace .field label i,
@@ -392,11 +547,18 @@
 .simulation-body.sbp-beam-workspace .field .input-row {
   display: flex;
   align-items: stretch;
+  gap: 0;
   width: 100%;
   border: 1px solid var(--sbp-border);
-  border-radius: var(--sbp-radius);
+  border-radius: var(--sbp-control-radius);
   background: hsl(var(--background));
   overflow: hidden;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.simulation-body.sbp-beam-workspace .field[data-fbd-hover="true"] .input-row {
+  border-color: hsl(var(--primary) / 0.55);
+  background: hsl(var(--primary) / 0.02);
 }
 
 .simulation-body.sbp-beam-workspace .field input {
@@ -404,17 +566,29 @@
   width: 100%;
   max-width: none;
   min-width: 0;
-  padding: 7px 9px;
+  padding: 7px 10px;
   border: 0;
+  border-radius: 0;
+  box-shadow: none;
   background: transparent;
   color: hsl(var(--foreground));
   font: inherit;
-  font-size: 14px;
+  font-size: 13.5px;
   font-variant-numeric: tabular-nums;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.simulation-body.sbp-beam-workspace .field input::-webkit-outer-spin-button,
+.simulation-body.sbp-beam-workspace .field input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .simulation-body.sbp-beam-workspace .field input:focus {
   outline: none;
+  border: 0;
+  box-shadow: none;
 }
 
 .simulation-body.sbp-beam-workspace .field:focus-within .input-row {
@@ -424,19 +598,25 @@
 
 .simulation-body.sbp-beam-workspace .field.ok .input-row {
   border-color: var(--sbp-ok);
-  background: color-mix(in srgb, var(--sbp-ok) 8%, transparent);
+  background: color-mix(in srgb, var(--sbp-ok) 6%, transparent);
 }
 
 .simulation-body.sbp-beam-workspace .field.bad .input-row {
   border-color: var(--sbp-bad);
-  background: color-mix(in srgb, var(--sbp-bad) 8%, transparent);
+  background: color-mix(in srgb, var(--sbp-bad) 6%, transparent);
+}
+
+.simulation-body.sbp-beam-workspace .field.ok input,
+.simulation-body.sbp-beam-workspace .field.bad input {
+  background: transparent;
+  border: 0;
 }
 
 .simulation-body.sbp-beam-workspace .field .unit {
   display: inline-flex;
   align-items: center;
   padding: 0 9px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--sbp-muted);
   background: hsl(var(--foreground) / 0.03);
@@ -445,66 +625,28 @@
 }
 
 .simulation-body.sbp-beam-workspace .field .fb {
-  min-height: 0;
+  min-height: 1rem;
   font-size: 11.5px;
   margin: 0;
   line-height: 1.3;
 }
 
 .simulation-body.sbp-beam-workspace .field .sbp-check {
-  position: absolute;
-  top: 6px;
-  right: 8px;
-  width: 1rem;
-  height: 1rem;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  font-weight: 700;
-  color: #fff;
-  background: var(--sbp-ok);
-  opacity: 0;
-  transform: scale(0.85);
-  transition: opacity 120ms ease, transform 120ms ease;
-  pointer-events: none;
-}
-
-.simulation-body.sbp-beam-workspace .field.ok .sbp-check {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.simulation-body.sbp-beam-workspace .panel.how-to {
-  margin: 0 0 8px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-
-.simulation-body.sbp-beam-workspace .panel.how-to > details {
-  border: 1px solid var(--sbp-border);
-  border-radius: var(--sbp-radius);
-  background: hsl(var(--foreground) / 0.02);
-}
-
-.simulation-body.sbp-beam-workspace .panel.how-to summary {
-  list-style: none;
-  cursor: pointer;
-  padding: 7px 10px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.simulation-body.sbp-beam-workspace .panel.how-to summary::-webkit-details-marker {
   display: none;
 }
 
-.simulation-body.sbp-beam-workspace .panel.how-to summary h2 {
-  display: inline;
-  font-size: inherit;
-  margin: 0;
+/* ── On-demand drawing guide drawer (reclaims vertical space on Shear & Moment) ── */
+.simulation-body.sbp-beam-workspace .panel.how-to.sbp-howto-drawer {
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--sbp-border);
+  border-radius: var(--sbp-control-radius);
+  background: hsl(var(--foreground) / 0.025);
+}
+
+.simulation-body.sbp-beam-workspace .panel.how-to > details {
+  border: 0;
+  background: transparent;
 }
 
 .simulation-body.sbp-beam-workspace .panel.how-to .lead,
@@ -512,18 +654,23 @@
   font-size: 12px;
   line-height: 1.45;
   color: var(--sbp-muted);
-  margin: 8px 10px;
+  margin: 4px 0;
 }
 
+.simulation-body.sbp-beam-workspace .panel.how-to .how-list {
+  padding-left: 18px;
+}
+
+/* ── Shear & Moment Diagram Editor ── */
 .simulation-body.sbp-beam-workspace .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   padding: 4px;
   border: 1px solid var(--sbp-border);
-  border-radius: var(--sbp-radius);
+  border-radius: var(--sbp-control-radius);
   background: hsl(var(--foreground) / 0.02);
 }
 
@@ -544,11 +691,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   padding: 0;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 5px;
   background: transparent;
   color: hsl(var(--foreground));
   cursor: pointer;
@@ -568,7 +715,7 @@
 
 .simulation-body.sbp-beam-workspace .tool-btn.action {
   width: auto;
-  min-width: 32px;
+  min-width: 30px;
   padding: 0 8px;
   font-size: 12px;
   font-weight: 600;
@@ -589,9 +736,15 @@
 }
 
 .simulation-body.sbp-beam-workspace .tool-btn.active {
-  background: hsl(var(--primary) / 0.1);
-  border-color: hsl(var(--primary) / 0.28);
+  background: hsl(var(--primary) / 0.11);
+  border-color: hsl(var(--primary) / 0.3);
   color: var(--sbp-accent);
+}
+
+.simulation-body.sbp-beam-workspace .editor-moment .tool-btn.active {
+  background: color-mix(in srgb, var(--sbp-moment) 11%, transparent);
+  border-color: color-mix(in srgb, var(--sbp-moment) 32%, transparent);
+  color: var(--sbp-moment);
 }
 
 .simulation-body.sbp-beam-workspace .tool-btn:disabled {
@@ -609,8 +762,12 @@
 
 .simulation-body.sbp-beam-workspace .editor-readout {
   font-variant-numeric: tabular-nums;
-  min-height: 1.2rem;
-  margin-bottom: 6px;
+  min-height: 1.15rem;
+  margin-bottom: 4px;
+}
+
+.simulation-body.sbp-beam-workspace .editor-caption {
+  margin-top: 4px;
 }
 
 .simulation-body.sbp-beam-workspace .editor-shear .editor-svg {
@@ -624,42 +781,50 @@
 .simulation-body.sbp-beam-workspace .editor-svg {
   width: 100%;
   height: auto;
-  min-height: 320px;
+  max-height: clamp(235px, calc(100dvh - var(--nav-h, 4rem) - 21.5rem), 350px);
   display: block;
   border: 1px solid var(--sbp-border);
-  border-radius: var(--sbp-radius);
+  border-radius: 7px;
   background: hsl(var(--background));
-}
-
-.simulation-body.sbp-beam-workspace.sbp-step-graph .editor-svg {
-  min-height: min(52vh, 480px);
 }
 
 .simulation-body.sbp-beam-workspace .sbp-plot-scroll {
   overflow-x: auto;
-  border-radius: var(--sbp-radius);
+  border-radius: 7px;
 }
 
 .simulation-body.sbp-beam-workspace .editor-msg.ok {
   color: var(--sbp-ok);
+  font-weight: 550;
 }
 
 .simulation-body.sbp-beam-workspace .editor-msg.bad {
   color: var(--sbp-bad);
 }
 
+/* ── Review panel ── */
+.simulation-body.sbp-beam-workspace .sbp-review-panel {
+  max-width: 560px;
+  padding-top: 4px;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-review-empty {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--sbp-muted);
+}
+
+/* ── Bottom anchored action bar ── */
 .simulation-body.sbp-beam-workspace .sbp-actionbar {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin-top: auto;
-  padding-top: 10px;
+  padding-top: 12px;
   border-top: 1px solid var(--sbp-border);
-  position: sticky;
-  bottom: 0;
-  background: linear-gradient(to top, var(--sbp-panel) 75%, transparent);
-  z-index: 2;
+  background: var(--sbp-panel);
 }
 
 .simulation-body.sbp-beam-workspace .sbp-actionbar-nav,
@@ -667,11 +832,28 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .simulation-body.sbp-beam-workspace .sbp-actionbar-eval {
   justify-content: flex-end;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-actionbar-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.simulation-body.sbp-beam-workspace .sbp-inline-status {
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--sbp-muted);
+}
+
+.simulation-body.sbp-beam-workspace .sbp-inline-status[data-tone="ok"] {
+  color: var(--sbp-ok);
 }
 
 .simulation-body.sbp-beam-workspace .sbp-core-actions {
@@ -693,15 +875,16 @@
   color: var(--sbp-muted);
   font: inherit;
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 550;
   cursor: pointer;
-  padding: 6px 4px;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  padding: 6px 6px;
+  border-radius: var(--sbp-control-radius);
+  transition: color 120ms ease, background-color 120ms ease;
 }
 
 .simulation-body.sbp-beam-workspace .sbp-text-action:hover {
   color: hsl(var(--foreground));
+  background: hsl(var(--foreground) / 0.04);
 }
 
 .simulation-body.sbp-beam-workspace .btn {
@@ -709,12 +892,13 @@
   border: 1px solid var(--sbp-border);
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  border-radius: var(--sbp-radius);
-  padding: 7px 12px;
+  border-radius: var(--sbp-control-radius);
+  padding: 7px 13px;
   font: inherit;
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 
 .simulation-body.sbp-beam-workspace .btn:hover {
@@ -726,6 +910,10 @@
   cursor: not-allowed;
 }
 
+.simulation-body.sbp-beam-workspace .btn[hidden] {
+  display: none !important;
+}
+
 .simulation-body.sbp-beam-workspace .btn.primary {
   background: var(--sbp-accent);
   border-color: transparent;
@@ -733,12 +921,18 @@
 }
 
 .simulation-body.sbp-beam-workspace .btn.primary:hover {
-  filter: brightness(0.96);
+  filter: brightness(0.95);
 }
 
 .simulation-body.sbp-beam-workspace .btn.sbp-btn-secondary,
 .simulation-body.sbp-beam-workspace .sbp-btn-secondary {
-  background: hsl(var(--foreground) / 0.03);
+  background: hsl(var(--background));
+  border-color: var(--sbp-border);
+  color: hsl(var(--foreground));
+}
+
+.simulation-body.sbp-beam-workspace .btn.sbp-btn-secondary:hover {
+  background: hsl(var(--foreground) / 0.04);
 }
 
 .simulation-body.sbp-beam-workspace .btn.sbp-btn-ghost,
@@ -746,16 +940,19 @@
   background: transparent;
   border-color: transparent;
   color: var(--sbp-muted);
+  padding: 5px 9px;
+  font-size: 12px;
 }
 
-.simulation-body.sbp-beam-workspace .btn.sbp-btn-ghost:hover {
+.simulation-body.sbp-beam-workspace .btn.sbp-btn-ghost:hover,
+.simulation-body.sbp-beam-workspace .btn.sbp-btn-ghost.is-active {
   color: hsl(var(--foreground));
   background: hsl(var(--foreground) / 0.05);
 }
 
 .simulation-body.sbp-beam-workspace .summary {
-  font-size: 12.5px;
-  line-height: 1.4;
+  font-size: 13px;
+  line-height: 1.45;
   margin: 0;
 }
 
@@ -772,6 +969,7 @@
   .simulation-body.sbp-beam-workspace .sbp-workspace,
   .simulation-body.sbp-beam-workspace.sbp-ref-collapsed .sbp-workspace {
     grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
   }
 
   .simulation-body.sbp-beam-workspace .sbp-resize {
@@ -779,15 +977,15 @@
   }
 
   .simulation-body.sbp-beam-workspace .sbp-ref {
-    position: relative;
-    max-height: none;
+    border-bottom: 1px solid var(--sbp-border);
   }
 
   .simulation-body.sbp-beam-workspace.sbp-ref-collapsed .sbp-ref > *:not(.sbp-ref-head) {
     display: revert !important;
   }
 
-  .simulation-body.sbp-beam-workspace .inputs-grid {
+  .simulation-body.sbp-beam-workspace .sbp-field-row,
+  .simulation-body.sbp-beam-workspace .inputs-grid:not(.sbp-grouped-inputs) {
     grid-template-columns: 1fr;
   }
 
@@ -803,15 +1001,17 @@
 
   .simulation-body.sbp-beam-workspace .sbp-step {
     flex: 1 1 auto;
-    text-align: center;
+    justify-content: center;
   }
 
-  .simulation-body.sbp-beam-workspace .sbp-focus-btn {
+  .simulation-body.sbp-beam-workspace .sbp-toolbar-actions {
     margin-left: 0;
     width: 100%;
+    justify-content: flex-end;
   }
 
   .simulation-body.sbp-beam-workspace .editor-svg {
+    max-height: none;
     min-height: 240px;
   }
 }
