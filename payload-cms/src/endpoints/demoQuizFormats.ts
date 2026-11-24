@@ -21,6 +21,10 @@ const buildFormat = (
 })
 
 export const demoQuizFormatsHandler: PayloadHandler = async () => {
+  if (process.env.NODE_ENV === 'production') {
+    return jsonResponse({ error: 'Not found.' }, 404)
+  }
+
   return jsonResponse({
     formats: [
       buildFormat(
