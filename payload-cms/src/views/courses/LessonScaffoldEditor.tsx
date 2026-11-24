@@ -3,13 +3,19 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createLesson, updateLesson } from './courses-order-api'
+import {
+  createLesson,
+  getLastPublishedLessonVersion,
+  getLessonVersion,
+  updateLesson,
+} from './courses-order-api'
 import { useBreadcrumbChain } from '../admin/breadcrumbTitle'
 import BlockList from './scaffold/BlockList'
 import VersionsPanel from './scaffold/VersionsPanel'
 import PublishReviewModal from './scaffold/PublishReviewModal'
 import OutlinePanel from './scaffold/OutlinePanel'
 import InspectorPanel from './scaffold/InspectorPanel'
+import { PracticePreviewOrigin } from './scaffold/BlockEditor'
 import { fromPersistedLayout, type ScaffoldBlock, toPersistedLayout } from './scaffold/types'
 
 type CreateModeProps = {
@@ -21,6 +27,7 @@ type CreateModeProps = {
   initialTitle: string
   initialOrder: number
   stagedId: string | null
+  practicePreviewOrigin?: string
 }
 
 type EditModeProps = {
@@ -37,6 +44,7 @@ type EditModeProps = {
   // When null (missing env, missing slug), the publish-review modal drops the
   // iframe and just shows a summary.
   previewUrl?: string | null
+  practicePreviewOrigin?: string
 }
 
 export type LessonScaffoldEditorProps = CreateModeProps | EditModeProps
@@ -199,7 +207,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
     }
   }
 
-  const validate = (intent: SaveIntent): string | null => {
+  const validate = (): string | null => {
     if (!title.trim()) return 'Title is required.'
     for (const [i, block] of blocks.entries()) {
       if (block.blockType === 'sectionTitle' && !block.title.trim()) {
@@ -208,6 +216,9 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
       if (block.blockType === 'buttonBlock') {
         if (!block.label.trim()) return `Block ${i + 1} (button) needs a label.`
         if (!block.href.trim()) return `Block ${i + 1} (button) needs a link.`
+      }
+      if (block.blockType === 'practiceProblem' && !block.problemId) {
+        return `Block ${i + 1} (practice problem) needs a problem.`
       }
       if (block.blockType === 'stepsList') {
         const steps = block.steps ?? []
@@ -223,9 +234,6 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
       if (block.blockType === 'quizBlock' && block.quiz == null) {
         return `Block ${i + 1} (quiz) needs a quiz selected.`
       }
-    }
-    if (intent === 'publish' && blocks.length === 0) {
-      return 'Add at least one block before publishing.'
     }
     return null
   }
@@ -288,7 +296,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
   }
 
   const save = async (intent: SaveIntent) => {
-    const message = validate(intent)
+    const message = validate()
     if (message) {
       setError(message)
       return
@@ -312,7 +320,14 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         })
       }
       clearDraft()
-      router.push(`/admin/courses/${props.courseId}`)
+      // Pass a flash code so the workspace can surface a toast confirming
+      // the action; useFlashToast strips the params after rendering.
+      const flashCode = intent === 'publish' ? 'lesson-published' : 'lesson-saved'
+      const params = new URLSearchParams({
+        flash: flashCode,
+        title: title.trim(),
+      })
+      router.push(`/admin/courses/${props.courseId}?${params.toString()}`)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save lesson.')
@@ -336,7 +351,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
       // (we'd race ourselves into stale data otherwise).
       const fresh = JSON.stringify({ title, blocks: toPersistedLayout(blocks) })
       if (fresh !== snapshot) return
-      if (validate('draft') !== null) return // silent skip if invalid
+      if (validate() !== null) return // silent skip if invalid
       setAutoSaveStatus('saving')
       try {
         await updateLesson(props.lessonId, {
@@ -365,7 +380,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
   // stale).
   const [preparingReview, setPreparingReview] = useState(false)
   const handlePublishClick = async () => {
-    const message = validate('publish')
+    const message = validate()
     if (message) {
       setError(message)
       return
@@ -422,6 +437,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
     props.mode === 'create' || props.initialStatus === 'draft' ? 'lse-chip--draft' : 'lse-chip--ok'
 
   return (
+    <PracticePreviewOrigin.Provider value={props.practicePreviewOrigin ?? ''}>
     <div className="lse-shell">
       <style>{`
         /* === Shell + sticky toolbar === */
@@ -958,7 +974,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           background: var(--admin-surface, #fff);
           border-radius: 10px;
           box-shadow: var(--admin-shadow-soft);
-          overflow: hidden;
+          overflow: visible;
           transition: var(--admin-transition);
         }
         .lse-block:hover { border-color: var(--admin-surface-border-strong, #c2ccda); }
@@ -976,8 +992,12 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           padding: 8px 10px;
           background: var(--admin-surface-muted, #f3f6fb);
           border-bottom: 1px solid var(--admin-surface-border, #d7dfea);
+          border-radius: 10px 10px 0 0;
         }
-        .lse-block--collapsed .lse-block__header { border-bottom-color: transparent; }
+        .lse-block--collapsed .lse-block__header {
+          border-bottom-color: transparent;
+          border-radius: inherit;
+        }
 
         /* === Block type identity ===
          * Subtle left-edge stripe (via ::before so it survives hover/
@@ -1218,6 +1238,9 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           background: var(--admin-surface, #fff);
         }
         .cw-rt__toolbar {
+          position: sticky;
+          top: 76px;
+          z-index: 30;
           display: flex;
           align-items: center;
           gap: 4px;
@@ -1225,6 +1248,7 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
           border-bottom: 1px solid var(--admin-surface-border, #d6dce5);
           background: var(--admin-surface-muted, #f5f7fa);
           border-radius: 8px 8px 0 0;
+          box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
         }
         .cw-rt__btn {
           display: inline-flex;
@@ -1548,7 +1572,11 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         // background save lands while the modal is open, the iframe reloads
         // and shows the up-to-date preview.
         previewRefreshKey={autoSaveAt}
-        lessonId={isCreate ? null : props.lessonId}
+        entityId={isCreate ? null : props.lessonId}
+        entity={{ label: 'lesson', capitalLabel: 'Lesson' }}
+        fetchLastPublishedVersion={getLastPublishedLessonVersion}
+        fetchVersionSnapshot={getLessonVersion}
+        showQuizCoverageCheck
         onCancel={() => setReviewOpen(false)}
         onConfirm={async () => {
           await save('publish')
@@ -1570,5 +1598,6 @@ export default function LessonScaffoldEditor(props: LessonScaffoldEditorProps) {
         savingDraft={busy === 'draft'}
       />
     </div>
+    </PracticePreviewOrigin.Provider>
   )
 }

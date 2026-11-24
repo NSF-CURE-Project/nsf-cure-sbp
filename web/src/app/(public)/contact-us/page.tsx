@@ -1,5 +1,10 @@
+import { notFound } from "next/navigation";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
-import { getPageBySlug, type PageDoc } from "@/lib/payloadSdk/pages";
+import {
+  getPageBySlug,
+  isPageHiddenPublicly,
+  type PageDoc,
+} from "@/lib/payloadSdk/pages";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 
@@ -16,6 +21,10 @@ export default async function ContactUsPage() {
   const page: PageDoc | null = await getPageBySlug("contact-us", {
     draft: isPreview,
   }).catch(() => null);
+
+  if (isPageHiddenPublicly(page, { draft: isPreview })) {
+    notFound();
+  }
 
   return (
     <main className="max-w-6xl mx-auto pt-6 pb-10 px-6">

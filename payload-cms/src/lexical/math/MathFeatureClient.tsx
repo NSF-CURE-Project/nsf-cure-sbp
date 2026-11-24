@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   createClientFeature,
   toolbarFeatureButtonsGroupWithItems,
@@ -13,6 +13,26 @@ import {
 } from '@payloadcms/richtext-lexical/lexical'
 import { useLexicalComposerContext } from '@payloadcms/richtext-lexical/lexical/react/LexicalComposerContext'
 import { MathNode, $createMathNode } from './MathNode'
+import MathPromptDialog from './MathPromptDialog'
+
+// Module-level bridge between the imperative toolbar callback (outside any
+// React tree) and the modal host mounted by MathPlugin. The host registers a
+// concrete opener on mount; `openMathPrompt` awaits the next resolution.
+type MathPromptOpener = (defaultValue: string) => Promise<string | null>
+let registeredOpener: MathPromptOpener | null = null
+
+const registerMathPromptOpener = (fn: MathPromptOpener | null) => {
+  registeredOpener = fn
+}
+
+const openMathPrompt = async (defaultValue: string): Promise<string | null> => {
+  if (registeredOpener) return registeredOpener(defaultValue)
+  // MathPlugin should always be mounted alongside the toolbar — if for some
+  // reason the host hasn't registered yet, silently skip rather than
+  // falling back to a native browser prompt. The user can retry once the
+  // editor finishes hydrating.
+  return null
+}
 
 const DOLLAR_PLACEHOLDER = '__DOLLAR__PLACEHOLDER__'
 const MATH_REGEX = /\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g
@@ -71,6 +91,10 @@ const replaceWithNodes = (
 
 const MathPlugin = () => {
   const [editor] = useLexicalComposerContext()
+  const [promptState, setPromptState] = useState<{
+    defaultValue: string
+    resolve: (value: string | null) => void
+  } | null>(null)
 
   useEffect(() => {
     return editor.registerNodeTransform(TextNode, (node) => {
@@ -98,12 +122,42 @@ const MathPlugin = () => {
     })
   }, [editor])
 
-  return null
+  // Register/unregister the opener so the toolbar action can await this
+  // host's modal instead of falling back to window.prompt.
+  const opener = useCallback<MathPromptOpener>(
+    (defaultValue) =>
+      new Promise<string | null>((resolve) => {
+        setPromptState({ defaultValue, resolve })
+      }),
+    [],
+  )
+  useEffect(() => {
+    registerMathPromptOpener(opener)
+    return () => registerMathPromptOpener(null)
+  }, [opener])
+
+  const handleSubmit = (latex: string) => {
+    promptState?.resolve(latex)
+    setPromptState(null)
+  }
+  const handleCancel = () => {
+    promptState?.resolve(null)
+    setPromptState(null)
+  }
+
+  return (
+    <MathPromptDialog
+      open={promptState !== null}
+      defaultValue={promptState?.defaultValue ?? ''}
+      onSubmit={handleSubmit}
+      onCancel={handleCancel}
+    />
+  )
 }
 
 const MathIcon = () => <span style={{ fontWeight: 700, fontSize: 12 }}>Math</span>
 
-const insertMathFromPrompt = (editor: {
+const insertMathFromPrompt = async (editor: {
   update: (cb: () => void) => void
   getEditorState: () => { read: (cb: () => void) => void }
 }) => {
@@ -112,10 +166,7 @@ const insertMathFromPrompt = (editor: {
     const selection = $getSelection()
     selectionText = $isRangeSelection(selection) ? selection.getTextContent() : ''
   })
-  const rawInput = window.prompt(
-    'Enter LaTeX (use $...$ inline or $$...$$ for display)',
-    selectionText,
-  )
+  const rawInput = await openMathPrompt(selectionText)
   if (!rawInput) return
 
   let latex = rawInput.trim()
@@ -153,7 +204,7 @@ export const MathFeatureClient = createClientFeature({
           key: 'math',
           label: 'Math',
           onSelect: ({ editor }) => {
-            insertMathFromPrompt(editor)
+            void insertMathFromPrompt(editor)
           },
         },
       ]),
@@ -167,7 +218,7 @@ export const MathFeatureClient = createClientFeature({
           key: 'math',
           label: 'Math',
           onSelect: ({ editor }) => {
-            insertMathFromPrompt(editor)
+            void insertMathFromPrompt(editor)
           },
         },
       ]),

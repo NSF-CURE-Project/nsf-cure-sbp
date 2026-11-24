@@ -28,9 +28,13 @@ type BlockListProps = {
   onChange: (next: ScaffoldBlock[]) => void
   selectedKey?: string | null
   onSelect?: (key: string) => void
+  // Override the order/visibility of the block-picker chips. Defaults to the
+  // lesson-friendly set; pass a Pages-friendly set (with heroBlock,
+  // resourcesList, contactsList) from the Pages editor.
+  allowedBlockTypes?: AuthorableBlockTypeSlug[]
 }
 
-const blockTypeOrder: AuthorableBlockTypeSlug[] = [
+const DEFAULT_BLOCK_TYPE_ORDER: AuthorableBlockTypeSlug[] = [
   'sectionTitle',
   'textSection',
   'richTextBlock',
@@ -38,7 +42,13 @@ const blockTypeOrder: AuthorableBlockTypeSlug[] = [
   'buttonBlock',
   'listBlock',
   'stepsList',
+  'callout',
+  'definition',
+  'workedExample',
+  'checkpoint',
+  'lessonSummary',
   'quizBlock',
+  'practiceProblem',
 ]
 
 // Hover-revealed insertion point between blocks. When the user clicks, the
@@ -51,12 +61,14 @@ function InsertionPoint({
   onClose,
   onPick,
   firstButtonRef,
+  allowedTypes,
 }: {
   isOpen: boolean
   onOpen: () => void
   onClose: () => void
   onPick: (type: AuthorableBlockTypeSlug) => void
   firstButtonRef?: React.RefObject<HTMLButtonElement | null>
+  allowedTypes: AuthorableBlockTypeSlug[]
 }) {
   if (isOpen) {
     return (
@@ -71,7 +83,7 @@ function InsertionPoint({
         }}
         className="lse-insert lse-insert--open"
       >
-        {blockTypeOrder.map((type, idx) => (
+        {allowedTypes.map((type, idx) => (
           <button
             key={type}
             ref={idx === 0 ? firstButtonRef : null}
@@ -115,7 +127,9 @@ export default function BlockList({
   onChange,
   selectedKey = null,
   onSelect,
+  allowedBlockTypes,
 }: BlockListProps) {
+  const blockTypeOrder = allowedBlockTypes ?? DEFAULT_BLOCK_TYPE_ORDER
   // `openInsertion === null`     → no insertion point is open.
   // `openInsertion === <number>` → the gap at that index is showing the picker.
   // `openInsertion === 'end'`    → the bottom "+ Add block" is open.
@@ -195,6 +209,7 @@ export default function BlockList({
                     firstButtonRef={
                       openInsertion === index ? insertionFirstButtonRef : undefined
                     }
+                    allowedTypes={blockTypeOrder}
                   />
                   <BlockCard
                     block={block}

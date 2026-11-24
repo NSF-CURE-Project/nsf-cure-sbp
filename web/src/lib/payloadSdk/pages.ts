@@ -7,6 +7,7 @@ export type PageDoc = {
   title: string;
   slug: string;
   navOrder?: number | null;
+  hidden?: boolean | null;
   layout?: PageLayoutBlock[] | null;
 };
 
@@ -32,15 +33,27 @@ export async function getPageBySlug(
   }, null);
 }
 
+// Public routes call this to decide whether to 404. Hidden pages are gated
+// behind a draft/preview session so admins can still verify before unhiding.
+export function isPageHiddenPublicly(
+  page: PageDoc | null,
+  options?: { draft?: boolean }
+): boolean {
+  return Boolean(page?.hidden) && !options?.draft;
+}
+
 export async function getPages(options?: {
   draft?: boolean;
+  includeHidden?: boolean;
 }): Promise<PageDoc[]> {
   return withCmsFallback(async () => {
     const data = await payload.get<PagesQueryResponse>(
       "/pages?limit=100&sort=navOrder",
       { draft: options?.draft, revalidate: 60 }
     );
-    const docs = data.docs ?? [];
+    const docs = (data.docs ?? []).filter(
+      (doc) => options?.includeHidden || !doc.hidden
+    );
     return docs.sort((a, b) => {
       const aOrder =
         typeof a.navOrder === "number" ? a.navOrder : Number.POSITIVE_INFINITY;

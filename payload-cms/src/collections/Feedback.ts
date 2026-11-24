@@ -11,6 +11,10 @@ export const Feedback: CollectionConfig = {
     useAsTitle: 'message',
     group: 'Student Support',
     defaultColumns: ['message', 'email', 'pageUrl', 'createdAt'],
+    // Canonical UI lives at /admin/feedback — see views/feedback/*.
+    // Keep this hidden so /admin/collections/feedback doesn't render the
+    // generic Payload list view in parallel.
+    hidden: true,
   },
   access: {
     read: ({ req }) => (isStaff(req) ? true : false),

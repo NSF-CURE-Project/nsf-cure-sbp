@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useId, useState } from "react";
 
+import { PasswordInput } from "@/components/auth/PasswordInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
@@ -38,6 +40,8 @@ const getReturnPath = () => {
 };
 
 export function LoginForm() {
+  const emailId = useId();
+  const errorId = useId();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<
@@ -47,6 +51,8 @@ export function LoginForm() {
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (status === "loading") return;
+
     setStatus("loading");
     setMessage("");
 
@@ -60,58 +66,77 @@ export function LoginForm() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        throw new Error(data?.message ?? "Login failed.");
+        throw new Error(
+          data?.message ?? "Unable to sign in. Check your email and password."
+        );
       }
 
       setStatus("success");
-      setMessage("Logged in successfully.");
+      setMessage("Signed in successfully.");
       window.location.href = getReturnPath();
     } catch (error) {
       setStatus("error");
-      setMessage(error instanceof Error ? error.message : "Login failed.");
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to sign in. Check your email and password."
+      );
     }
   };
 
   return (
-    <form className="space-y-4" onSubmit={onSubmit}>
+    <form className="space-y-5" onSubmit={onSubmit} noValidate>
       <div className="space-y-2">
-        <label className="block text-sm font-semibold tracking-[0.01em] text-slate-900">
-          Email
+        <label
+          htmlFor={emailId}
+          className="block text-sm font-medium text-foreground"
+        >
+          Email address
         </label>
         <Input
+          id={emailId}
           type="email"
           name="email"
-          autoComplete="email"
+          autoComplete="username"
+          inputMode="email"
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="login-input h-12 rounded-xl !border !border-slate-300 !bg-white !text-base !text-slate-900 shadow-sm transition-all duration-200 placeholder:text-slate-400 hover:!border-slate-400 focus-visible:!border-emerald-600 focus-visible:!ring-2 focus-visible:!ring-emerald-200 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
+          className="h-12 rounded-lg text-[15px]"
           placeholder="student@cpp.edu"
-        />
-      </div>
-      <div className="space-y-2">
-        <label className="block text-sm font-semibold tracking-[0.01em] text-slate-900">
-          Password
-        </label>
-        <Input
-          type="password"
-          name="password"
-          autoComplete="current-password"
-          required
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          className="login-input h-12 rounded-xl !border !border-slate-300 !bg-white !text-base !text-slate-900 shadow-sm transition-all duration-200 placeholder:text-slate-400 hover:!border-slate-400 focus-visible:!border-emerald-600 focus-visible:!ring-2 focus-visible:!ring-emerald-200 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
-          placeholder="••••••••"
+          aria-invalid={status === "error" || undefined}
+          aria-describedby={status === "error" ? errorId : undefined}
         />
       </div>
 
+      <PasswordInput
+        label="Password"
+        name="password"
+        autoComplete="current-password"
+        required
+        value={password}
+        onChange={(event) => setPassword(event.target.value)}
+        aria-invalid={status === "error" || undefined}
+        aria-describedby={status === "error" ? errorId : undefined}
+        hint={
+          <Link
+            href="/forgot-password"
+            className="text-sm font-medium text-primary transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+          >
+            Forgot password?
+          </Link>
+        }
+      />
+
       {message ? (
         <div
+          id={errorId}
+          role={status === "error" ? "alert" : "status"}
           aria-live="polite"
-          className={`rounded-md px-4 py-3 text-sm ${
+          className={`rounded-lg px-3.5 py-3 text-sm leading-relaxed ${
             status === "error"
-              ? "border border-red-200 bg-red-50 text-red-700"
-              : "border border-emerald-200 bg-emerald-50 text-emerald-700"
+              ? "border border-destructive/25 bg-destructive/5 text-destructive"
+              : "border border-primary/20 bg-primary/5 text-primary"
           }`}
         >
           {message}
@@ -120,10 +145,14 @@ export function LoginForm() {
 
       <Button
         type="submit"
-        disabled={status === "loading"}
-        className="h-12 w-full rounded-xl bg-emerald-700 text-base font-semibold text-white shadow-md shadow-emerald-900/30 transition-all duration-200 hover:bg-emerald-800 active:scale-[0.99]"
+        disabled={status === "loading" || status === "success"}
+        className="h-12 w-full rounded-lg text-[15px] font-semibold shadow-[0_2px_8px_rgba(0,80,48,0.10)] transition-[background-color,box-shadow,color] duration-150 hover:bg-primary/90 hover:shadow-[0_3px_10px_rgba(0,80,48,0.12)]"
       >
-        {status === "loading" ? "Signing in..." : "Sign In"}
+        {status === "loading"
+          ? "Signing in…"
+          : status === "success"
+            ? "Redirecting…"
+            : "Sign in"}
       </Button>
     </form>
   );

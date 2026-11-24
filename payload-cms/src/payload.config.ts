@@ -24,6 +24,7 @@ import { PrePostAssessments } from './collections/PrePostAssessments'
 import { SavedViews } from './collections/SavedViews'
 import { Quizzes } from './collections/Quizzes'
 import { QuizAttempts } from './collections/QuizAttempts'
+import { PracticeAttempts } from './collections/PracticeAttempts'
 import { MathFeature } from './lexical/math/MathFeature'
 import { Questions } from './collections/Questions'
 import { Notifications } from './collections/Notifications'
@@ -43,30 +44,14 @@ import { ReportingEvidenceLinks } from './collections/ReportingEvidenceLinks'
 import { ReportingProductRecords } from './collections/ReportingProductRecords'
 import { ApiKeys } from './collections/ApiKeys'
 import { AdminHelp } from './globals/AdminHelp'
+import { AuthSettings } from './globals/AuthSettings'
 import { Footer } from './globals/Footer'
 import { SiteBranding } from './globals/SiteBranding'
-import {
-  joinClassroomHandler,
-  leaveClassroomHandler,
-  regenerateClassroomCodeHandler,
-} from './endpoints/classroomEndpoints'
 import { previewUrlHandler } from './endpoints/previewUrl'
-import { logoutAllSessionsHandler } from './endpoints/logoutAll'
-import { accountsMeHandler } from './endpoints/accountsMe'
-import { accountsHeartbeatHandler } from './endpoints/accountsHeartbeat'
-import {
-  accountDataSummaryHandler,
-  updateMyDemographicsHandler,
-  updateNotificationPreferencesHandler,
-} from './endpoints/accountEndpoints'
 import { reportingSummaryHandler } from './endpoints/reportingSummary'
 import { nsfRpprSummaryHandler } from './endpoints/nsfRpprSummary'
 import { reportingCenterHandler } from './endpoints/reportingCenter'
 import { metricDefinitionsHandler } from './endpoints/metricDefinitions'
-import { emailPreviewHandler } from './endpoints/emailPreview'
-import { certificateHandler } from './endpoints/certificate'
-import { quizAttemptReviewHandler } from './endpoints/quizAttemptReview'
-import { lessonQuestionsHandler, questionDetailHandler } from './endpoints/questionsEndpoints'
 import { studentAnalyticsHandler } from './endpoints/studentAnalytics'
 import { studentPerformanceHandler } from './endpoints/studentPerformance'
 import { demoQuizFormatsHandler } from './endpoints/demoQuizFormats'
@@ -169,6 +154,8 @@ const formatAddressList = (value: unknown): string[] => {
 const resendApiKey = stripEnvQuotes(process.env.RESEND_API_KEY)
 const resendApiBaseUrl = stripEnvQuotes(process.env.RESEND_API_BASE_URL) ?? 'https://api.resend.com'
 const resendFrom = stripEnvQuotes(process.env.RESEND_FROM)
+const resendReplyTo =
+  stripEnvQuotes(process.env.RESEND_REPLY_TO) ?? 'nsfcuresbp@gmail.com'
 const resendStarterBaseUrl = stripEnvQuotes(process.env.RESEND_STARTER_URL)
 const resendStarterSendUrl =
   stripEnvQuotes(process.env.RESEND_STARTER_SEND_URL) ??
@@ -233,6 +220,7 @@ const buildResendAdapter = () => ({
     const cc = formatAddressList(message.cc)
     const bcc = formatAddressList(message.bcc)
     const replyTo = formatAddressList(message.replyTo ?? message.reply_to)
+    const resolvedReplyTo = replyTo.length ? replyTo : formatAddressList(resendReplyTo)
     const subject =
       typeof message.subject === 'string' && message.subject.trim()
         ? message.subject.trim()
@@ -254,7 +242,7 @@ const buildResendAdapter = () => ({
         ...(text ? { text } : {}),
         ...(cc.length ? { cc } : {}),
         ...(bcc.length ? { bcc } : {}),
-        ...(replyTo.length ? { reply_to: replyTo } : {}),
+        ...(resolvedReplyTo.length ? { reply_to: resolvedReplyTo } : {}),
       }),
     })
 
@@ -281,6 +269,7 @@ const buildResendStarterAdapter = () => ({
     const cc = formatAddressList(message.cc)
     const bcc = formatAddressList(message.bcc)
     const replyTo = formatAddressList(message.replyTo ?? message.reply_to)
+    const resolvedReplyTo = replyTo.length ? replyTo : formatAddressList(resendReplyTo)
     const subject =
       typeof message.subject === 'string' && message.subject.trim()
         ? message.subject.trim()
@@ -309,7 +298,9 @@ const buildResendStarterAdapter = () => ({
             ...(text ? { text } : {}),
             ...(cc.length ? { cc } : {}),
             ...(bcc.length ? { bcc } : {}),
-            ...(replyTo.length ? { replyTo, reply_to: replyTo } : {}),
+            ...(resolvedReplyTo.length
+              ? { replyTo: resolvedReplyTo, reply_to: resolvedReplyTo }
+              : {}),
           }),
         })
       } finally {
@@ -416,13 +407,14 @@ export default buildConfig({
     QuizQuestions,
     Quizzes,
     QuizAttempts,
+    PracticeAttempts,
     Notifications,
     LessonProgress,
     LessonBookmarks,
     Feedback,
     LessonFeedback,
   ],
-  globals: [AdminHelp, Footer, SiteBranding],
+  globals: [AdminHelp, AuthSettings, Footer, SiteBranding],
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [
       ...defaultFeatures,
@@ -506,21 +498,6 @@ export default buildConfig({
         }),
     },
     {
-      path: '/classrooms/join',
-      method: 'post',
-      handler: joinClassroomHandler,
-    },
-    {
-      path: '/classrooms/regenerate-code',
-      method: 'post',
-      handler: regenerateClassroomCodeHandler,
-    },
-    {
-      path: '/classrooms/:classroomId/leave',
-      method: 'post',
-      handler: leaveClassroomHandler,
-    },
-    {
       path: '/preview-url',
       method: 'post',
       handler: previewUrlHandler,
@@ -529,36 +506,11 @@ export default buildConfig({
       path: '/preview-url',
       method: 'get',
       handler: previewUrlHandler,
-    },
-    {
-      path: '/accounts/me',
-      method: 'get',
-      handler: accountsMeHandler,
-    },
-    {
-      path: '/accounts/heartbeat',
-      method: 'post',
-      handler: accountsHeartbeatHandler,
     },
     {
       path: '/auth/api-key-info',
       method: 'get',
       handler: apiKeyValidateHandler,
-    },
-    {
-      path: '/accounts/me/demographics',
-      method: 'patch',
-      handler: updateMyDemographicsHandler,
-    },
-    {
-      path: '/accounts/me/notification-preferences',
-      method: 'patch',
-      handler: updateNotificationPreferencesHandler,
-    },
-    {
-      path: '/accounts/me/data-summary',
-      method: 'get',
-      handler: accountDataSummaryHandler,
     },
     {
       path: '/staff/student-performance',
@@ -616,24 +568,9 @@ export default buildConfig({
       handler: demoQuizFormatsHandler,
     },
     {
-      path: '/accounts/logout-all',
-      method: 'post',
-      handler: logoutAllSessionsHandler,
-    },
-    {
       path: '/admin/users/create',
       method: 'post',
       handler: adminCreateUserHandler,
-    },
-    {
-      path: '/accounts/email-preview',
-      method: 'post',
-      handler: emailPreviewHandler,
-    },
-    {
-      path: '/accounts/email-preview',
-      method: 'get',
-      handler: emailPreviewHandler,
     },
     {
       path: '/analytics/reporting-summary',
@@ -669,26 +606,6 @@ export default buildConfig({
       path: '/analytics/generate-rppr-pdf',
       method: 'post',
       handler: generateRpprPdfHandler,
-    },
-    {
-      path: '/classrooms/:classroomId/certificate',
-      method: 'get',
-      handler: certificateHandler,
-    },
-    {
-      path: '/quiz-attempts/:attemptId/review',
-      method: 'get',
-      handler: quizAttemptReviewHandler,
-    },
-    {
-      path: '/questions/by-lesson/:lessonId',
-      method: 'get',
-      handler: lessonQuestionsHandler,
-    },
-    {
-      path: '/questions/:questionId/detail',
-      method: 'get',
-      handler: questionDetailHandler,
     },
     {
       path: '/instructor/classrooms',

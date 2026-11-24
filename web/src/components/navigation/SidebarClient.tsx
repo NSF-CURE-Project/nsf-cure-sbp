@@ -87,12 +87,81 @@ const cleanTitle = (value: string, fallback: string) => {
   return t;
 };
 
+function StudyTopicIcon({ title }: { title: string }) {
+  const normalized = title.toLowerCase();
+  const common = {
+    "aria-hidden": true as const,
+    className: "size-5",
+    viewBox: "0 0 20 20",
+    fill: "none" as const,
+  };
+
+  if (normalized.includes("statics")) {
+    return (
+      <svg {...common}>
+        <path
+          d="M3 15h14M5.5 15v-2.5L10 6l4.5 6.5V15M7.2 10h5.6"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M4 17h3M13 17h3"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+
+  if (normalized.includes("mechanics")) {
+    return (
+      <svg {...common}>
+        <path
+          d="M4.5 4.5h11v11h-11zM2.5 7h2M2.5 13h2M15.5 7h2M15.5 13h2M7 2.5v2M13 2.5v2M7 15.5v2M13 15.5v2M7 8h6M7 11h6"
+          stroke="currentColor"
+          strokeWidth="1.45"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+
+  return (
+    <svg {...common}>
+      <path
+        d="M4 3.5h12v13H4zM7 7h6M7 10h6M7 13h4"
+        stroke="currentColor"
+        strokeWidth="1.55"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function SidebarClient({ classes }: Props) {
   const pathname = usePathname();
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(
     new Set()
   );
   const [userId, setUserId] = useState<string | null>(null);
+  const [hashChapterSlug, setHashChapterSlug] = useState<string | null>(null);
+
+  useEffect(() => {
+    const readHash = () => {
+      const hash = window.location.hash.replace(/^#/, "");
+      setHashChapterSlug(
+        hash.startsWith("chapter-") ? hash.slice("chapter-".length) : null
+      );
+    };
+    readHash();
+    window.addEventListener("hashchange", readHash);
+    return () => window.removeEventListener("hashchange", readHash);
+  }, [pathname]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -200,15 +269,12 @@ export default function SidebarClient({ classes }: Props) {
   }, [classes]);
 
   const STORAGE_CLASSES = "sidebar:open-classes";
-  const STORAGE_CHAPTERS = "sidebar:open-chapters";
 
   const [openClasses, setOpenClasses] = useState<Record<string, boolean>>({});
-  const [openChapters, setOpenChapters] = useState<Record<string, boolean>>({});
 
-  // Initial open state + auto-open current class/chapter
+  // Initial open state + auto-open current class
   useEffect(() => {
     let cMap: Record<string, boolean> = {};
-    let hMap: Record<string, boolean> = {};
     try {
       cMap = JSON.parse(localStorage.getItem(STORAGE_CLASSES) || "{}") || {};
     } catch {}
@@ -227,22 +293,10 @@ export default function SidebarClient({ classes }: Props) {
       fallbackClassFromChapter ||
       firstClassSlug;
 
-    const defaultChapter = ownerFromLesson
-      ? `${ownerFromLesson.classSlug}/${ownerFromLesson.chapterSlug}`
-      : currentClassSlug && currentChapterSlug
-        ? `${currentClassSlug}/${currentChapterSlug}`
-        : null;
-
     if (defaultClass && cMap[defaultClass] !== true) cMap[defaultClass] = true;
-    if (defaultChapter) {
-      hMap = { [defaultChapter]: true };
-    } else {
-      hMap = {};
-    }
     if (!Object.keys(cMap).length && defaultClass) cMap[defaultClass] = true;
 
     setOpenClasses(cMap);
-    setOpenChapters(hMap);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, JSON.stringify(lessonOwner), classes?.length]);
 
@@ -250,9 +304,8 @@ export default function SidebarClient({ classes }: Props) {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_CLASSES, JSON.stringify(openClasses));
-      localStorage.setItem(STORAGE_CHAPTERS, JSON.stringify(openChapters));
     } catch {}
-  }, [openClasses, openChapters]);
+  }, [openClasses]);
 
   const toggleClass = (slug: string) =>
     setOpenClasses((m) => {
@@ -266,23 +319,14 @@ export default function SidebarClient({ classes }: Props) {
       return next;
     });
 
-  const toggleChapter = (classSlug: string, chapterSlug: string) => {
-    const key = `${classSlug}/${chapterSlug}`;
-    setOpenChapters((m) => {
-      const isOpen = !!m[key];
-      if (isOpen) {
-        return { ...m, [key]: false };
-      }
-      return { [key]: true };
-    });
-  };
-
   return (
-    <nav className="text-[13px]">
-      <ul className="space-y-1.5">
+    <nav className="text-sidebar-foreground" aria-label="Study topics">
+      <ul className="flex flex-col gap-1.5">
         {(classes ?? []).map((cls) => {
           const cSlug = getClassSlug(cls);
           if (!cSlug) return null;
+          const chapters = getChapters(cls);
+          const hasChapters = chapters.length > 0;
           const classOpen = !!openClasses[cSlug];
           const classTitle = getClassTitle(cls);
           const classHasActiveLesson = !!(
@@ -291,6 +335,10 @@ export default function SidebarClient({ classes }: Props) {
           );
           const classIsActive =
             currentClassSlug === cSlug || classHasActiveLesson;
+          const classSelfActive =
+            currentClassSlug === cSlug &&
+            !currentChapterSlug &&
+            !currentLessonSlug;
 
           return (
             <li key={cSlug}>
@@ -299,58 +347,67 @@ export default function SidebarClient({ classes }: Props) {
                 <Link
                   href={`/classes/${cSlug}`}
                   className={cn(
-                    "relative block rounded-md border-l-[3px] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em]",
-                    "transition-[background-color,border-color,color,transform,box-shadow] duration-200",
+                    "flex min-h-12 items-center gap-3 border-l-[3px] py-2 pl-3 pr-3 text-[12px] font-semibold uppercase leading-4 tracking-[0.075em]",
+                    "transition-[background-color,border-color,color] duration-150",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                    "hover:-translate-y-[1px] hover:border-primary/60 hover:bg-muted/30 hover:text-foreground",
-                    classIsActive
-                      ? "border-primary bg-primary/25 text-foreground shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
-                      : "border-transparent text-muted-foreground/90"
+                    classSelfActive
+                      ? "border-sidebar-primary bg-sidebar-primary/10 text-sidebar-foreground"
+                      : "border-transparent text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   )}
+                  aria-current={classSelfActive ? "page" : undefined}
                 >
-                  {classTitle}
+                  <span className="inline-flex size-7 shrink-0 items-center justify-center text-primary">
+                    <StudyTopicIcon title={classTitle} />
+                  </span>
+                  <span className="min-w-0 break-words">{classTitle}</span>
                 </Link>
               ) : (
                 <div
                   className={cn(
-                    "group flex w-full items-center justify-between gap-2 rounded-md border-l-[3px] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em]",
-                    "transition-[background-color,border-color,color,transform,box-shadow] duration-200",
-                    "hover:-translate-y-[1px] hover:border-primary/60 hover:bg-muted/30 hover:text-foreground",
-                    classIsActive
-                      ? "border-primary bg-primary/25 text-foreground shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
-                      : "border-transparent text-muted-foreground/90"
+                    "grid min-h-8 w-full grid-cols-[minmax(0,1fr)_2rem] items-center border-l-[3px] py-0 pl-3 pr-0 text-[12px] font-semibold uppercase leading-4 tracking-[0.08em]",
+                    "transition-[background-color,border-color,color] duration-150",
+                    classSelfActive
+                      ? "border-sidebar-primary bg-sidebar-primary/10 text-sidebar-foreground"
+                      : classIsActive
+                        ? "border-transparent text-sidebar-foreground hover:bg-sidebar-accent"
+                        : "border-transparent text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   )}
                 >
                   <Link
                     href={`/classes/${cSlug}`}
-                    className="flex-1 text-left text-inherit focus-visible:outline-none"
+                    className="min-w-0 py-1 text-left text-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55"
+                    aria-current={classSelfActive ? "page" : undefined}
                   >
-                    {classTitle}
+                    <span className="block break-words">{classTitle}</span>
                   </Link>
-                  <button
-                    type="button"
-                    aria-expanded={classOpen}
-                    aria-controls={`panel-class-${cSlug}`}
-                    onClick={() => toggleClass(cSlug)}
-                    className={cn(
-                      "flex h-5 w-5 items-center justify-center rounded-md transition-colors",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
-                      classIsActive
-                        ? "text-foreground/80 hover:bg-primary/20"
-                        : "text-muted-foreground/70 hover:bg-muted/25 hover:text-foreground"
-                    )}
-                    aria-label={
-                      classOpen ? "Collapse chapters" : "Expand chapters"
-                    }
-                  >
-                    <ChevronRight
-                      className={[
-                        "h-3 w-3 shrink-0 transition-transform",
-                        classOpen ? "rotate-90 -translate-x-1" : "",
-                      ].join(" ")}
-                      aria-hidden="true"
-                    />
-                  </button>
+                  {hasChapters ? (
+                    <button
+                      type="button"
+                      aria-expanded={classOpen}
+                      aria-controls={`panel-class-${cSlug}`}
+                      onClick={() => toggleClass(cSlug)}
+                      className={cn(
+                        "flex h-8 w-8 items-center justify-center rounded-sm transition-colors",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
+                        classSelfActive
+                          ? "text-sidebar-foreground hover:bg-sidebar-primary/15"
+                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      )}
+                      aria-label={
+                        classOpen ? "Collapse chapters" : "Expand chapters"
+                      }
+                    >
+                      <ChevronRight
+                        className={cn(
+                          "h-4 w-4 shrink-0 transition-transform",
+                          classOpen && "rotate-90"
+                        )}
+                        aria-hidden="true"
+                      />
+                    </button>
+                  ) : (
+                    <span aria-hidden="true" className="h-8 w-8" />
+                  )}
                 </div>
               )}
 
@@ -365,178 +422,129 @@ export default function SidebarClient({ classes }: Props) {
                       : "grid-rows-[0fr] opacity-70",
                   ].join(" ")}
                 >
-                  <ul className="min-h-0 overflow-hidden pl-5 pr-1.5 space-y-0.5">
-                    {getChapters(cls).map((ch) => {
+                  <ul className="mt-1 min-h-0 space-y-0.5 overflow-hidden">
+                    {chapters.map((ch) => {
                       const chSlug = getChapterSlug(ch);
                       if (!chSlug) return null;
-                      const chKey = `${cSlug}/${chSlug}`;
-                      const chOpen = !!openChapters[chKey];
-
                       const lessons = getLessons(ch);
                       const chapterCompleted = lessons.filter((ls) =>
                         completedLessons.has(getLessonId(ls))
                       ).length;
-
-                      const chapterOverviewActive =
+                      const chapterNumber = getChapterNumber(ch);
+                      const chapterOwnsActiveLesson = !!(
+                        currentLessonSlug &&
+                        lessonOwner[currentLessonSlug]?.classSlug === cSlug &&
+                        lessonOwner[currentLessonSlug]?.chapterSlug === chSlug
+                      );
+                      const chapterPageActive =
                         currentClassSlug === cSlug &&
                         currentChapterSlug === chSlug;
-
-                      const chapterHasActiveLesson = lessons.some(
-                        (ls) => getLessonSlug(ls) === currentLessonSlug
-                      );
-
-                      const chapterBarActive =
-                        chapterOverviewActive || chapterHasActiveLesson;
-
-                      const chapterPercent = lessons.length
-                        ? Math.round(
-                            (chapterCompleted / lessons.length) * 100
-                          )
-                        : 0;
-                      const chapterIsComplete =
-                        lessons.length > 0 &&
-                        chapterCompleted === lessons.length;
+                      const chapterSelfActive =
+                        chapterPageActive || chapterOwnsActiveLesson;
+                      const chapterHashFocus =
+                        !chapterSelfActive &&
+                        currentClassSlug === cSlug &&
+                        !currentLessonSlug &&
+                        !currentChapterSlug &&
+                        hashChapterSlug === chSlug;
+                      const showLessonRail = chapterOwnsActiveLesson;
 
                       return (
                         <li key={chSlug}>
-                          <div className="relative pl-3">
-                            <div
+                          <div className="relative">
+                            <Link
+                              href={`/classes/${cSlug}#chapter-${chSlug}`}
                               className={cn(
-                                "group -ml-3 flex w-[calc(100%+0.75rem)] flex-col gap-0.5 rounded-md border-l-[3px] py-1 pl-3 pr-1.5 text-left",
-                                "transition-[background-color,border-color,color,transform,box-shadow] duration-200",
-                                "hover:-translate-y-[1px]",
-                                chapterBarActive
-                                  ? "border-primary bg-primary/25 text-foreground pl-1 shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
-                                  : "border-transparent text-muted-foreground/85 hover:border-primary/45 hover:bg-muted/25 hover:text-foreground"
+                                "flex min-h-8 items-start gap-2 border-l-[3px] py-1.5 pl-4 pr-3 text-left transition-[background-color,border-color,color] duration-150",
+                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
+                                chapterSelfActive
+                                  ? "border-sidebar-primary bg-sidebar-primary/10 text-sidebar-foreground"
+                                  : chapterHashFocus
+                                    ? "border-transparent bg-sidebar-accent/60 font-medium text-sidebar-foreground"
+                                    : "border-transparent text-sidebar-foreground hover:bg-sidebar-accent"
                               )}
+                              aria-current={
+                                chapterSelfActive && !currentLessonSlug
+                                  ? "page"
+                                  : undefined
+                              }
                             >
-                              <div className="flex items-center justify-between gap-2">
-                                <Link
-                                  href={`/classes/${cSlug}/chapters/${chSlug}`}
-                                  className="flex flex-1 items-center justify-between gap-2 text-left text-inherit focus-visible:outline-none"
-                                >
-                                  <span className="flex min-w-0 items-baseline gap-1.5">
-                                    {getChapterNumber(ch) != null ? (
-                                      <span className="shrink-0 text-[11px] font-semibold tabular-nums text-muted-foreground/55">
-                                        {getChapterNumber(ch)}
-                                      </span>
-                                    ) : null}
-                                    <span className="truncate">
-                                      {cleanTitle(
-                                        getChapterTitle(ch),
-                                        "Untitled chapter"
-                                      )}
-                                    </span>
-                                  </span>
-                                  <span
-                                    className={cn(
-                                      "shrink-0 rounded-full px-1.5 py-0 text-[10px] font-semibold tabular-nums uppercase tracking-wide",
-                                      chapterIsComplete
-                                        ? "bg-primary/20 text-primary"
-                                        : chapterCompleted > 0
-                                          ? "bg-blue-500/15 text-blue-600 dark:text-blue-400"
-                                          : "bg-muted/60 text-muted-foreground"
-                                    )}
-                                  >
-                                    {chapterCompleted}/{lessons.length || 0}
-                                  </span>
-                                </Link>
-                              <button
-                                type="button"
-                                aria-expanded={chOpen}
-                                aria-controls={`panel-ch-${chKey}`}
-                                onClick={() => toggleChapter(cSlug, chSlug)}
-                                className={cn(
-                                  "flex h-5 w-5 items-center justify-center rounded-md transition-colors",
-                                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
-                                  chapterBarActive
-                                    ? "text-foreground/80 hover:bg-primary/20"
-                                    : "text-muted-foreground/70 hover:bg-muted/25 hover:text-foreground"
-                                )}
-                                aria-label={
-                                  chOpen ? "Collapse lessons" : "Expand lessons"
-                                }
-                              >
-                                <ChevronRight
-                                  className={[
-                                    "h-3 w-3 shrink-0 transition-transform",
-                                    chOpen ? "rotate-90 -translate-x-1" : "",
-                                  ].join(" ")}
-                                  aria-hidden="true"
-                                />
-                              </button>
-                              </div>
-                              {lessons.length > 0 ? (
-                                <div
-                                  className="ml-1 h-1 overflow-hidden rounded-full bg-muted/70"
-                                  aria-hidden="true"
-                                >
-                                  <div
-                                    className={cn(
-                                      "h-full rounded-full transition-[width] duration-500 ease-out",
-                                      chapterIsComplete
-                                        ? "bg-primary"
-                                        : chapterCompleted > 0
-                                          ? "bg-gradient-to-r from-primary/60 to-primary"
-                                          : "bg-primary/35"
-                                    )}
-                                    style={{
-                                      width: `${Math.max(chapterPercent, chapterPercent > 0 ? 6 : 0)}%`,
-                                    }}
-                                  />
-                                </div>
+                              {chapterNumber != null ? (
+                                <span className="mt-px shrink-0 text-[12px] font-medium tabular-nums text-sidebar-foreground/65">
+                                  {String(chapterNumber).padStart(2, "0")}
+                                </span>
                               ) : null}
-                            </div>
+                              <span
+                                className={cn(
+                                  "min-w-0 flex-1 break-words text-[14px] leading-[18px]",
+                                  chapterSelfActive
+                                    ? "font-semibold"
+                                    : "font-medium"
+                                )}
+                              >
+                                {cleanTitle(
+                                  getChapterTitle(ch),
+                                  "Untitled chapter"
+                                )}
+                              </span>
+                              {chapterCompleted > 0 ? (
+                                <span className="shrink-0 text-[11px] tabular-nums text-sidebar-foreground/55">
+                                  {chapterCompleted}/{lessons.length || 0}
+                                </span>
+                              ) : null}
+                            </Link>
 
-                            {/* Lessons */}
-                            <div
-                              id={`panel-ch-${chKey}`}
-                              className={[
-                                "grid transition-[grid-template-rows,opacity] duration-200 ease-out pl-5",
-                                chOpen
-                                  ? "grid-rows-[1fr] opacity-100"
-                                  : "grid-rows-[0fr] opacity-70",
-                              ].join(" ")}
-                            >
-                              <ul className="min-h-0 overflow-hidden py-0.5 space-y-0">
+                            {showLessonRail && lessons.length > 0 ? (
+                              <ul className="ml-4 min-h-0 space-y-0.5 overflow-hidden pt-1">
                                 {lessons.map((ls) => {
                                   const lsSlug = getLessonSlug(ls);
                                   const lsId = getLessonId(ls);
                                   if (!lsSlug) return null;
                                   const active = lsSlug === currentLessonSlug;
+                                  const completed =
+                                    completedLessons.has(lsId);
                                   return (
                                     <li key={lsSlug}>
                                       <Link
                                         href={`/classes/${cSlug}/lessons/${lsSlug}`}
                                         className={cn(
-                                          "block rounded-md border-l-2 px-2 py-0.5 text-[13px] transition-[background-color,border-color,color,transform] duration-200",
+                                          "grid min-h-8 grid-cols-[1.1rem_minmax(0,1fr)] items-start gap-1.5 border-l-[3px] py-1.5 pl-3 pr-2 text-[14px] leading-[18px]",
+                                          "transition-[background-color,border-color,color] duration-150",
                                           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                                          "hover:-translate-y-[1px]",
                                           active
-                                            ? "border-primary bg-primary/20 text-foreground ring-1 ring-inset ring-primary/25"
-                                            : "border-transparent text-muted-foreground/70 hover:border-primary/40 hover:bg-muted/20 hover:text-foreground"
+                                            ? "border-sidebar-primary bg-sidebar-primary/10 font-semibold text-sidebar-foreground"
+                                            : "border-transparent text-sidebar-foreground hover:bg-sidebar-accent"
                                         )}
+                                        aria-current={
+                                          active ? "page" : undefined
+                                        }
                                       >
-                                        <span className="relative flex items-center gap-2 pl-2">
+                                        <span
+                                          aria-hidden="true"
+                                          className="mt-[3px] flex h-4 w-4 items-center justify-center"
+                                        >
+                                          {completed ? (
+                                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground">
+                                              <Check className="h-3 w-3" />
+                                            </span>
+                                          ) : active ? (
+                                            <span className="h-3 w-3 rounded-full border border-sidebar-primary bg-sidebar-primary" />
+                                          ) : (
+                                            <span className="h-3 w-3 rounded-full border border-sidebar-foreground/45 bg-sidebar" />
+                                          )}
+                                        </span>
+                                        <span className="min-w-0 whitespace-normal break-words">
                                           {cleanTitle(
                                             getLessonTitle(ls),
                                             "Untitled lesson"
                                           )}
-                                          {completedLessons.has(lsId) ? (
-                                            <Check className="h-3 w-3 text-emerald-500" />
-                                          ) : null}
                                         </span>
                                       </Link>
                                     </li>
                                   );
                                 })}
-                                {lessons.length === 0 && (
-                                  <li className="text-xs text-muted-foreground px-2 py-1">
-                                    No lessons yet.
-                                  </li>
-                                )}
                               </ul>
-                            </div>
+                            ) : null}
                           </div>
                         </li>
                       );

@@ -6,14 +6,11 @@ import {
   BookOpen,
   CheckCircle2,
   ChevronDown,
-  CircleDashed,
   CirclePlay,
   Clock,
   FileQuestion,
-  Layers,
-  Sparkles,
-  Video,
   Search,
+  Video,
 } from "lucide-react";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 import { cn } from "@/lib/utils";
@@ -22,12 +19,7 @@ const PAYLOAD_URL = getPayloadBaseUrl();
 
 type LessonType = "Reading" | "Video" | "Quiz";
 type LessonStatus = "not-started" | "in-progress" | "completed";
-type FilterKey =
-  | "all"
-  | "not-started"
-  | "in-progress"
-  | "completed"
-  | "has-quiz";
+type FilterKey = "all" | "in-progress" | "completed";
 
 type ChapterLesson = {
   id: string;
@@ -94,13 +86,16 @@ const estimateMinutes = (lesson: ChapterLesson) => {
   return 8;
 };
 
-const filterLabels: { key: FilterKey; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "not-started", label: "Not Started" },
-  { key: "in-progress", label: "In Progress" },
-  { key: "completed", label: "Completed" },
-  { key: "has-quiz", label: "Has Quiz" },
-];
+const formatChapterTime = (mins: number) => {
+  if (mins <= 0) return null;
+  if (mins < 60) return `Approximately ${mins} minutes`;
+  const hours = Math.floor(mins / 60);
+  const remainder = mins % 60;
+  if (remainder === 0) {
+    return `Approximately ${hours} ${hours === 1 ? "hour" : "hours"}`;
+  }
+  return `Approximately ${hours} hr ${remainder} min`;
+};
 
 const LessonTypeIcon = ({
   type,
@@ -119,37 +114,36 @@ const LessonTypeIcon = ({
   }
 };
 
-const lessonTypeAccent: Record<
-  LessonType,
-  { ring: string; iconBg: string; iconText: string }
-> = {
-  Reading: {
-    ring: "ring-primary/15",
-    iconBg: "bg-primary/10",
-    iconText: "text-primary",
-  },
-  Video: {
-    ring: "ring-blue-500/15",
-    iconBg: "bg-blue-500/10",
-    iconText: "text-blue-600 dark:text-blue-400",
-  },
-  Quiz: {
-    ring: "ring-amber-500/15",
-    iconBg: "bg-amber-500/10",
-    iconText: "text-amber-600 dark:text-amber-400",
-  },
-};
-
 export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
+  const [signedIn, setSignedIn] = useState(false);
   const [progressByLesson, setProgressByLesson] = useState<
     Record<string, LessonStatus>
   >({});
   const [filter, setFilter] = useState<FilterKey>("all");
   const [chapterQuery, setChapterQuery] = useState("");
-  const [visibleCount, setVisibleCount] = useState(8);
   const [expandedChapters, setExpandedChapters] = useState<
     Record<string, boolean>
-  >({});
+  >(() => {
+    const firstOpenChapter =
+      chapters.find((chapter) => chapter.lessons.length > 0) ?? chapters[0];
+    return firstOpenChapter ? { [firstOpenChapter.id]: true } : {};
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash.replace(/^#/, "");
+    if (!hash.startsWith("chapter-")) return;
+    const slug = hash.slice("chapter-".length);
+    const match = chapters.find((chapter) => chapter.slug === slug);
+    if (!match) return;
+    setExpandedChapters((prev) => ({ ...prev, [match.id]: true }));
+    requestAnimationFrame(() => {
+      document.getElementById(hash)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }, [chapters]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -160,9 +154,11 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
           signal: controller.signal,
         });
         if (!meRes.ok) {
+          setSignedIn(false);
           setProgressByLesson({});
           return;
         }
+        setSignedIn(true);
         const progressRes = await fetch(
           `${PAYLOAD_URL}/api/lesson-progress?limit=1000&where[class][equals]=${encodeURIComponent(
             classId
@@ -191,41 +187,66 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
         });
         setProgressByLesson(next);
       } catch {
-        if (!controller.signal.aborted) setProgressByLesson({});
+        if (!controller.signal.aborted) {
+          setSignedIn(false);
+          setProgressByLesson({});
+        }
       }
     };
     void load();
     return () => controller.abort();
   }, [classId]);
 
-  const filterCounts = useMemo<Record<FilterKey, number>>(() => {
-    const counts: Record<FilterKey, number> = {
-      all: 0,
-      "not-started": 0,
-      "in-progress": 0,
-      completed: 0,
-      "has-quiz": 0,
-    };
+  useEffect(() => {
+    if (!signedIn && (filter === "in-progress" || filter === "completed")) {
+      setFilter("all");
+    }
+  }, [filter, signedIn]);
+
+  const filterCounts = useMemo(() => {
+    const counts = { all: 0, "in-progress": 0, completed: 0 };
     chapters.forEach((chapter) => {
       chapter.lessons.forEach((lesson) => {
         counts.all += 1;
         const status = progressByLesson[lesson.id] ?? "not-started";
-        counts[status] += 1;
-        if (lesson.hasQuiz) counts["has-quiz"] += 1;
+        if (status === "in-progress") counts["in-progress"] += 1;
+        if (status === "completed") counts.completed += 1;
       });
     });
     return counts;
   }, [chapters, progressByLesson]);
+
+  const filterLabels = useMemo(() => {
+    const items: { key: FilterKey; label: string }[] = [
+      { key: "all", label: "All lessons" },
+    ];
+    if (signedIn) {
+      items.push(
+        { key: "in-progress", label: "In progress" },
+        { key: "completed", label: "Completed" }
+      );
+    }
+    return items;
+  }, [signedIn]);
+
+  const lessonSequenceById = useMemo(() => {
+    const sequence: Record<string, string> = {};
+    chapters.forEach((chapter, chapterIndex) => {
+      const chapterLabel = chapter.chapterNumber ?? chapterIndex + 1;
+      chapter.lessons.forEach((lesson, lessonIndex) => {
+        sequence[lesson.id] = `${chapterLabel}.${lessonIndex + 1}`;
+      });
+    });
+    return sequence;
+  }, [chapters]);
 
   const filteredChapters = useMemo(() => {
     const query = chapterQuery.trim().toLowerCase();
     const matchLesson = (lesson: ChapterLesson) => {
       const status = progressByLesson[lesson.id] ?? "not-started";
       if (filter === "all") return true;
-      if (filter === "not-started") return status === "not-started";
       if (filter === "in-progress") return status === "in-progress";
       if (filter === "completed") return status === "completed";
-      if (filter === "has-quiz") return lesson.hasQuiz;
       return true;
     };
 
@@ -244,10 +265,6 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
         );
       });
   }, [chapterQuery, chapters, filter, progressByLesson]);
-
-  useEffect(() => {
-    setVisibleCount(8);
-  }, [filter, chapterQuery]);
 
   useEffect(() => {
     if (!filteredChapters.length) {
@@ -276,56 +293,80 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
     });
   }, [filteredChapters, progressByLesson]);
 
-  const visibleChapters = filteredChapters.slice(0, visibleCount);
+  const showFilters = signedIn;
+  const totalChapterCount = chapters.length;
+  const totalLessonCount = filterCounts.all;
 
   return (
     <div className="space-y-4">
-      <div className="sticky top-[3.75rem] z-20 rounded-xl border border-border/60 bg-background/95 px-3 py-2.5 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="relative mb-2">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="search"
-            value={chapterQuery}
-            onChange={(event) => setChapterQuery(event.target.value)}
-            placeholder="Search chapters or lessons..."
-            className="h-8 w-full rounded-lg border border-border/60 bg-background pl-9 pr-3 text-[13px] text-foreground placeholder:text-muted-foreground transition-colors focus-visible:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
-          />
+      <div className="sticky top-[3.75rem] z-20 space-y-2.5 border-b border-border/40 bg-background/95 pb-3 pt-1 backdrop-blur supports-[backdrop-filter]:bg-background/85">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold tracking-tight text-foreground">
+              Course curriculum
+            </h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {totalChapterCount}{" "}
+              {totalChapterCount === 1 ? "chapter" : "chapters"}
+              <span className="mx-1.5 text-border">·</span>
+              {totalLessonCount}{" "}
+              {totalLessonCount === 1 ? "lesson" : "lessons"}
+            </p>
+          </div>
+          <div className="relative w-full sm:max-w-[16rem]">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="search"
+              value={chapterQuery}
+              onChange={(event) => setChapterQuery(event.target.value)}
+              placeholder="Find a lesson…"
+              className="h-8 w-full rounded-md border border-border/60 bg-background pl-8 pr-3 text-[13px] text-foreground placeholder:text-muted-foreground transition-colors focus-visible:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+            />
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {filterLabels.map((item) => {
-            const active = filter === item.key;
-            const count = filterCounts[item.key];
-            return (
-              <button
-                key={item.key}
-                type="button"
-                onClick={() => setFilter(item.key)}
-                className={cn(
-                  "group/chip inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide transition-all duration-150",
-                  active
-                    ? "border-primary/60 bg-primary text-primary-foreground shadow-sm"
-                    : "border-border/60 bg-background text-muted-foreground hover:-translate-y-[1px] hover:border-primary/40 hover:bg-muted/30 hover:text-foreground"
-                )}
-              >
-                <span>{item.label}</span>
-                <span
+        {showFilters ? (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {filterLabels.map((item) => {
+              const active = filter === item.key;
+              const count = filterCounts[item.key];
+              const disabled = item.key !== "all" && count === 0 && !active;
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => setFilter(item.key)}
+                  disabled={disabled}
                   className={cn(
-                    "rounded-full px-1.5 py-0 text-[10px] font-semibold tabular-nums",
+                    "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors duration-150",
                     active
-                      ? "bg-primary-foreground/15 text-primary-foreground"
-                      : "bg-muted text-muted-foreground group-hover/chip:bg-background"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                    disabled &&
+                      "cursor-not-allowed opacity-45 hover:bg-transparent hover:text-muted-foreground"
                   )}
                 >
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                  <span>{item.label}</span>
+                  {item.key !== "all" ? (
+                    <span
+                      className={cn(
+                        "tabular-nums text-[11px]",
+                        active
+                          ? "text-primary-foreground/80"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      {count}
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
 
       <div className="space-y-3">
-        {visibleChapters.map((chapter) => {
+        {filteredChapters.map((chapter) => {
           const baseLessons = chapter.lessons;
           const completedCount = baseLessons.filter(
             (lesson) =>
@@ -338,241 +379,173 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
           const percent = baseLessons.length
             ? Math.round((completedCount / baseLessons.length) * 100)
             : 0;
-          const quizCount = baseLessons.filter(
-            (lesson) => lesson.hasQuiz
-          ).length;
-          const avgMins = baseLessons.length
-            ? Math.round(
-                baseLessons.reduce(
-                  (sum, lesson) => sum + estimateMinutes(lesson),
-                  0
-                ) / baseLessons.length
-              )
-            : 0;
+          const chapterMinutes = baseLessons.reduce(
+            (sum, lesson) => sum + estimateMinutes(lesson),
+            0
+          );
+          const chapterTimeLabel = formatChapterTime(chapterMinutes);
           const chapterOpen = Boolean(expandedChapters[chapter.id]);
           const chapterIsComplete =
             baseLessons.length > 0 && completedCount === baseLessons.length;
+          const showProgress =
+            signedIn && (completedCount > 0 || inProgressCount > 0);
 
           return (
             <section
               key={chapter.id}
+              id={chapter.slug ? `chapter-${chapter.slug}` : undefined}
               className={cn(
-                "group/chapter overflow-hidden rounded-2xl border bg-card/80 shadow-sm transition-[transform,box-shadow,border-color,background-color] duration-200",
-                "hover:-translate-y-[1px] hover:bg-muted/25 hover:shadow-md",
-                chapterIsComplete
-                  ? "border-primary/40 hover:border-primary/55"
-                  : "border-border/60 hover:border-primary/35"
+                "scroll-mt-28 overflow-hidden rounded-lg border border-border/50 bg-background",
+                chapterIsComplete && "border-primary/25 bg-primary/[0.02]"
               )}
             >
-              <header
+              <button
+                type="button"
+                onClick={() =>
+                  setExpandedChapters((prev) => ({
+                    ...prev,
+                    [chapter.id]: !prev[chapter.id],
+                  }))
+                }
                 className={cn(
-                  "bg-gradient-to-b from-background to-background/70 px-4 py-3 transition-colors duration-200 group-hover/chapter:bg-muted/25 group-hover/chapter:bg-none",
-                  chapterOpen ? "border-b border-border/55" : ""
+                  "flex w-full items-start gap-2.5 px-3.5 py-3 text-left transition-colors duration-150",
+                  "hover:bg-muted/30",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40",
+                  chapterOpen && "border-b border-border/40"
                 )}
+                aria-expanded={chapterOpen}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setExpandedChapters((prev) => ({
-                        ...prev,
-                        [chapter.id]: !prev[chapter.id],
-                      }))
-                    }
-                    className="flex min-w-0 flex-1 items-start gap-2.5 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                    aria-expanded={chapterOpen}
-                  >
-                    <span
-                      className={cn(
-                        "mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors",
-                        chapterIsComplete
-                          ? "border-primary/40 bg-primary/15 text-primary"
-                          : "border-border/60 bg-background text-muted-foreground group-hover/chapter:border-primary/35 group-hover/chapter:text-foreground"
-                      )}
-                    >
-                      <ChevronDown
-                        className={cn(
-                          "h-3.5 w-3.5 transition-transform duration-200",
-                          chapterOpen ? "rotate-0" : "-rotate-90"
-                        )}
-                      />
-                    </span>
-                    <div className="min-w-0 space-y-1">
-                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                        {chapter.chapterNumber ? (
-                          <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                            Chapter {chapter.chapterNumber}
-                          </span>
-                        ) : null}
-                        {chapterIsComplete ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide text-primary">
-                            <CheckCircle2 className="h-3 w-3" />
-                            Completed
-                          </span>
-                        ) : inProgressCount > 0 ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/15 px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-400">
-                            <CirclePlay className="h-3 w-3" />
-                            In progress
-                          </span>
-                        ) : null}
-                      </div>
-                      <h2 className="text-lg font-semibold leading-tight tracking-tight text-foreground">
-                        {cleanTitle(chapter.title, "Untitled chapter")}
-                      </h2>
-                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-muted-foreground">
-                        <span className="inline-flex items-center gap-1">
-                          <Layers className="h-3 w-3" />
-                          {baseLessons.length}{" "}
-                          {baseLessons.length === 1 ? "lesson" : "lessons"}
+                <ChevronDown
+                  className={cn(
+                    "mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
+                    chapterOpen ? "rotate-0" : "-rotate-90",
+                    chapterIsComplete && "text-primary"
+                  )}
+                  aria-hidden
+                />
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    {chapter.chapterNumber != null ? (
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                        Chapter {chapter.chapterNumber}
+                      </span>
+                    ) : null}
+                    {chapterIsComplete ? (
+                      <span className="inline-flex items-center gap-1 text-[12px] font-medium text-primary">
+                        <CheckCircle2 className="h-3 w-3" />
+                        Completed
+                      </span>
+                    ) : inProgressCount > 0 ? (
+                      <span className="inline-flex items-center gap-1 text-[12px] font-medium text-blue-600 dark:text-blue-400">
+                        <CirclePlay className="h-3 w-3" />
+                        In progress
+                      </span>
+                    ) : null}
+                  </div>
+                  <h3 className="text-base font-semibold leading-snug tracking-tight text-foreground">
+                    {cleanTitle(chapter.title, "Untitled chapter")}
+                  </h3>
+                  <p className="text-[13px] text-muted-foreground">
+                    {baseLessons.length}{" "}
+                    {baseLessons.length === 1 ? "lesson" : "lessons"}
+                    {chapterTimeLabel ? (
+                      <>
+                        <span className="mx-1.5 text-border">·</span>
+                        {chapterTimeLabel}
+                      </>
+                    ) : null}
+                  </p>
+                  {showProgress ? (
+                    <div className="pt-1.5">
+                      <div className="mb-1 flex items-center justify-between gap-3 text-[12px] text-muted-foreground">
+                        <span>
+                          {completedCount} of {baseLessons.length} complete
                         </span>
-                        {baseLessons.length > 0 ? (
-                          <>
-                            <span className="text-border">·</span>
-                            <span className="inline-flex items-center gap-1">
-                              <Clock className="h-3 w-3" />~{avgMins} min /
-                              lesson
-                            </span>
-                          </>
-                        ) : null}
-                        {quizCount > 0 ? (
-                          <>
-                            <span className="text-border">·</span>
-                            <span className="inline-flex items-center gap-1">
-                              <FileQuestion className="h-3 w-3 text-amber-600 dark:text-amber-400" />
-                              {quizCount} {quizCount === 1 ? "quiz" : "quizzes"}
-                            </span>
-                          </>
-                        ) : null}
+                        <span className="tabular-nums">{percent}%</span>
+                      </div>
+                      <div className="h-1 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out"
+                          style={{
+                            width: `${Math.max(percent, percent > 0 ? 4 : 0)}%`,
+                          }}
+                        />
                       </div>
                     </div>
-                  </button>
-                  {chapter.slug ? (
-                    <Link
-                      href={`/classes/${classSlug}/chapters/${chapter.slug}`}
-                      className="shrink-0 self-start rounded-md border border-transparent px-2 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-border/60 hover:bg-background hover:text-foreground"
-                    >
-                      View chapter →
-                    </Link>
                   ) : null}
                 </div>
-                {baseLessons.length > 0 ? (
-                  <div className="mt-2.5 flex items-center gap-2.5">
-                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className={cn(
-                          "h-full rounded-full transition-[width] duration-500 ease-out",
-                          chapterIsComplete
-                            ? "bg-primary"
-                            : inProgressCount > 0
-                              ? "bg-gradient-to-r from-primary/70 to-primary"
-                              : "bg-primary/60"
-                        )}
-                        style={{ width: `${Math.max(percent, percent > 0 ? 4 : 0)}%` }}
-                      />
-                    </div>
-                    <span className="shrink-0 text-[11px] font-semibold tabular-nums text-foreground">
-                      {completedCount}/{baseLessons.length}
-                    </span>
-                    <span className="shrink-0 rounded-full bg-muted px-1.5 py-0 text-[10px] font-semibold tabular-nums text-muted-foreground">
-                      {percent}%
-                    </span>
-                  </div>
-                ) : null}
-              </header>
+              </button>
 
               {chapterOpen ? (
                 baseLessons.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center gap-1.5 px-5 py-7 text-center">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                      <Sparkles className="h-4 w-4" />
-                    </span>
-                    <p className="text-[13px] font-medium text-foreground">
-                      No lessons added yet
-                    </p>
-                    <p className="max-w-sm text-[11px] text-muted-foreground">
-                      Start building this chapter by adding your first lesson.
-                      Lessons appear here as soon as staff publish them.
-                    </p>
+                  <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                    No lessons in this chapter yet.
                   </div>
                 ) : (
-                  <ul className="grid gap-2 p-2.5 md:grid-cols-2 2xl:grid-cols-3">
-                    {baseLessons.map((lesson) => {
+                  <ul className="divide-y divide-border/40">
+                    {baseLessons.map((lesson, lessonIndex) => {
                       const status =
                         progressByLesson[lesson.id] ?? "not-started";
                       const type = inferLessonType(lesson);
                       const eta = estimateMinutes(lesson);
-                      const accent = lessonTypeAccent[type];
-                      const statusLabel =
-                        status === "completed"
-                          ? "Completed"
-                          : status === "in-progress"
-                            ? "In Progress"
-                            : "Not Started";
+                      const sequence =
+                        lessonSequenceById[lesson.id] ??
+                        `${chapter.chapterNumber ?? ""}${
+                          chapter.chapterNumber ? "." : ""
+                        }${lessonIndex + 1}`;
 
                       return (
                         <li key={lesson.id}>
                           <Link
                             href={`/classes/${classSlug}/lessons/${lesson.slug}`}
+                            aria-label={`Open lesson ${sequence}: ${cleanTitle(
+                              lesson.title,
+                              "Untitled lesson"
+                            )}`}
                             className={cn(
-                              "group/lesson relative flex h-full items-start gap-2.5 rounded-lg border border-border/60 bg-background/70 px-3 py-2.5 shadow-sm",
-                              "transition-[transform,box-shadow,border-color,background-color] duration-150 ease-out",
-                              "hover:-translate-y-[1px] hover:border-primary/50 hover:bg-card hover:shadow-md",
-                              "focus-visible:-translate-y-[1px] focus-visible:border-primary/60 focus-visible:bg-card focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                              status === "completed"
-                                ? "border-primary/30 bg-primary/[0.04]"
-                                : status === "in-progress"
-                                  ? "border-blue-500/35 bg-blue-500/[0.04]"
-                                  : ""
+                              "group/lesson flex items-start gap-3 px-3.5 py-3.5 transition-colors duration-150",
+                              "hover:bg-muted/30",
+                              "focus-visible:bg-muted/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/35",
+                              status === "completed" && "bg-primary/[0.02]",
+                              status === "in-progress" && "bg-blue-500/[0.03]"
                             )}
                           >
-                            <span
-                              className={cn(
-                                "mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md ring-1 transition-transform duration-150",
-                                accent.iconBg,
-                                accent.ring,
-                                "group-hover/lesson:scale-105"
-                              )}
-                            >
-                              <LessonTypeIcon
-                                type={type}
-                                className={cn("h-3.5 w-3.5", accent.iconText)}
-                              />
+                            <span className="mt-0.5 w-8 shrink-0 text-[12px] font-medium tabular-nums text-muted-foreground">
+                              {sequence}
                             </span>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-start justify-between gap-2">
-                                <p className="text-[13px] font-semibold leading-snug text-foreground">
-                                  {cleanTitle(lesson.title, "Untitled lesson")}
-                                </p>
-                                {status === "completed" ? (
-                                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-                                ) : status === "in-progress" ? (
-                                  <CirclePlay className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
-                                ) : (
-                                  <CircleDashed className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
-                                )}
-                              </div>
-                              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground">
-                                <span className="font-medium uppercase tracking-wide">
+                            <div className="min-w-0 flex-1 space-y-1">
+                              <p className="text-[15px] font-semibold leading-snug text-foreground transition-colors group-hover/lesson:text-primary">
+                                {cleanTitle(lesson.title, "Untitled lesson")}
+                              </p>
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[12px] text-muted-foreground">
+                                <span className="inline-flex items-center gap-1">
+                                  <LessonTypeIcon
+                                    type={type}
+                                    className="h-3 w-3"
+                                  />
                                   {type}
                                 </span>
                                 <span className="text-border">·</span>
                                 <span className="inline-flex items-center gap-1">
-                                  <Clock className="h-2.5 w-2.5" />~{eta} min
+                                  <Clock className="h-3 w-3" />~{eta} min
                                 </span>
-                                <span className="text-border">·</span>
-                                <span
-                                  className={cn(
-                                    "rounded-full px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide",
-                                    status === "completed" &&
-                                      "bg-primary/15 text-primary",
-                                    status === "in-progress" &&
-                                      "bg-blue-500/15 text-blue-600 dark:text-blue-400",
-                                    status === "not-started" &&
-                                      "bg-muted text-muted-foreground"
-                                  )}
-                                >
-                                  {statusLabel}
-                                </span>
+                                {status === "completed" ? (
+                                  <>
+                                    <span className="text-border">·</span>
+                                    <span className="inline-flex items-center gap-1 font-medium text-primary">
+                                      <CheckCircle2 className="h-3 w-3" />
+                                      Completed
+                                    </span>
+                                  </>
+                                ) : status === "in-progress" ? (
+                                  <>
+                                    <span className="text-border">·</span>
+                                    <span className="inline-flex items-center gap-1 font-medium text-blue-600 dark:text-blue-400">
+                                      <CirclePlay className="h-3 w-3" />
+                                      In progress
+                                    </span>
+                                  </>
+                                ) : null}
                               </div>
                             </div>
                           </Link>
@@ -586,39 +559,24 @@ export function ClassChapterBrowser({ classSlug, classId, chapters }: Props) {
           );
         })}
 
-        {filteredChapters.length > visibleCount ? (
-          <div className="flex justify-center">
-            <button
-              type="button"
-              onClick={() => setVisibleCount((count) => count + 8)}
-              className="rounded-xl border border-border/60 bg-background px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm transition-all duration-150 hover:-translate-y-[1px] hover:border-primary/40 hover:text-foreground hover:shadow-md"
-            >
-              Show more chapters
-            </button>
-          </div>
-        ) : null}
-
         {filteredChapters.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border/60 bg-muted/20 px-6 py-12 text-center">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-background text-muted-foreground shadow-sm">
-              <Search className="h-5 w-5" />
-            </span>
+          <div className="rounded-lg border border-dashed border-border/60 px-6 py-10 text-center">
             <p className="text-sm font-medium text-foreground">
-              No chapters match your filters
+              No lessons match your filters
             </p>
-            <p className="max-w-sm text-xs text-muted-foreground">
-              Try clearing the search or switching back to the{" "}
+            <p className="mt-1 text-[13px] text-muted-foreground">
+              Try clearing search or switching back to{" "}
               <button
                 type="button"
                 onClick={() => {
                   setFilter("all");
                   setChapterQuery("");
                 }}
-                className="font-semibold text-primary underline-offset-2 hover:underline"
+                className="font-medium text-primary underline-offset-2 hover:underline"
               >
-                All
-              </button>{" "}
-              filter.
+                All lessons
+              </button>
+              .
             </p>
           </div>
         ) : null}

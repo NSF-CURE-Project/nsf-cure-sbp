@@ -84,7 +84,7 @@ export default function SettingsPage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-12">
-      <div className="rounded-md border border-border/60 bg-card/80 p-10 shadow-lg">
+      <div>
         <div className="space-y-2">
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
             Settings
@@ -99,7 +99,7 @@ export default function SettingsPage() {
 
         <div className="mt-8 space-y-4">
           {status === "loading" ? (
-            <div className="rounded-md border border-border/60 bg-muted/30 px-5 py-4 text-sm text-muted-foreground">
+            <div className="border-y border-border/60 bg-muted/20 py-4 text-sm text-muted-foreground">
               Loading your account...
             </div>
           ) : null}
@@ -111,7 +111,7 @@ export default function SettingsPage() {
           ) : null}
 
           {status === "ready" && !user ? (
-            <div className="rounded-md border border-border/60 bg-muted/30 px-5 py-4 text-sm text-muted-foreground">
+            <div className="border-y border-border/60 bg-muted/20 py-4 text-sm text-muted-foreground">
               You are not signed in.{" "}
               <LoginLink
                 className="font-semibold text-primary underline underline-offset-4"
@@ -181,7 +181,7 @@ export default function SettingsPage() {
               <section className="grid gap-3 md:grid-cols-2">
                 <Link
                   href="/settings/participant-info"
-                  className="rounded-lg border border-border/60 bg-muted/20 p-4 transition hover:border-border hover:bg-muted/30"
+                  className="border-y border-border/60 bg-muted/10 py-4 transition hover:bg-muted/25"
                 >
                   <p className="text-sm font-semibold text-foreground">Participant Info</p>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -190,7 +190,7 @@ export default function SettingsPage() {
                 </Link>
                 <Link
                   href="/settings/notifications"
-                  className="rounded-lg border border-border/60 bg-muted/20 p-4 transition hover:border-border hover:bg-muted/30"
+                  className="border-y border-border/60 bg-muted/10 py-4 transition hover:bg-muted/25"
                 >
                   <p className="text-sm font-semibold text-foreground">
                     Notification Preferences
@@ -201,7 +201,7 @@ export default function SettingsPage() {
                 </Link>
                 <Link
                   href="/saved-lessons"
-                  className="rounded-lg border border-border/60 bg-muted/20 p-4 transition hover:border-border hover:bg-muted/30"
+                  className="border-y border-border/60 bg-muted/10 py-4 transition hover:bg-muted/25"
                 >
                   <p className="text-sm font-semibold text-foreground">Saved Lessons</p>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -210,7 +210,7 @@ export default function SettingsPage() {
                 </Link>
                 <Link
                   href="/data-transparency"
-                  className="rounded-lg border border-border/60 bg-muted/20 p-4 transition hover:border-border hover:bg-muted/30"
+                  className="border-y border-border/60 bg-muted/10 py-4 transition hover:bg-muted/25"
                 >
                   <p className="text-sm font-semibold text-foreground">
                     Data Transparency

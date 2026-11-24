@@ -100,7 +100,7 @@ export function ParticipantInfoForm() {
   };
 
   return (
-    <section className="rounded-xl border border-border/60 bg-card/80 p-6 shadow-sm">
+    <section className="border-y border-border/60 bg-background/50 py-6">
       <div className="space-y-2">
         <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
           Participant info
@@ -114,7 +114,7 @@ export function ParticipantInfoForm() {
       </div>
 
       {status === "loading" ? (
-        <div className="mt-6 rounded-lg border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+        <div className="mt-6 border-y border-border/60 bg-muted/20 py-3 text-sm text-muted-foreground">
           Loading participant info...
         </div>
       ) : null}
@@ -139,7 +139,7 @@ export function ParticipantInfoForm() {
                   participantType: event.target.value,
                 }))
               }
-              className="mt-2 flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs"
+              className="mt-2 flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
             >
               <option value="">Select participant type</option>
               {participantTypeOptions.map((option) => (
@@ -168,7 +168,7 @@ export function ParticipantInfoForm() {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="flex items-start gap-3 rounded-lg border border-border/60 bg-muted/20 p-3 text-sm">
+            <label className="flex items-start gap-3 border-y border-border/60 bg-muted/10 py-3 text-sm">
               <input
                 type="checkbox"
                 checked={form.firstGenCollegeStudent}
@@ -190,7 +190,7 @@ export function ParticipantInfoForm() {
               </span>
             </label>
 
-            <label className="flex items-start gap-3 rounded-lg border border-border/60 bg-muted/20 p-3 text-sm">
+            <label className="flex items-start gap-3 border-y border-border/60 bg-muted/10 py-3 text-sm">
               <input
                 type="checkbox"
                 checked={form.transferStudent}

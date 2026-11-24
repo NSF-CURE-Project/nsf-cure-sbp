@@ -19,7 +19,6 @@ import {
   $isRangeSelection,
   FORMAT_TEXT_COMMAND,
   type EditorState,
-  type LexicalEditor,
 } from 'lexical'
 
 // Payload stores richText as a plain Lexical EditorState JSON dump:

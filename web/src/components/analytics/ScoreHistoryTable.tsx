@@ -18,7 +18,7 @@ const formatDate = (value: string | null) => {
 
 export function ScoreHistoryTable({ title, items }: ScoreHistoryTableProps) {
   return (
-    <section className="rounded-xl border border-border/60 bg-card/50 p-5">
+    <section className="border-y border-border/60 py-5">
       <h2 className="text-base font-semibold text-foreground">{title}</h2>
       {items.length === 0 ? (
         <p className="mt-3 text-sm text-muted-foreground">No attempts yet.</p>

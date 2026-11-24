@@ -23,6 +23,7 @@ import SortableChapterRow from './SortableChapterRow'
 import EmptyChapterState from './EmptyChapterState'
 import SaveStatusIndicator from './SaveStatusIndicator'
 import ConfirmDialog from './ConfirmDialog'
+import { useConfirm } from '../admin/useConfirm'
 import EntityInspector, { type Selection } from './EntityInspector'
 import LessonAssignmentDrawer from './LessonAssignmentDrawer'
 import QuizAssignmentDrawer from './QuizAssignmentDrawer'
@@ -113,6 +114,9 @@ export default function CourseOutlineBoard({
   const [duplicatingLessonId, setDuplicatingLessonId] = useState<EntityId | null>(null)
   const [deletingChapterId, setDeletingChapterId] = useState<EntityId | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  // Alert host kept available for any future inline alerts; the chapter
+  // not-empty path now flows through the inline confirm dialog instead.
+  const { dialog: alertDialog } = useConfirm()
   const [reorderMode, setReorderMode] = useState(false)
   const [selectedKey, setSelectedKey] = useState<
     { type: 'chapter'; id: EntityId } | { type: 'lesson'; id: EntityId } | null
@@ -468,14 +472,9 @@ export default function CourseOutlineBoard({
 
   const handleDeleteChapter = async (chapter: ChapterNode) => {
     if (deletingChapterId) return
-
-    if (chapter.lessons.length > 0) {
-      const message = `Cannot delete "${chapter.title}" because it still contains ${chapter.lessons.length} lesson${chapter.lessons.length === 1 ? '' : 's'}. Delete or move those lessons first.`
-      setDeleteError(message)
-      if (typeof window !== 'undefined') window.alert(message)
-      return
-    }
-
+    // Cascade happens server-side via the Chapters beforeDelete hook — the
+    // confirm dialog message below surfaces the lesson count so the user
+    // knows what's about to disappear.
     setPendingDelete({ kind: 'chapter', chapter })
   }
 
@@ -933,6 +932,8 @@ export default function CourseOutlineBoard({
         }
       />
 
+      {alertDialog}
+
       <ConfirmDialog
         open={pendingDelete !== null}
         destructive
@@ -954,7 +955,13 @@ export default function CourseOutlineBoard({
           pendingDelete?.kind === 'lesson'
             ? 'This removes the lesson from the chapter and cannot be undone.'
             : pendingDelete?.kind === 'chapter'
-              ? 'This permanently deletes the chapter. This action cannot be undone.'
+              ? (() => {
+                  const lessonCount = pendingDelete.chapter.lessons.length
+                  const cascadeLine = lessonCount
+                    ? ` This will also delete ${lessonCount} lesson${lessonCount === 1 ? '' : 's'} inside the chapter.`
+                    : ''
+                  return `This permanently deletes the chapter.${cascadeLine} This action cannot be undone.`
+                })()
               : ''
         }
         confirmLabel="Delete"

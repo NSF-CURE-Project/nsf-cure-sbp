@@ -74,10 +74,15 @@ export default function SortableLessonRow({
     } satisfies DragMeta,
   })
 
+  // While the kebab menu is open, lift the row above its siblings so the
+  // dropdown isn't occluded by the next row's stacking context (the hover
+  // transform on .cw-lesson creates one).
+  const [menuOpen, setMenuOpen] = React.useState(false)
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(sortable.transform),
     transition: sortable.transition,
     opacity: sortable.isDragging ? 0.6 : 1,
+    zIndex: menuOpen ? 20 : undefined,
   }
 
   const overflowActions: OverflowAction[] = isStaged
@@ -216,6 +221,7 @@ export default function SortableLessonRow({
           <RowOverflowMenu
             ariaLabel={`More actions for lesson ${lesson.title}`}
             actions={overflowActions}
+            onOpenChange={setMenuOpen}
           />
         </div>
       )}

@@ -15,6 +15,12 @@ type MediaUpload = {
 type SiteBrandingGlobal = {
   programLogo?: MediaUpload | string | number | null;
   programLogoAlt?: string | null;
+  announcement?: {
+    enabled?: boolean | null;
+    message?: string | null;
+    href?: string | null;
+    linkLabel?: string | null;
+  } | null;
 };
 
 type SiteBrandingResponse = SiteBrandingGlobal & {
@@ -28,6 +34,13 @@ export type SiteBranding = {
     width?: number;
     height?: number;
   };
+  announcement: SiteAnnouncement | null;
+};
+
+export type SiteAnnouncement = {
+  message: string;
+  href?: string;
+  linkLabel?: string;
 };
 
 const toPositiveNumber = (value: unknown): number | undefined => {
@@ -100,6 +113,22 @@ const defaultBranding: SiteBranding = {
     width: 64,
     height: 64,
   },
+  announcement: null,
+};
+
+const normalizeAnnouncement = (
+  value: SiteBrandingGlobal["announcement"]
+): SiteAnnouncement | null => {
+  if (!value?.enabled) return null;
+  const message = value.message?.trim();
+  if (!message) return null;
+  const href = value.href?.trim();
+  const linkLabel = value.linkLabel?.trim() || "Learn more";
+
+  return {
+    message,
+    ...(href ? { href, linkLabel } : {}),
+  };
 };
 
 export async function getSiteBranding(options?: {
@@ -133,6 +162,7 @@ export async function getSiteBranding(options?: {
         width: toPositiveNumber(media?.width) ?? defaultBranding.programLogo.width,
         height: toPositiveNumber(media?.height) ?? defaultBranding.programLogo.height,
       },
+      announcement: normalizeAnnouncement(globalData?.announcement),
     };
   } catch {
     return defaultBranding;

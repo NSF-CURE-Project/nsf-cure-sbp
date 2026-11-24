@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { MessageSquarePlus } from "lucide-react";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 import { LoginLink } from "@/components/auth/LoginLink";
 import { Input } from "@/components/ui/input";
@@ -192,8 +193,8 @@ export function LessonQuestionDrawer({
   };
 
   return (
-    <section className="mt-10 rounded-2xl border border-border/60 bg-muted/20 p-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <section className="mt-9 border-t border-border/60 py-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold">Questions about this lesson</h2>
           <p className="text-sm text-muted-foreground">
@@ -204,9 +205,12 @@ export function LessonQuestionDrawer({
           <SheetTrigger asChild>
             <Button
               type="button"
-              className="rounded-full"
+              variant="outline"
+              size="lg"
+              className="w-full px-5 sm:w-auto"
               disabled={!lessonId || (!!user && (!canAskQuestion || eligibilityLoading))}
             >
+              <MessageSquarePlus className="h-4 w-4" />
               Ask a Question about this Lesson
             </Button>
           </SheetTrigger>
@@ -219,7 +223,7 @@ export function LessonQuestionDrawer({
               <SheetDescription className="text-sm">
                 Your question will be linked to “{lessonTitle}.”
               </SheetDescription>
-              <div className="rounded-xl border border-border/60 bg-muted/40 px-4 py-3 text-xs text-muted-foreground">
+              <div className="border-l-[3px] border-border/60 bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
                 Include any symbols, formulas, or steps you already tried for a
                 faster response.
               </div>
@@ -227,7 +231,7 @@ export function LessonQuestionDrawer({
 
             <div className="mt-6 space-y-5">
               {!user ? (
-                <div className="rounded-lg border border-border/60 bg-muted/20 p-4 text-sm text-muted-foreground">
+                <div className="border-y border-border/60 bg-muted/10 py-4 text-sm text-muted-foreground">
                   Please{" "}
                   <LoginLink className="text-foreground underline">
                     sign in

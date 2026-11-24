@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 
+import { PasswordInput } from "@/components/auth/PasswordInput";
 import { Button } from "@/components/ui/button";
 import { LoginLink } from "@/components/auth/LoginLink";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,9 @@ import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 const PAYLOAD_URL = getPayloadBaseUrl();
 
 export function RegisterForm() {
+  const nameId = useId();
+  const emailId = useId();
+  const errorId = useId();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,6 +24,8 @@ export function RegisterForm() {
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (status === "loading") return;
+
     setStatus("loading");
     setMessage("");
 
@@ -51,58 +57,67 @@ export function RegisterForm() {
   };
 
   return (
-    <form className="space-y-4" onSubmit={onSubmit}>
-      <div>
-        <label className="block text-sm font-semibold text-foreground">
+    <form className="space-y-5" onSubmit={onSubmit}>
+      <div className="space-y-2">
+        <label
+          htmlFor={nameId}
+          className="block text-sm font-medium text-foreground"
+        >
           Full name
         </label>
         <Input
+          id={nameId}
           type="text"
           name="fullName"
           autoComplete="name"
           value={fullName}
           onChange={(event) => setFullName(event.target.value)}
-          className="mt-2"
+          className="h-11 rounded-lg text-[15px] sm:h-12"
           placeholder="Jane Doe"
         />
       </div>
-      <div>
-        <label className="block text-sm font-semibold text-foreground">
-          Email
+      <div className="space-y-2">
+        <label
+          htmlFor={emailId}
+          className="block text-sm font-medium text-foreground"
+        >
+          Email address
         </label>
         <Input
+          id={emailId}
           type="email"
           name="email"
           autoComplete="email"
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="mt-2"
+          className="h-11 rounded-lg text-[15px] sm:h-12"
           placeholder="student@cpp.edu"
+          aria-invalid={status === "error" || undefined}
+          aria-describedby={status === "error" ? errorId : undefined}
         />
       </div>
-      <div>
-        <label className="block text-sm font-semibold text-foreground">
-          Password
-        </label>
-        <Input
-          type="password"
-          name="password"
-          autoComplete="new-password"
-          required
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          className="mt-2"
-          placeholder="Create a password"
-        />
-      </div>
+      <PasswordInput
+        label="Password"
+        name="password"
+        autoComplete="new-password"
+        required
+        value={password}
+        onChange={(event) => setPassword(event.target.value)}
+        placeholder="Create a password"
+        aria-invalid={status === "error" || undefined}
+        aria-describedby={status === "error" ? errorId : undefined}
+      />
 
       {message ? (
         <div
-          className={`rounded-md px-4 py-3 text-sm ${
+          id={errorId}
+          role={status === "error" ? "alert" : "status"}
+          aria-live="polite"
+          className={`rounded-lg px-3.5 py-3 text-sm leading-relaxed ${
             status === "error"
-              ? "border border-red-200 bg-red-50 text-red-700"
-              : "border border-emerald-200 bg-emerald-50 text-emerald-700"
+              ? "border border-destructive/25 bg-destructive/5 text-destructive"
+              : "border border-primary/20 bg-primary/5 text-primary"
           }`}
         >
           {message}
@@ -113,12 +128,12 @@ export function RegisterForm() {
         <Button
           type="submit"
           disabled={status === "loading"}
-          className="w-full"
+          className="h-11 w-full rounded-lg text-[15px] font-semibold sm:h-12"
         >
-          {status === "loading" ? "Creating account..." : "Create account"}
+          {status === "loading" ? "Creating account…" : "Create account"}
         </Button>
       ) : (
-        <Button asChild className="w-full">
+        <Button asChild className="h-11 w-full rounded-lg text-[15px] font-semibold sm:h-12">
           <LoginLink>Go to sign in</LoginLink>
         </Button>
       )}

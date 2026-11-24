@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -38,12 +39,17 @@ export function MobileSidebar({ classes }: MobileSidebarProps) {
         </Button>
       </SheetTrigger>
 
-      <SheetContent side="left" className="p-0 w-[min(22rem,90vw)]">
-        <SheetHeader className="px-5 pt-5 pb-3 text-left space-y-1.5">
-          <SheetTitle className="text-lg">Browse topics</SheetTitle>
-          <p className="text-sm text-muted-foreground">
+      <SheetContent
+        side="left"
+        className="w-[min(22rem,90vw)] border-sidebar-border bg-sidebar p-0 text-sidebar-foreground"
+      >
+        <SheetHeader className="px-5 pb-3 pt-5 text-left">
+          <SheetTitle className="text-lg text-sidebar-foreground">
+            Browse topics
+          </SheetTitle>
+          <SheetDescription className="text-sm text-sidebar-foreground/70">
             Classes, chapters, and lessons in one place.
-          </p>
+          </SheetDescription>
         </SheetHeader>
 
         <div className="h-[calc(100vh-5.75rem)] overflow-y-auto px-3 pb-6">

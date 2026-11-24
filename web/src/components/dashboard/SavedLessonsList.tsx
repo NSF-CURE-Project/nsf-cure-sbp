@@ -16,16 +16,16 @@ type SavedLessonsListProps = {
 
 export function SavedLessonsList({ items }: SavedLessonsListProps) {
   return (
-    <section className="rounded-md border border-border/60 bg-background/80 p-5">
+    <section className="border-y border-border/60 py-5">
       <h2 className="text-sm font-semibold text-foreground">Saved lessons</h2>
       {items.length === 0 ? (
         <p className="mt-2 text-sm text-muted-foreground">
           Save lessons to build a quick revisit list.
         </p>
       ) : (
-        <ul className="mt-3 space-y-2">
+        <ul className="mt-3 divide-y divide-border/60 border-y border-border/60">
           {items.map((item) => (
-            <li key={item.id} className="rounded-md border border-border/50 bg-muted/20 p-3">
+            <li key={item.id} className="py-3">
               <p className="text-sm font-semibold text-foreground">{item.title}</p>
               <p className="text-xs text-muted-foreground">{item.subtitle}</p>
               <div className="mt-1 flex items-center justify-between gap-2">

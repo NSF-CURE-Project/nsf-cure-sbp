@@ -30,7 +30,7 @@ export function StreakDisplay({ activity }: StreakDisplayProps) {
   });
 
   return (
-    <section className="rounded-xl border border-border/60 bg-card/50 p-5">
+    <section className="border-y border-border/60 py-5">
       <h2 className="text-base font-semibold text-foreground">Activity Heatmap</h2>
       <div className="mt-3 grid grid-cols-7 gap-1">
         {cells.map((cell) => (

@@ -8,25 +8,41 @@ import { cn } from "@/lib/utils";
 type SidebarContextValue = {
   open: boolean;
   toggle: () => void;
+  setOpen: (open: boolean) => void;
 };
 
 const SidebarContext = React.createContext<SidebarContextValue | null>(null);
 
 export function SidebarProvider({
+  open: openProp,
   defaultOpen = true,
+  onOpenChange,
   children,
 }: {
+  open?: boolean;
   defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = React.useState(defaultOpen);
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : uncontrolledOpen;
+
+  const setOpen = React.useCallback(
+    (next: boolean) => {
+      if (!isControlled) setUncontrolledOpen(next);
+      onOpenChange?.(next);
+    },
+    [isControlled, onOpenChange]
+  );
 
   const value = React.useMemo(
     () => ({
       open,
-      toggle: () => setOpen((prev) => !prev),
+      setOpen,
+      toggle: () => setOpen(!open),
     }),
-    [open]
+    [open, setOpen]
   );
 
   return (
@@ -34,7 +50,7 @@ export function SidebarProvider({
   );
 }
 
-function useSidebarContext() {
+export function useSidebarContext() {
   const ctx = React.useContext(SidebarContext);
   if (!ctx) {
     throw new Error("useSidebarContext must be used within SidebarProvider");
@@ -54,14 +70,22 @@ export function Sidebar({
   ...props
 }: SidebarProps) {
   const { open } = useSidebarContext();
+  // Streamed <Suspense> children can hydrate after ContentShell/PracticeFocusMode
+  // have already updated SidebarProvider on the client; match SSR on first render.
+  const hydrated = React.useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false
+  );
 
   return (
     <aside
       data-sidebar-collapsible={collapsible}
-      data-sidebar-open={open ? "true" : "false"}
+      data-sidebar-open={(hydrated ? open : true) ? "true" : "false"}
       className={cn(
-        "relative flex h-dvh w-64 flex-col bg-[hsl(var(--background)/0.92)] transition-[width] duration-200",
-        !open && collapsible === "icon" && "w-14",
+        // Width is owned by the caller (AppSidebar) so we don't fight the
+        // persisted zustand open-state with a second, unsynced width here.
+        "relative flex h-full min-h-0 flex-col bg-sidebar text-sidebar-foreground",
         className
       )}
       {...props}

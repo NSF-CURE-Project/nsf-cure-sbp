@@ -52,7 +52,7 @@ export function DashboardShell({
   return (
     <main className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 py-6 sm:px-6 lg:px-8">
       <div className="space-y-6">
-        <section className="rounded-md border border-border/60 bg-background/80 p-6">
+        <section className="border-b border-border/70 pb-6">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
             Student dashboard
           </p>
@@ -79,14 +79,14 @@ export function DashboardShell({
 
         <RecommendedActions actions={recommendedActions} />
 
-        <section className="rounded-md border border-border/60 bg-background/80 p-6">
+        <section className="border-y border-border/70 py-6">
           <h2 className="text-sm font-semibold text-foreground">Enrolled classes</h2>
           {enrollments.length === 0 ? (
             <p className="mt-2 text-sm text-muted-foreground">
               You have not enrolled in a classroom yet.
             </p>
           ) : (
-            <div className="mt-4 grid gap-3">
+            <div className="mt-4 divide-y divide-border/60 border-y border-border/60">
               {enrollments.map((enrollment) => (
                 <ClassEnrollmentRow key={enrollment.id} enrollment={enrollment} />
               ))}

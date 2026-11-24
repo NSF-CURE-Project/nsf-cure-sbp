@@ -1,11 +1,34 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ArrowRight,
+  ExternalLink,
+  Mail,
+  Phone,
+  Play,
+  UserRound,
+  Youtube,
+} from "lucide-react";
 import { PayloadRichText } from "@/components/ui/payloadRichText";
+import { Button } from "@/components/ui/button";
 import type { PageLayoutBlock } from "@/lib/payloadSdk/types";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
+import { extractLessonSections } from "@/lib/lessons/toc";
+import practiceTitles from "@/lib/practice/titles.generated.json";
+import { practicePath } from "@/lib/practice/slugs";
+import { LessonPracticeCard } from "@/components/lessons/LessonPracticeCard";
+import {
+  CalloutBlockView,
+  CheckpointBlockView,
+  DefinitionBlockView,
+  LessonSummaryBlockView,
+  WorkedExampleBlockView,
+} from "@/components/lessons/blocks";
 
 // Heavy interactive blocks (mathjs / katex / state machines) — load on demand
 // so non-problem/quiz pages don't pay for them in the initial bundle.
@@ -194,10 +217,10 @@ function SnappingVideo({
   }, [snappedWidth]);
 
   return (
-    <section className="mx-auto w-full max-w-4xl space-y-3">
-      <div
+    <section data-wide="true" className="w-full space-y-3">
+      <figure
         ref={frameRef}
-        className="w-full min-w-[280px] max-w-full overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-b from-muted/50 to-muted/20 p-1 shadow-lg"
+        className="w-full min-w-[280px] max-w-full overflow-hidden rounded-lg border border-border/70 bg-card p-1 shadow-[0_12px_32px_rgba(15,23,42,0.08)]"
         style={{
           resize: "horizontal",
           width: snappedWidth ? `${snappedWidth}px` : undefined,
@@ -206,7 +229,7 @@ function SnappingVideo({
         onMouseUp={snapToNearest}
         onTouchEnd={snapToNearest}
       >
-        <div className="aspect-video w-full overflow-hidden rounded-xl bg-black">
+        <div className="aspect-video w-full overflow-hidden rounded-md bg-slate-950">
           <video
             src={url}
             controls
@@ -223,8 +246,12 @@ function SnappingVideo({
             }}
           />
         </div>
-      </div>
-      {caption && <p className="text-sm text-muted-foreground">{caption}</p>}
+        {caption && (
+          <figcaption className="px-2 py-2 text-sm leading-6 text-muted-foreground">
+            {caption}
+          </figcaption>
+        )}
+      </figure>
     </section>
   );
 }
@@ -252,8 +279,8 @@ function YouTubeVideoCard({
   const thumbnailUrl = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
 
   return (
-    <section className="mx-auto w-full max-w-4xl space-y-3">
-      <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/70 shadow-lg shadow-black/15">
+    <section data-wide="true" className="w-full space-y-3">
+      <figure className="overflow-hidden rounded-lg border border-border/70 bg-card shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
         <div className="relative aspect-video w-full">
           {isPlaying ? (
             <iframe
@@ -268,7 +295,7 @@ function YouTubeVideoCard({
           ) : (
             <button
               type="button"
-              className="group absolute inset-0 flex h-full w-full items-center justify-center bg-black/30 transition-colors hover:bg-black/40"
+              className="group absolute inset-0 flex h-full w-full items-center justify-center overflow-hidden bg-slate-950 text-white transition-colors"
               onClick={() => setIsPlaying(true)}
               aria-label="Play YouTube video"
             >
@@ -277,18 +304,36 @@ function YouTubeVideoCard({
                 alt="Video thumbnail"
                 fill
                 sizes="(max-width: 1024px) 100vw, 960px"
-                className="object-cover"
+                className="object-cover opacity-90 transition duration-300 group-hover:scale-[1.02] group-hover:opacity-100"
               />
-              <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
-              <span className="relative z-10 inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/55 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition group-hover:bg-black/65">
-                <span aria-hidden="true">▶</span>
-                Play on YouTube
+              <span className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/25" />
+              <span className="absolute left-4 top-4 z-10 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-white/90 backdrop-blur-sm">
+                <Youtube className="h-3.5 w-3.5" aria-hidden="true" />
+                Video
+              </span>
+              <span className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full border border-white/25 bg-white/95 text-slate-950 shadow-[0_14px_34px_rgba(0,0,0,0.28)] transition duration-200 group-hover:scale-105 group-hover:bg-white">
+                <Play
+                  className="ml-1 h-7 w-7 fill-current"
+                  aria-hidden="true"
+                />
+              </span>
+              <span className="absolute bottom-4 left-4 right-4 z-10 flex items-end justify-between gap-4">
+                <span className="min-w-0 text-left text-sm font-semibold leading-6 text-white">
+                  Play video
+                </span>
+                <span className="hidden rounded-full border border-white/20 bg-black/40 px-3 py-1 text-xs font-semibold text-white/90 backdrop-blur-sm sm:inline-flex">
+                  YouTube
+                </span>
               </span>
             </button>
           )}
         </div>
-      </div>
-      {caption && <p className="text-sm text-muted-foreground">{caption}</p>}
+        {caption && (
+          <figcaption className="px-4 py-3 text-sm leading-6 text-muted-foreground">
+            {caption}
+          </figcaption>
+        )}
+      </figure>
     </section>
   );
 }
@@ -310,10 +355,36 @@ export function PageLayout({
   };
   lessonId?: string;
 }) {
+  const pathname = usePathname();
+  const hasPractice = Boolean(lessonId && blocks?.some((block) => block.blockType === "practiceProblem"));
+  const [practiceProgress, setPracticeProgress] = useState<{ lessonId: string; statuses: Record<string, number> }>();
+  useEffect(() => {
+    if (!hasPractice || !lessonId) return;
+    const controller = new AbortController();
+    function refresh() {
+      void fetch(`/api/practice-attempts/status?lesson=${encodeURIComponent(lessonId!)}`, {
+        signal: controller.signal,
+      }).then(async (response) => {
+        if (!response.ok) return;
+        const result = await response.json();
+        if (!controller.signal.aborted) setPracticeProgress({ lessonId: lessonId!, statuses: result.statuses ?? {} });
+      }).catch(() => undefined);
+    }
+    refresh();
+    window.addEventListener("pageshow", refresh);
+    return () => {
+      controller.abort();
+      window.removeEventListener("pageshow", refresh);
+    };
+  }, [hasPractice, lessonId]);
   if (!blocks?.length) return null;
   const firstHeroIndex = blocks.findIndex(
     (block) => block.blockType === "heroBlock"
   );
+  // Pre-compute anchor ids for heading blocks so the rendered headings and
+  // the table-of-contents in LessonSidebar share the exact same slugs.
+  const sections = extractLessonSections(blocks);
+  const sectionIdByIndex = new Map(sections.map((s) => [s.index, s.id]));
 
   return (
     <div className={className}>
@@ -329,6 +400,8 @@ export function PageLayout({
                     alt={heroLogo.alt}
                     width={heroLogo.width ?? 48}
                     height={heroLogo.height ?? 48}
+                    priority
+                    fetchPriority="high"
                     className={
                       heroLogo.className ?? "h-10 w-auto opacity-80 grayscale"
                     }
@@ -344,12 +417,9 @@ export function PageLayout({
                 </p>
               )}
               {block.buttonLabel && block.buttonHref && (
-                <a
-                  href={block.buttonHref}
-                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-md font-medium bg-primary text-primary-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors duration-200"
-                >
-                  {block.buttonLabel}
-                </a>
+                <Button asChild>
+                  <a href={block.buttonHref}>{block.buttonLabel}</a>
+                </Button>
               )}
             </section>
           );
@@ -358,8 +428,13 @@ export function PageLayout({
         if (block.blockType === "sectionTitle") {
           const TitleTag = getTitleTag(block.size);
           const titleClass = getTitleClass(block.size);
+          const anchorId = sectionIdByIndex.get(idx);
           return (
-            <section key={block.id ?? idx} className="space-y-2">
+            <section
+              key={block.id ?? idx}
+              id={anchorId}
+              className="space-y-2 scroll-mt-24"
+            >
               <TitleTag className={`${titleClass} font-semibold`}>
                 {block.title}
               </TitleTag>
@@ -375,8 +450,13 @@ export function PageLayout({
         if (block.blockType === "textSection") {
           const TitleTag = getTitleTag(block.size);
           const titleClass = getTitleClass(block.size);
+          const anchorId = sectionIdByIndex.get(idx);
           return (
-            <section key={block.id ?? idx} className="space-y-3">
+            <section
+              key={block.id ?? idx}
+              id={anchorId}
+              className="space-y-3 scroll-mt-24"
+            >
               {block.title && (
                 <TitleTag className={`${titleClass} font-semibold`}>
                   {block.title}
@@ -398,8 +478,13 @@ export function PageLayout({
         if (block.blockType === "sectionBlock") {
           const TitleTag = getTitleTag(block.size);
           const titleClass = getTitleClass(block.size);
+          const anchorId = sectionIdByIndex.get(idx);
           return (
-            <section key={block.id ?? idx} className="space-y-2">
+            <section
+              key={block.id ?? idx}
+              id={anchorId}
+              className="space-y-2 scroll-mt-24"
+            >
               <TitleTag className={`${titleClass} font-semibold`}>
                 {block.title}
               </TitleTag>
@@ -505,15 +590,40 @@ export function PageLayout({
           );
         }
 
+        if (block.blockType === "practiceProblem") {
+          if (!lessonId) return null;
+          const query = new URLSearchParams({
+            lesson: lessonId,
+            assignment: block.assignmentKey,
+          });
+          if (pathname?.startsWith("/classes/")) query.set("from", pathname);
+          const title =
+            (practiceTitles as Record<string, string | undefined>)[
+              block.problemId
+            ] ?? "Practice problem";
+          const status =
+            practiceProgress?.lessonId === lessonId
+              ? practiceProgress.statuses[
+                  `${block.assignmentKey}:${block.problemId}`
+                ]
+              : undefined;
+          return (
+            <LessonPracticeCard
+              key={block.id ?? idx}
+              href={practicePath(block.problemId, query)}
+              title={title}
+              required={Boolean(block.requiredPractice)}
+              status={status}
+            />
+          );
+        }
+
         if (block.blockType === "buttonBlock") {
           return (
             <section key={block.id ?? idx}>
-              <a
-                href={block.href}
-                className="inline-flex items-center justify-center px-5 py-2.5 rounded-md font-medium bg-primary text-primary-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors duration-200"
-              >
-                {block.label}
-              </a>
+              <Button asChild>
+                <a href={block.href}>{block.label}</a>
+              </Button>
             </section>
           );
         }
@@ -537,7 +647,7 @@ export function PageLayout({
                   resources.map((item, itemIdx) => (
                     <li
                       key={item.id ?? itemIdx}
-                      className="rounded-lg border border-border/60 bg-card/60 px-4 py-3 shadow-sm"
+                      className="border-t border-border/60 py-4 first:border-t-0"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div>
@@ -554,12 +664,23 @@ export function PageLayout({
                           {item.type ?? "link"}
                         </span>
                       </div>
-                      <a
-                        href={item.url}
-                        className="mt-2 inline-flex text-primary text-sm underline underline-offset-4 hover:no-underline"
-                      >
-                        Open
-                      </a>
+                      {item.url?.startsWith("/") ? (
+                        <Link
+                          href={item.url}
+                          className="mt-2 inline-flex items-center gap-1 text-primary text-sm font-semibold underline underline-offset-4 hover:no-underline"
+                        >
+                          {item.linkLabel?.trim() || "Open"}
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      ) : (
+                        <a
+                          href={item.url}
+                          className="mt-2 inline-flex items-center gap-1 text-primary text-sm font-semibold underline underline-offset-4 hover:no-underline"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          {item.linkLabel?.trim() || "Open"}
+                        </a>
+                      )}
                     </li>
                   ))
                 ) : (
@@ -596,13 +717,9 @@ export function PageLayout({
               ].filter((section) => section.items.length > 0)
             : [{ label: block.title ?? "Contacts", items: contacts }];
           return (
-            <section key={block.id ?? idx} className="space-y-6">
-              <div className="relative overflow-hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/10 via-background to-emerald-500/10 p-6">
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/15 blur-2xl"
-                />
-                <h2 className="text-3xl font-semibold tracking-tight">
+            <section key={block.id ?? idx} className="space-y-7">
+              <div className="border-b border-border/60 pb-5">
+                <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
                   {block.title ?? "Contacts"}
                 </h2>
                 {block.description && (
@@ -616,31 +733,29 @@ export function PageLayout({
                   No contact information available.
                 </p>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-8">
                   {sections.map((section, sectionIdx) => (
-                    <section
-                      key={sectionIdx}
-                      className="rounded-2xl border border-border/50 bg-background/70 p-5 shadow-sm"
-                    >
+                    <section key={sectionIdx} className="space-y-3">
                       {groupByCategory && (
-                        <div className="mb-4 flex items-center gap-3">
-                          <div className="h-8 w-1.5 rounded-full bg-primary/50" />
+                        <div className="flex items-center gap-3">
+                          <div className="h-px flex-1 bg-border/70" />
                           <h3 className="text-lg font-semibold tracking-tight text-foreground">
                             {section.label}
                           </h3>
+                          <div className="h-px flex-1 bg-border/70" />
                         </div>
                       )}
-                      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                      <div className="divide-y divide-border/60 border-y border-border/60">
                         {section.items.map((person, personIdx) => {
                           const photoUrl = resolveContactPhoto(person.photo);
                           return (
                             <article
                               key={person.id ?? personIdx}
-                              className="group rounded-xl border border-border/50 bg-card/80 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-md"
+                              className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between"
                             >
-                              <div className="flex items-start gap-4">
+                              <div className="flex min-w-0 items-start gap-4">
                                 {photoUrl ? (
-                                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border border-border/40">
+                                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border border-border/40">
                                     <Image
                                       src={photoUrl}
                                       alt={person.name ?? "Contact photo"}
@@ -649,12 +764,12 @@ export function PageLayout({
                                     />
                                   </div>
                                 ) : (
-                                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-border/40 bg-primary/10 text-2xl text-primary">
-                                    👤
+                                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                    <UserRound className="h-6 w-6" />
                                   </div>
                                 )}
                                 <div className="min-w-0 space-y-1">
-                                  <h3 className="truncate text-lg font-semibold text-foreground">
+                                  <h3 className="text-lg font-semibold text-foreground">
                                     {person.name}
                                   </h3>
                                   {person.title ? (
@@ -668,21 +783,25 @@ export function PageLayout({
                                   )}
                                 </div>
                               </div>
-                              <div className="mt-4 space-y-2 text-sm">
+                              <div className="space-y-2 text-sm sm:min-w-[13rem] sm:text-right">
                                 {person.email ? (
                                   <a
                                     href={`mailto:${person.email}`}
-                                    className="block truncate text-emerald-700 underline-offset-2 hover:underline"
+                                    className="inline-flex max-w-full items-center gap-2 text-emerald-700 underline-offset-2 hover:underline"
                                   >
-                                    {person.email}
+                                    <Mail className="h-4 w-4 shrink-0" />
+                                    <span className="truncate">
+                                      {person.email}
+                                    </span>
                                   </a>
                                 ) : null}
                                 {person.phone ? (
                                   <a
                                     href={`tel:${person.phone}`}
-                                    className="block text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                                    className="inline-flex max-w-full items-center gap-2 text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
                                   >
-                                    {person.phone}
+                                    <Phone className="h-4 w-4 shrink-0" />
+                                    <span>{person.phone}</span>
                                   </a>
                                 ) : null}
                               </div>
@@ -706,6 +825,25 @@ export function PageLayout({
               lessonId={lessonId}
             />
           );
+        }
+
+        // Lesson learning blocks. Distinct visual identities so the page
+        // stops feeling like uninterrupted body copy and starts feeling
+        // like guided instruction.
+        if (block.blockType === "callout") {
+          return <CalloutBlockView key={block.id ?? idx} block={block} />;
+        }
+        if (block.blockType === "definition") {
+          return <DefinitionBlockView key={block.id ?? idx} block={block} />;
+        }
+        if (block.blockType === "workedExample") {
+          return <WorkedExampleBlockView key={block.id ?? idx} block={block} />;
+        }
+        if (block.blockType === "checkpoint") {
+          return <CheckpointBlockView key={block.id ?? idx} block={block} />;
+        }
+        if (block.blockType === "lessonSummary") {
+          return <LessonSummaryBlockView key={block.id ?? idx} block={block} />;
         }
 
         return null;

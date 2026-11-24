@@ -1,4 +1,5 @@
 import * as migration_20251220_024730_add_versions from './20251220_024730_add_versions'
+import * as practiceMigration from './20261123_160000_add_lesson_practice'
 import * as migration_20251220_041833_add_layout_blocks from './20251220_041833_add_layout_blocks'
 import * as migration_20251225_182747 from './20251225_182747'
 import * as migration_20251228_190000_lesson_feedback_nav_order from './20251228_190000_lesson_feedback_nav_order'
@@ -39,6 +40,14 @@ import * as migration_20260506_200000_add_saved_views from './20260506_200000_ad
 import * as migration_20260507_010000_add_locked_documents_rels_columns from './20260507_010000_add_locked_documents_rels_columns'
 import * as migration_20260512_120000_drop_engineering_figures from './20260512_120000_drop_engineering_figures'
 import * as migration_20260512_130000_drop_problem_sets from './20260512_130000_drop_problem_sets'
+import * as migration_20260513_140000_repair_admin_help_blocks_tables from './20260513_140000_repair_admin_help_blocks_tables'
+import * as migration_20260513_150000_add_pages_hidden from './20260513_150000_add_pages_hidden'
+import * as migration_20260513_170000_add_lesson_learning_fields from './20260513_170000_add_lesson_learning_fields'
+import * as migration_20260624_064500_repair_lesson_learning_version_tables from './20260624_064500_repair_lesson_learning_version_tables'
+import * as migration_20260624_081500_add_auth_settings from './20260624_081500_add_auth_settings'
+import * as migration_20260624_230000_add_site_announcement_banner from './20260624_230000_add_site_announcement_banner'
+import * as migration_20261123_193000_add_resource_item_link_label from './20261123_193000_add_resource_item_link_label'
+import * as migration_20261124_173000_practice_library_attempts from './20261124_173000_practice_library_attempts'
 
 export const migrations = [
   {
@@ -245,5 +254,50 @@ export const migrations = [
     up: migration_20260512_130000_drop_problem_sets.up,
     down: migration_20260512_130000_drop_problem_sets.down,
     name: '20260512_130000_drop_problem_sets',
+  },
+  {
+    up: migration_20260513_140000_repair_admin_help_blocks_tables.up,
+    down: migration_20260513_140000_repair_admin_help_blocks_tables.down,
+    name: '20260513_140000_repair_admin_help_blocks_tables',
+  },
+  {
+    up: migration_20260513_150000_add_pages_hidden.up,
+    down: migration_20260513_150000_add_pages_hidden.down,
+    name: '20260513_150000_add_pages_hidden',
+  },
+  {
+    up: migration_20260513_170000_add_lesson_learning_fields.up,
+    down: migration_20260513_170000_add_lesson_learning_fields.down,
+    name: '20260513_170000_add_lesson_learning_fields',
+  },
+  {
+    up: migration_20260624_064500_repair_lesson_learning_version_tables.up,
+    down: migration_20260624_064500_repair_lesson_learning_version_tables.down,
+    name: '20260624_064500_repair_lesson_learning_version_tables',
+  },
+  {
+    up: migration_20260624_081500_add_auth_settings.up,
+    down: migration_20260624_081500_add_auth_settings.down,
+    name: '20260624_081500_add_auth_settings',
+  },
+  {
+    up: migration_20260624_230000_add_site_announcement_banner.up,
+    down: migration_20260624_230000_add_site_announcement_banner.down,
+    name: '20260624_230000_add_site_announcement_banner',
+  },
+  {
+    up: practiceMigration.up,
+    down: practiceMigration.down,
+    name: '20261123_160000_add_lesson_practice',
+  },
+  {
+    up: migration_20261123_193000_add_resource_item_link_label.up,
+    down: migration_20261123_193000_add_resource_item_link_label.down,
+    name: '20261123_193000_add_resource_item_link_label',
+  },
+  {
+    up: migration_20261124_173000_practice_library_attempts.up,
+    down: migration_20261124_173000_practice_library_attempts.down,
+    name: '20261124_173000_practice_library_attempts',
   },
 ]

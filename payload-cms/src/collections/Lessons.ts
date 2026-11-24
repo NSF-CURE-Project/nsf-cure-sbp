@@ -1,4 +1,5 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
+import { APIError } from 'payload'
 import { lessonBlocks } from '../blocks/pageBlocks'
 import { canReceiveNotification } from '../utils/notificationPreferences'
 import { ensureUniqueSlug, slugify } from '../utils/slug'
@@ -437,6 +438,14 @@ export const Lessons: CollectionConfig = {
     beforeValidate: [
       async ({ data, req, originalDoc }) => {
         if (!data) return data
+        if (Array.isArray(data.layout)) {
+          const assignments = new Set<string>()
+          for (const block of data.layout) {
+            if (block.blockType !== 'practiceProblem' || !block.assignmentKey) continue
+            if (assignments.has(block.assignmentKey)) throw new APIError('Each practice block needs a unique assignment.', 400)
+            assignments.add(block.assignmentKey)
+          }
+        }
         if (!data.slug) {
           const title = data.title ?? originalDoc?.title ?? ''
           const base = slugify(String(title))
@@ -494,6 +503,48 @@ export const Lessons: CollectionConfig = {
               name: 'title',
               type: 'text',
               required: true,
+            },
+            {
+              name: 'difficulty',
+              label: 'Difficulty',
+              type: 'select',
+              options: [
+                { label: 'Intro', value: 'intro' },
+                { label: 'Easy', value: 'easy' },
+                { label: 'Medium', value: 'medium' },
+                { label: 'Hard', value: 'hard' },
+              ],
+              admin: {
+                description:
+                  'Surfaces as a pill in the lesson header so students know what to expect.',
+              },
+            },
+            {
+              name: 'objectives',
+              label: 'Learning objectives',
+              type: 'array',
+              labels: { singular: 'Objective', plural: 'Objectives' },
+              fields: [
+                {
+                  name: 'text',
+                  label: 'Objective',
+                  type: 'text',
+                  required: true,
+                },
+              ],
+              admin: {
+                description:
+                  'Rendered under the title as a "You will learn" list. Keep each bullet short — one outcome.',
+              },
+            },
+            {
+              name: 'summary',
+              label: 'Recap summary',
+              type: 'textarea',
+              admin: {
+                description:
+                  'Shown on the end-of-lesson recap card. Leave blank to fall back to a list of section titles.',
+              },
             },
             {
               name: 'chapter',

@@ -246,7 +246,7 @@ chapterSlug: ${chapterSlug}`}
           </div>
 
           {objective ? (
-            <section className="rounded-2xl border border-border/60 bg-card/70 p-6 shadow-sm">
+            <section className="border-l-[3px] border-primary/45 bg-muted/10 px-5 py-4">
               <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                 Chapter objectives
               </h2>
@@ -271,7 +271,7 @@ chapterSlug: ${chapterSlug}`}
             </div>
 
             {lessonCards.length > 0 ? (
-              <ul className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
+              <ul className="divide-y divide-border/60 border-y border-border/60">
                 {lessonCards.map((lesson) => {
                   const accent = lessonTypeAccent[lesson.type];
                   return (
@@ -279,10 +279,9 @@ chapterSlug: ${chapterSlug}`}
                       <Link
                         href={`/classes/${classSlug}/lessons/${lesson.slug}`}
                         className={cn(
-                          "group/lesson relative flex h-full items-start gap-3 rounded-xl border border-border/60 bg-background/70 px-4 py-3.5 shadow-sm",
-                          "transition-[transform,box-shadow,border-color,background-color] duration-150 ease-out",
-                          "hover:-translate-y-[2px] hover:border-primary/50 hover:bg-card hover:shadow-md",
-                          "focus-visible:-translate-y-[2px] focus-visible:border-primary/60 focus-visible:bg-card focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                          "group/lesson relative flex items-start gap-3 px-2 py-4",
+                          "transition-colors duration-150 ease-out hover:bg-muted/25",
+                          "focus-visible:bg-muted/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         )}
                       >
                         <span
@@ -318,8 +317,8 @@ chapterSlug: ${chapterSlug}`}
                 })}
               </ul>
             ) : (
-              <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border/60 bg-muted/20 px-6 py-12 text-center">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-background text-muted-foreground shadow-sm">
+              <div className="flex flex-col items-center justify-center gap-2 border-y border-dashed border-border/60 bg-muted/10 px-6 py-12 text-center">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-background text-muted-foreground">
                   <BookOpen className="h-5 w-5" />
                 </span>
                 <p className="text-sm font-medium text-foreground">

@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { BLOCK_TYPE_LABELS, type ScaffoldBlock } from './types'
+import practiceCatalog from '../../../practice/catalog.generated.json'
 
 type OutlinePanelProps = {
   blocks: ScaffoldBlock[]
@@ -35,6 +36,30 @@ function summarize(block: ScaffoldBlock): string {
     }
     case 'quizBlock':
       return block.title || 'Quiz'
+    case 'practiceProblem':
+      return practiceCatalog.find((item) => item.id === block.problemId)?.title ?? 'Practice problem'
+    case 'heroBlock':
+      return block.title || 'Hero'
+    case 'resourcesList': {
+      const resources = block.resources ?? []
+      const first = resources.find((r) => r.title?.trim())?.title ?? ''
+      return block.title || first || 'Resources'
+    }
+    case 'contactsList': {
+      const contacts = block.contacts ?? []
+      const first = contacts.find((c) => c.name?.trim())?.name ?? ''
+      return block.title || first || 'Contacts'
+    }
+    case 'callout':
+      return block.title || 'Callout'
+    case 'definition':
+      return block.term || 'Definition'
+    case 'workedExample':
+      return block.title || 'Worked example'
+    case 'checkpoint':
+      return 'Checkpoint'
+    case 'lessonSummary':
+      return block.title || 'Summary'
     case '__passthrough':
       return (block.data.blockType as string) ?? 'Unsupported block'
   }

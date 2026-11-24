@@ -294,7 +294,7 @@ export default function PageOrderList({
                   </span>
                 ) : showEditLinks ? (
                   <Link
-                    href={`/admin/collections/pages/${item.id}`}
+                    href={`/admin/pages/${item.id}`}
                     style={{
                       display: 'block',
                       padding: compact ? '4px 8px' : '6px 10px',

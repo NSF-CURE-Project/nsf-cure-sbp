@@ -93,6 +93,7 @@ export interface Config {
     'quiz-questions': QuizQuestion;
     quizzes: Quiz;
     'quiz-attempts': QuizAttempt;
+    'practice-attempts': PracticeAttempt;
     notifications: Notification;
     'lesson-progress': LessonProgress;
     'lesson-bookmarks': LessonBookmark;
@@ -130,6 +131,7 @@ export interface Config {
     'quiz-questions': QuizQuestionsSelect<false> | QuizQuestionsSelect<true>;
     quizzes: QuizzesSelect<false> | QuizzesSelect<true>;
     'quiz-attempts': QuizAttemptsSelect<false> | QuizAttemptsSelect<true>;
+    'practice-attempts': PracticeAttemptsSelect<false> | PracticeAttemptsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'lesson-progress': LessonProgressSelect<false> | LessonProgressSelect<true>;
     'lesson-bookmarks': LessonBookmarksSelect<false> | LessonBookmarksSelect<true>;
@@ -146,11 +148,13 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     'admin-help': AdminHelp;
+    'auth-settings': AuthSetting;
     footer: Footer;
     'site-branding': SiteBranding;
   };
   globalsSelect: {
     'admin-help': AdminHelpSelect<false> | AdminHelpSelect<true>;
+    'auth-settings': AuthSettingsSelect<false> | AuthSettingsSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     'site-branding': SiteBrandingSelect<false> | SiteBrandingSelect<true>;
   };
@@ -269,6 +273,23 @@ export interface Lesson {
   id: number;
   order?: number | null;
   title: string;
+  /**
+   * Surfaces as a pill in the lesson header so students know what to expect.
+   */
+  difficulty?: ('intro' | 'easy' | 'medium' | 'hard') | null;
+  /**
+   * Rendered under the title as a "You will learn" list. Keep each bullet short — one outcome.
+   */
+  objectives?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Shown on the end-of-lesson recap card. Leave blank to fall back to a list of section titles.
+   */
+  summary?: string | null;
   /**
    * Pre-filled when you add a lesson from a chapter row.
    */
@@ -389,6 +410,61 @@ export interface Lesson {
             blockType: 'buttonBlock';
           }
         | {
+            variant?: ('info' | 'tip' | 'warning' | 'key') | null;
+            title?: string | null;
+            body: string;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'callout';
+          }
+        | {
+            term: string;
+            definition: string;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'definition';
+          }
+        | {
+            title?: string | null;
+            problem: string;
+            steps?:
+              | {
+                  text: string;
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * Surfaces as a highlighted result line under the steps.
+             */
+            finalAnswer?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'workedExample';
+          }
+        | {
+            prompt: string;
+            /**
+             * Hidden behind a "Reveal answer" toggle on the public page.
+             */
+            answer: string;
+            hint?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'checkpoint';
+          }
+        | {
+            title?: string | null;
+            points?:
+              | {
+                  text: string;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'lessonSummary';
+          }
+        | {
             title?: string | null;
             /**
              * Attach a quiz to this lesson section or create a new one.
@@ -407,6 +483,14 @@ export interface Lesson {
             id?: string | null;
             blockName?: string | null;
             blockType: 'quizBlock';
+          }
+        | {
+            assignmentKey: string;
+            problemId: string;
+            requiredPractice?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'practiceProblem';
           }
       )[]
     | null;
@@ -586,6 +670,10 @@ export interface Page {
    * Managed from the Reorder pages list.
    */
   navOrder?: number | null;
+  /**
+   * When enabled, this page is removed from the public navigation and its URL returns 404. Admins can still see and edit it here.
+   */
+  hidden?: boolean | null;
   title: string;
   /**
    * Auto-generated from the page title. Use 'Home' to create the homepage slug.
@@ -719,6 +807,10 @@ export interface Page {
                   title: string;
                   description?: string | null;
                   url: string;
+                  /**
+                   * Optional action text (defaults to "Open").
+                   */
+                  linkLabel?: string | null;
                   type?: ('link' | 'video' | 'download' | 'other') | null;
                   id?: string | null;
                 }[]
@@ -1407,6 +1499,33 @@ export interface QuizAttempt {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "practice-attempts".
+ */
+export interface PracticeAttempt {
+  id: number;
+  lesson?: (number | null) | Lesson;
+  learner: number | Account;
+  assignmentKey: string;
+  problemId: string;
+  key: string;
+  submitted?: boolean | null;
+  completed?: boolean | null;
+  score?: number | null;
+  maxScore?: number | null;
+  snapshot?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "notifications".
  */
 export interface Notification {
@@ -1725,6 +1844,14 @@ export interface ChaptersSelect<T extends boolean = true> {
 export interface LessonsSelect<T extends boolean = true> {
   order?: T;
   title?: T;
+  difficulty?: T;
+  objectives?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  summary?: T;
   chapter?: T;
   slug?: T;
   layout?:
@@ -1801,6 +1928,60 @@ export interface LessonsSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        callout?:
+          | T
+          | {
+              variant?: T;
+              title?: T;
+              body?: T;
+              id?: T;
+              blockName?: T;
+            };
+        definition?:
+          | T
+          | {
+              term?: T;
+              definition?: T;
+              id?: T;
+              blockName?: T;
+            };
+        workedExample?:
+          | T
+          | {
+              title?: T;
+              problem?: T;
+              steps?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              finalAnswer?: T;
+              id?: T;
+              blockName?: T;
+            };
+        checkpoint?:
+          | T
+          | {
+              prompt?: T;
+              answer?: T;
+              hint?: T;
+              id?: T;
+              blockName?: T;
+            };
+        lessonSummary?:
+          | T
+          | {
+              title?: T;
+              points?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
         quizBlock?:
           | T
           | {
@@ -1810,6 +1991,15 @@ export interface LessonsSelect<T extends boolean = true> {
               showAnswers?: T;
               maxAttempts?: T;
               timeLimitSec?: T;
+              id?: T;
+              blockName?: T;
+            };
+        practiceProblem?:
+          | T
+          | {
+              assignmentKey?: T;
+              problemId?: T;
+              requiredPractice?: T;
               id?: T;
               blockName?: T;
             };
@@ -1824,6 +2014,7 @@ export interface LessonsSelect<T extends boolean = true> {
  */
 export interface PagesSelect<T extends boolean = true> {
   navOrder?: T;
+  hidden?: T;
   title?: T;
   slug?: T;
   layout?:
@@ -1921,6 +2112,7 @@ export interface PagesSelect<T extends boolean = true> {
                     title?: T;
                     description?: T;
                     url?: T;
+                    linkLabel?: T;
                     type?: T;
                     id?: T;
                   };
@@ -2413,6 +2605,24 @@ export interface QuizAttemptsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "practice-attempts_select".
+ */
+export interface PracticeAttemptsSelect<T extends boolean = true> {
+  lesson?: T;
+  learner?: T;
+  assignmentKey?: T;
+  problemId?: T;
+  key?: T;
+  submitted?: T;
+  completed?: T;
+  score?: T;
+  maxScore?: T;
+  snapshot?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "notifications_select".
  */
 export interface NotificationsSelect<T extends boolean = true> {
@@ -2688,6 +2898,25 @@ export interface AdminHelp {
   createdAt?: string | null;
 }
 /**
+ * Controls student-facing sign-in and account access.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "auth-settings".
+ */
+export interface AuthSetting {
+  id: number;
+  /**
+   * When off, students cannot sign in, create accounts, or reset passwords. Admin login remains available.
+   */
+  studentLoginEnabled?: boolean | null;
+  /**
+   * Shown on student login, registration, and password reset pages.
+   */
+  studentLoginDisabledMessage?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "footer".
  */
@@ -2757,6 +2986,21 @@ export interface SiteBranding {
    * Accessible description for the uploaded program logo.
    */
   programLogoAlt?: string | null;
+  /**
+   * Shows a thin announcement banner above the student-facing navigation bar.
+   */
+  announcement?: {
+    enabled?: boolean | null;
+    /**
+     * Long messages scroll across the thin header banner so the full announcement remains visible.
+     */
+    message?: string | null;
+    /**
+     * Use a relative path like /resources or a full URL.
+     */
+    href?: string | null;
+    linkLabel?: string | null;
+  };
   _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -2841,6 +3085,17 @@ export interface AdminHelpSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "auth-settings_select".
+ */
+export interface AuthSettingsSelect<T extends boolean = true> {
+  studentLoginEnabled?: T;
+  studentLoginDisabledMessage?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "footer_select".
  */
 export interface FooterSelect<T extends boolean = true> {
@@ -2899,6 +3154,14 @@ export interface FooterSelect<T extends boolean = true> {
 export interface SiteBrandingSelect<T extends boolean = true> {
   programLogo?: T;
   programLogoAlt?: T;
+  announcement?:
+    | T
+    | {
+        enabled?: T;
+        message?: T;
+        href?: T;
+        linkLabel?: T;
+      };
   _status?: T;
   updatedAt?: T;
   createdAt?: T;

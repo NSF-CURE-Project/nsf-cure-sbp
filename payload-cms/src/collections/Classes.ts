@@ -75,30 +75,29 @@ export const Classes: CollectionConfig = {
     ],
     beforeDelete: [
       async ({ id, req }) => {
+        // Cascade everything that references this course so the FK doesn't
+        // block the delete and the UI can offer a single confirm step:
+        //   chapters → (each chapter's beforeDelete cascades its lessons)
+        //   classrooms → (each classroom's beforeDelete cascades its memberships)
         if (!req?.payload || id == null) return
-        const chapters = await req.payload.find({
-          collection: 'chapters',
-          depth: 0,
-          limit: 1,
-          where: { class: { equals: id } },
-        })
-        if (chapters.totalDocs > 0) {
-          throw new Error(
-            `Cannot delete course: ${chapters.totalDocs} chapter(s) still reference it. Move or delete those chapters first.`,
-          )
+        try {
+          await req.payload.delete({
+            collection: 'chapters',
+            where: { class: { equals: id } },
+            overrideAccess: true,
+          })
+        } catch {
+          // no matches is fine; FK cleanup below still proceeds
         }
-
-        const classrooms = await req.payload.find({
-          collection: 'classrooms',
-          depth: 0,
-          limit: 1,
-          where: { class: { equals: id } },
-        })
-
-        if (classrooms.totalDocs > 0) {
-          throw new Error(
-            `Cannot delete course: ${classrooms.totalDocs} classroom(s) still reference it. Reassign or delete those classrooms first.`,
-          )
+        try {
+          await req.payload.delete({
+            collection: 'classrooms',
+            where: { class: { equals: id } },
+            overrideAccess: true,
+          })
+        } catch {
+          // same — bulk-delete returns an error on empty matches in some
+          // adapter versions; safe to ignore.
         }
       },
     ],

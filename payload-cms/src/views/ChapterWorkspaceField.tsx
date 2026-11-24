@@ -10,6 +10,7 @@ import {
   adminInputShellStyle,
 } from '@/views/admin/AdminCardPrimitives'
 import RowOverflowMenu from '@/views/courses/RowOverflowMenu'
+import { useConfirm } from '@/views/admin/useConfirm'
 
 type IdValue = string | number | null | undefined
 
@@ -183,6 +184,8 @@ export default function ChapterWorkspaceField() {
   const { value: legacyIdValue } = useField<IdValue>({ path: '_id' })
   const { value: titleValue } = useField<string>({ path: 'title' })
 
+  const { confirm, dialog: confirmDialog } = useConfirm()
+
   const [pathId, setPathId] = useState<string | null>(null)
   const [lessons, setLessons] = useState<LessonDoc[]>([])
   const [loading, setLoading] = useState(false)
@@ -321,7 +324,12 @@ export default function ChapterWorkspaceField() {
   }
 
   const deleteLesson = async (lesson: LessonDoc) => {
-    const confirmed = window.confirm(`Delete "${lesson.title ?? 'this lesson'}"?`)
+    const confirmed = await confirm({
+      title: 'Delete lesson?',
+      message: `"${lesson.title ?? 'this lesson'}" will be permanently removed. This cannot be undone.`,
+      confirmLabel: 'Delete',
+      destructive: true,
+    })
     if (!confirmed) return
     setSaving(true)
     try {
@@ -339,6 +347,8 @@ export default function ChapterWorkspaceField() {
     typeof titleValue === 'string' && titleValue.trim().length > 0 ? titleValue.trim() : 'this chapter'
 
   return (
+    <>
+      {confirmDialog}
     <div style={{ margin: '18px 0 20px', display: 'grid', gap: 18 }}>
       <style>{`
         .chapter-workspace-row:hover { border-color: rgba(15, 23, 42, 0.18); box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.7); }
@@ -635,5 +645,6 @@ export default function ChapterWorkspaceField() {
         ) : null}
       </AdminCard>
     </div>
+    </>
   )
 }

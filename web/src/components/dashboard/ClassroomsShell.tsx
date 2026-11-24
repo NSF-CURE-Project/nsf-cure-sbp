@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/ui/use-confirm";
 
 type ClassroomItem = {
   id: string;
@@ -32,11 +33,17 @@ export function ClassroomsShell({ classrooms }: ClassroomsShellProps) {
   const [items, setItems] = useState(classrooms);
   const [leavingId, setLeavingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const leaveClassroom = async (classroomId: string) => {
-    const confirmed = window.confirm(
-      "Leave this classroom? Your enrollment progress will no longer appear on your dashboard."
-    );
+    const target = items.find((item) => item.classroomId === classroomId);
+    const confirmed = await confirm({
+      title: target ? `Leave "${target.classroomTitle}"?` : "Leave this classroom?",
+      message:
+        "Your enrollment progress will no longer appear on your dashboard. You can rejoin later with the active join code.",
+      confirmLabel: "Leave classroom",
+      destructive: true,
+    });
     if (!confirmed) return;
 
     setLeavingId(classroomId);
@@ -63,6 +70,7 @@ export function ClassroomsShell({ classrooms }: ClassroomsShellProps) {
 
   return (
     <main className="mx-auto w-full max-w-[var(--content-max,96ch)] px-4 py-6 sm:px-6 lg:px-8">
+      {confirmDialog}
       <div className="space-y-6">
         <header>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -78,18 +86,15 @@ export function ClassroomsShell({ classrooms }: ClassroomsShellProps) {
         ) : null}
 
         {items.length === 0 ? (
-          <section className="rounded-xl border border-border/60 bg-card/40 p-5 text-sm text-muted-foreground">
+          <section className="border-y border-border/60 bg-muted/10 py-5 text-sm text-muted-foreground">
             You are not currently enrolled in any classroom.
           </section>
         ) : (
-          <section className="grid gap-4">
+          <section className="divide-y divide-border/60 border-y border-border/60">
             {items.map((item) => {
               const pct = Math.max(0, Math.min(100, Math.round(item.completionRate * 100)));
               return (
-                <article
-                  key={item.id}
-                  className="rounded-xl border border-border/60 bg-card/50 p-5"
-                >
+                <article key={item.id} className="py-5">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h2 className="text-lg font-semibold text-foreground">

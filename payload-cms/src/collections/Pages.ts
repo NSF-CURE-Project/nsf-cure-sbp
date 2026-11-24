@@ -14,6 +14,10 @@ export const Pages: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['navOrder', 'title', 'slug', 'updatedAt'],
     group: 'Main Pages',
+    // Canonical UI lives at /admin/pages — see views/pages/*.
+    // Keep this hidden so /admin/collections/pages doesn't render the
+    // generic Payload list/edit forms in parallel.
+    hidden: true,
     preview: ({ data }) => {
       const base = process.env.WEB_PREVIEW_URL ?? 'http://localhost:3001'
       const secret = process.env.PREVIEW_SECRET ?? ''
@@ -101,6 +105,17 @@ export const Pages: CollectionConfig = {
         description: 'Managed from the Reorder pages list.',
         readOnly: true,
         hidden: true,
+      },
+    },
+    {
+      name: 'hidden',
+      label: 'Hidden from public site',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description:
+          'When enabled, this page is removed from the public navigation and its URL returns 404. Admins can still see and edit it here.',
       },
     },
     {

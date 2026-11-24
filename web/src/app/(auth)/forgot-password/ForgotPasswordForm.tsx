@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,8 @@ import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 const PAYLOAD_URL = getPayloadBaseUrl();
 
 export function ForgotPasswordForm() {
+  const emailId = useId();
+  const errorId = useId();
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<
     "idle" | "loading" | "error" | "success"
@@ -17,6 +19,8 @@ export function ForgotPasswordForm() {
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (status === "loading") return;
+
     setStatus("loading");
     setMessage("");
     const controller = new AbortController();
@@ -51,9 +55,7 @@ export function ForgotPasswordForm() {
     } catch (error) {
       setStatus("error");
       if (error instanceof DOMException && error.name === "AbortError") {
-        setMessage(
-          "Request timed out. Please try again in a few seconds."
-        );
+        setMessage("Request timed out. Please try again in a few seconds.");
         return;
       }
       setMessage(
@@ -65,29 +67,38 @@ export function ForgotPasswordForm() {
   };
 
   return (
-    <form className="space-y-4" onSubmit={onSubmit}>
-      <div>
-        <label className="block text-sm font-semibold text-foreground">
-          Email
+    <form className="space-y-5" onSubmit={onSubmit}>
+      <div className="space-y-2">
+        <label
+          htmlFor={emailId}
+          className="block text-sm font-medium text-foreground"
+        >
+          Email address
         </label>
         <Input
+          id={emailId}
           type="email"
           name="email"
           autoComplete="email"
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="mt-2"
+          className="h-11 rounded-lg text-[15px] sm:h-12"
           placeholder="student@cpp.edu"
+          aria-invalid={status === "error" || undefined}
+          aria-describedby={status === "error" ? errorId : undefined}
         />
       </div>
 
       {message ? (
         <div
-          className={`rounded-md px-4 py-3 text-sm ${
+          id={errorId}
+          role={status === "error" ? "alert" : "status"}
+          aria-live="polite"
+          className={`rounded-lg px-3.5 py-3 text-sm leading-relaxed ${
             status === "error"
-              ? "border border-red-200 bg-red-50 text-red-700"
-              : "border border-emerald-200 bg-emerald-50 text-emerald-700"
+              ? "border border-destructive/25 bg-destructive/5 text-destructive"
+              : "border border-primary/20 bg-primary/5 text-primary"
           }`}
         >
           {message}
@@ -97,9 +108,9 @@ export function ForgotPasswordForm() {
       <Button
         type="submit"
         disabled={status === "loading"}
-        className="w-full"
+        className="h-11 w-full rounded-lg text-[15px] font-semibold sm:h-12"
       >
-        {status === "loading" ? "Sending..." : "Send reset link"}
+        {status === "loading" ? "Sending…" : "Send reset link"}
       </Button>
     </form>
   );

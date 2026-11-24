@@ -2,11 +2,24 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { BLOCK_TYPE_LABELS, toPersistedLayout, type ScaffoldBlock } from './types'
-import {
-  getLastPublishedLessonVersion,
-  getLessonVersion,
-} from '../courses-order-api'
 import { describeChange, diffLessonLayouts, type LessonDiff } from './lessonDiff'
+
+// Generic entity descriptor — the modal is shared by lessons and pages, so
+// callers tell it what to call the thing being published. Lower-case noun
+// only ("lesson", "page"); the modal handles capitalization where needed.
+export type PublishReviewEntity = {
+  label: string
+  // Singular noun used in inline copy ("Promotes the current draft to live"
+  // already reads correctly without this, but error/empty states use it).
+  // e.g. label='lesson' → "Lesson is missing a title".
+  capitalLabel: string
+}
+
+type VersionMeta = {
+  versionId: string
+  updatedAt: string | null
+  publishedCount: number
+}
 
 type PublishReviewModalProps = {
   open: boolean
@@ -16,17 +29,34 @@ type PublishReviewModalProps = {
   busy: boolean
   previewUrl?: string | null
   previewRefreshKey?: number | null
-  // Lesson id (edit mode only). Drives the "last published" fetch.
-  lessonId?: string | null
+  // Entity id (edit mode only). Drives the "last published" fetch via the
+  // injected fetchers below.
+  entityId?: string | null
+  entity?: PublishReviewEntity
+  // Optional: lets the modal show "Publishing version N" + a content diff.
+  // Lessons and pages pass their own version-fetching helpers; if either is
+  // omitted, the modal renders without a version meta line / diff section.
+  fetchLastPublishedVersion?: (entityId: string) => Promise<VersionMeta | null>
+  fetchVersionSnapshot?: (
+    versionId: string,
+  ) => Promise<{ title: string; layout: unknown } | null>
+  // Pass `false` to skip the "Has a quiz attached" recommendation (relevant
+  // for lessons; not meaningful for marketing pages).
+  showQuizCoverageCheck?: boolean
   onCancel: () => void
   onConfirm: () => void
   // Optional tertiary action: persist as draft without publishing. The
   // editor toolbar already owns saving, but mirroring inside the modal
   // lets an author bail out of a publish flow with a soft save instead of
   // discarding their review state. Edit mode only; the editor wires this
-  // up only when there's a real lesson row to save against.
+  // up only when there's a real row to save against.
   onSaveDraft?: () => void
   savingDraft?: boolean
+}
+
+const DEFAULT_ENTITY: PublishReviewEntity = {
+  label: 'lesson',
+  capitalLabel: 'Lesson',
 }
 
 type ValidationCheck = {
@@ -38,18 +68,25 @@ type ValidationCheck = {
 
 // Walk the current state and emit a list of pre-publish checks. Anything
 // `error` blocks publishing; `warn` lets it through but surfaces in the modal.
-function runChecks(title: string, blocks: ScaffoldBlock[]): ValidationCheck[] {
+function runChecks(
+  title: string,
+  blocks: ScaffoldBlock[],
+  entity: PublishReviewEntity,
+  showQuizCoverageCheck: boolean,
+): ValidationCheck[] {
   const checks: ValidationCheck[] = []
   const hasTitle = title.trim().length > 0
   checks.push({
     id: 'title',
-    label: hasTitle ? 'Lesson has a title' : 'Lesson is missing a title',
+    label: hasTitle
+      ? `${entity.capitalLabel} has a title`
+      : `${entity.capitalLabel} is missing a title`,
     status: hasTitle ? 'ok' : 'error',
   })
   checks.push({
     id: 'content',
     label: blocks.length > 0 ? `${blocks.length} content block${blocks.length === 1 ? '' : 's'}` : 'No content blocks',
-    status: blocks.length > 0 ? 'ok' : 'error',
+    status: blocks.length > 0 ? 'ok' : 'warn',
   })
 
   // Per-block content checks. We only flag blocks that the author can fix.
@@ -94,16 +131,21 @@ function runChecks(title: string, blocks: ScaffoldBlock[]): ValidationCheck[] {
     })
   }
 
-  // Quiz coverage is a recommendation, not a blocker.
-  const hasQuiz = blocks.some((b) => b.blockType === 'quizBlock' && b.quiz != null)
-  checks.push({
-    id: 'quiz',
-    label: hasQuiz ? 'Has a quiz attached' : 'No quiz attached',
-    status: hasQuiz ? 'ok' : 'warn',
-    detail: hasQuiz
-      ? undefined
-      : 'Lessons without a quiz can still publish, but students get no comprehension check.',
-  })
+  // Quiz coverage is a recommendation, not a blocker. Lessons surface this;
+  // pages don't (a marketing page without a quiz is the norm).
+  if (showQuizCoverageCheck) {
+    const hasQuiz = blocks.some(
+      (b) => b.blockType === 'quizBlock' && b.quiz != null,
+    )
+    checks.push({
+      id: 'quiz',
+      label: hasQuiz ? 'Has a quiz attached' : 'No quiz attached',
+      status: hasQuiz ? 'ok' : 'warn',
+      detail: hasQuiz
+        ? undefined
+        : 'Lessons without a quiz can still publish, but students get no comprehension check.',
+    })
+  }
 
   return checks
 }
@@ -215,13 +257,20 @@ export default function PublishReviewModal({
   busy,
   previewUrl,
   previewRefreshKey,
-  lessonId,
+  entityId,
+  entity = DEFAULT_ENTITY,
+  fetchLastPublishedVersion,
+  fetchVersionSnapshot,
+  showQuizCoverageCheck = true,
   onCancel,
   onConfirm,
   onSaveDraft,
   savingDraft = false,
 }: PublishReviewModalProps) {
-  const checks = useMemo(() => runChecks(title, blocks), [title, blocks])
+  const checks = useMemo(
+    () => runChecks(title, blocks, entity, showQuizCoverageCheck),
+    [title, blocks, entity, showQuizCoverageCheck],
+  )
   const readMinutes = useMemo(() => estimateMinutes(title, blocks), [title, blocks])
   const quizCount = useMemo(
     () =>
@@ -248,7 +297,13 @@ export default function PublishReviewModal({
   >(null)
   const [diffLoading, setDiffLoading] = useState(false)
   useEffect(() => {
-    if (!open || mode !== 'edit' || !lessonId) {
+    if (
+      !open ||
+      mode !== 'edit' ||
+      !entityId ||
+      !fetchLastPublishedVersion ||
+      !fetchVersionSnapshot
+    ) {
       setLastPublished(null)
       setPreviousSnapshot(null)
       setDiffLoading(false)
@@ -258,7 +313,7 @@ export default function PublishReviewModal({
     setDiffLoading(true)
     ;(async () => {
       try {
-        const meta = await getLastPublishedLessonVersion(lessonId)
+        const meta = await fetchLastPublishedVersion(entityId)
         if (cancelled) return
         if (!meta) {
           setLastPublished(null)
@@ -270,7 +325,7 @@ export default function PublishReviewModal({
           versionId: meta.versionId,
           publishedCount: meta.publishedCount,
         })
-        const snapshot = await getLessonVersion(meta.versionId)
+        const snapshot = await fetchVersionSnapshot(meta.versionId)
         if (cancelled) return
         setPreviousSnapshot(snapshot)
       } catch {
@@ -285,7 +340,7 @@ export default function PublishReviewModal({
     return () => {
       cancelled = true
     }
-  }, [open, mode, lessonId])
+  }, [open, mode, entityId, fetchLastPublishedVersion, fetchVersionSnapshot])
 
   const diff: LessonDiff | null = useMemo(() => {
     if (mode !== 'edit' || !previousSnapshot) return null
@@ -325,8 +380,6 @@ export default function PublishReviewModal({
   // against (edit mode, not first publish). The contents may still report
   // "No changes" — that's useful confirmation, so we still render it.
   const showDiff = mode === 'edit' && previousSnapshot != null
-  // When the diff section is mounted the panel needs an extra row.
-  const panelClass = showDiff ? 'prm-panel prm-panel--with-diff' : 'prm-panel'
 
   return (
     <div className="prm-overlay" role="dialog" aria-modal="true" aria-labelledby="prm-title">
@@ -352,10 +405,6 @@ export default function PublishReviewModal({
           border-radius: 14px;
           box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
           overflow: hidden;
-        }
-        /* Extra row for the "Changes in this version" diff section. */
-        .prm-panel--with-diff {
-          grid-template-rows: auto auto auto 1fr auto;
         }
         :root[data-theme='dark'] .prm-panel {
           background: var(--admin-surface, #1e2330);
@@ -590,14 +639,16 @@ export default function PublishReviewModal({
         @media (max-width: 900px) {
           .prm-body { grid-template-columns: minmax(0, 1fr); }
         }
-        .prm-checks {
-          padding: 16px 20px;
+        .prm-side {
           border-right: 1px solid var(--admin-surface-border, #d6dce5);
           overflow-y: auto;
           min-height: 0;
         }
-        :root[data-theme='dark'] .prm-checks {
+        :root[data-theme='dark'] .prm-side {
           border-right-color: var(--admin-surface-border, #2a3140);
+        }
+        .prm-checks {
+          padding: 16px 20px;
         }
         .prm-checks__title {
           font-size: 11px;
@@ -742,7 +793,7 @@ export default function PublishReviewModal({
         .prm-footer__summary--err { color: #b91c1c; }
       `}</style>
 
-      <div className={panelClass}>
+      <div className="prm-panel">
         {/* ---- Header ---- */}
         <header className="prm-header">
           <div>
@@ -792,7 +843,7 @@ export default function PublishReviewModal({
               <span aria-hidden>•</span>
               <span>
                 {mode === 'create'
-                  ? 'New lesson — will be created on publish'
+                  ? `New ${entity.label} — will be created on publish`
                   : 'Promotes the current draft to live'}
               </span>
             </div>
@@ -816,89 +867,91 @@ export default function PublishReviewModal({
               </>
             ) : (
               <>
-                <strong>New lesson</strong>
+                <strong>New {entity.label}</strong>
                 <br />
-                <span>Creates the lesson row.</span>
+                <span>Creates the {entity.label} row.</span>
               </>
             )}
           </div>
         </section>
 
-        {/* ---- Diff: "Changes in this version" ---- */}
-        {showDiff ? (
-          <section className="prm-diff" aria-label="Changes since last publish">
-            <details
-              className="prm-diff__details"
-              open={(diff?.changes.length ?? 0) > 0}
-            >
-              <summary>
-                <span className="prm-diff__chevron" aria-hidden>▸</span>
-                <span>Changes in this version</span>
-                <span
-                  className={`prm-diff__count${diff && diff.changes.length === 0 ? ' prm-diff__count--zero' : ''}`}
-                >
-                  {diffLoading
-                    ? '…'
-                    : diff
-                      ? diff.changes.length === 0
-                        ? 'no changes'
-                        : String(diff.changes.length)
-                      : '…'}
-                </span>
-              </summary>
-              {diffLoading ? (
-                <div className="prm-diff__loading">Comparing against last published version…</div>
-              ) : diff && diff.changes.length === 0 ? (
-                <div className="prm-diff__empty">
-                  This draft is identical to the last published version.
-                </div>
-              ) : diff ? (
-                <ul className="prm-diff__list">
-                  {diff.changes.map((change, i) => {
-                    const glyph =
-                      change.kind === 'block-added'
-                        ? 'add'
-                        : change.kind === 'block-removed'
-                          ? 'remove'
-                          : 'edit'
-                    const sym =
-                      change.kind === 'block-added'
-                        ? '+'
-                        : change.kind === 'block-removed'
-                          ? '−'
-                          : '~'
-                    return (
-                      <li key={i} className="prm-diff__item">
-                        <span className={`prm-diff__glyph prm-diff__glyph--${glyph}`} aria-hidden>
-                          {sym}
-                        </span>
-                        <span>{describeChange(change)}</span>
-                      </li>
-                    )
-                  })}
-                </ul>
-              ) : null}
-            </details>
-          </section>
-        ) : null}
-
         {/* ---- Body: validation + preview ---- */}
         <div className="prm-body">
-          <aside className="prm-checks" aria-label="Pre-publish checks">
-            <div className="prm-checks__title">Validation</div>
-            {checks.map((check) => (
-              <div key={check.id} className={`prm-check prm-check--${check.status}`}>
-                <span className="prm-check__glyph" aria-hidden>
-                  {check.status === 'ok' ? '✓' : check.status === 'warn' ? '!' : '×'}
-                </span>
-                <div>
-                  <div>{check.label}</div>
-                  {check.detail ? (
-                    <div className="prm-check__detail">{check.detail}</div>
+          <aside className="prm-side" aria-label="Pre-publish checks and changes">
+            {/* ---- Diff: "Changes in this version" ---- */}
+            {showDiff ? (
+              <section className="prm-diff" aria-label="Changes since last publish">
+                <details
+                  className="prm-diff__details"
+                  open={(diff?.changes.length ?? 0) > 0}
+                >
+                  <summary>
+                    <span className="prm-diff__chevron" aria-hidden>▸</span>
+                    <span>Changes in this version</span>
+                    <span
+                      className={`prm-diff__count${diff && diff.changes.length === 0 ? ' prm-diff__count--zero' : ''}`}
+                    >
+                      {diffLoading
+                        ? '…'
+                        : diff
+                          ? diff.changes.length === 0
+                            ? 'no changes'
+                            : String(diff.changes.length)
+                          : '…'}
+                    </span>
+                  </summary>
+                  {diffLoading ? (
+                    <div className="prm-diff__loading">Comparing against last published version…</div>
+                  ) : diff && diff.changes.length === 0 ? (
+                    <div className="prm-diff__empty">
+                      This draft is identical to the last published version.
+                    </div>
+                  ) : diff ? (
+                    <ul className="prm-diff__list">
+                      {diff.changes.map((change, i) => {
+                        const glyph =
+                          change.kind === 'block-added'
+                            ? 'add'
+                            : change.kind === 'block-removed'
+                              ? 'remove'
+                              : 'edit'
+                        const sym =
+                          change.kind === 'block-added'
+                            ? '+'
+                            : change.kind === 'block-removed'
+                              ? '−'
+                              : '~'
+                        return (
+                          <li key={i} className="prm-diff__item">
+                            <span className={`prm-diff__glyph prm-diff__glyph--${glyph}`} aria-hidden>
+                              {sym}
+                            </span>
+                            <span>{describeChange(change, entity.capitalLabel)}</span>
+                          </li>
+                        )
+                      })}
+                    </ul>
                   ) : null}
+                </details>
+              </section>
+            ) : null}
+
+            <div className="prm-checks">
+              <div className="prm-checks__title">Validation</div>
+              {checks.map((check) => (
+                <div key={check.id} className={`prm-check prm-check--${check.status}`}>
+                  <span className="prm-check__glyph" aria-hidden>
+                    {check.status === 'ok' ? '✓' : check.status === 'warn' ? '!' : '×'}
+                  </span>
+                  <div>
+                    <div>{check.label}</div>
+                    {check.detail ? (
+                      <div className="prm-check__detail">{check.detail}</div>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </aside>
 
           <section className="prm-preview" aria-label="Live preview">
@@ -931,7 +984,7 @@ export default function PublishReviewModal({
             {previewSrc ? (
               <div className="prm-preview__frame-wrap">
                 <iframe
-                  title="Lesson preview"
+                  title={`${entity.capitalLabel} preview`}
                   src={previewSrc}
                   className="prm-preview__iframe"
                   style={{
@@ -943,8 +996,8 @@ export default function PublishReviewModal({
             ) : (
               <div className="prm-preview__empty">
                 {mode === 'create'
-                  ? 'Live preview becomes available once the lesson is saved at least once.'
-                  : 'Live preview unavailable — lesson is missing a slug or PREVIEW_SECRET.'}
+                  ? `Live preview becomes available once the ${entity.label} is saved at least once.`
+                  : `Live preview unavailable — ${entity.label} is missing a slug or PREVIEW_SECRET.`}
               </div>
             )}
           </section>

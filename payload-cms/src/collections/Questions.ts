@@ -1,5 +1,6 @@
 import type { CollectionConfig, PayloadRequest, Where } from 'payload'
 import { canReceiveNotification } from '../utils/notificationPreferences'
+import { lessonQuestionsHandler, questionDetailHandler } from '../endpoints/questionsEndpoints'
 
 const isStaff = (req?: PayloadRequest | null) =>
   req?.user?.collection === 'users' &&
@@ -59,6 +60,19 @@ export const Questions: CollectionConfig = {
     group: 'Student Support',
     defaultColumns: ['status', 'classroom', 'lesson', 'user', 'createdAt'],
   },
+  // Payload 3 scopes /api/questions/* to this collection's endpoints array.
+  endpoints: [
+    {
+      path: '/by-lesson/:lessonId',
+      method: 'get',
+      handler: lessonQuestionsHandler,
+    },
+    {
+      path: '/:questionId/detail',
+      method: 'get',
+      handler: questionDetailHandler,
+    },
+  ],
   access: {
     read: async ({ req }) => {
       if (isStaff(req)) return getStaffQuestionAccess(req)

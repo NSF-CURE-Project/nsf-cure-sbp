@@ -57,10 +57,12 @@ export function LessonProgressControls({ lessonId, lessonTitle }: Props) {
   const [loading, setLoading] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [progressError, setProgressError] = useState("");
   const [bookmarkSaving, setBookmarkSaving] = useState(false);
   const autoCompleteTriggered = useRef(false);
 
   const isCompleted = !!progress?.completed;
+  const progressId = progress?.id;
   const isBookmarked = !!bookmark?.id;
 
   useEffect(() => {
@@ -161,10 +163,11 @@ export function LessonProgressControls({ lessonId, lessonTitle }: Props) {
   const markComplete = useCallback(async () => {
     if (!user?.id || saving || isCompleted) return;
     setSaving(true);
+    setProgressError("");
     try {
-      if (progress?.id) {
+      if (progressId) {
         const res = await fetch(
-          `${PAYLOAD_URL}/api/lesson-progress/${progress.id}`,
+          `${PAYLOAD_URL}/api/lesson-progress/${progressId}`,
           {
             method: "PATCH",
             credentials: "include",
@@ -173,10 +176,11 @@ export function LessonProgressControls({ lessonId, lessonTitle }: Props) {
           }
         );
         if (!res.ok) {
-          throw new Error("Could not update progress.");
+          const response = await res.json().catch(() => null);
+          throw new Error(response?.errors?.[0]?.message ?? "Could not update progress.");
         }
-        const updated = (await res.json()) as ProgressDoc;
-        setProgress(updated);
+        const updated = extractCreatedDoc<ProgressDoc>(await res.json());
+        if (updated) setProgress(updated);
       } else {
         const res = await fetch(`${PAYLOAD_URL}/api/lesson-progress`, {
           method: "POST",
@@ -188,16 +192,19 @@ export function LessonProgressControls({ lessonId, lessonTitle }: Props) {
           }),
         });
         if (!res.ok) {
-          throw new Error("Could not create progress.");
+          const response = await res.json().catch(() => null);
+          throw new Error(response?.errors?.[0]?.message ?? "Could not create progress.");
         }
         const data = (await res.json()) as unknown;
         const created = extractCreatedDoc<ProgressDoc>(data);
         setProgress(created);
       }
+    } catch (error) {
+      setProgressError(error instanceof Error ? error.message : "Could not save progress.");
     } finally {
       setSaving(false);
     }
-  }, [user?.id, saving, isCompleted, progress?.id, lessonId]);
+  }, [user?.id, saving, isCompleted, progressId, lessonId]);
 
   const handleVideoComplete = useCallback(() => {
     if (autoCompleteTriggered.current || isCompleted) return;
@@ -260,7 +267,7 @@ export function LessonProgressControls({ lessonId, lessonTitle }: Props) {
   if (!user) return null;
 
   return (
-    <section className="mt-6 rounded-xl border border-border/60 bg-muted/10 px-4 py-3">
+    <section className="mt-6 border-t border-border/60 py-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -277,7 +284,6 @@ export function LessonProgressControls({ lessonId, lessonTitle }: Props) {
             type="button"
             onClick={markComplete}
             disabled={loading || saving || isCompleted}
-            className="rounded-full"
           >
             {statusLabel}
           </Button>
@@ -286,7 +292,6 @@ export function LessonProgressControls({ lessonId, lessonTitle }: Props) {
             variant={isBookmarked ? "secondary" : "outline"}
             onClick={toggleBookmark}
             disabled={bookmarkLoading || bookmarkSaving}
-            className="rounded-full"
           >
             {isBookmarked ? (
               <BookmarkCheck className="h-4 w-4" />
@@ -297,6 +302,7 @@ export function LessonProgressControls({ lessonId, lessonTitle }: Props) {
           </Button>
         </div>
       </div>
+      {progressError ? <p role="alert" className="mt-2 text-sm text-destructive">{progressError}</p> : null}
       <LessonProgressVideoBridge onComplete={handleVideoComplete} />
     </section>
   );

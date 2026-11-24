@@ -1,4 +1,7 @@
 import type { Block } from 'payload'
+import practiceCatalog from '../practice/catalog.generated.json'
+
+const practiceIds = new Set(practiceCatalog.map((item) => item.id))
 
 const sectionTitleBlock: Block = {
   slug: 'sectionTitle',
@@ -268,6 +271,15 @@ const resourcesListBlock: Block = {
           required: true,
         },
         {
+          name: 'linkLabel',
+          label: 'Link Label',
+          type: 'text',
+          admin: {
+            placeholder: 'Open',
+            description: 'Optional action text (defaults to "Open").',
+          },
+        },
+        {
           name: 'type',
           type: 'select',
           options: [
@@ -340,6 +352,171 @@ const contactsListBlock: Block = {
   ],
 }
 
+// ────────────────────────────────────────────────────────────────────
+// Learning blocks — instructional content surfaces (callouts, worked
+// examples, checkpoints, definitions, summaries). Authored from the
+// custom lesson editor, rendered with their own visual identity on the
+// web side so the lesson reads less like a blog post.
+// ────────────────────────────────────────────────────────────────────
+
+const calloutBlock: Block = {
+  slug: 'callout',
+  labels: { singular: 'Callout', plural: 'Callouts' },
+  fields: [
+    {
+      name: 'variant',
+      label: 'Variant',
+      type: 'select',
+      defaultValue: 'info',
+      options: [
+        { label: 'Info', value: 'info' },
+        { label: 'Tip', value: 'tip' },
+        { label: 'Warning', value: 'warning' },
+        { label: 'Key concept', value: 'key' },
+      ],
+    },
+    { name: 'title', label: 'Title (optional)', type: 'text' },
+    {
+      name: 'body',
+      label: 'Body',
+      type: 'textarea',
+      required: true,
+    },
+  ],
+}
+
+const definitionBlock: Block = {
+  slug: 'definition',
+  labels: { singular: 'Definition', plural: 'Definitions' },
+  fields: [
+    {
+      name: 'term',
+      label: 'Term',
+      type: 'text',
+      required: true,
+    },
+    {
+      name: 'definition',
+      label: 'Definition',
+      type: 'textarea',
+      required: true,
+    },
+  ],
+}
+
+const workedExampleBlock: Block = {
+  slug: 'workedExample',
+  labels: { singular: 'Worked Example', plural: 'Worked Examples' },
+  fields: [
+    {
+      name: 'title',
+      label: 'Title (optional)',
+      type: 'text',
+    },
+    {
+      name: 'problem',
+      label: 'Problem',
+      type: 'textarea',
+      required: true,
+    },
+    {
+      name: 'steps',
+      label: 'Steps',
+      type: 'array',
+      minRows: 1,
+      labels: { singular: 'Step', plural: 'Steps' },
+      fields: [
+        {
+          name: 'text',
+          label: 'Step',
+          type: 'textarea',
+          required: true,
+        },
+      ],
+    },
+    {
+      name: 'finalAnswer',
+      label: 'Final answer (optional)',
+      type: 'text',
+      admin: {
+        description: 'Surfaces as a highlighted result line under the steps.',
+      },
+    },
+  ],
+}
+
+const checkpointBlock: Block = {
+  slug: 'checkpoint',
+  labels: { singular: 'Checkpoint', plural: 'Checkpoints' },
+  fields: [
+    {
+      name: 'prompt',
+      label: 'Prompt',
+      type: 'textarea',
+      required: true,
+    },
+    {
+      name: 'answer',
+      label: 'Answer',
+      type: 'textarea',
+      required: true,
+      admin: {
+        description: 'Hidden behind a "Reveal answer" toggle on the public page.',
+      },
+    },
+    {
+      name: 'hint',
+      label: 'Hint (optional)',
+      type: 'textarea',
+    },
+  ],
+}
+
+const lessonSummaryBlock: Block = {
+  slug: 'lessonSummary',
+  labels: { singular: 'Summary', plural: 'Summaries' },
+  fields: [
+    {
+      name: 'title',
+      label: 'Title (optional)',
+      type: 'text',
+    },
+    {
+      name: 'points',
+      label: 'Key takeaways',
+      type: 'array',
+      minRows: 1,
+      labels: { singular: 'Takeaway', plural: 'Takeaways' },
+      fields: [
+        {
+          name: 'text',
+          label: 'Takeaway',
+          type: 'text',
+          required: true,
+        },
+      ],
+    },
+  ],
+}
+
+const practiceBlock: Block = {
+  slug: 'practiceProblem',
+  labels: { singular: 'Practice problem', plural: 'Practice problems' },
+  fields: [
+    {
+      name: 'assignmentKey', type: 'text', required: true, admin: { hidden: true },
+      validate: (value: string | null | undefined) =>
+        typeof value === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(value) || 'Invalid assignment identifier.',
+    },
+    {
+      name: 'problemId', type: 'text', required: true,
+      validate: (value: string | null | undefined) =>
+        typeof value === 'string' && practiceIds.has(value) || 'Choose a problem from the practice library.',
+    },
+    { name: 'requiredPractice', type: 'checkbox', defaultValue: false },
+  ],
+}
+
 export const lessonBlocks: Block[] = [
   textSectionBlock,
   sectionTitleBlock,
@@ -348,7 +525,13 @@ export const lessonBlocks: Block[] = [
   listBlock,
   stepsListBlock,
   buttonBlock,
+  calloutBlock,
+  definitionBlock,
+  workedExampleBlock,
+  checkpointBlock,
+  lessonSummaryBlock,
   quizBlock,
+  practiceBlock,
 ]
 
 export const pageBlocks: Block[] = [

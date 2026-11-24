@@ -1,6 +1,9 @@
 import React from "react";
 import type { ChapterDoc, ClassDoc, LessonDoc } from "@/lib/payloadSdk/types";
-import { getClassesTree } from "@/lib/payloadSdk/classes";
+import {
+  chapterHasReadableLessons,
+  getClassesTree,
+} from "@/lib/payloadSdk/classes";
 import { getPages, type PageDoc } from "@/lib/payloadSdk/pages";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
@@ -79,9 +82,9 @@ export default async function DirectoryPage() {
         {classes.length ? (
           <ul className="space-y-5">
             {classes.map((cls) => {
-              const chapters = (cls.chapters ?? []).filter(
-                isChapterDoc
-              ) as ChapterLike[];
+              const chapters = (cls.chapters ?? [])
+                .filter(isChapterDoc)
+                .filter(chapterHasReadableLessons) as ChapterLike[];
               return (
                 <li key={cls.id}>
                   <a

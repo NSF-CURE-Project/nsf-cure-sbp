@@ -1,16 +1,26 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, CirclePlay, CircleDashed } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, LogIn } from "lucide-react";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const PAYLOAD_URL = getPayloadBaseUrl();
+
+type LessonRef = {
+  id: string;
+  href: string;
+  title: string;
+};
 
 type Props = {
   classId: string | number;
   classTitle: string;
   totalLessons: number;
+  lessons: LessonRef[];
+  firstLessonHref: string | null;
 };
 
 type AccountUser = {
@@ -20,16 +30,29 @@ type AccountUser = {
 type ProgressDoc = {
   id: string;
   completed?: boolean;
+  updatedAt?: string;
+  lesson?: string | { id?: string | number } | null;
+};
+
+const lessonIdFromDoc = (doc: ProgressDoc) => {
+  const lesson = doc.lesson;
+  if (typeof lesson === "string") return lesson;
+  if (lesson && typeof lesson === "object" && lesson.id != null) {
+    return String(lesson.id);
+  }
+  return null;
 };
 
 export function ClassProgressSummary({
   classId,
   classTitle,
   totalLessons,
+  lessons,
+  firstLessonHref,
 }: Props) {
   const [user, setUser] = useState<AccountUser | null>(null);
-  const [completedCount, setCompletedCount] = useState(0);
-  const [inProgressCount, setInProgressCount] = useState(0);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [progressDocs, setProgressDocs] = useState<ProgressDoc[]>([]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -46,168 +69,145 @@ export function ClassProgressSummary({
         const data = (await res.json()) as { user?: AccountUser };
         setUser(data?.user ?? null);
       } catch {
-        if (!controller.signal.aborted) {
-          setUser(null);
-        }
+        if (!controller.signal.aborted) setUser(null);
+      } finally {
+        if (!controller.signal.aborted) setAuthChecked(true);
       }
     };
-    loadUser();
+    void loadUser();
     return () => controller.abort();
   }, []);
 
   useEffect(() => {
-    if (!user?.id || !classId) return;
+    if (!user?.id || !classId) {
+      setProgressDocs([]);
+      return;
+    }
     const controller = new AbortController();
     const loadProgress = async () => {
       try {
         const res = await fetch(
-          `${PAYLOAD_URL}/api/lesson-progress?limit=200&where[class][equals]=${classId}`,
+          `${PAYLOAD_URL}/api/lesson-progress?limit=500&where[class][equals]=${classId}&sort=-updatedAt`,
           {
             credentials: "include",
             signal: controller.signal,
           }
         );
         if (!res.ok) {
-          setCompletedCount(0);
-          setInProgressCount(0);
+          setProgressDocs([]);
           return;
         }
         const data = (await res.json()) as { docs?: ProgressDoc[] };
-        const docs = data.docs ?? [];
-        setCompletedCount(docs.filter((doc) => doc.completed).length);
-        setInProgressCount(docs.filter((doc) => !doc.completed).length);
+        setProgressDocs(data.docs ?? []);
       } catch {
-        if (!controller.signal.aborted) {
-          setCompletedCount(0);
-          setInProgressCount(0);
-        }
+        if (!controller.signal.aborted) setProgressDocs([]);
       }
     };
-    loadProgress();
+    void loadProgress();
     return () => controller.abort();
   }, [user?.id, classId]);
+
+  const completedIds = useMemo(() => {
+    const ids = new Set<string>();
+    progressDocs.forEach((doc) => {
+      if (!doc.completed) return;
+      const id = lessonIdFromDoc(doc);
+      if (id) ids.add(id);
+    });
+    return ids;
+  }, [progressDocs]);
+
+  const completedCount = useMemo(() => {
+    return lessons.filter((lesson) => completedIds.has(lesson.id)).length;
+  }, [completedIds, lessons]);
 
   const percent = useMemo(() => {
     if (!totalLessons) return 0;
     return Math.round((completedCount / totalLessons) * 100);
   }, [completedCount, totalLessons]);
 
-  if (!user || totalLessons === 0) return null;
+  const continueLesson = useMemo(() => {
+    const inProgress = progressDocs.find((doc) => {
+      if (doc.completed) return false;
+      const id = lessonIdFromDoc(doc);
+      return id ? lessons.some((lesson) => lesson.id === id) : false;
+    });
+    if (inProgress) {
+      const id = lessonIdFromDoc(inProgress);
+      const match = lessons.find((lesson) => lesson.id === id);
+      if (match) return match;
+    }
+    const next = lessons.find((lesson) => !completedIds.has(lesson.id));
+    return next ?? lessons[0] ?? null;
+  }, [completedIds, lessons, progressDocs]);
 
-  const remaining = Math.max(totalLessons - completedCount, 0);
-  const isComplete = percent === 100;
+  if (totalLessons === 0 || !authChecked) return null;
 
-  return (
-    <div className="mt-5 overflow-hidden rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-            Your progress
+  if (!user) {
+    return (
+      <div className="mt-3 flex flex-col gap-2.5 rounded-lg border border-border/50 bg-muted/10 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 space-y-0.5">
+          <p className="text-sm font-medium text-foreground">
+            Save your progress
           </p>
-          <p className="text-sm text-muted-foreground">
-            {isComplete ? (
-              <>
-                You&rsquo;ve completed{" "}
-                <span className="font-semibold text-foreground">
-                  {classTitle}
-                </span>
-                . Nice work.
-              </>
-            ) : (
-              <>
-                You&rsquo;re{" "}
-                <span className="font-semibold text-foreground">
-                  {percent}%
-                </span>{" "}
-                through{" "}
-                <span className="font-semibold text-foreground">
-                  {classTitle}
-                </span>
-                {remaining > 0 ? (
-                  <>
-                    {" "}
-                    &mdash; {remaining}{" "}
-                    {remaining === 1 ? "lesson" : "lessons"} to go.
-                  </>
-                ) : null}
-              </>
-            )}
+          <p className="text-[13px] text-muted-foreground">
+            Sign in to resume lessons across devices.
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-3xl font-semibold tabular-nums leading-none text-foreground">
-            {percent}%
+        <Button asChild size="sm" variant="outline" className="shrink-0">
+          <Link href="/login">
+            <LogIn className="h-3.5 w-3.5" />
+            Sign in
+          </Link>
+        </Button>
+      </div>
+    );
+  }
+
+  const isComplete = percent >= 100;
+  const continueHref = continueLesson?.href ?? firstLessonHref;
+  const hasStarted = progressDocs.length > 0;
+
+  return (
+    <div className="mt-3 flex flex-col gap-2.5 rounded-lg border border-border/50 bg-muted/10 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <p className="text-sm font-medium text-foreground">
+            {isComplete
+              ? `${classTitle} complete`
+              : hasStarted
+                ? `${percent}% complete`
+                : "Ready to begin"}
           </p>
-          <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            {completedCount} / {totalLessons} lessons
+          <p className="text-[13px] text-muted-foreground">
+            {completedCount} of {totalLessons}{" "}
+            {totalLessons === 1 ? "lesson" : "lessons"}
           </p>
         </div>
+        {hasStarted ? (
+          <div className="h-1.5 max-w-xs overflow-hidden rounded-full bg-muted">
+            <div
+              className={cn(
+                "h-full rounded-full transition-[width] duration-500 ease-out",
+                isComplete ? "bg-primary" : "bg-primary/80"
+              )}
+              style={{ width: `${Math.max(percent, percent > 0 ? 4 : 0)}%` }}
+            />
+          </div>
+        ) : null}
       </div>
-
-      <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-muted">
-        <div
-          className={cn(
-            "h-full rounded-full transition-[width] duration-700 ease-out",
-            isComplete
-              ? "bg-primary"
-              : "bg-gradient-to-r from-primary/70 to-primary"
-          )}
-          style={{
-            width: `${Math.max(percent, percent > 0 ? 4 : 0)}%`,
-          }}
-        />
-      </div>
-
-      <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
-        <ProgressStat
-          icon={<CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
-          label="Completed"
-          value={completedCount}
-          accent="primary"
-        />
-        <ProgressStat
-          icon={
-            <CirclePlay className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-          }
-          label="In progress"
-          value={inProgressCount}
-          accent="blue"
-        />
-        <ProgressStat
-          icon={<CircleDashed className="h-3.5 w-3.5 text-muted-foreground" />}
-          label="Not started"
-          value={Math.max(totalLessons - completedCount - inProgressCount, 0)}
-          accent="muted"
-        />
-      </div>
-    </div>
-  );
-}
-
-type ProgressStatProps = {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-  accent: "primary" | "blue" | "muted";
-};
-
-function ProgressStat({ icon, label, value, accent }: ProgressStatProps) {
-  return (
-    <div
-      className={cn(
-        "rounded-lg border bg-background/60 px-2.5 py-2",
-        accent === "primary" && "border-primary/25",
-        accent === "blue" && "border-blue-500/25",
-        accent === "muted" && "border-border/60"
-      )}
-    >
-      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {icon}
-        <span>{label}</span>
-      </div>
-      <p className="mt-0.5 text-lg font-semibold tabular-nums text-foreground">
-        {value}
-      </p>
+      {continueHref ? (
+        <Button asChild size="sm" className="shrink-0">
+          <Link href={continueHref}>
+            {isComplete
+              ? "Review course"
+              : hasStarted
+                ? "Continue learning"
+                : "Start course"}
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </Button>
+      ) : null}
     </div>
   );
 }

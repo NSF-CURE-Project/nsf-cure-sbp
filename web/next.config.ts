@@ -125,7 +125,7 @@ const nextConfig: NextConfig = {
       "font-src 'self' data: https://fonts.gstatic.com",
       `img-src 'self' data: blob: https://i.ytimg.com${cmsHostFromEnv ? ` ${cmsHostFromEnv}` : ""}`,
       `connect-src 'self'${cmsHostFromEnv ? ` ${cmsHostFromEnv}` : ""}`,
-      "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
+      "frame-src 'self' https://www.google.com https://maps.google.com https://www.youtube.com https://www.youtube-nocookie.com",
       `frame-ancestors ${frameAncestors}`,
       "form-action 'self'",
       "base-uri 'self'",

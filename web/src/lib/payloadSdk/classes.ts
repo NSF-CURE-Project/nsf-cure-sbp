@@ -1,6 +1,21 @@
 import { payload } from "./payloadClient";
 import { withCmsFallback } from "./cmsOptional";
-import type { ClassDoc, PayloadFindResult } from "./types";
+import type { ChapterDoc, ClassDoc, LessonDoc, PayloadFindResult } from "./types";
+
+/**
+ * A populated chapter (object, not a string ID) that exposes at least one
+ * lesson visible to the current reader. Payload's lesson `read` access rule
+ * already strips drafts for non-staff, so an empty `lessons` array here means
+ * there's nothing the reader can open — and the chapter should not surface
+ * on public pages, sitemaps, or search.
+ */
+export function chapterHasReadableLessons(
+  chapter: ChapterDoc | string | number | null | undefined
+): chapter is ChapterDoc & { lessons: LessonDoc[] } {
+  if (typeof chapter !== "object" || chapter === null) return false;
+  const lessons = (chapter as ChapterDoc & { lessons?: unknown[] }).lessons;
+  return Array.isArray(lessons) && lessons.length > 0;
+}
 
 /**
  * Get all classes, with nested chapters and lessons.

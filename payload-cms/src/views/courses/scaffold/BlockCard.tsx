@@ -5,6 +5,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { BLOCK_TYPE_LABELS, type ScaffoldBlock } from './types'
 import BlockEditor from './BlockEditor'
+import practiceCatalog from '../../../practice/catalog.generated.json'
 
 // Compact summary for the collapsed state. Each block type gets a short
 // preview line so authors can scan the outline without expanding everything.
@@ -33,6 +34,38 @@ function previewText(block: ScaffoldBlock): string {
     }
     case 'quizBlock':
       return block.quiz != null ? `Quiz #${block.quiz}` : 'Quiz — not selected'
+    case 'practiceProblem':
+      return practiceCatalog.find((item) => item.id === block.problemId)?.title ?? 'Choose a practice problem'
+    case 'heroBlock':
+      return block.title || 'Hero — needs headline'
+    case 'resourcesList': {
+      const resources = block.resources ?? []
+      const first = resources.find((r) => r.title?.trim())?.title ?? ''
+      const label = block.title || first || 'Resources'
+      return resources.length > 1 ? `${label} (+${resources.length - 1} more)` : label
+    }
+    case 'contactsList': {
+      const contacts = block.contacts ?? []
+      const first = contacts.find((c) => c.name?.trim())?.name ?? ''
+      const label = block.title || first || 'Contacts'
+      return contacts.length > 1 ? `${label} (+${contacts.length - 1} more)` : label
+    }
+    case 'callout':
+      return block.title || block.body?.slice(0, 60) || 'Callout — needs body'
+    case 'definition':
+      return block.term ? `${block.term} — definition` : 'Definition — needs term'
+    case 'workedExample': {
+      const stepCount = block.steps?.length ?? 0
+      const label = block.title || block.problem?.slice(0, 60) || 'Worked example'
+      return stepCount ? `${label} (${stepCount} step${stepCount === 1 ? '' : 's'})` : label
+    }
+    case 'checkpoint':
+      return block.prompt?.slice(0, 60) || 'Checkpoint — needs prompt'
+    case 'lessonSummary': {
+      const points = block.points ?? []
+      const label = block.title || 'Summary'
+      return points.length ? `${label} (${points.length} takeaway${points.length === 1 ? '' : 's'})` : label
+    }
     case '__passthrough':
       return (block.data.blockType as string) ?? 'Unsupported block'
   }

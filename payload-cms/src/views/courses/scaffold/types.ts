@@ -87,6 +87,86 @@ export type QuizBlockData = {
   timeLimitSec?: number | null
 }
 
+export type HeroBlockData = {
+  blockType: 'heroBlock'
+  title: string
+  subtitle?: string
+  buttonLabel?: string
+  buttonHref?: string
+}
+
+export type ResourceItemData = {
+  title?: string
+  description?: string
+  url?: string
+  linkLabel?: string
+  type?: string
+}
+
+export type ResourcesListBlockData = {
+  blockType: 'resourcesList'
+  title?: string
+  description?: string
+  resources?: ResourceItemData[]
+}
+
+export type ContactPersonData = {
+  name?: string
+  title?: string
+  phone?: string
+  email?: string
+  category?: string
+  // photo is a media-relationship id. Editing it via the custom picker is
+  // a follow-up; existing values round-trip via __passthrough-style id keep.
+  photo?: string | number | null
+}
+
+export type ContactsListBlockData = {
+  blockType: 'contactsList'
+  title?: string
+  description?: string
+  groupByCategory?: boolean
+  contacts?: ContactPersonData[]
+}
+
+export type CalloutVariant = 'info' | 'tip' | 'warning' | 'key'
+
+export type CalloutBlockData = {
+  blockType: 'callout'
+  variant?: CalloutVariant
+  title?: string
+  body: string
+}
+
+export type DefinitionBlockData = {
+  blockType: 'definition'
+  term: string
+  definition: string
+}
+
+export type WorkedExampleStep = { text: string }
+export type WorkedExampleBlockData = {
+  blockType: 'workedExample'
+  title?: string
+  problem: string
+  steps?: WorkedExampleStep[]
+  finalAnswer?: string
+}
+
+export type CheckpointBlockData = {
+  blockType: 'checkpoint'
+  prompt: string
+  answer: string
+  hint?: string
+}
+
+export type LessonSummaryPoint = { text: string }
+export type LessonSummaryBlockData = {
+  blockType: 'lessonSummary'
+  title?: string
+  points?: LessonSummaryPoint[]
+}
+
 // Opaque carrier for block types the custom editor doesn't (yet) know how to
 // render. On hydrate we stash the raw record here; on serialize we expand it
 // back to its original shape. The discriminator `__passthrough` is what makes
@@ -106,6 +186,15 @@ export type ScaffoldBlockData =
   | TextSectionData
   | RichTextBlockData
   | QuizBlockData
+  | { blockType: 'practiceProblem'; assignmentKey: string; problemId: string; requiredPractice: boolean }
+  | HeroBlockData
+  | ResourcesListBlockData
+  | ContactsListBlockData
+  | CalloutBlockData
+  | DefinitionBlockData
+  | WorkedExampleBlockData
+  | CheckpointBlockData
+  | LessonSummaryBlockData
   | PassthroughBlockData
 
 // In-memory block: a Stage-1 block payload plus a stable client-side key
@@ -128,6 +217,15 @@ export const BLOCK_TYPE_LABELS: Record<BlockTypeSlug, string> = {
   textSection: 'Text section',
   richTextBlock: 'Rich text',
   quizBlock: 'Quiz',
+  practiceProblem: 'Practice problem',
+  heroBlock: 'Hero',
+  resourcesList: 'Resources',
+  contactsList: 'Contacts',
+  callout: 'Callout',
+  definition: 'Definition',
+  workedExample: 'Worked example',
+  checkpoint: 'Checkpoint',
+  lessonSummary: 'Summary',
   __passthrough: 'Unsupported',
 }
 
@@ -154,6 +252,8 @@ export const emptyBlockFor = (type: AuthorableBlockTypeSlug): ScaffoldBlock => {
       return { _key: newKey(), blockType: 'textSection', size: 'md' }
     case 'richTextBlock':
       return { _key: newKey(), blockType: 'richTextBlock', body: null }
+    case 'practiceProblem':
+      return { _key: newKey(), blockType: 'practiceProblem', assignmentKey: '', problemId: '', requiredPractice: false }
     case 'quizBlock':
       return {
         _key: newKey(),
@@ -161,6 +261,40 @@ export const emptyBlockFor = (type: AuthorableBlockTypeSlug): ScaffoldBlock => {
         quiz: null,
         showTitle: true,
         showAnswers: true,
+      }
+    case 'heroBlock':
+      return { _key: newKey(), blockType: 'heroBlock', title: '' }
+    case 'resourcesList':
+      return {
+        _key: newKey(),
+        blockType: 'resourcesList',
+        resources: [{ title: '', url: '' }],
+      }
+    case 'contactsList':
+      return {
+        _key: newKey(),
+        blockType: 'contactsList',
+        groupByCategory: false,
+        contacts: [{ name: '' }],
+      }
+    case 'callout':
+      return { _key: newKey(), blockType: 'callout', variant: 'info', body: '' }
+    case 'definition':
+      return { _key: newKey(), blockType: 'definition', term: '', definition: '' }
+    case 'workedExample':
+      return {
+        _key: newKey(),
+        blockType: 'workedExample',
+        problem: '',
+        steps: [{ text: '' }],
+      }
+    case 'checkpoint':
+      return { _key: newKey(), blockType: 'checkpoint', prompt: '', answer: '' }
+    case 'lessonSummary':
+      return {
+        _key: newKey(),
+        blockType: 'lessonSummary',
+        points: [{ text: '' }],
       }
   }
 }
@@ -190,6 +324,13 @@ export const toPersistedLayout = (blocks: ScaffoldBlock[]): Record<string, unkno
     }
     if (rest.blockType === 'videoBlock' && rest.video != null) {
       return { ...rest, video: toRelId(rest.video) }
+    }
+    if (rest.blockType === 'contactsList') {
+      const contacts = (rest.contacts ?? []).map((contact) => ({
+        ...contact,
+        photo: contact.photo != null ? toRelId(contact.photo) : null,
+      }))
+      return { ...rest, contacts }
     }
     return rest as Record<string, unknown>
   })
@@ -327,6 +468,15 @@ export const fromPersistedLayout = (
           body: asRichText(block.body),
         })
         break
+      case 'practiceProblem':
+        out.push({
+          _key: newKey(),
+          blockType: 'practiceProblem',
+          assignmentKey: asString(block.assignmentKey),
+          problemId: asString(block.problemId),
+          requiredPractice: block.requiredPractice === true,
+        })
+        break
       case 'quizBlock':
         out.push({
           _key: newKey(),
@@ -339,6 +489,118 @@ export const fromPersistedLayout = (
           timeLimitSec: asNumberOrNull(block.timeLimitSec),
         })
         break
+      case 'heroBlock':
+        out.push({
+          _key: newKey(),
+          blockType: 'heroBlock',
+          title: asString(block.title),
+          subtitle: asOptionalString(block.subtitle),
+          buttonLabel: asOptionalString(block.buttonLabel),
+          buttonHref: asOptionalString(block.buttonHref),
+        })
+        break
+      case 'resourcesList': {
+        const resources = Array.isArray(block.resources)
+          ? (block.resources as Array<Record<string, unknown>>).map((r) => ({
+              title: asOptionalString(r.title),
+              description: asOptionalString(r.description),
+              url: asOptionalString(r.url),
+              linkLabel: asOptionalString(r.linkLabel),
+              type: asOptionalString(r.type),
+            }))
+          : []
+        out.push({
+          _key: newKey(),
+          blockType: 'resourcesList',
+          title: asOptionalString(block.title),
+          description: asOptionalString(block.description),
+          resources: resources.length > 0 ? resources : [{ title: '', url: '' }],
+        })
+        break
+      }
+      case 'contactsList': {
+        const contacts = Array.isArray(block.contacts)
+          ? (block.contacts as Array<Record<string, unknown>>).map((c) => ({
+              name: asOptionalString(c.name),
+              title: asOptionalString(c.title),
+              phone: asOptionalString(c.phone),
+              email: asOptionalString(c.email),
+              category: asOptionalString(c.category),
+              photo: extractRelId(c.photo),
+            }))
+          : []
+        out.push({
+          _key: newKey(),
+          blockType: 'contactsList',
+          title: asOptionalString(block.title),
+          description: asOptionalString(block.description),
+          groupByCategory: asBoolean(block.groupByCategory, false),
+          contacts: contacts.length > 0 ? contacts : [{ name: '' }],
+        })
+        break
+      }
+      case 'callout': {
+        const rawVariant = block.variant
+        const variant: CalloutVariant =
+          rawVariant === 'tip' || rawVariant === 'warning' || rawVariant === 'key'
+            ? rawVariant
+            : 'info'
+        out.push({
+          _key: newKey(),
+          blockType: 'callout',
+          variant,
+          title: asOptionalString(block.title),
+          body: asString(block.body),
+        })
+        break
+      }
+      case 'definition':
+        out.push({
+          _key: newKey(),
+          blockType: 'definition',
+          term: asString(block.term),
+          definition: asString(block.definition),
+        })
+        break
+      case 'workedExample': {
+        const steps = Array.isArray(block.steps)
+          ? (block.steps as Array<Record<string, unknown>>).map((step) => ({
+              text: asString(step.text),
+            }))
+          : []
+        out.push({
+          _key: newKey(),
+          blockType: 'workedExample',
+          title: asOptionalString(block.title),
+          problem: asString(block.problem),
+          steps: steps.length > 0 ? steps : [{ text: '' }],
+          finalAnswer: asOptionalString(block.finalAnswer),
+        })
+        break
+      }
+      case 'checkpoint':
+        out.push({
+          _key: newKey(),
+          blockType: 'checkpoint',
+          prompt: asString(block.prompt),
+          answer: asString(block.answer),
+          hint: asOptionalString(block.hint),
+        })
+        break
+      case 'lessonSummary': {
+        const points = Array.isArray(block.points)
+          ? (block.points as Array<Record<string, unknown>>).map((p) => ({
+              text: asString(p.text),
+            }))
+          : []
+        out.push({
+          _key: newKey(),
+          blockType: 'lessonSummary',
+          title: asOptionalString(block.title),
+          points: points.length > 0 ? points : [{ text: '' }],
+        })
+        break
+      }
       // Unknown block type — keep as opaque passthrough so we don't lose
       // it on edit-save. The editor renders a read-only chip; the data
       // round-trips verbatim.

@@ -330,7 +330,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                     <Button
                       type="button"
                       variant="outline"
-                      className="rounded-lg border-border/60 bg-background/60 text-xs font-semibold mx-auto sm:mx-0"
+                      className="!rounded-full border-border/60 bg-background/60 px-4 text-xs font-semibold mx-auto sm:mx-0"
                     >
                       {content.feedback?.buttonLabel ?? "Open feedback"}
                     </Button>
@@ -339,7 +339,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                     side="top"
                     align="end"
                     sideOffset={8}
-                    className="w-[min(92vw,360px)] rounded-xl border border-border/70 bg-background p-4 shadow-xl"
+                    className="w-[min(92vw,360px)] rounded-lg border border-border/70 bg-background p-4"
                   >
                     <div>
                       <div className="text-sm font-semibold text-foreground">
@@ -366,7 +366,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                           value={email}
                           onChange={(event) => setEmail(event.target.value)}
                           disabled={sending}
-                          className="rounded-xl border-border/70 bg-background shadow-sm"
+                          className="rounded-md border-border/70 bg-background"
                         />
                       </div>
                       <div className="space-y-2">
@@ -383,7 +383,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                           value={message}
                           onChange={(event) => setMessage(event.target.value)}
                           disabled={sending}
-                          className="rounded-xl border-border/70 bg-background shadow-sm"
+                          className="rounded-md border-border/70 bg-background"
                         />
                         {markdownSupported ? (
                           <div className="flex justify-end text-xs text-muted-foreground">
@@ -442,7 +442,7 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
                           type="button"
                           onClick={handleSubmit}
                           disabled={sending || !message.trim()}
-                          className="rounded-lg px-5"
+                          className="!rounded-full px-5"
                         >
                           {sending ? "Sending..." : "Send"}
                         </Button>
@@ -457,12 +457,23 @@ export default function Footer({ contentOffsetClassName }: FooterProps) {
           {/* Bottom bar */}
           <div className="mt-8 flex flex-col items-center gap-2 text-center text-xs text-muted-foreground/80">
             <div>
-              <p>
-                {(content.bottom?.copyrightLine ??
-                  defaultFooter.bottom?.copyrightLine ??
-                  "")
-                  .replace("{year}", String(year))
-                  .trim()}
+              <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+                <span>
+                  {(content.bottom?.copyrightLine ??
+                    defaultFooter.bottom?.copyrightLine ??
+                    "")
+                    .replace("{year}", String(year))
+                    .trim()}
+                </span>
+                <span aria-hidden="true" className="text-muted-foreground/50">
+                  ·
+                </span>
+                <Link
+                  href="/privacy"
+                  className="font-medium text-muted-foreground hover:text-foreground hover:underline"
+                >
+                  Privacy
+                </Link>
               </p>
               {content.bottom?.nsfCompliance?.enabled !== false ? (
                 <>

@@ -1,6 +1,11 @@
 import React from "react";
+import { notFound } from "next/navigation";
 import { LivePreviewBlocks } from "@/components/live-preview/LivePreviewBlocks";
-import { getPageBySlug, type PageDoc } from "@/lib/payloadSdk/pages";
+import {
+  getPageBySlug,
+  isPageHiddenPublicly,
+  type PageDoc,
+} from "@/lib/payloadSdk/pages";
 import { getSiteBranding } from "@/lib/payloadSdk/siteBranding";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
@@ -24,6 +29,11 @@ export default async function Landing({
   const home: PageDoc | null = await getPageBySlug("home", {
     draft: isPreview,
   }).catch(() => null);
+
+  if (isPageHiddenPublicly(home, { draft: isPreview })) {
+    notFound();
+  }
+
   const siteBranding = await getSiteBranding({
     draft: isPreview,
     revalidate: 60,

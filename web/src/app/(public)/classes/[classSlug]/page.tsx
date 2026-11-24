@@ -1,11 +1,14 @@
 import { notFound } from "next/navigation";
-import { getClassBySlug } from "@/lib/payloadSdk/classes";
+import { chapterHasReadableLessons, getClassBySlug } from "@/lib/payloadSdk/classes";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 import type { ChapterDoc, LessonDoc } from "@/lib/payloadSdk/types";
-import { BookOpen, Clock, Layers } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { ClassProgressSummary } from "@/components/progress/ClassProgressSummary";
 import { ClassChapterBrowser } from "@/components/classes/ClassChapterBrowser";
+import ScrollToTopOnMount from "@/components/layout/ScrollToTopOnMount";
+import { Button } from "@/components/ui/button";
 
 type Params = Promise<{ classSlug: string }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -36,7 +39,6 @@ const byChapterNumberThenTitle = (
   return titleA.localeCompare(titleB);
 };
 
-// --- Metadata ---
 export async function generateMetadata(props: {
   params: Params;
   searchParams: SearchParams;
@@ -59,7 +61,6 @@ export async function generateMetadata(props: {
   });
 }
 
-// --- Page ---
 export default async function ClassPage(props: {
   params: Params;
   searchParams: SearchParams;
@@ -101,12 +102,14 @@ export default async function ClassPage(props: {
   const chapters: ChapterDoc[] = Array.isArray(c.chapters)
     ? (c.chapters as ChapterDoc[])
     : [];
-  const sortedChapters = [...chapters].sort(byChapterNumberThenTitle);
-  const totalLessons = chapters.reduce((count, chapter) => {
+  const visibleChapters = chapters
+    .filter(chapterHasReadableLessons)
+    .sort(byChapterNumberThenTitle);
+  const totalLessons = visibleChapters.reduce((count, chapter) => {
     const lessons = (chapter as ChapterDoc & { lessons?: LessonDoc[] }).lessons;
     return count + (Array.isArray(lessons) ? lessons.length : 0);
   }, 0);
-  const chapterCards = sortedChapters.map((chapter) => {
+  const chapterCards = visibleChapters.map((chapter) => {
     const rawLessons =
       (chapter as ChapterDoc & { lessons?: LessonDoc[] }).lessons ?? [];
     const hasLessonOrder = rawLessons.some(
@@ -141,102 +144,167 @@ export default async function ClassPage(props: {
     };
   });
 
+  const estimateMinutes = (lesson: {
+    hasQuiz: boolean;
+    hasVideo: boolean;
+  }) => {
+    if (lesson.hasQuiz) return 12;
+    if (lesson.hasVideo) return 10;
+    return 8;
+  };
+
   const lessonTimeSum = chapterCards.reduce((sum, chapter) => {
     return (
       sum +
-      chapter.lessons.reduce((chapterSum, lesson) => {
-        if (lesson.hasQuiz) return chapterSum + 12;
-        if (lesson.hasVideo) return chapterSum + 10;
-        return chapterSum + 8;
-      }, 0)
+      chapter.lessons.reduce(
+        (chapterSum, lesson) => chapterSum + estimateMinutes(lesson),
+        0
+      )
     );
   }, 0);
 
+  const firstAvailableChapter = chapterCards.find(
+    (chapter) => chapter.lessons.length > 0
+  );
+  const firstAvailableLesson = firstAvailableChapter?.lessons[0] ?? null;
+  const firstLessonHref =
+    firstAvailableLesson && firstAvailableLesson.slug
+      ? `/classes/${classSlug}/lessons/${firstAvailableLesson.slug}`
+      : null;
+
+  const firstLessonType = firstAvailableLesson
+    ? firstAvailableLesson.hasQuiz
+      ? "Quiz"
+      : firstAvailableLesson.hasVideo
+        ? "Video"
+        : "Reading"
+    : null;
+
+  const firstLessonSequence =
+    firstAvailableChapter && firstAvailableLesson
+      ? `${firstAvailableChapter.chapterNumber ?? 1}.1`
+      : null;
+
   const formatTotalTime = (mins: number) => {
-    if (mins <= 0) return "—";
+    if (mins <= 0) return null;
     if (mins < 60) return `~${mins} min`;
     const hours = Math.floor(mins / 60);
     const remainder = mins % 60;
-    if (remainder === 0) return `~${hours}h`;
-    return `~${hours}h ${remainder}m`;
+    if (remainder === 0) return `~${hours} hr`;
+    return `~${hours} hr ${remainder} min`;
   };
+
+  const totalTimeLabel = formatTotalTime(lessonTimeSum);
+
+  const flatLessons = chapterCards.flatMap((chapter) =>
+    chapter.lessons.map((lesson) => ({
+      id: lesson.id,
+      title: lesson.title,
+      href: `/classes/${classSlug}/lessons/${lesson.slug}`,
+    }))
+  );
+
+  const upNextMeta = [
+    firstAvailableChapter?.chapterNumber
+      ? `Chapter ${firstAvailableChapter.chapterNumber}`
+      : null,
+    firstLessonSequence ? `Lesson ${firstLessonSequence}` : null,
+    firstLessonType,
+    firstAvailableLesson
+      ? `~${estimateMinutes(firstAvailableLesson)} min`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <main className="min-w-0 overflow-x-hidden">
-      <div className="mx-auto w-full max-w-[var(--content-max,110ch)] px-4 sm:px-6 lg:px-8 py-5">
+      <ScrollToTopOnMount />
+      <div className="mx-auto w-full max-w-[1040px] py-3">
         <article className="space-y-5">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-              Course
-            </p>
-            <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              {c.title}
-            </h1>
-            {c.description ? (
-              <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">
-                {c.description}
-              </p>
-            ) : null}
-            {chapters.length > 0 ? (
-              <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[13px]">
-                <div className="inline-flex items-center gap-1.5 text-muted-foreground">
-                  <Layers className="h-3.5 w-3.5 text-primary/70" />
-                  <dt className="sr-only">Chapters</dt>
-                  <dd>
-                    <span className="font-semibold tabular-nums text-foreground">
-                      {chapters.length}
+          <header className="space-y-3">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  Course
+                </p>
+                <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+                  {c.title}
+                </h1>
+                {c.description ? (
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                    {c.description}
+                  </p>
+                ) : null}
+                {visibleChapters.length > 0 ? (
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">
+                      {visibleChapters.length}
                     </span>{" "}
-                    {chapters.length === 1 ? "chapter" : "chapters"}
-                  </dd>
-                </div>
-                <div className="inline-flex items-center gap-1.5 text-muted-foreground">
-                  <BookOpen className="h-3.5 w-3.5 text-primary/70" />
-                  <dt className="sr-only">Lessons</dt>
-                  <dd>
-                    <span className="font-semibold tabular-nums text-foreground">
+                    {visibleChapters.length === 1 ? "chapter" : "chapters"}
+                    <span className="mx-1.5 text-border">·</span>
+                    <span className="font-medium text-foreground">
                       {totalLessons}
                     </span>{" "}
                     {totalLessons === 1 ? "lesson" : "lessons"}
-                  </dd>
-                </div>
-                {lessonTimeSum > 0 ? (
-                  <div className="inline-flex items-center gap-1.5 text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5 text-primary/70" />
-                    <dt className="sr-only">Estimated time</dt>
-                    <dd>
-                      <span className="font-semibold tabular-nums text-foreground">
-                        {formatTotalTime(lessonTimeSum)}
-                      </span>{" "}
-                      total
-                    </dd>
-                  </div>
+                    {totalTimeLabel ? (
+                      <>
+                        <span className="mx-1.5 text-border">·</span>
+                        <span className="font-medium text-foreground">
+                          {totalTimeLabel}
+                        </span>
+                      </>
+                    ) : null}
+                  </p>
                 ) : null}
-              </dl>
+              </div>
+
+              {firstLessonHref ? (
+                <Button asChild className="shrink-0 self-start">
+                  <Link href={firstLessonHref}>
+                    Start course
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
+
+            {firstAvailableLesson ? (
+              <p className="text-[13px] text-muted-foreground">
+                <span className="font-medium text-foreground">
+                  Up next: {firstAvailableLesson.title}
+                </span>
+                {upNextMeta ? (
+                  <>
+                    <span className="mx-1.5 text-border">·</span>
+                    {upNextMeta}
+                  </>
+                ) : null}
+              </p>
             ) : null}
+
             <ClassProgressSummary
               classId={c.id}
               classTitle={c.title}
               totalLessons={totalLessons}
+              lessons={flatLessons}
+              firstLessonHref={firstLessonHref}
             />
-          </div>
+          </header>
 
-          <div className="space-y-4">
-            <ClassChapterBrowser
-              classSlug={classSlug}
-              classId={String(c.id)}
-              chapters={chapterCards}
-            />
-            {chapters.length === 0 ? (
-              <p className="text-muted-foreground">
-                No chapters available yet.
-              </p>
-            ) : null}
-          </div>
+          <ClassChapterBrowser
+            classSlug={classSlug}
+            classId={String(c.id)}
+            chapters={chapterCards}
+          />
+
+          {visibleChapters.length === 0 ? (
+            <p className="text-muted-foreground">No chapters available yet.</p>
+          ) : null}
         </article>
       </div>
     </main>
   );
 }
 
-// ISR (revalidate every 60s)
 export const revalidate = 60;

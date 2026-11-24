@@ -239,13 +239,17 @@ export function diffLessonLayouts(
   return { changes, headline }
 }
 
-// Render a single change as the one-liner shown in the modal.
-export function describeChange(change: DiffChange): string {
+// Render a single change as the one-liner shown in the modal. The optional
+// `entityLabel` swaps "Lesson title" copy for "Page title" etc.
+export function describeChange(
+  change: DiffChange,
+  entityLabel: string = 'Lesson',
+): string {
   switch (change.kind) {
     case 'title':
       return change.from
-        ? `Lesson title: "${change.from}" → "${change.to}"`
-        : `Lesson title set to "${change.to}"`
+        ? `${entityLabel} title: "${change.from}" → "${change.to}"`
+        : `${entityLabel} title set to "${change.to}"`
     case 'block-added':
       return `Added ${change.blockType} (block #${change.index + 1})`
     case 'block-removed':

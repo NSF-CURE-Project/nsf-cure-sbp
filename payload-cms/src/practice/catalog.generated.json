@@ -1,0 +1,576 @@
+[
+  {
+    "id": "9687c0fd83eccfba9bfb",
+    "title": "Average Normal and Shear Stress",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 1 & 2_Stress and Strain",
+    "kind": "numeric"
+  },
+  {
+    "id": "7bf6645a9f985e6f87ee",
+    "title": "Normal Strain",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 1 & 2_Stress and Strain",
+    "kind": "numeric"
+  },
+  {
+    "id": "55fef2413e4108607a24",
+    "title": "Torque",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 13_ Buckling of Column",
+    "kind": "numeric"
+  },
+  {
+    "id": "a24ac0d92fb02297b227",
+    "title": "Torque",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 13_ Buckling of Column",
+    "kind": "numeric"
+  },
+  {
+    "id": "433640ede153dbd77af0",
+    "title": "Torque",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 13_ Buckling of Column",
+    "kind": "numeric"
+  },
+  {
+    "id": "3d27bcfd898b810e1bcc",
+    "title": "Torque",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 13_ Buckling of Column",
+    "kind": "numeric"
+  },
+  {
+    "id": "e323e1d338bb38b73686",
+    "title": "Poisson's Ratio",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 3_Mechanical Properties of Materials",
+    "kind": "numeric"
+  },
+  {
+    "id": "23dc66b6e923c3f63b56",
+    "title": "Shear Strain",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 3_Mechanical Properties of Materials",
+    "kind": "numeric"
+  },
+  {
+    "id": "71e861d34c261efa6e0b",
+    "title": "Axial Displacement",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 4_ Axial Load",
+    "kind": "numeric"
+  },
+  {
+    "id": "9055316a337da8013d1b",
+    "title": "Displacement",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 4_ Axial Load",
+    "kind": "numeric"
+  },
+  {
+    "id": "255fbd62c1ec5d7ff81a",
+    "title": "Displacement",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 4_ Axial Load",
+    "kind": "numeric"
+  },
+  {
+    "id": "7c6fa3f26767fa1b50e5",
+    "title": "Thermal Stress",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 4_ Axial Load",
+    "kind": "numeric"
+  },
+  {
+    "id": "c772c1b336f04fa501ee",
+    "title": "Angle of Twist",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 5_ Torsion",
+    "kind": "numeric"
+  },
+  {
+    "id": "b2fd295ad9964bdec2ea",
+    "title": "Shear Stress",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 5_ Torsion",
+    "kind": "numeric"
+  },
+  {
+    "id": "ab323a55cc2bdeab8020",
+    "title": "Torque",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 5_ Torsion",
+    "kind": "numeric"
+  },
+  {
+    "id": "e529001fa96caf5ada67",
+    "title": "Torque",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 5_ Torsion",
+    "kind": "numeric"
+  },
+  {
+    "id": "5bdcfb0f2b26542b7cb8",
+    "title": "Torque",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 5_ Torsion",
+    "kind": "numeric"
+  },
+  {
+    "id": "d4e8c7b3c661f3cd4bb1",
+    "title": "Torque",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 5_ Torsion",
+    "kind": "numeric"
+  },
+  {
+    "id": "a2a2240fa3e5b0771dc5",
+    "title": "Bending",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 6_ Flexural Bending",
+    "kind": "numeric"
+  },
+  {
+    "id": "f08f59819fd0a728140d",
+    "title": "Bending",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 6_ Flexural Bending",
+    "kind": "numeric"
+  },
+  {
+    "id": "28b22a4d64c061b9be4c",
+    "title": "Bending",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 6_ Flexural Bending",
+    "kind": "numeric"
+  },
+  {
+    "id": "3410b475964298f77abe",
+    "title": "Composite Beam",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 6_ Flexural Bending",
+    "kind": "numeric"
+  },
+  {
+    "id": "28a023dda288558d6c39",
+    "title": "Torque",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 7_ Transverse Shear",
+    "kind": "numeric"
+  },
+  {
+    "id": "a95b467a5691a37605dd",
+    "title": "Torque",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 7_ Transverse Shear",
+    "kind": "numeric"
+  },
+  {
+    "id": "b2dba5751b2ba5366dfc",
+    "title": "Torque",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 7_ Transverse Shear",
+    "kind": "numeric"
+  },
+  {
+    "id": "778410c40496b78e2a65",
+    "title": "Torque",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 7_ Transverse Shear",
+    "kind": "numeric"
+  },
+  {
+    "id": "84c0d013249184fd8018",
+    "title": "Torque",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 8_ Combined Loading",
+    "kind": "numeric"
+  },
+  {
+    "id": "e3694b3addeb735a1cc5",
+    "title": "Torque",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 8_ Combined Loading",
+    "kind": "numeric"
+  },
+  {
+    "id": "7058c414463091e948d5",
+    "title": "Combined Loading",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 8_ Combined Loading",
+    "kind": "numeric"
+  },
+  {
+    "id": "b29cd838cc5718d0418b",
+    "title": "Torque",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 8_ Combined Loading",
+    "kind": "numeric"
+  },
+  {
+    "id": "bc1555faecfa05cc5d4b",
+    "title": "Plane Stress Transformation",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 9_ Stress Transformations",
+    "kind": "numeric"
+  },
+  {
+    "id": "58ed4ed6b92ddb6d0229",
+    "title": "Plane Stress Transformation",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 9_ Stress Transformations",
+    "kind": "numeric"
+  },
+  {
+    "id": "971a21646736725f0067",
+    "title": "Plane Stress Transformation",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 9_ Stress Transformations",
+    "kind": "numeric"
+  },
+  {
+    "id": "218b129b5eb73b0175e1",
+    "title": "Plane Stress Transformation",
+    "subject": "Mechanics_of_materials_problems",
+    "chapter": "Chapter 9_ Stress Transformations",
+    "kind": "numeric"
+  },
+  {
+    "id": "89c0a30731b11150f106",
+    "title": "Force Vectors",
+    "subject": "Static_problems",
+    "chapter": "Chapter 2_ Force Vectors",
+    "kind": "numeric"
+  },
+  {
+    "id": "479a0bfdcae55701df78",
+    "title": "Force Vectors",
+    "subject": "Static_problems",
+    "chapter": "Chapter 2_ Force Vectors",
+    "kind": "numeric"
+  },
+  {
+    "id": "be11f48ff3d95e7ffd45",
+    "title": "Force Components",
+    "subject": "Static_problems",
+    "chapter": "Chapter 2_ Force Vectors",
+    "kind": "numeric"
+  },
+  {
+    "id": "fe74ce162dc8ea13d432",
+    "title": "Components Forces",
+    "subject": "Static_problems",
+    "chapter": "Chapter 2_ Force Vectors",
+    "kind": "numeric"
+  },
+  {
+    "id": "7b4f86843f4706a6d076",
+    "title": "Equilibrium of A Particle",
+    "subject": "Static_problems",
+    "chapter": "Chapter 3_ Equilibrium of a Particle",
+    "kind": "numeric"
+  },
+  {
+    "id": "ee1e0e70de60693296cf",
+    "title": "Coplanar Force Systems",
+    "subject": "Static_problems",
+    "chapter": "Chapter 3_ Equilibrium of a Particle",
+    "kind": "numeric"
+  },
+  {
+    "id": "5cb977d5065bbc005fa1",
+    "title": "Equilibrium_Angle_and_Pin_Reactions",
+    "subject": "Static_problems",
+    "chapter": "Chapter 3_ Equilibrium of a Particle",
+    "kind": "numeric"
+  },
+  {
+    "id": "7216723c02d0fa914f14",
+    "title": "Moment of A Couple",
+    "subject": "Static_problems",
+    "chapter": "Chapter 4_ Force System Resultants",
+    "kind": "numeric"
+  },
+  {
+    "id": "0dcc3a93ed92fb46ff15",
+    "title": "Equlibrium",
+    "subject": "Static_problems",
+    "chapter": "Chapter 5_ Equilibrium of a Rigid Body",
+    "kind": "numeric"
+  },
+  {
+    "id": "4e8b8db082b32bb6a410",
+    "title": "3D_Bearing_Reaction_Forces",
+    "subject": "Static_problems",
+    "chapter": "Chapter 5_ Equilibrium of a Rigid Body",
+    "kind": "numeric"
+  },
+  {
+    "id": "905b62b7c3f1e7d3d59c",
+    "title": "3D_moments_1",
+    "subject": "Static_problems",
+    "chapter": "Chapter 5_ Equilibrium of a Rigid Body",
+    "kind": "numeric"
+  },
+  {
+    "id": "633de88616ac013b2478",
+    "title": "Beam_weights_2",
+    "subject": "Static_problems",
+    "chapter": "Chapter 5_ Equilibrium of a Rigid Body",
+    "kind": "numeric"
+  },
+  {
+    "id": "6bdc2c00ca64c6c6c804",
+    "title": "Method of Sections",
+    "subject": "Static_problems",
+    "chapter": "Chapter 6_ Structural Analysis",
+    "kind": "numeric"
+  },
+  {
+    "id": "2dce689d99161c62ae1e",
+    "title": "Method of joints",
+    "subject": "Static_problems",
+    "chapter": "Chapter 6_ Structural Analysis",
+    "kind": "numeric"
+  },
+  {
+    "id": "ec183411383e4d7e2ba3",
+    "title": "Method of joints",
+    "subject": "Static_problems",
+    "chapter": "Chapter 6_ Structural Analysis",
+    "kind": "numeric"
+  },
+  {
+    "id": "c7e68688ec23e61f4f47",
+    "title": "Method_of_sections_1",
+    "subject": "Static_problems",
+    "chapter": "Chapter 6_ Structural Analysis",
+    "kind": "numeric"
+  },
+  {
+    "id": "45206ba973d67862d4f9",
+    "title": "Practice Problem 5: Cantilever Beam, Point Load at the Free End",
+    "subject": "Static_problems",
+    "chapter": "Chapter 7_ Internal Forces",
+    "kind": "simulation"
+  },
+  {
+    "id": "93ea300617e378ccd77a",
+    "title": "Practice Problem 6: Cantilever Beam, Point Load at Any Point",
+    "subject": "Static_problems",
+    "chapter": "Chapter 7_ Internal Forces",
+    "kind": "simulation"
+  },
+  {
+    "id": "9ce536f917aeddd5b90f",
+    "title": "Practice Problem 4: Cantilever Beam, Uniform Load",
+    "subject": "Static_problems",
+    "chapter": "Chapter 7_ Internal Forces",
+    "kind": "simulation"
+  },
+  {
+    "id": "e51a15f4858a558412fb",
+    "title": "Practice Problem 1: Simply Supported Beam, Point Load",
+    "subject": "Static_problems",
+    "chapter": "Chapter 7_ Internal Forces",
+    "kind": "simulation"
+  },
+  {
+    "id": "724f068d8751f2759b93",
+    "title": "Practice Problem 3: Simply Supported Beam, Two Equal Point Loads",
+    "subject": "Static_problems",
+    "chapter": "Chapter 7_ Internal Forces",
+    "kind": "simulation"
+  },
+  {
+    "id": "9881bac7ff1a176d2eee",
+    "title": "Practice Problem 2: Simply Supported Beam, Uniform Load",
+    "subject": "Static_problems",
+    "chapter": "Chapter 7_ Internal Forces",
+    "kind": "simulation"
+  },
+  {
+    "id": "b8084d4657bc3469613f",
+    "title": "Internal Forces",
+    "subject": "Static_problems",
+    "chapter": "Chapter 7_ Internal Forces",
+    "kind": "numeric"
+  },
+  {
+    "id": "d82c5bc022c3ccc6c609",
+    "title": "Section Cut Method",
+    "subject": "Static_problems",
+    "chapter": "Chapter 7_ Internal Forces",
+    "kind": "numeric"
+  },
+  {
+    "id": "ae49a348663292206dfd",
+    "title": "Section Cut Method",
+    "subject": "Static_problems",
+    "chapter": "Chapter 7_ Internal Forces",
+    "kind": "numeric"
+  },
+  {
+    "id": "cba0a7cb7153a3f83277",
+    "title": "Section Cut Method",
+    "subject": "Static_problems",
+    "chapter": "Chapter 7_ Internal Forces",
+    "kind": "numeric"
+  },
+  {
+    "id": "dde2c06b9ce66321bb96",
+    "title": "Section Cut Method",
+    "subject": "Static_problems",
+    "chapter": "Chapter 7_ Internal Forces",
+    "kind": "numeric"
+  },
+  {
+    "id": "7d0dfb8ad4279abac45a",
+    "title": "Centroid",
+    "subject": "Static_problems",
+    "chapter": "Chapter 9.1 and 10.1-10.4_ Centroids and Moment of Inertia",
+    "kind": "numeric"
+  },
+  {
+    "id": "86bbdc857dd44114254a",
+    "title": "Centroid",
+    "subject": "Static_problems",
+    "chapter": "Chapter 9.1 and 10.1-10.4_ Centroids and Moment of Inertia",
+    "kind": "numeric"
+  },
+  {
+    "id": "d77b51fee450ce5a2626",
+    "title": "Centroid",
+    "subject": "Static_problems",
+    "chapter": "Chapter 9.1 and 10.1-10.4_ Centroids and Moment of Inertia",
+    "kind": "numeric"
+  },
+  {
+    "id": "17e71872091c06923f80",
+    "title": "Centroid",
+    "subject": "Static_problems",
+    "chapter": "Chapter 9.1 and 10.1-10.4_ Centroids and Moment of Inertia",
+    "kind": "numeric"
+  },
+  {
+    "id": "48e242ddd5795134fb77",
+    "title": "Moment of Inertia",
+    "subject": "Static_problems",
+    "chapter": "Chapter 9.1 and 10.1-10.4_ Centroids and Moment of Inertia",
+    "kind": "numeric"
+  },
+  {
+    "id": "2cc62442bd317cad8f69",
+    "title": "Moment of Inertia",
+    "subject": "Static_problems",
+    "chapter": "Chapter 9.1 and 10.1-10.4_ Centroids and Moment of Inertia",
+    "kind": "numeric"
+  },
+  {
+    "id": "86661cc08474df33487f",
+    "title": "Moment of Inertia",
+    "subject": "Static_problems",
+    "chapter": "Chapter 9.1 and 10.1-10.4_ Centroids and Moment of Inertia",
+    "kind": "numeric"
+  },
+  {
+    "id": "83df854184592cc65455",
+    "title": "Moment of Inertia",
+    "subject": "Static_problems",
+    "chapter": "Chapter 9.1 and 10.1-10.4_ Centroids and Moment of Inertia",
+    "kind": "numeric"
+  },
+  {
+    "id": "11c4b8910ca90eb1b65f",
+    "title": "Moment of Inertia",
+    "subject": "Static_problems",
+    "chapter": "Chapter 9.1 and 10.1-10.4_ Centroids and Moment of Inertia",
+    "kind": "numeric"
+  },
+  {
+    "id": "68a20853f8b466d8c066",
+    "title": "Moment of Inertia",
+    "subject": "Static_problems",
+    "chapter": "Chapter 9.1 and 10.1-10.4_ Centroids and Moment of Inertia",
+    "kind": "numeric"
+  },
+  {
+    "id": "e9ec8c282fd1e1deb8c6",
+    "title": "Ball on an Incline",
+    "subject": "Static_problems",
+    "chapter": "Review 1 Free Body Diagram Review (Interactive)",
+    "kind": "simulation"
+  },
+  {
+    "id": "d4b360a30a97dd5c13b4",
+    "title": "Weight Hanging from Cables",
+    "subject": "Static_problems",
+    "chapter": "Review 1 Free Body Diagram Review (Interactive)",
+    "kind": "simulation"
+  },
+  {
+    "id": "e344d1d649dddd4fd7c3",
+    "title": "Weight on a Pulley",
+    "subject": "Static_problems",
+    "chapter": "Review 1 Free Body Diagram Review (Interactive)",
+    "kind": "simulation"
+  },
+  {
+    "id": "220cf3055703234dc998",
+    "title": "Force Components",
+    "subject": "Static_problems",
+    "chapter": "Review 2 Trigonometry Review",
+    "kind": "numeric"
+  },
+  {
+    "id": "06085d07fa90e77a1de1",
+    "title": "Force Components",
+    "subject": "Static_problems",
+    "chapter": "Review 2 Trigonometry Review",
+    "kind": "numeric"
+  },
+  {
+    "id": "9a25e8c1e15f6bcc9f19",
+    "title": "Force Components",
+    "subject": "Static_problems",
+    "chapter": "Review 2 Trigonometry Review",
+    "kind": "numeric"
+  },
+  {
+    "id": "91444a05c089e72f572b",
+    "title": "Force Components",
+    "subject": "Static_problems",
+    "chapter": "Review 2 Trigonometry Review",
+    "kind": "numeric"
+  },
+  {
+    "id": "f6641d6592c65d1e55e8",
+    "title": "Force Components",
+    "subject": "Static_problems",
+    "chapter": "Review 2 Trigonometry Review",
+    "kind": "numeric"
+  },
+  {
+    "id": "685231c340cfe87126a9",
+    "title": "Force Components",
+    "subject": "Static_problems",
+    "chapter": "Review 2 Trigonometry Review",
+    "kind": "numeric"
+  },
+  {
+    "id": "8278b0f87231cb07bd5d",
+    "title": "Force Components",
+    "subject": "Static_problems",
+    "chapter": "Review 2 Trigonometry Review",
+    "kind": "numeric"
+  },
+  {
+    "id": "0e08c0466f9c13b365e7",
+    "title": "Force Components",
+    "subject": "Static_problems",
+    "chapter": "Review 2 Trigonometry Review",
+    "kind": "numeric"
+  }
+]

@@ -23,6 +23,7 @@ import type { DragMeta, EntityId, SaveStatus } from './types'
 import SaveStatusIndicator from './SaveStatusIndicator'
 import CoursesHomeCard, { type CourseCatalogItem } from './CoursesHomeCard'
 import { HelpLink } from '../admin/HelpLink'
+import { useConfirm } from '../admin/useConfirm'
 import { reorderInArray } from './reorder-utils'
 import { deleteCourse, saveCourseOrder } from './courses-order-api'
 
@@ -55,6 +56,7 @@ export default function CoursesHome({ initialCourses }: CoursesHomeProps) {
   const [dropTargetId, setDropTargetId] = useState<EntityId | null>(null)
   const [deletingCourseId, setDeletingCourseId] = useState<EntityId | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const { confirm, dialog: confirmDialog } = useConfirm()
 
   const committedRef = useRef<CourseCatalogItem[]>(reindexOrder(initialCourses))
   const saveQueueRef = useRef(Promise.resolve())
@@ -107,32 +109,38 @@ export default function CoursesHome({ initialCourses }: CoursesHomeProps) {
   const handleDeleteCourse = async (course: CourseCatalogItem) => {
     if (deletingCourseId) return
 
-    if (course.chapterCount > 0 || course.lessonCount > 0 || course.classroomCount > 0) {
-      const parts: string[] = []
-      if (course.chapterCount > 0)
-        parts.push(`${course.chapterCount} chapter${course.chapterCount === 1 ? '' : 's'}`)
-      if (course.lessonCount > 0)
-        parts.push(`${course.lessonCount} lesson${course.lessonCount === 1 ? '' : 's'}`)
-      if (course.classroomCount > 0)
-        parts.push(
-          `${course.classroomCount} classroom${course.classroomCount === 1 ? '' : 's'}`,
-        )
-      const joined =
-        parts.length === 1
+    // Fold any related-content counts into the confirm message so the user
+    // knows what's about to disappear. The server-side beforeDelete on
+    // `classes` cascades chapters → lessons and classrooms → memberships,
+    // so the UI doesn't need a separate "empty out first" step.
+    const parts: string[] = []
+    if (course.chapterCount > 0)
+      parts.push(`${course.chapterCount} chapter${course.chapterCount === 1 ? '' : 's'}`)
+    if (course.lessonCount > 0)
+      parts.push(`${course.lessonCount} lesson${course.lessonCount === 1 ? '' : 's'}`)
+    if (course.classroomCount > 0)
+      parts.push(
+        `${course.classroomCount} classroom${course.classroomCount === 1 ? '' : 's'}`,
+      )
+    const joined =
+      parts.length === 0
+        ? ''
+        : parts.length === 1
           ? parts[0]
           : parts.length === 2
             ? `${parts[0]} and ${parts[1]}`
             : `${parts.slice(0, -1).join(', ')}, and ${parts[parts.length - 1]}`
-      const message = `Cannot delete "${course.title}" because it still contains ${joined}. Open the workspace and remove that content first.`
-      setDeleteError(message)
-      if (typeof window !== 'undefined') window.alert(message)
-      return
-    }
+    const contentLine = joined
+      ? ` This will also delete ${joined}${course.classroomCount > 0 ? ' (students will lose access)' : ''}.`
+      : ''
 
-    if (typeof window !== 'undefined') {
-      const confirmed = window.confirm(`Delete course "${course.title}"? This cannot be undone.`)
-      if (!confirmed) return
-    }
+    const confirmed = await confirm({
+      title: `Delete "${course.title}"?`,
+      message: `This permanently removes the course.${contentLine} This cannot be undone.`,
+      confirmLabel: 'Delete course',
+      destructive: true,
+    })
+    if (!confirmed) return
 
     setDeleteError(null)
     setDeletingCourseId(course.id)
@@ -193,6 +201,8 @@ export default function CoursesHome({ initialCourses }: CoursesHomeProps) {
   }, [courses])
 
   return (
+    <>
+      {confirmDialog}
     <div className="grid gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -298,5 +308,6 @@ export default function CoursesHome({ initialCourses }: CoursesHomeProps) {
         </DndContext>
       )}
     </div>
+    </>
   )
 }

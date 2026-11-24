@@ -1,0 +1,346 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Clock, Flame, ListTree } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { LessonSection } from "@/lib/lessons/toc";
+import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
+
+const PAYLOAD_URL = getPayloadBaseUrl();
+
+type ProgressDoc = {
+  id: string | number;
+  completed?: boolean;
+  updatedAt?: string;
+  completedAt?: string | null;
+};
+
+// Compute a "consecutive days with any activity" count from the student's
+// lesson-progress docs. Matches the streak logic on the learning page so
+// the number is consistent across surfaces.
+const toLocalDayKey = (value: string): string | null => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+    .toISOString()
+    .slice(0, 10);
+};
+
+const computeStreak = (
+  docs: ProgressDoc[]
+): { count: number; activeToday: boolean } => {
+  const daySet = new Set<string>();
+  for (const doc of docs) {
+    const stamp = doc.updatedAt ?? doc.completedAt;
+    if (!stamp) continue;
+    const key = toLocalDayKey(stamp);
+    if (key) daySet.add(key);
+  }
+  if (daySet.size === 0) return { count: 0, activeToday: false };
+  const today = new Date();
+  const todayKey = toLocalDayKey(today.toISOString());
+  const cursor = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
+  let count = 0;
+  while (true) {
+    const key = toLocalDayKey(cursor.toISOString());
+    if (!key || !daySet.has(key)) break;
+    count += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return { count, activeToday: !!todayKey && daySet.has(todayKey) };
+};
+
+type Props = {
+  sections: LessonSection[];
+  estimatedMinutes: number;
+  lessonType: "Reading" | "Video" | "Quiz";
+  // Sibling navigation for the current chapter.
+  prev?: { slug: string; title: string } | null;
+  next?: { slug: string; title: string } | null;
+  hrefPrefix: string;
+  // Optional context — drives the "Return to chapter" link + "Continue
+  // through Chapter X" caption. Either can be missing on legacy lessons.
+  chapter?: {
+    title: string | null;
+    slug: string | null;
+    number: number | null;
+    classSlug: string | null;
+  };
+  // Lesson position in the chapter (1-indexed); shows "Lesson 3 of 6" if
+  // both are provided.
+  lessonIndex?: number | null;
+  lessonCount?: number | null;
+};
+
+// Sticky right-rail learning utility panel. Shows TOC anchored to the
+// section headings in the rendered lesson, lesson metadata, in-chapter
+// progress, and prev/next + return-to-chapter shortcuts. Auto-tracks the
+// currently-visible section via IntersectionObserver so the active TOC
+// entry follows the user's scroll position.
+export default function LessonSidebar({
+  sections,
+  estimatedMinutes,
+  lessonType,
+  prev,
+  next,
+  hrefPrefix,
+  chapter,
+  lessonIndex,
+  lessonCount,
+}: Props) {
+  const [activeId, setActiveId] = useState<string | null>(
+    sections[0]?.id ?? null
+  );
+  const [streak, setStreak] = useState<{
+    count: number;
+    activeToday: boolean;
+  } | null>(null);
+
+  // Pull the student's recent progress to compute the streak. Anonymous
+  // visitors get a 401 and we just skip rendering the streak card.
+  useEffect(() => {
+    const controller = new AbortController();
+    const load = async () => {
+      try {
+        const res = await fetch(
+          `${PAYLOAD_URL}/api/lesson-progress?limit=200&sort=-updatedAt&depth=0`,
+          { credentials: "include", signal: controller.signal }
+        );
+        if (!res.ok) {
+          setStreak(null);
+          return;
+        }
+        const data = (await res.json()) as { docs?: ProgressDoc[] };
+        setStreak(computeStreak(data.docs ?? []));
+      } catch {
+        if (!controller.signal.aborted) setStreak(null);
+      }
+    };
+    load();
+    return () => controller.abort();
+  }, []);
+
+  const streakMessage = useMemo(() => {
+    if (!streak) return null;
+    if (streak.activeToday) {
+      if (streak.count >= 3) return "Consistency pays — keep going.";
+      return "Active today. Same time tomorrow keeps it alive.";
+    }
+    if (streak.count === 0) return "Finish one lesson to start a streak.";
+    return "One short lesson today keeps it alive.";
+  }, [streak]);
+
+  // Track which section is currently in view. The threshold + rootMargin
+  // pair keeps the "active" indicator pegged to the section closest to the
+  // top of the viewport once headers scroll under the topbar (96px).
+  useEffect(() => {
+    if (sections.length === 0) return;
+    if (typeof window === "undefined") return;
+
+    const nodes = sections
+      .map((section) => document.getElementById(section.id))
+      .filter((node): node is HTMLElement => Boolean(node));
+    if (nodes.length === 0) return;
+
+    let current: string | null = sections[0]?.id ?? null;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            current = entry.target.id;
+          }
+        }
+        if (current) setActiveId(current);
+      },
+      {
+        rootMargin: "-96px 0px -60% 0px",
+        threshold: [0, 1],
+      }
+    );
+
+    nodes.forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
+  }, [sections]);
+
+  const hasProgressCaption =
+    typeof lessonIndex === "number" &&
+    typeof lessonCount === "number" &&
+    lessonCount > 0;
+
+  return (
+    <aside
+      aria-label="Lesson outline"
+      className="hidden shrink-0 xl:block xl:w-[280px]"
+    >
+      <div className="sticky top-[calc(var(--nav-h,4rem)+1rem)]">
+        <div className="overflow-hidden rounded-lg border border-border/70 bg-card text-sm shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
+          {/* Lesson meta */}
+          <section className="border-b border-border/60 px-4 py-4">
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-medium text-foreground/90">
+                {lessonType}
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                <Clock className="h-3.5 w-3.5" />~{estimatedMinutes} min
+              </span>
+            </div>
+            {hasProgressCaption ? (
+              <div className="mt-3.5">
+                <div className="flex items-baseline justify-between gap-3 text-muted-foreground">
+                  <span>
+                    Lesson{" "}
+                    <strong className="font-semibold text-foreground">
+                      {lessonIndex}
+                    </strong>{" "}
+                    of {lessonCount}
+                  </span>
+                  {chapter?.number ? (
+                    <span className="text-xs font-medium uppercase tracking-[0.04em]">
+                      Ch {chapter.number}
+                    </span>
+                  ) : null}
+                </div>
+                <div
+                  className="mt-2 h-0.5 w-full overflow-hidden rounded-full bg-muted"
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={lessonCount}
+                  aria-valuenow={lessonIndex}
+                  aria-label="Position in chapter"
+                >
+                  <div
+                    className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out"
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        Math.round((lessonIndex / lessonCount) * 100)
+                      )}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            ) : null}
+            {chapter?.title && chapter.slug && chapter.classSlug ? (
+              <Link
+                href={`/classes/${chapter.classSlug}/chapters/${chapter.slug}`}
+                className="mt-4 inline-flex min-h-8 items-center gap-2 rounded-md text-sm font-semibold text-foreground/80 transition-colors hover:text-primary"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to {chapter.title}
+              </Link>
+            ) : null}
+          </section>
+
+          {/* Streak / momentum (only shown when we successfully read progress) */}
+          {streak ? (
+            <section
+              className="border-b border-border/60 px-4 py-4"
+              aria-label="Learning streak"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
+                  <Flame
+                    className={cn(
+                      "h-4 w-4",
+                      streak.activeToday
+                        ? "text-amber-500"
+                        : "text-muted-foreground"
+                    )}
+                    aria-hidden="true"
+                  />
+                  Streak
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  <strong
+                    className={cn(
+                      "font-semibold tabular-nums",
+                      streak.activeToday
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-foreground"
+                    )}
+                  >
+                    {streak.count}
+                  </strong>{" "}
+                  {streak.count === 1 ? "day" : "days"}
+                </span>
+              </div>
+              {streakMessage ? (
+                <p className="mt-1.5 text-xs leading-5 text-muted-foreground/90">
+                  {streakMessage}
+                </p>
+              ) : null}
+            </section>
+          ) : null}
+
+          {/* Table of contents */}
+          {sections.length > 1 ? (
+            <section className="border-b border-border/60 px-4 py-4">
+              <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
+                <ListTree className="h-3.5 w-3.5" />
+                In this lesson
+              </div>
+              <ul className="grid gap-1">
+                {sections.map((section) => {
+                  const isActive = activeId === section.id;
+                  return (
+                    <li key={section.id}>
+                      <a
+                        href={`#${section.id}`}
+                        className={cn(
+                          "flex min-h-8 items-start gap-2 rounded-md border-l-2 py-1.5 pl-3 pr-2 leading-5 transition-colors",
+                          isActive
+                            ? "border-primary bg-primary/[0.055] font-medium text-foreground"
+                            : "border-transparent text-muted-foreground hover:border-border/80 hover:bg-muted/35 hover:text-foreground",
+                          section.level === "secondary" && "ml-3"
+                        )}
+                      >
+                        <span className="min-w-0 flex-1 line-clamp-2">
+                          {section.title}
+                        </span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ) : null}
+
+          {/* Next lesson preview */}
+          {next ? (
+            <section className="px-4 py-4">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
+                Up next
+              </div>
+              <Link
+                href={`${hrefPrefix}/${next.slug}`}
+                className="mt-1.5 block line-clamp-3 font-medium leading-5 text-foreground/90 transition-colors hover:text-primary"
+              >
+                {next.title}
+              </Link>
+            </section>
+          ) : null}
+
+          {/* Subtle prev-lesson shortcut if there's no "next" target */}
+          {!next && prev ? (
+            <section className="px-4 py-4">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
+                Previous lesson
+              </div>
+              <Link
+                href={`${hrefPrefix}/${prev.slug}`}
+                className="mt-1.5 block line-clamp-3 font-medium leading-5 text-foreground/90 transition-colors hover:text-primary"
+              >
+                {prev.title}
+              </Link>
+            </section>
+          ) : null}
+        </div>
+      </div>
+    </aside>
+  );
+}

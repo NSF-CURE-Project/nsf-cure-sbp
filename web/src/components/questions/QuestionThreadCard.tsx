@@ -57,7 +57,7 @@ const formatDateTime = (value?: string | null) => {
 
 export function QuestionThreadCard({ question }: QuestionThreadCardProps) {
   return (
-    <article className="rounded-xl border border-border/60 bg-card/50 p-5">
+    <article className="border-y border-border/60 py-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-semibold text-foreground">{question.title}</h2>
         <QuestionStatusBadge status={question.status} />
@@ -66,7 +66,7 @@ export function QuestionThreadCard({ question }: QuestionThreadCardProps) {
         Asked {formatDateTime(question.createdAt)}
       </p>
 
-      <div className="mt-4 rounded-lg border border-border/60 bg-muted/30 p-4">
+      <div className="mt-4 border-y border-border/60 bg-muted/20 py-4">
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Question
         </p>
@@ -87,10 +87,7 @@ export function QuestionThreadCard({ question }: QuestionThreadCardProps) {
           <p className="text-sm text-muted-foreground">No staff answers yet.</p>
         ) : (
           (question.answers ?? []).map((answer, index) => (
-            <div
-              key={`${question.id}-answer-${index}`}
-              className="rounded-lg border border-border/60 bg-background/60 p-4"
-            >
+            <div key={`${question.id}-answer-${index}`} className="border-t border-border/60 py-4 first:border-t-0">
               <p className="mb-2 text-xs text-muted-foreground">
                 {formatDateTime(answer.createdAt)}
               </p>

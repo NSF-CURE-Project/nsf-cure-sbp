@@ -1,18 +1,24 @@
-import { getClassesTree } from "@/lib/payloadSdk/classes";
+import {
+  chapterHasReadableLessons,
+  getClassesTree,
+} from "@/lib/payloadSdk/classes";
 import type { ChapterDoc, ClassDoc, LessonDoc } from "@/lib/payloadSdk/types";
+import { practiceEnabled, problems } from "@/lib/practice/library";
 import { resolvePreview } from "@/lib/preview";
 import { buildMetadata } from "@/lib/seo";
 import {
   LearningPersonalization,
   type LearningClassSummary,
   type LearningLessonIndexEntry,
+  type LearningPracticeSummary,
 } from "@/components/learning/LearningPersonalization";
 
 export const revalidate = 60;
 
 export const metadata = buildMetadata({
   title: "Learning",
-  description: "Browse all classes and track your learning progress.",
+  description:
+    "Continue coursework, explore classes, and track your learning progress.",
   path: "/learning",
 });
 
@@ -32,7 +38,7 @@ export default async function LearningPage() {
     const classTitle = cls.title ?? "Untitled class";
     const classLessons: LearningLessonIndexEntry[] = [];
     const chapters: ChapterWithLessons[] = Array.isArray(cls.chapters)
-      ? (cls.chapters as ChapterWithLessons[])
+      ? (cls.chapters as ChapterWithLessons[]).filter(chapterHasReadableLessons)
       : [];
 
     chapters.forEach((chapter) => {
@@ -70,18 +76,19 @@ export default async function LearningPage() {
     });
   });
 
-  return (
-    <main className="mx-auto w-full max-w-[var(--content-max,110ch)] px-6 pt-6 pb-12">
-      <header className="mb-1">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-          Learning Portal
-        </h1>
-      </header>
+  const isPracticeEnabled = practiceEnabled();
+  const practiceSummary: LearningPracticeSummary = {
+    enabled: isPracticeEnabled,
+    totalProblems: isPracticeEnabled ? problems.length : 0,
+  };
 
+  return (
+    <div className="mx-auto w-full pb-12 pt-2 sm:pt-3 lg:pb-16">
       <LearningPersonalization
         lessonIndex={lessonIndex}
         classSummaries={classSummaries}
+        practiceSummary={practiceSummary}
       />
-    </main>
+    </div>
   );
 }

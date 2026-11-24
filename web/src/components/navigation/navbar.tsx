@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
   Bell,
@@ -14,7 +14,6 @@ import {
   Settings,
   User as UserIcon,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/theme/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -29,12 +28,15 @@ import {
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { LoginLink } from "@/components/auth/LoginLink";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
+import { cn } from "@/lib/utils";
+import { GlobalSearchDialog } from "@/components/navigation/global-search/GlobalSearchDialog";
 
 const PAYLOAD_URL = getPayloadBaseUrl();
 const NAVBAR_USER_CACHE_KEY = "sbp-navbar-user";
@@ -51,6 +53,13 @@ type NavbarPage = {
   slug: string;
   title: string;
   navOrder?: number | null;
+  hidden?: boolean | null;
+};
+
+export type NavbarAnnouncement = {
+  message: string;
+  href?: string;
+  linkLabel?: string;
 };
 
 function readCachedNavbarUser(): NavbarUser | null {
@@ -112,9 +121,14 @@ function writeCachedNavbarPages(pages: NavbarPage[]): void {
   window.localStorage.setItem(NAVBAR_PAGES_CACHE_KEY, JSON.stringify(pages));
 }
 
-export default function Navbar() {
+export default function Navbar({
+  announcement,
+}: {
+  announcement?: NavbarAnnouncement | null;
+}) {
   const { resolvedTheme, theme, systemTheme } = useTheme();
   const router = useRouter();
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<NavbarUser | null>(() => readCachedNavbarUser());
   const [notifications, setNotifications] = useState<
@@ -134,8 +148,6 @@ export default function Navbar() {
   const [pages, setPages] = useState<NavbarPage[]>(() => readCachedNavbarPages());
   const [authBusy, setAuthBusy] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
@@ -154,25 +166,12 @@ export default function Navbar() {
       ) {
         event.preventDefault();
         setSearchOpen(true);
-        return;
-      }
-
-      if (event.key === "Escape" && searchOpen) {
-        setSearchOpen(false);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [searchOpen]);
-
-  useEffect(() => {
-    if (!searchOpen) return;
-    requestAnimationFrame(() => {
-      searchInputRef.current?.focus();
-      searchInputRef.current?.select();
-    });
-  }, [searchOpen]);
+  }, []);
   useEffect(() => {
     const controller = new AbortController();
     const loadUser = async () => {
@@ -207,7 +206,7 @@ export default function Navbar() {
     const loadPages = async () => {
       try {
         const res = await fetch(
-          `${PAYLOAD_URL}/api/pages?limit=100&sort=navOrder`,
+          `${PAYLOAD_URL}/api/pages?limit=100&sort=navOrder&where[hidden][not_equals]=true`,
           {
             signal: controller.signal,
           }
@@ -222,7 +221,7 @@ export default function Navbar() {
           docs?: NavbarPage[];
         };
         const cleaned = (data.docs ?? []).filter(
-          (page) => page.slug && page.slug !== "home"
+          (page) => page.slug && page.slug !== "home" && !page.hidden
         );
         cleaned.sort((a, b) => {
           const aOrder =
@@ -308,14 +307,6 @@ export default function Navbar() {
     }
   };
 
-  const handleSearchSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
-    event?.preventDefault();
-    const query = searchValue.trim();
-    if (!query) return;
-    setSearchOpen(false);
-    router.push(`/search?q=${encodeURIComponent(query)}`);
-  };
-
   const mode = useMemo(() => {
     if (!mounted) return "light";
     if (resolvedTheme) return resolvedTheme;
@@ -351,6 +342,9 @@ export default function Navbar() {
     () => notifications.filter((notification) => !notification.read).length,
     [notifications]
   );
+  const announcementMessage = announcement?.message.trim() ?? "";
+  const announcementHref = announcement?.href?.trim();
+  const announcementLinkLabel = announcement?.linkLabel?.trim() || "Learn more";
 
   const handleNotificationRead = async (notificationId: string) => {
     try {
@@ -381,24 +375,43 @@ export default function Navbar() {
   };
 
   return (
-    <nav
-      aria-label="Primary"
-      className="
-        sticky top-0 z-50
-        flex items-center gap-3
-        h-16 px-4 sm:px-6 border-b
-        bg-background/80 backdrop-blur
-        supports-[backdrop-filter]:bg-background/60
-      "
-    >
-      <div className="flex items-center gap-3 sm:gap-5 min-w-0">
+    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {announcementMessage ? (
+        <div
+          role="status"
+          aria-label="Site announcement"
+          className="border-b border-primary/20 bg-primary px-4 py-1.5 text-primary-foreground sm:px-6"
+        >
+          <div className="mx-auto flex min-h-5 max-w-[var(--content-max,1200px)] items-center gap-2 text-[12px] font-medium leading-5 sm:text-[13px]">
+            <p className="min-w-0 flex-1 text-pretty">{announcementMessage}</p>
+            {announcementHref ? (
+              <a
+                href={announcementHref}
+                className="shrink-0 font-semibold text-primary-foreground underline underline-offset-2 transition hover:text-primary-foreground/90"
+              >
+                {announcementLinkLabel}
+              </a>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+      <nav
+        aria-label="Primary"
+        className="
+          flex items-center gap-3
+          h-16 px-4 sm:px-6 border-b
+          bg-background/80
+          supports-[backdrop-filter]:bg-background/60
+        "
+      >
+      <div className="flex min-w-0 items-center gap-2 sm:gap-5">
         <Link href="/" aria-label="Home" className="flex items-center gap-2">
           <Image
             src={cppLogo}
             alt="Cal Poly Pomona Logo"
             width={300}
             height={150}
-            className="h-10 w-auto sm:h-12"
+            className="h-8 w-auto sm:h-12"
             sizes="(min-width: 640px) 96px, 80px"
           />
         </Link>
@@ -408,12 +421,12 @@ export default function Navbar() {
           alt="NSF Logo"
           width={80}
           height={80}
-          className="h-10 w-10 sm:h-12 sm:w-12"
+          className="size-8 sm:size-12"
           sizes="(min-width: 640px) 48px, 40px"
           priority
         />
 
-        <span className="font-semibold text-base sm:text-xl text-foreground truncate">
+        <span className="truncate text-[13px] font-semibold text-foreground sm:text-xl">
           NSF CURE SBP
         </span>
       </div>
@@ -422,17 +435,30 @@ export default function Navbar() {
       <div className="hidden lg:flex items-center gap-5 ml-6 text-sm font-medium text-foreground">
         <Link
           href="/"
-          className="relative transition-colors hover:text-foreground after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:bg-foreground/70 after:origin-left after:scale-x-0 after:transition-transform after:duration-200 hover:after:scale-x-100"
+          className={cn(
+            "relative py-1 transition-colors after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:origin-left after:transition-transform after:duration-200 hover:text-foreground hover:after:scale-x-100",
+            pathname === "/"
+              ? "font-semibold text-primary after:bg-primary after:scale-x-100"
+              : "after:bg-foreground/70 after:scale-x-0"
+          )}
+          aria-current={pathname === "/" ? "page" : undefined}
         >
           Home
         </Link>
         {pages.map((page) => {
           const href = page.slug === "learning" ? "/learning" : `/${page.slug}`;
+          const isActive = pathname === href || pathname.startsWith(`${href}/`);
           return (
             <Link
               key={page.id}
               href={href}
-              className="relative transition-colors hover:text-foreground after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:bg-foreground/70 after:origin-left after:scale-x-0 after:transition-transform after:duration-200 hover:after:scale-x-100"
+              className={cn(
+                "relative py-1 transition-colors after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:origin-left after:transition-transform after:duration-200 hover:text-foreground hover:after:scale-x-100",
+                isActive
+                  ? "font-semibold text-primary after:bg-primary after:scale-x-100"
+                  : "after:bg-foreground/70 after:scale-x-0"
+              )}
+              aria-current={isActive ? "page" : undefined}
             >
               {page.title}
             </Link>
@@ -442,15 +468,25 @@ export default function Navbar() {
 
       {/* Right cluster */}
       <div className="ml-auto flex items-center gap-2">
-        <button
+        <Button
           type="button"
-          className="hidden md:flex items-center gap-2 rounded-lg border border-border/70 bg-muted/40 px-3 py-1 text-[13px] text-muted-foreground shadow-sm transition hover:bg-muted/60"
+          variant="outline"
+          size="icon-sm"
+          className="rounded-md shadow-none md:hidden"
           onClick={() => setSearchOpen(true)}
           aria-label="Open search"
         >
-          <Search className="h-4 w-4" />
-          <span className="text-sm">Search program...</span>
-          <span className="ml-2 rounded-md border border-border/60 bg-background px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-foreground/70">
+          <Search aria-hidden="true" />
+        </Button>
+        <button
+          type="button"
+          className="hidden md:flex items-center gap-2 rounded-[10px] border border-border/70 bg-muted/30 px-3 py-1.5 text-[13px] text-muted-foreground transition hover:border-border hover:bg-muted/50"
+          onClick={() => setSearchOpen(true)}
+          aria-label="Open search"
+        >
+          <Search className="h-3.5 w-3.5" />
+          <span className="text-[13px]">Search…</span>
+          <span className="ml-1 rounded-md border border-border/60 bg-background px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-foreground/70">
             ⌘K
           </span>
         </button>
@@ -468,7 +504,7 @@ export default function Navbar() {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="hidden md:inline-flex items-center gap-2.5 rounded-full border border-border/60 bg-background/70 px-2 py-1.5 text-sm font-medium text-foreground shadow-sm transition hover:border-border hover:bg-muted/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                className="hidden md:inline-flex items-center gap-2.5 rounded-md border border-border/60 bg-background/70 px-2 py-1.5 text-sm font-medium text-foreground transition hover:border-border hover:bg-muted/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 <Avatar className="h-8 w-8 border border-border/60">
                   <AvatarImage src="" alt={displayName} />
@@ -495,10 +531,10 @@ export default function Navbar() {
               align="center"
               sideOffset={8}
               alignOffset={0}
-              className="z-[9999] w-72 rounded-b-xl rounded-t-none border-x border-b border-t-0 border-border/70 bg-background/95 p-2 shadow-2xl data-[side=bottom]:slide-in-from-top-0 backdrop-blur supports-[backdrop-filter]:bg-background/90"
+              className="z-[9999] w-72 rounded-b-lg rounded-t-none border-x border-b border-t-0 border-border/70 bg-background/95 p-2 data-[side=bottom]:slide-in-from-top-0 backdrop-blur supports-[backdrop-filter]:bg-background/90"
             >
               <DropdownMenuLabel className="p-0 font-normal">
-                <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-3">
+                <div className="border-y border-border/60 bg-muted/10 px-3 py-3">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 border border-border/60">
                       <AvatarImage src="" alt={displayName} />
@@ -579,7 +615,7 @@ export default function Navbar() {
                 </span>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="my-2" />
-              <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2.5">
+              <div className="border-y border-border/60 bg-muted/10 px-3 py-2.5">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -601,10 +637,10 @@ export default function Navbar() {
           <>
             <ThemeToggle
               variant="icon"
-              className="hidden md:inline-flex hover:bg-muted/60"
+              className="hover:bg-muted/60"
             />
             <LoginLink
-              className="hidden md:inline-flex h-8 items-center rounded-lg border border-border/70 bg-muted/40 px-3 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/60"
+              className="hidden md:inline-flex h-8 items-center rounded-full border border-border/70 bg-muted/40 px-4 text-sm font-medium text-foreground transition hover:bg-muted/60"
             >
               Sign In
             </LoginLink>
@@ -613,7 +649,7 @@ export default function Navbar() {
         {!resolvedUser ? (
           <button
             type="button"
-            className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-muted/40 text-foreground/70 shadow-sm opacity-70"
+            className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-muted/40 text-foreground/70 opacity-70"
             aria-hidden="true"
             disabled
           >
@@ -627,7 +663,7 @@ export default function Navbar() {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-muted/40 text-foreground shadow-sm transition hover:bg-muted/60"
+                className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-muted/40 text-foreground transition hover:bg-muted/60"
                 aria-label="Open notifications"
               >
                 <Bell className="h-4 w-4" />
@@ -642,7 +678,7 @@ export default function Navbar() {
               side="bottom"
               align="end"
               sideOffset={12}
-              className="z-[9999] w-80 bg-background shadow-xl"
+              className="z-[9999] w-80 border border-border/70 bg-background"
             >
               <div className="flex items-center justify-between px-3 py-2">
                 <span className="text-sm font-semibold">Notifications</span>
@@ -708,26 +744,27 @@ export default function Navbar() {
         {/* Mobile menu */}
         <Sheet>
           <SheetTrigger asChild>
-            <button
+            <Button
               type="button"
-              className="inline-flex items-center gap-2 rounded-md border border-border/70 bg-muted/40 px-3 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:hidden"
+              variant="outline"
+              size="icon-sm"
+              className="rounded-md shadow-none lg:hidden"
               aria-label="Open navigation"
             >
-              <Menu className="h-4 w-4" />
-              Menu
-            </button>
+              <Menu aria-hidden="true" />
+            </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-[min(22rem,90vw)]">
-            <SheetHeader className="px-5 pt-5 pb-3 text-left space-y-1.5">
+            <SheetHeader className="px-5 pt-5 pb-3 text-left">
               <SheetTitle className="text-lg">NSF CURE SBP</SheetTitle>
-              <p className="text-sm text-muted-foreground">
+              <SheetDescription className="text-sm text-muted-foreground">
                 Quick links and search
-              </p>
+              </SheetDescription>
             </SheetHeader>
 
             <div className="px-5 pb-6 space-y-4">
               {!resolvedUser ? null : user ? (
-                <div className="rounded-lg border border-border/60 bg-muted/40 px-4 py-3 text-sm">
+                <div className="border-y border-border/60 bg-muted/20 px-4 py-3 text-sm">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-9 w-9 border border-border/50">
                       <AvatarImage src="" alt={displayName} />
@@ -746,14 +783,14 @@ export default function Navbar() {
                   </div>
                 </div>
               ) : null}
-              <form role="search" action="/search" className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  name="q"
-                  placeholder="Search program..."
-                  className="h-10 rounded-lg border-border/80 bg-muted/40 pl-9 pr-3 text-sm shadow-sm transition focus-visible:ring-2 focus-visible:ring-primary/50"
-                />
-              </form>
+              <button
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                className="flex w-full items-center gap-2 rounded-[10px] border border-border/70 bg-muted/30 px-3 py-2.5 text-left text-sm text-muted-foreground transition hover:bg-muted/50"
+              >
+                <Search className="h-4 w-4 shrink-0" aria-hidden />
+                <span>Search lessons, topics, and resources…</span>
+              </button>
 
               <div className="grid gap-2 text-foreground text-base">
                 <Link
@@ -831,66 +868,9 @@ export default function Navbar() {
           </SheetContent>
         </Sheet>
       </div>
-      {searchOpen ? (
-        <div
-          className="fixed inset-0 z-[10000] bg-black/40 backdrop-blur-sm"
-          onClick={() => setSearchOpen(false)}
-        >
-          <div
-            className="mx-auto mt-24 w-[min(92vw,720px)] rounded-2xl border border-border/70 bg-background shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="flex items-center gap-2 border-b border-border/60 px-4 py-3">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <form className="flex-1" onSubmit={handleSearchSubmit}>
-                <Input
-                  ref={searchInputRef}
-                  value={searchValue}
-                  onChange={(event) => setSearchValue(event.target.value)}
-                  placeholder="What are you searching for?"
-                  className="w-full border-border/60 bg-muted/20 px-3 text-sm shadow-sm"
-                />
-              </form>
-              <button
-                type="button"
-                className="rounded-md border border-border/60 bg-muted/40 px-2 py-1 text-[11px] font-semibold text-muted-foreground transition hover:bg-muted/60"
-                onClick={() => setSearchOpen(false)}
-                aria-label="Close search"
-              >
-                Esc
-              </button>
-            </div>
-            <div className="p-4">
-              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Quick links
-              </div>
-              <div className="mt-2 grid gap-2">
-                <Link
-                  href="/directory"
-                  className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-sm text-foreground transition hover:bg-muted/40"
-                  onClick={() => setSearchOpen(false)}
-                >
-                  Site Directory
-                  <span className="text-xs text-muted-foreground">
-                    Browse all pages
-                  </span>
-                </Link>
-                <Link
-                  href="/classes"
-                  className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-sm text-foreground transition hover:bg-muted/40"
-                  onClick={() => setSearchOpen(false)}
-                >
-                  Classes
-                  <span className="text-xs text-muted-foreground">
-                    Explore lessons
-                  </span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </nav>
+      <GlobalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+      </nav>
+    </header>
   );
 }
 

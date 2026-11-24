@@ -1,6 +1,9 @@
 import { ResetPasswordForm } from "./ResetPasswordForm";
+import { AuthDisabledNotice } from "@/components/auth/AuthDisabledNotice";
+import { AuthSplitShell } from "@/components/auth/AuthSplitShell";
 import { buildMetadata } from "@/lib/seo";
 import { LoginLink } from "@/components/auth/LoginLink";
+import { getAuthSettings } from "@/lib/payloadSdk/authSettings";
 
 export const metadata = buildMetadata({
   title: "Reset Password",
@@ -19,41 +22,45 @@ export default async function ResetPasswordPage({
   const sp = (await searchParams) ?? {};
   const rawToken = sp.token;
   const token = Array.isArray(rawToken) ? rawToken[0] : rawToken;
+  const authSettings = await getAuthSettings({ cache: "no-store" });
 
   return (
-    <main className="min-h-[70vh] px-6 py-16">
-      <div className="mx-auto w-full max-w-xl rounded-lg border border-border/60 bg-card/80 p-10 shadow-lg">
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
-            Student Access
-          </p>
-          <h1 className="text-3xl font-bold text-foreground">
+    <AuthSplitShell>
+      <div className="space-y-7">
+        <div className="space-y-1.5">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
             Choose a new password
-          </h1>
-          <p className="text-muted-foreground">
+          </h2>
+          <p className="text-sm leading-relaxed text-muted-foreground">
             Enter a new password to finish resetting your account.
           </p>
         </div>
 
-        <div className="mt-8">
-          {token ? (
-            <ResetPasswordForm token={token} />
-          ) : (
-            <p className="text-sm text-red-700">
-              Reset token missing. Please request a new reset link.
-            </p>
-          )}
-        </div>
-
-        <p className="mt-6 text-sm text-muted-foreground">
-          Back to{" "}
-          <LoginLink
-            className="font-semibold text-primary underline underline-offset-4"
+        {!authSettings.studentLoginEnabled ? (
+          <AuthDisabledNotice
+            message={authSettings.studentLoginDisabledMessage}
+            title="Password reset is temporarily unavailable"
+          />
+        ) : token ? (
+          <ResetPasswordForm token={token} />
+        ) : (
+          <p
+            className="rounded-lg border border-destructive/25 bg-destructive/5 px-3.5 py-3 text-sm text-destructive"
+            role="alert"
           >
-            Sign in
-          </LoginLink>
-        </p>
+            Reset token missing. Please request a new reset link.
+          </p>
+        )}
+
+        {authSettings.studentLoginEnabled ? (
+          <p className="pt-1 text-center text-sm text-muted-foreground">
+            Back to{" "}
+            <LoginLink className="font-medium text-primary transition-colors duration-150 hover:text-primary/80">
+              Sign in
+            </LoginLink>
+          </p>
+        ) : null}
       </div>
-    </main>
+    </AuthSplitShell>
   );
 }

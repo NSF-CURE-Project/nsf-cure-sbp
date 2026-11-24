@@ -208,7 +208,7 @@ function GettingStartedContent() {
         <StepList
           items={[
             <><InlineLink href="/admin/collections/questions?where[status][equals]=open">Review open questions</InlineLink> — answer unanswered student questions.</>,
-            <><InlineLink href="/admin/collections/feedback">Review unread platform feedback</InlineLink> — mark read after reviewing.</>,
+            <><InlineLink href="/admin/feedback">Review unread platform feedback</InlineLink> — mark read after reviewing.</>,
             <><InlineLink href="/admin/collections/lesson-feedback">Check lesson feedback</InlineLink> — reply to actionable comments.</>,
             <>Confirm any planned content changes are published.</>,
             <>Validate quiz assignments for upcoming lessons in <InlineLink href="/admin/quiz-bank">Quiz Bank</InlineLink>.</>,
@@ -434,7 +434,7 @@ function StudentSupportContent() {
       <DocSection id="feedback" title="Platform Feedback">
         <BulletList
           items={[
-            <><InlineLink href="/admin/collections/feedback">Feedback</InlineLink> — general platform feedback from students.</>,
+            <><InlineLink href="/admin/feedback">Feedback</InlineLink> — general platform feedback from students.</>,
             <>Mark items as read using the <Code>read</Code> checkbox after reviewing.</>,
             <><InlineLink href="/admin/collections/lesson-feedback">Lesson Feedback</InlineLink> — per-lesson comments from students.</>,
             'Reply to lesson feedback either in the Lesson Feedback collection or directly inside a lesson edit page via the Lesson Feedback panel.',
@@ -490,7 +490,7 @@ function ClassroomsContent() {
       <DocSection id="creating-classrooms" title="Creating a Classroom">
         <StepList
           items={[
-            <><InlineLink href="/admin/collections/classrooms/create">Create a new classroom</InlineLink> — set class and professor.</>,
+            <><InlineLink href="/admin/classrooms/new">Create a new classroom</InlineLink> — set class and professor.</>,
             <>A join code is auto-generated and stored in the sidebar.</>,
             'Use Regenerate join code (sidebar UI) when the current code needs to be refreshed.',
           ]}
@@ -523,8 +523,8 @@ function ClassroomsContent() {
       <DocSection id="classrooms-nav" title="Quick Links">
         <div style={{ display: 'grid', gap: 7 }}>
           {[
-            { label: 'All Classrooms', href: '/admin/collections/classrooms', desc: 'Browse and edit classrooms' },
-            { label: 'Create Classroom', href: '/admin/collections/classrooms/create', desc: 'New classroom record' },
+            { label: 'All Classrooms', href: '/admin/classrooms', desc: 'Browse and edit classrooms' },
+            { label: 'Create Classroom', href: '/admin/classrooms/new', desc: 'New classroom record' },
             { label: 'Classroom Memberships', href: '/admin/collections/classroom-memberships', desc: 'Enrollment records' },
           ].map(({ label, href, desc }) => (
             <div key={href} style={{ ...card, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
@@ -629,7 +629,7 @@ function SiteManagementContent() {
         </p>
         <BulletList
           items={[
-            <>Create page: <InlineLink href="/admin/collections/pages/create">New Page</InlineLink>.</>,
+            <>Create page: <InlineLink href="/admin/pages/new">New Page</InlineLink>.</>,
             'Reorder pages with drag-and-drop list — confirm Save order in the modal.',
             'Pages support drafts and publishing. Use live preview for content review.',
           ]}
@@ -676,8 +676,8 @@ function SiteManagementContent() {
         <div style={{ display: 'grid', gap: 7 }}>
           {[
             { label: 'Site Management', href: '/admin/site-management', desc: 'Overview & quick actions' },
-            { label: 'All Pages', href: '/admin/collections/pages', desc: 'Browse published pages' },
-            { label: 'Create Page', href: '/admin/collections/pages/create', desc: 'New page' },
+            { label: 'All Pages', href: '/admin/pages', desc: 'Browse published pages' },
+            { label: 'Create Page', href: '/admin/pages/new', desc: 'New page' },
             { label: 'Footer Settings', href: '/admin/globals/footer', desc: 'Footer links & content' },
             { label: 'Admin Help Settings', href: '/admin/globals/admin-help', desc: 'Edit help portal' },
           ].map(({ label, href, desc }) => (
@@ -761,7 +761,7 @@ function TroubleshootingContent() {
             <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 5 }}>Has draft workflow</div>
             <BulletList
               items={[
-                <><InlineLink href="/admin/collections/pages">Pages</InlineLink></>,
+                <><InlineLink href="/admin/pages">Pages</InlineLink></>,
                 <><InlineLink href="/admin/collections/lessons">Lessons</InlineLink></>,
                 <><InlineLink href="/admin/quiz-bank">Quizzes</InlineLink></>,
                 <><InlineLink href="/admin/collections/quiz-questions">Quiz Questions</InlineLink></>,

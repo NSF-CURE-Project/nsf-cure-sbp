@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
-  Award,
+  ArrowRight,
   Bookmark,
-  BookmarkCheck,
-  Flame,
-  PlayCircle,
-  Target,
+  BookOpen,
+  Calculator,
+  CheckCircle2,
+  Clock,
+  Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoginLink } from "@/components/auth/LoginLink";
@@ -16,13 +17,6 @@ import { cn } from "@/lib/utils";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 
 const PAYLOAD_URL = getPayloadBaseUrl();
-const WEEKLY_GOAL_TARGET = 5;
-
-const INTERACTIVE_CARD_CLASS =
-  "transition-all duration-200 hover:-translate-y-[2px] hover:border-primary/60 hover:bg-muted/25 focus-within:ring-2 focus-within:ring-primary/45 focus-within:ring-offset-2 focus-within:ring-offset-background";
-
-const INTERACTIVE_LINK_CLASS =
-  "transition-all duration-200 hover:-translate-y-[2px] hover:border-primary/60 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
 export type LearningLessonIndexEntry = {
   id: string;
@@ -44,9 +38,15 @@ export type LearningClassSummary = {
   lessons: LearningLessonIndexEntry[];
 };
 
+export type LearningPracticeSummary = {
+  enabled: boolean;
+  totalProblems: number;
+};
+
 type Props = {
   lessonIndex: LearningLessonIndexEntry[];
   classSummaries: LearningClassSummary[];
+  practiceSummary?: LearningPracticeSummary;
 };
 
 type AccountUser = {
@@ -89,6 +89,8 @@ type BookmarkDoc = {
 type ResumeSelection = {
   lesson: LearningLessonIndexEntry;
   hint: string;
+  classProgressPercent: number;
+  lessonsRemainingInClass: number;
 };
 
 type SavedLessonItem = {
@@ -96,7 +98,6 @@ type SavedLessonItem = {
   href: string;
   title: string;
   subtitle: string;
-  savedAt?: string;
 };
 
 type RecentActivity = {
@@ -105,6 +106,7 @@ type RecentActivity = {
   title: string;
   breadcrumb: string;
   timeLabel: string;
+  completed: boolean;
 };
 
 type ClassIconVariant = "review" | "statics" | "mechanics" | "default";
@@ -113,318 +115,26 @@ type ClassDashboardCard = {
   key: string;
   classSlug: string;
   title: string;
-  description?: string | null;
+  description: string;
   viewHref: string;
+  firstLessonHref?: string;
   continueHref?: string;
   progressPercent: number;
   completedLessons: number;
+  totalChapters: number;
   totalLessons: number;
   hasProgress: boolean;
   iconVariant: ClassIconVariant;
+  lastActivityAt?: string | null;
 };
 
-type CardProps = {
-  children: React.ReactNode;
-  className?: string;
-};
-
-function Card({ children, className }: CardProps) {
-  return (
-    <article
-      className={cn(
-        "rounded-xl border border-border/70 bg-muted/15 p-4 shadow-sm sm:p-5",
-        className
-      )}
-    >
-      {children}
-    </article>
-  );
-}
-
-type ProgressBarProps = {
-  value: number;
-  className?: string;
-};
-
-function ProgressBar({ value, className }: ProgressBarProps) {
-  const width = Math.max(0, Math.min(100, Math.round(value)));
-
-  return (
-    <div className={cn("h-1.5 w-full rounded-full bg-muted", className)}>
-      <div
-        className="h-1.5 rounded-full bg-primary transition-all duration-200"
-        style={{ width: `${width}%` }}
-      />
-    </div>
-  );
-}
-
-type MetricCardProps = {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  value?: string;
-  detail?: string;
-  footnote?: string;
-  loading: boolean;
-  emptyCopy: string;
-  tone?: "default" | "accent";
-};
-
-function MetricCard({
-  icon: Icon,
-  title,
-  value,
-  detail,
-  footnote,
-  loading,
-  emptyCopy,
-  tone = "default",
-}: MetricCardProps) {
-  const hasValue = !!value;
-
-  return (
-    <div
-      className={cn(
-        "min-h-[132px] rounded-lg border p-3.5 sm:p-4",
-        "transition-colors duration-200",
-        tone === "accent"
-          ? "border-primary/35 bg-primary/10"
-          : "border-border/55 bg-background/35"
-      )}
-    >
-      <div className="mb-2.5 flex items-center gap-2">
-        <Icon className={cn("h-4 w-4", tone === "accent" ? "text-primary" : "text-primary/85")} />
-        <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground/90">
-          {title}
-        </h3>
-      </div>
-
-      {loading ? (
-        <p className="text-sm text-muted-foreground">Loading...</p>
-      ) : hasValue ? (
-        <div className="space-y-1">
-          <p className="text-lg font-semibold text-foreground sm:text-xl">{value}</p>
-          {detail ? <p className="text-xs text-muted-foreground">{detail}</p> : null}
-          {footnote ? (
-            <p className="text-[11px] text-muted-foreground/90">{footnote}</p>
-          ) : null}
-        </div>
-      ) : (
-        <p className="text-xs text-muted-foreground">{emptyCopy}</p>
-      )}
-    </div>
-  );
-}
-
-type ClassCardProps = {
-  title: string;
-  description?: string | null;
-  viewHref: string;
-  continueHref?: string;
-  progressPercent: number;
-  completedLessons: number;
-  totalLessons: number;
-  hasProgress: boolean;
-  iconVariant: ClassIconVariant;
-  featured?: boolean;
-};
-
-function ClassIcon({ variant }: { variant: ClassIconVariant }) {
-  if (variant === "statics") {
-    return (
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 20 20"
-        className="h-4 w-4 text-primary"
-        fill="none"
-      >
-        <path
-          d="M3 14h14M6 14V9l4-3 4 3v5"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-
-  if (variant === "mechanics") {
-    return (
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 20 20"
-        className="h-4 w-4 text-primary"
-        fill="none"
-      >
-        <path
-          d="M5 7h10M6 10h8M7 13h6M4 4h12v12H4z"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-
-  if (variant === "review") {
-    return (
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 20 20"
-        className="h-4 w-4 text-primary"
-        fill="none"
-      >
-        <path
-          d="M4 4h12v12H4zM7 8h6M7 11h4"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 20 20"
-      className="h-4 w-4 text-primary"
-      fill="none"
-    >
-      <path
-        d="M4 5h12M4 10h12M4 15h8"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function ClassCard({
-  title,
-  description,
-  viewHref,
-  continueHref,
-  progressPercent,
-  completedLessons,
-  totalLessons,
-  hasProgress,
-  iconVariant,
-  featured = false,
-}: ClassCardProps) {
-  return (
-    <Card
-      className={cn(
-        "flex h-full flex-col",
-        featured
-          ? "border-primary/45 bg-gradient-to-br from-primary/10 via-background/60 to-background shadow-md"
-          : "bg-muted/10",
-        INTERACTIVE_CARD_CLASS
-      )}
-    >
-      {featured ? (
-        <div className="mb-3 inline-flex w-fit items-center rounded-full border border-primary/35 bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
-          Recommended next
-        </div>
-      ) : null}
-      <div className="mb-3 flex items-center gap-2">
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-primary/30 bg-primary/10">
-          <ClassIcon variant={iconVariant} />
-        </span>
-        <h3 className="text-base font-semibold text-foreground">{title}</h3>
-      </div>
-
-      {description ? (
-        <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">{description}</p>
-      ) : (
-        <p className="mb-4 text-sm text-muted-foreground">
-          Continue building confidence in this class with short, steady sessions.
-        </p>
-      )}
-
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">Progress</span>
-          <span className="font-semibold text-foreground">{progressPercent}%</span>
-        </div>
-        <ProgressBar value={progressPercent} />
-        <p className="text-xs text-muted-foreground">
-          {hasProgress
-            ? `${completedLessons} / ${totalLessons} lessons completed`
-            : totalLessons > 0
-              ? "No progress yet"
-              : "No lessons yet"}
-        </p>
-      </div>
-
-      <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
-        {continueHref ? (
-          <Link
-            href={continueHref}
-            className={cn(
-              "inline-flex items-center gap-1 rounded-lg border border-primary/60 bg-primary px-3.5 py-2 text-sm font-semibold text-primary-foreground",
-              INTERACTIVE_LINK_CLASS
-            )}
-          >
-            Continue
-            <span aria-hidden="true">→</span>
-          </Link>
-        ) : (
-          <span className="inline-flex items-center rounded-lg border border-border/60 bg-background/40 px-3.5 py-2 text-sm text-muted-foreground">
-            Continue
-            <span aria-hidden="true" className="ml-1">
-              →
-            </span>
-          </span>
-        )}
-
-        <Link
-          href={viewHref}
-          className={cn(
-            "inline-flex items-center gap-1 rounded-lg border border-border/60 bg-background/35 px-3.5 py-2 text-sm font-semibold text-foreground",
-            INTERACTIVE_LINK_CLASS
-          )}
-        >
-          View class
-          <span aria-hidden="true">→</span>
-        </Link>
-      </div>
-    </Card>
-  );
-}
-
-type ActivityItemProps = {
-  item: RecentActivity;
-};
-
-function ActivityItem({ item }: ActivityItemProps) {
-  return (
-    <li>
-      <Link
-        href={item.href}
-        className={cn(
-          "block rounded-lg border border-border/60 bg-background/30 px-3 py-2.5",
-          INTERACTIVE_LINK_CLASS
-        )}
-      >
-        <p className="text-sm font-medium text-foreground">{item.title}</p>
-        <p className="text-xs text-muted-foreground">{item.breadcrumb}</p>
-        <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground/90">
-          {item.timeLabel}
-        </p>
-      </Link>
-    </li>
-  );
-}
+// ──────────────────────────────────────────────────────────────
+// Helpers
+// ──────────────────────────────────────────────────────────────
 
 const getRelationId = (value: RelationValue): string | null => {
-  if (typeof value === "string" || typeof value === "number") {
+  if (typeof value === "string" || typeof value === "number")
     return String(value);
-  }
   if (typeof value === "object" && value && "id" in value && value.id != null) {
     return String(value.id);
   }
@@ -454,63 +164,40 @@ const toTimestamp = (value?: string | null) => {
   return Number.isNaN(timestamp) ? 0 : timestamp;
 };
 
-const toLocalDayKey = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  return localDate.toISOString().slice(0, 10);
-};
-
-const getWeekStart = (date: Date) => {
-  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const day = start.getDay();
-  start.setDate(start.getDate() - day);
-  start.setHours(0, 0, 0, 0);
-  return start;
-};
-
 const getFirstName = (user: AccountUser | null) => {
   if (!user) return null;
-
   const raw =
     user.firstName?.trim() ||
     user.fullName?.trim() ||
     user.name?.trim() ||
     user.email?.split("@")[0]?.trim() ||
     "";
-
   if (!raw) return null;
+  return raw.split(/\s+/).find(Boolean) ?? null;
+};
 
-  const first = raw.split(/\s+/).find(Boolean);
-  return first ?? null;
+const getGreetingPrefix = (now: Date): string => {
+  const hours = now.getHours();
+  if (hours < 12) return "Good morning";
+  if (hours < 17) return "Good afternoon";
+  return "Good evening";
 };
 
 const formatRelativeTime = (value?: string | null) => {
   if (!value) return "Recently";
-
   const timestamp = Date.parse(value);
   if (Number.isNaN(timestamp)) return "Recently";
-
   const deltaMs = Date.now() - timestamp;
-  if (deltaMs < 0) return "Recently";
+  if (deltaMs < 0) return "Just now";
 
   const minutes = Math.floor(deltaMs / (1000 * 60));
   const hours = Math.floor(deltaMs / (1000 * 60 * 60));
   const days = Math.floor(deltaMs / (1000 * 60 * 60 * 24));
 
-  if (minutes < 60) {
-    const shown = Math.max(minutes, 1);
-    return `${shown}m ago`;
-  }
-
-  if (hours < 24) {
-    return `${hours}h ago`;
-  }
-
-  if (days < 8) {
-    return `${days}d ago`;
-  }
-
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 8) return `${days}d ago`;
   return new Date(timestamp).toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
@@ -525,10 +212,314 @@ const pickClassIconVariant = (title: string): ClassIconVariant => {
   return "default";
 };
 
-export function LearningPersonalization({ lessonIndex, classSummaries }: Props) {
+const fallbackCourseDescription = (
+  variant: ClassIconVariant,
+  hasLessons: boolean
+): string => {
+  if (variant === "review") {
+    return "Foundational algebra, trigonometry, vectors, and free-body diagram essentials for engineering courses.";
+  }
+  if (variant === "statics") {
+    return "Force systems, particle and rigid-body equilibrium, structural analysis, internal forces, and moments of inertia.";
+  }
+  if (variant === "mechanics") {
+    return "Stress, strain, axial loading, torsion, beam bending, combined loading, and deflection of deformable bodies.";
+  }
+  return hasLessons
+    ? "Structured chapters, guided examples, and conceptual checks."
+    : "Course modules and worked examples are currently being prepared.";
+};
+
+// ──────────────────────────────────────────────────────────────
+// Atoms
+// ──────────────────────────────────────────────────────────────
+
+function ProgressBar({
+  value,
+  className,
+  tone = "primary",
+}: {
+  value: number;
+  className?: string;
+  tone?: "primary" | "emerald";
+}) {
+  const width = Math.max(0, Math.min(100, Math.round(value)));
+  const fill = tone === "emerald" ? "bg-emerald-600" : "bg-primary";
+  return (
+    <div
+      className={cn(
+        "h-1.5 w-full overflow-hidden rounded-full bg-muted/80",
+        className
+      )}
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={width}
+    >
+      <div
+        className={cn(
+          "h-1.5 rounded-full transition-[width] duration-300 ease-out",
+          fill
+        )}
+        style={{ width: `${width}%` }}
+      />
+    </div>
+  );
+}
+
+function ClassIcon({ variant }: { variant: ClassIconVariant }) {
+  const common = {
+    "aria-hidden": "true" as const,
+    viewBox: "0 0 20 20",
+    className: "h-4 w-4",
+    fill: "none" as const,
+  };
+  if (variant === "statics") {
+    return (
+      <svg {...common}>
+        <path
+          d="M3 14h14M6 14V9l4-3 4 3v5"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+  if (variant === "mechanics") {
+    return (
+      <svg {...common}>
+        <path
+          d="M5 7h10M6 10h8M7 13h6M4 4h12v12H4z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+  if (variant === "review") {
+    return (
+      <svg {...common}>
+        <path
+          d="M4 4h12v12H4zM7 8h6M7 11h4"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+  return (
+    <svg {...common}>
+      <path
+        d="M4 5h12M4 10h12M4 15h8"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────
+// Course Card
+// ──────────────────────────────────────────────────────────────
+
+type ClassCardProps = {
+  card: ClassDashboardCard;
+  signedIn: boolean;
+  isPrimaryAction: boolean;
+  lastActivityLabel: string | null;
+};
+
+function ClassCard({
+  card,
+  signedIn,
+  isPrimaryAction,
+  lastActivityLabel,
+}: ClassCardProps) {
+  const {
+    title,
+    description,
+    viewHref,
+    continueHref,
+    progressPercent,
+    completedLessons,
+    totalChapters,
+    totalLessons,
+    hasProgress,
+    iconVariant,
+  } = card;
+
+  const isEmptyCourse = totalLessons === 0;
+  const isComplete = signedIn && hasProgress && progressPercent >= 100;
+
+  if (isEmptyCourse) {
+    return (
+      <article className="flex h-full flex-col justify-between rounded-xl border border-border/65 bg-muted/[0.16] p-5 dark:bg-muted/[0.08]">
+        <div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background/80 text-muted-foreground">
+              <ClassIcon variant={iconVariant} />
+            </span>
+            <span className="inline-flex items-center rounded-full border border-border/70 bg-background/70 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+              Coming soon
+            </span>
+          </div>
+
+          <h3 className="mt-3.5 text-[17px] font-semibold tracking-tight text-foreground/90">
+            {title}
+          </h3>
+          <p className="mt-1.5 line-clamp-3 text-[13.5px] leading-relaxed text-muted-foreground">
+            {description}
+          </p>
+        </div>
+
+        <div className="mt-5 flex items-center justify-between border-t border-border/60 pt-3.5 text-xs">
+          <span className="text-muted-foreground">
+            Curriculum in preparation
+          </span>
+          <Link
+            href={viewHref}
+            className="inline-flex items-center gap-1 font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Overview
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      </article>
+    );
+  }
+
+  const chapterText =
+    totalChapters > 0
+      ? `${totalChapters} ${totalChapters === 1 ? "chapter" : "chapters"}`
+      : null;
+  const lessonText = `${totalLessons} ${totalLessons === 1 ? "lesson" : "lessons"}`;
+  const scopeLabel = chapterText ? `${chapterText} · ${lessonText}` : lessonText;
+
+  const actionHref = signedIn && continueHref ? continueHref : viewHref;
+  const actionLabel =
+    signedIn && continueHref
+      ? "Continue"
+      : signedIn && hasProgress
+        ? "Open course"
+        : "Start course";
+
+  return (
+    <article
+      className={cn(
+        "group flex h-full flex-col justify-between rounded-xl border bg-card p-5 transition-[border-color,box-shadow] duration-150",
+        "hover:border-primary/35 hover:shadow-[0_6px_20px_rgba(16,24,40,0.06)]",
+        isPrimaryAction ? "border-primary/30" : "border-border/80"
+      )}
+    >
+      <div>
+        <div className="flex items-center justify-between gap-3">
+          <span
+            className={cn(
+              "inline-flex size-9 shrink-0 items-center justify-center rounded-lg border text-primary",
+              isPrimaryAction
+                ? "border-primary/25 bg-primary/[0.07]"
+                : "border-border/75 bg-muted/30"
+            )}
+          >
+            <ClassIcon variant={iconVariant} />
+          </span>
+
+          {isComplete ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-600/25 bg-emerald-600/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+              <CheckCircle2 className="h-3 w-3" />
+              Completed
+            </span>
+          ) : signedIn && hasProgress ? (
+            <span className="inline-flex items-center rounded-full border border-primary/25 bg-primary/[0.06] px-2.5 py-0.5 text-[11px] font-medium text-primary">
+              In progress
+            </span>
+          ) : (
+            <span className="text-xs font-medium text-muted-foreground">
+              {scopeLabel}
+            </span>
+          )}
+        </div>
+
+        <h3 className="mt-3.5 text-[17px] font-semibold tracking-tight text-foreground">
+          {title}
+        </h3>
+        <p className="mt-1.5 line-clamp-3 text-[13.5px] leading-relaxed text-muted-foreground">
+          {description}
+        </p>
+      </div>
+
+      <div className="mt-5 flex flex-col gap-3.5 border-t border-border/60 pt-3.5">
+        {signedIn ? (
+          <div className="space-y-2">
+            <div className="flex items-baseline justify-between gap-2 text-xs">
+              <span className="text-muted-foreground">
+                <span className="font-medium tabular-nums text-foreground">
+                  {completedLessons}
+                </span>{" "}
+                of {totalLessons} lessons completed
+              </span>
+              <span className="font-semibold tabular-nums text-foreground">
+                {progressPercent}%
+              </span>
+            </div>
+            <ProgressBar
+              value={progressPercent}
+              tone={isComplete ? "emerald" : "primary"}
+            />
+            {lastActivityLabel ? (
+              <p className="text-[11.5px] text-muted-foreground">
+                Last active {lastActivityLabel}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className="flex items-center gap-2">
+          <Button
+            asChild
+            variant={isPrimaryAction ? "default" : "outline"}
+            size="sm"
+            className="flex-1 rounded-lg shadow-none"
+          >
+            <Link href={actionHref}>
+              {actionLabel}
+              <ArrowRight className="h-3.5 w-3.5 transition-transform duration-150 group-hover:translate-x-0.5" />
+            </Link>
+          </Button>
+          {signedIn && continueHref ? (
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              className="rounded-lg text-muted-foreground hover:text-foreground"
+            >
+              <Link href={viewHref}>Outline</Link>
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────
+// Main component
+// ──────────────────────────────────────────────────────────────
+
+export function LearningPersonalization({
+  lessonIndex,
+  classSummaries,
+  practiceSummary,
+}: Props) {
   const [user, setUser] = useState<AccountUser | null>(null);
   const [resolvedUser, setResolvedUser] = useState(false);
-  const [loadingData, setLoadingData] = useState(false);
   const [progressDocs, setProgressDocs] = useState<ProgressDoc[]>([]);
   const [bookmarkDocs, setBookmarkDocs] = useState<BookmarkDoc[]>([]);
 
@@ -543,14 +534,23 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
     return map;
   }, [orderedLessons]);
 
+  const activeProgressDocs = useMemo(
+    () => (user?.id ? progressDocs : []),
+    [progressDocs, user?.id]
+  );
+  const activeBookmarkDocs = useMemo(
+    () => (user?.id ? bookmarkDocs : []),
+    [bookmarkDocs, user?.id]
+  );
+
   const progressByActivity = useMemo(
     () =>
-      [...progressDocs].sort((a, b) => {
+      [...activeProgressDocs].sort((a, b) => {
         const aStamp = toTimestamp(a.updatedAt ?? a.completedAt);
         const bStamp = toTimestamp(b.updatedAt ?? b.completedAt);
         return bStamp - aStamp;
       }),
-    [progressDocs]
+    [activeProgressDocs]
   );
 
   useEffect(() => {
@@ -568,13 +568,9 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
         const data = (await res.json()) as { user?: AccountUser };
         setUser(data?.user ?? null);
       } catch {
-        if (!controller.signal.aborted) {
-          setUser(null);
-        }
+        if (!controller.signal.aborted) setUser(null);
       } finally {
-        if (!controller.signal.aborted) {
-          setResolvedUser(true);
-        }
+        if (!controller.signal.aborted) setResolvedUser(true);
       }
     };
     loadUser();
@@ -582,22 +578,19 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
   }, []);
 
   useEffect(() => {
-    if (!user?.id) {
-      setProgressDocs([]);
-      setBookmarkDocs([]);
-      setLoadingData(false);
-      return;
-    }
+    if (!user?.id) return;
 
     const controller = new AbortController();
     const loadPersonalizationData = async () => {
-      setLoadingData(true);
       try {
         const [progressRes, bookmarksRes] = await Promise.all([
-          fetch(`${PAYLOAD_URL}/api/lesson-progress?limit=500&sort=-updatedAt`, {
-            credentials: "include",
-            signal: controller.signal,
-          }),
+          fetch(
+            `${PAYLOAD_URL}/api/lesson-progress?limit=500&sort=-updatedAt`,
+            {
+              credentials: "include",
+              signal: controller.signal,
+            }
+          ),
           fetch(
             `${PAYLOAD_URL}/api/lesson-bookmarks?limit=100&sort=-updatedAt&depth=2`,
             {
@@ -629,10 +622,6 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
           setProgressDocs([]);
           setBookmarkDocs([]);
         }
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoadingData(false);
-        }
       }
     };
 
@@ -642,182 +631,35 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
 
   const completedLessonIds = useMemo(() => {
     const ids = new Set<string>();
-    progressDocs.forEach((doc) => {
+    activeProgressDocs.forEach((doc) => {
       if (!doc.completed) return;
       const lessonId = getRelationId(doc.lesson);
       if (lessonId) ids.add(lessonId);
     });
     return ids;
-  }, [progressDocs]);
+  }, [activeProgressDocs]);
 
   const completedCount = completedLessonIds.size;
 
-  const weeklyGoal = useMemo(() => {
-    const weekStart = getWeekStart(new Date());
-    const seen = new Set<string>();
-
-    progressDocs.forEach((doc) => {
-      if (!doc.completed) return;
+  const lastActivityByClassSlug = useMemo(() => {
+    const map = new Map<string, string>();
+    progressByActivity.forEach((doc) => {
       const lessonId = getRelationId(doc.lesson);
-      const stamp = doc.completedAt ?? doc.updatedAt;
-      if (!lessonId || !stamp) return;
-      const completionDate = new Date(stamp);
-      if (Number.isNaN(completionDate.getTime())) return;
-      if (completionDate >= weekStart) {
-        seen.add(lessonId);
-      }
-    });
-
-    const completedThisWeek = seen.size;
-    const progress = Math.min(completedThisWeek / WEEKLY_GOAL_TARGET, 1);
-
-    return {
-      completedThisWeek,
-      progress,
-      remaining: Math.max(WEEKLY_GOAL_TARGET - completedThisWeek, 0),
-      reached: completedThisWeek >= WEEKLY_GOAL_TARGET,
-    };
-  }, [progressDocs]);
-
-  const streak = useMemo(() => {
-    const daySet = new Set<string>();
-
-    progressDocs.forEach((doc) => {
+      if (!lessonId) return;
+      const lesson = lessonsById.get(lessonId);
+      if (!lesson) return;
+      if (map.has(lesson.classSlug)) return;
       const stamp = doc.updatedAt ?? doc.completedAt;
-      if (!stamp) return;
-      const key = toLocalDayKey(stamp);
-      if (key) daySet.add(key);
+      if (stamp) map.set(lesson.classSlug, stamp);
     });
-
-    if (!daySet.size) return { count: 0, activeToday: false };
-
-    const today = new Date();
-    const todayKey = toLocalDayKey(today.toISOString());
-    const cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    let count = 0;
-
-    while (true) {
-      const key = toLocalDayKey(cursor.toISOString());
-      if (!key || !daySet.has(key)) break;
-      count += 1;
-      cursor.setDate(cursor.getDate() - 1);
-    }
-
-    return {
-      count,
-      activeToday: !!todayKey && daySet.has(todayKey),
-    };
-  }, [progressDocs]);
-
-  const milestoneBadges = useMemo(() => {
-    const tiers = [1, 3, 5, 10, 20];
-    return tiers.map((tier) => ({
-      tier,
-      earned: completedCount >= tier,
-    }));
-  }, [completedCount]);
-
-  const resumeSelection = useMemo<ResumeSelection | null>(() => {
-    if (!orderedLessons.length) return null;
-
-    const inProgress = progressByActivity.find((doc) => {
-      if (doc.completed) return false;
-      const lessonId = getRelationId(doc.lesson);
-      return !!lessonId && lessonsById.has(lessonId);
-    });
-
-    if (inProgress) {
-      const lessonId = getRelationId(inProgress.lesson);
-      if (lessonId) {
-        const lesson = lessonsById.get(lessonId);
-        if (lesson) {
-          return {
-            lesson,
-            hint: "Return to your current lesson and continue where you paused.",
-          };
-        }
-      }
-    }
-
-    const mostRecent = progressByActivity.find((doc) => {
-      const lessonId = getRelationId(doc.lesson);
-      return !!lessonId && lessonsById.has(lessonId);
-    });
-
-    if (mostRecent) {
-      const recentId = getRelationId(mostRecent.lesson);
-      if (recentId) {
-        const recentIndex = orderedLessons.findIndex((lesson) => lesson.id === recentId);
-        if (recentIndex >= 0) {
-          const nextIncomplete = orderedLessons
-            .slice(recentIndex + 1)
-            .find((lesson) => !completedLessonIds.has(lesson.id));
-
-            if (nextIncomplete) {
-              return {
-                lesson: nextIncomplete,
-                hint: "Recommended next lesson based on your latest activity.",
-              };
-            }
-
-          const current = orderedLessons[recentIndex];
-          if (current) {
-            return {
-              lesson: current,
-              hint: "Pick up from your most recently viewed lesson.",
-            };
-          }
-        }
-      }
-    }
-
-    return null;
-  }, [completedLessonIds, lessonsById, orderedLessons, progressByActivity]);
-
-  const savedLessons = useMemo<SavedLessonItem[]>(() => {
-    const dedupe = new Set<string>();
-    const items: SavedLessonItem[] = [];
-
-    [...bookmarkDocs]
-      .sort((a, b) => toTimestamp(b.updatedAt) - toTimestamp(a.updatedAt))
-      .forEach((bookmark) => {
-        const lessonId = getRelationId(bookmark.lesson);
-        const fromIndex = lessonId ? lessonsById.get(lessonId) : undefined;
-        const lessonObject = getRelationObject(bookmark.lesson);
-
-        const lessonTitle =
-          fromIndex?.title ??
-          getRelationTitle(bookmark.lesson) ??
-          lessonObject?.title ??
-          "Saved lesson";
-        const lessonSlug = fromIndex?.slug ?? getRelationSlug(bookmark.lesson) ?? null;
-        const classSlug = fromIndex?.classSlug ?? getRelationSlug(bookmark.class) ?? null;
-        const classTitle =
-          fromIndex?.classTitle ?? getRelationTitle(bookmark.class) ?? "Learning";
-        const chapterTitle =
-          fromIndex?.chapterTitle ?? getRelationTitle(bookmark.chapter) ?? "";
-
-        if (!lessonSlug || !classSlug) return;
-
-        const key = lessonId ?? `${classSlug}/${lessonSlug}`;
-        if (dedupe.has(key)) return;
-        dedupe.add(key);
-
-        items.push({
-          key,
-          href: `/classes/${classSlug}/lessons/${lessonSlug}`,
-          title: lessonTitle,
-          subtitle: chapterTitle ? `${classTitle} · ${chapterTitle}` : classTitle,
-          savedAt: bookmark.updatedAt,
-        });
-      });
-
-    return items.slice(0, 8);
-  }, [bookmarkDocs, lessonsById]);
+    return map;
+  }, [lessonsById, progressByActivity]);
 
   const classDashboardCards = useMemo<ClassDashboardCard[]>(() => {
     return classSummaries.map((classSummary) => {
-      const lessonIdSet = new Set(classSummary.lessons.map((lesson) => lesson.id));
+      const lessonIdSet = new Set(
+        classSummary.lessons.map((lesson) => lesson.id)
+      );
       const completedLessons = classSummary.lessons.filter((lesson) =>
         completedLessonIds.has(lesson.id)
       ).length;
@@ -831,50 +673,191 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
         const lessonId = getRelationId(doc.lesson);
         return !!lessonId && lessonIdSet.has(lessonId);
       });
+      const inProgressId = inProgressDoc
+        ? getRelationId(inProgressDoc.lesson)
+        : null;
+      const inProgressLesson = inProgressId
+        ? lessonsById.get(inProgressId)
+        : null;
 
-      const inProgressId = inProgressDoc ? getRelationId(inProgressDoc.lesson) : null;
-      const inProgressLesson = inProgressId ? lessonsById.get(inProgressId) : null;
+      const firstLesson = classSummary.lessons[0];
+      const iconVariant = pickClassIconVariant(classSummary.title);
+      const trimmedDesc = classSummary.description?.trim();
 
       return {
         key: classSummary.id,
         classSlug: classSummary.slug,
         title: classSummary.title,
-        description: classSummary.description,
-        viewHref: classSummary.slug ? `/classes/${classSummary.slug}` : "/learning",
+        description:
+          trimmedDesc || fallbackCourseDescription(iconVariant, totalLessons > 0),
+        viewHref: classSummary.slug
+          ? `/classes/${classSummary.slug}`
+          : "/learning",
+        firstLessonHref: firstLesson
+          ? `/classes/${firstLesson.classSlug}/lessons/${firstLesson.slug}`
+          : undefined,
         continueHref: inProgressLesson
           ? `/classes/${inProgressLesson.classSlug}/lessons/${inProgressLesson.slug}`
           : undefined,
         progressPercent,
         completedLessons,
+        totalChapters: classSummary.totalChapters,
         totalLessons,
-        hasProgress: completedLessons > 0,
-        iconVariant: pickClassIconVariant(classSummary.title),
+        hasProgress: completedLessons > 0 || !!inProgressLesson,
+        iconVariant,
+        lastActivityAt: lastActivityByClassSlug.get(classSummary.slug) ?? null,
       };
     });
-  }, [classSummaries, completedLessonIds, lessonsById, progressByActivity]);
+  }, [
+    classSummaries,
+    completedLessonIds,
+    lastActivityByClassSlug,
+    lessonsById,
+    progressByActivity,
+  ]);
 
   const classProgressBySlug = useMemo(() => {
     const map = new Map<string, number>();
     classDashboardCards.forEach((item) => {
-      if (item.classSlug) {
-        map.set(item.classSlug, item.progressPercent);
-      }
+      if (item.classSlug) map.set(item.classSlug, item.progressPercent);
     });
     return map;
   }, [classDashboardCards]);
 
+  const resumeSelection = useMemo<ResumeSelection | null>(() => {
+    if (!orderedLessons.length) return null;
+
+    const findClassData = (lesson: LearningLessonIndexEntry) => {
+      const classCard = classDashboardCards.find(
+        (item) => item.classSlug === lesson.classSlug
+      );
+      const classProgressPercent =
+        classProgressBySlug.get(lesson.classSlug) ??
+        classCard?.progressPercent ??
+        0;
+      const lessonsRemainingInClass = classCard
+        ? Math.max(classCard.totalLessons - classCard.completedLessons, 0)
+        : 0;
+      return { classProgressPercent, lessonsRemainingInClass };
+    };
+
+    const inProgress = progressByActivity.find((doc) => {
+      if (doc.completed) return false;
+      const lessonId = getRelationId(doc.lesson);
+      return !!lessonId && lessonsById.has(lessonId);
+    });
+    if (inProgress) {
+      const lessonId = getRelationId(inProgress.lesson);
+      if (lessonId) {
+        const lesson = lessonsById.get(lessonId);
+        if (lesson) {
+          const meta = findClassData(lesson);
+          return {
+            lesson,
+            hint: "Continue where you paused",
+            ...meta,
+          };
+        }
+      }
+    }
+
+    const mostRecent = progressByActivity.find((doc) => {
+      const lessonId = getRelationId(doc.lesson);
+      return !!lessonId && lessonsById.has(lessonId);
+    });
+    if (mostRecent) {
+      const recentId = getRelationId(mostRecent.lesson);
+      if (recentId) {
+        const recentIndex = orderedLessons.findIndex(
+          (lesson) => lesson.id === recentId
+        );
+        if (recentIndex >= 0) {
+          const nextIncomplete = orderedLessons
+            .slice(recentIndex + 1)
+            .find((lesson) => !completedLessonIds.has(lesson.id));
+          if (nextIncomplete) {
+            const meta = findClassData(nextIncomplete);
+            return {
+              lesson: nextIncomplete,
+              hint: "Next recommended lesson",
+              ...meta,
+            };
+          }
+          const current = orderedLessons[recentIndex];
+          if (current) {
+            const meta = findClassData(current);
+            return {
+              lesson: current,
+              hint: "Most recently viewed lesson",
+              ...meta,
+            };
+          }
+        }
+      }
+    }
+
+    return null;
+  }, [
+    classDashboardCards,
+    classProgressBySlug,
+    completedLessonIds,
+    lessonsById,
+    orderedLessons,
+    progressByActivity,
+  ]);
+
+  const savedLessons = useMemo<SavedLessonItem[]>(() => {
+    const dedupe = new Set<string>();
+    const items: SavedLessonItem[] = [];
+    [...activeBookmarkDocs]
+      .sort((a, b) => toTimestamp(b.updatedAt) - toTimestamp(a.updatedAt))
+      .forEach((bookmark) => {
+        const lessonId = getRelationId(bookmark.lesson);
+        const fromIndex = lessonId ? lessonsById.get(lessonId) : undefined;
+        const lessonObject = getRelationObject(bookmark.lesson);
+
+        const lessonTitle =
+          fromIndex?.title ??
+          getRelationTitle(bookmark.lesson) ??
+          lessonObject?.title ??
+          "Saved lesson";
+        const lessonSlug =
+          fromIndex?.slug ?? getRelationSlug(bookmark.lesson) ?? null;
+        const classSlug =
+          fromIndex?.classSlug ?? getRelationSlug(bookmark.class) ?? null;
+        const classTitle =
+          fromIndex?.classTitle ??
+          getRelationTitle(bookmark.class) ??
+          "Learning";
+        const chapterTitle =
+          fromIndex?.chapterTitle ?? getRelationTitle(bookmark.chapter) ?? "";
+
+        if (!lessonSlug || !classSlug) return;
+        const key = lessonId ?? `${classSlug}/${lessonSlug}`;
+        if (dedupe.has(key)) return;
+        dedupe.add(key);
+
+        items.push({
+          key,
+          href: `/classes/${classSlug}/lessons/${lessonSlug}`,
+          title: lessonTitle,
+          subtitle: chapterTitle
+            ? `${classTitle} · ${chapterTitle}`
+            : classTitle,
+        });
+      });
+    return items.slice(0, 5);
+  }, [activeBookmarkDocs, lessonsById]);
+
   const recentActivity = useMemo<RecentActivity[]>(() => {
     const items: RecentActivity[] = [];
     const seen = new Set<string>();
-
     progressByActivity.forEach((doc) => {
       if (items.length >= 5) return;
       const lessonId = getRelationId(doc.lesson);
       if (!lessonId || seen.has(lessonId)) return;
-
       const lesson = lessonsById.get(lessonId);
       if (!lesson) return;
-
       const stamp = doc.updatedAt ?? doc.completedAt;
       seen.add(lessonId);
       items.push({
@@ -883,279 +866,403 @@ export function LearningPersonalization({ lessonIndex, classSummaries }: Props) 
         title: lesson.title,
         breadcrumb: `${lesson.classTitle} · ${lesson.chapterTitle}`,
         timeLabel: formatRelativeTime(stamp),
+        completed: !!doc.completed,
       });
     });
-
     return items;
   }, [lessonsById, progressByActivity]);
 
   const firstName = getFirstName(user);
-  const greeting = firstName ? `Welcome back, ${firstName}` : "Welcome back";
+  const greetingPrefix = useMemo(() => getGreetingPrefix(new Date()), []);
+  const signedInEyebrow = firstName
+    ? `${greetingPrefix}, ${firstName}`
+    : greetingPrefix;
 
-  const heroProgress = resumeSelection
-    ? classProgressBySlug.get(resumeSelection.lesson.classSlug) ?? 0
-    : 0;
   const totalLessonCount = orderedLessons.length;
-  const overallProgramProgress = totalLessonCount
-    ? Math.round((completedCount / totalLessonCount) * 100)
-    : 0;
+  const activeCourseCount = classDashboardCards.filter(
+    (c) => c.totalLessons > 0
+  ).length;
+  const totalCourseCount = classDashboardCards.length;
 
-  const loadingState = !resolvedUser || loadingData;
-  const earnedBadgeCount = milestoneBadges.filter((badge) => badge.earned).length;
-  const firstClassHref = classDashboardCards[0]?.viewHref ?? "/learning";
+  // Highlight the active resume course when signed in with progress;
+  // otherwise all courses with published lessons share a consistent primary CTA.
+  const featuredClassSlug =
+    user && resumeSelection?.lesson.classSlug
+      ? resumeSelection.lesson.classSlug
+      : null;
+
+  const showPersonalLists =
+    !!user && (savedLessons.length > 0 || recentActivity.length > 0);
+  const bothPersonalLists =
+    !!user && savedLessons.length > 0 && recentActivity.length > 0;
 
   return (
-    <section className="mt-0 space-y-6">
-      <div className="space-y-1 border-b border-border/60 pb-4">
-        <h2 className="text-lg font-medium text-foreground/90 sm:text-xl">
-          {greeting}
-        </h2>
-        <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          Continue your SBP coursework, review momentum, and pick up your next lesson.
+    <div className="flex flex-col gap-8">
+      {/* Header */}
+      <header className="border-b border-border/70 pb-5">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          {user ? signedInEyebrow : "Summer Bridge Curriculum"}
         </p>
-      </div>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          Learning Portal
+        </h1>
+        <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          Explore engineering coursework, work through guided lessons, and check
+          your understanding with interactive practice problems.
+        </p>
 
-      <section className="grid gap-4">
-        <Card
-          className={cn(
-            "overflow-hidden border-primary/35 bg-gradient-to-r from-primary/20 via-background/50 to-secondary/20 shadow-sm",
-            INTERACTIVE_CARD_CLASS
-          )}
-        >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-primary">
-                <PlayCircle className="h-3.5 w-3.5" />
-                Resume learning
-              </div>
-
-              {loadingState ? (
-                <p className="text-sm text-muted-foreground">Loading your next lesson...</p>
-              ) : user && resumeSelection ? (
-                <div className="space-y-2">
-                  <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
-                    {resumeSelection.lesson.title}
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    {resumeSelection.lesson.classTitle} · {resumeSelection.lesson.chapterTitle}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    You are {heroProgress}% through {resumeSelection.lesson.classTitle}.
-                  </p>
-                  <p className="text-sm text-muted-foreground">{resumeSelection.hint}</p>
-                </div>
-              ) : user ? (
-                <div className="space-y-1.5">
-                  <p className="text-sm text-muted-foreground">
-                    You have not started a lesson yet this session.
-                  </p>
-                  <p className="text-xs text-muted-foreground/90">
-                    Open any class below and we will recommend your next step here.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-1.5">
-                  <p className="text-sm text-muted-foreground">
-                    Sign in to continue from your last lesson.
-                  </p>
-                  <p className="text-xs text-muted-foreground/90">
-                    Progress, bookmarks, and weekly momentum are tied to your account.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-col items-stretch gap-3 sm:items-end">
-              {user && resumeSelection ? (
-                <Button
-                  asChild
-                  className={cn(
-                    "rounded-lg px-4 focus-visible:ring-primary/55 focus-visible:ring-offset-2",
-                    "hover:-translate-y-[2px] transition-all duration-200"
-                  )}
-                >
-                  <Link
-                    href={`/classes/${resumeSelection.lesson.classSlug}/lessons/${resumeSelection.lesson.slug}`}
-                  >
-                    Resume lesson
-                    <span aria-hidden="true">→</span>
-                  </Link>
-                </Button>
-              ) : user ? (
-                <Button
-                  asChild
-                  variant="outline"
-                  className={cn(
-                    "rounded-lg border-border/70 bg-background/50 text-foreground",
-                    "hover:border-primary/50 hover:bg-background/80 focus-visible:ring-primary/45"
-                  )}
-                >
-                  <Link href={firstClassHref}>Browse classes</Link>
-                </Button>
-              ) : (
-                <Button
-                  asChild
-                  variant="outline"
-                  className={cn(
-                    "rounded-lg border-border/70 bg-background/50 text-foreground",
-                    "hover:border-primary/50 hover:bg-background/80 focus-visible:ring-primary/45"
-                  )}
-                >
-                  <LoginLink>Sign in</LoginLink>
-                </Button>
-              )}
-
-              {user ? (
-                <div className="grid grid-cols-2 gap-2 text-xs sm:w-[230px]">
-                  <div className="rounded-md border border-border/60 bg-background/40 px-2.5 py-2">
-                    <p className="uppercase tracking-[0.08em] text-muted-foreground">Program</p>
-                    <p className="mt-1 text-sm font-semibold text-foreground">
-                      {overallProgramProgress}%
-                    </p>
-                  </div>
-                  <div className="rounded-md border border-border/60 bg-background/40 px-2.5 py-2">
-                    <p className="uppercase tracking-[0.08em] text-muted-foreground">Saved</p>
-                    <p className="mt-1 text-sm font-semibold text-foreground">
-                      {savedLessons.length}
-                    </p>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          {user && resumeSelection ? (
-            <div className="mt-4">
-              <ProgressBar value={heroProgress} />
+        <dl className="mt-3.5 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[13px] text-muted-foreground">
+          {totalCourseCount > 0 ? (
+            <div className="inline-flex items-center gap-1.5">
+              <Layers className="h-3.5 w-3.5 text-primary/75" />
+              <dt className="sr-only">Courses</dt>
+              <dd>
+                <span className="font-semibold tabular-nums text-foreground">
+                  {totalCourseCount}
+                </span>{" "}
+                {totalCourseCount === 1 ? "course" : "courses"}
+                {activeCourseCount > 0 && activeCourseCount < totalCourseCount
+                  ? ` (${activeCourseCount} active)`
+                  : ""}
+              </dd>
             </div>
           ) : null}
-        </Card>
-      </section>
 
-      <section className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-foreground/80">
-            Program snapshot
+          {totalLessonCount > 0 ? (
+            <div className="inline-flex items-center gap-1.5">
+              <BookOpen className="h-3.5 w-3.5 text-primary/75" />
+              <dt className="sr-only">Lessons</dt>
+              <dd>
+                <span className="font-semibold tabular-nums text-foreground">
+                  {totalLessonCount}
+                </span>{" "}
+                {totalLessonCount === 1 ? "lesson" : "lessons"}
+              </dd>
+            </div>
+          ) : null}
+
+          {practiceSummary?.enabled && practiceSummary.totalProblems > 0 ? (
+            <div className="inline-flex items-center gap-1.5">
+              <Calculator className="h-3.5 w-3.5 text-primary/75" />
+              <dt className="sr-only">Practice problems</dt>
+              <dd>
+                <span className="font-semibold tabular-nums text-foreground">
+                  {practiceSummary.totalProblems}
+                </span>{" "}
+                practice problems
+              </dd>
+            </div>
+          ) : null}
+
+          {user && completedCount > 0 && totalLessonCount > 0 ? (
+            <div className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary/75" />
+              <dt className="sr-only">Completed</dt>
+              <dd>
+                <span className="font-semibold tabular-nums text-foreground">
+                  {completedCount}/{totalLessonCount}
+                </span>{" "}
+                completed
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+      </header>
+
+      {/* Signed-in Continue Card */}
+      {user && resumeSelection ? (
+        <section aria-label="Continue learning">
+          <article className="flex flex-col justify-between gap-5 rounded-xl border border-primary/25 bg-primary/[0.03] p-5 sm:flex-row sm:items-center sm:px-6 dark:bg-primary/[0.06]">
+            <div className="min-w-0 flex-1 space-y-2.5">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                <span className="font-semibold uppercase tracking-[0.12em] text-primary">
+                  {resumeSelection.hint}
+                </span>
+                <span aria-hidden="true" className="text-muted-foreground/50">
+                  ·
+                </span>
+                <span className="text-muted-foreground">
+                  {resumeSelection.lesson.classTitle} ·{" "}
+                  {resumeSelection.lesson.chapterTitle}
+                </span>
+              </div>
+
+              <h2 className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+                {resumeSelection.lesson.title}
+              </h2>
+
+              <div className="max-w-md space-y-1.5 pt-0.5">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>
+                    {resumeSelection.classProgressPercent}% through{" "}
+                    {resumeSelection.lesson.classTitle}
+                  </span>
+                  {resumeSelection.lessonsRemainingInClass > 0 ? (
+                    <span>
+                      {resumeSelection.lessonsRemainingInClass}{" "}
+                      {resumeSelection.lessonsRemainingInClass === 1
+                        ? "lesson"
+                        : "lessons"}{" "}
+                      remaining
+                    </span>
+                  ) : null}
+                </div>
+                <ProgressBar value={resumeSelection.classProgressPercent} />
+              </div>
+            </div>
+
+            <div className="flex shrink-0 flex-wrap items-center gap-2.5">
+              <Button asChild className="rounded-lg shadow-none">
+                <Link
+                  href={`/classes/${resumeSelection.lesson.classSlug}/lessons/${resumeSelection.lesson.slug}`}
+                >
+                  Resume lesson
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="rounded-lg bg-background/80 shadow-none"
+              >
+                <Link href={`/classes/${resumeSelection.lesson.classSlug}`}>
+                  Course outline
+                </Link>
+              </Button>
+            </div>
+          </article>
+        </section>
+      ) : null}
+
+      {/* Courses */}
+      <section className="space-y-3.5" aria-labelledby="lp-courses-heading">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2
+            id="lp-courses-heading"
+            className="text-lg font-semibold tracking-tight text-foreground"
+          >
+            Courses
           </h2>
-          <span className="text-xs text-muted-foreground">
-            Weekly signals and learning health
-          </span>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          icon={Target}
-          title="Weekly Goal"
-          loading={loadingState}
-          value={user ? `${weeklyGoal.completedThisWeek} / ${WEEKLY_GOAL_TARGET}` : undefined}
-          detail={user ? "Lessons completed this week" : undefined}
-          footnote={
-            user
-              ? weeklyGoal.reached
-                ? "Goal reached this week."
-                : `${weeklyGoal.remaining} lesson${weeklyGoal.remaining === 1 ? "" : "s"} to go.`
-              : undefined
-          }
-          emptyCopy="Sign in to view weekly lesson goals."
-          tone="accent"
-        />
-
-        <MetricCard
-          icon={Flame}
-          title="Learning Streak"
-          loading={loadingState}
-          value={user ? `${streak.count} day${streak.count === 1 ? "" : "s"}` : undefined}
-          detail={user ? (streak.activeToday ? "Active today" : "Not active today") : undefined}
-          footnote={
-            user
-              ? streak.activeToday
-                ? "Nice consistency this week."
-                : "Complete one lesson today to extend it."
-              : undefined
-          }
-          emptyCopy="Sign in to monitor your learning streak."
-        />
-
-        <MetricCard
-          icon={Award}
-          title="Milestones"
-          loading={loadingState}
-          value={user ? `${earnedBadgeCount} / ${milestoneBadges.length}` : undefined}
-          detail={user ? "Milestones unlocked" : undefined}
-          footnote={user ? `${completedCount} lessons completed overall` : undefined}
-          emptyCopy="Sign in to view milestone progress."
-        />
-
-        <MetricCard
-          icon={savedLessons.length > 0 ? BookmarkCheck : Bookmark}
-          title="Saved Lessons"
-          loading={loadingState}
-          value={user ? String(savedLessons.length) : undefined}
-          detail={user ? "Lessons bookmarked" : undefined}
-          footnote={
-            user
-              ? savedLessons[0]
-                ? `Latest: ${savedLessons[0].title}`
-                : "Save lessons to revisit faster."
-              : undefined
-          }
-          emptyCopy="Sign in to access saved lessons."
-        />
-        </div>
-      </section>
-
-      <section className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold tracking-tight text-foreground">Your classes</h2>
-          {user ? (
-            <span className="text-xs text-muted-foreground">Pick up where you left off in each course</span>
-          ) : (
-            <span className="text-xs text-muted-foreground">Sign in to personalize course progress</span>
-          )}
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {classDashboardCards.map((classCard, index) => (
-            <ClassCard
-              key={classCard.key}
-              title={classCard.title}
-              description={classCard.description}
-              viewHref={classCard.viewHref}
-              continueHref={user ? classCard.continueHref : undefined}
-              progressPercent={user ? classCard.progressPercent : 0}
-              completedLessons={user ? classCard.completedLessons : 0}
-              totalLessons={classCard.totalLessons}
-              hasProgress={user ? classCard.hasProgress : false}
-              iconVariant={classCard.iconVariant}
-              featured={index === 0}
-            />
-          ))}
-        </div>
-
-        {classDashboardCards.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No classes available yet.</p>
-        ) : null}
-      </section>
-
-      <section className="space-y-3 border-t border-border/55 pt-4">
-        <div className="flex items-center gap-2">
-          <PlayCircle className="h-4 w-4 text-primary" />
-          <h2 className="text-base font-semibold text-foreground">Recent lesson activity</h2>
-        </div>
-
-        {loadingState ? (
-          <p className="text-sm text-muted-foreground">Loading activity...</p>
-        ) : recentActivity.length ? (
-          <ul className="space-y-2">
-            {recentActivity.map((item) => (
-              <ActivityItem key={item.key} item={item} />
-            ))}
-          </ul>
+        {classDashboardCards.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {classDashboardCards.map((card) => {
+              const lastActivityLabel =
+                user && card.lastActivityAt
+                  ? formatRelativeTime(card.lastActivityAt)
+                  : null;
+              return (
+                <ClassCard
+                  key={card.key}
+                  card={card}
+                  signedIn={!!user}
+                  isPrimaryAction={
+                    card.totalLessons > 0 &&
+                    (featuredClassSlug
+                      ? card.classSlug === featuredClassSlug
+                      : true)
+                  }
+                  lastActivityLabel={lastActivityLabel}
+                />
+              );
+            })}
+          </div>
         ) : (
           <p className="text-sm text-muted-foreground">
-            No recent lesson activity yet. Start a class to build your timeline.
+            No courses available yet.
           </p>
         )}
       </section>
-    </section>
+
+      {/* Practice Problem Library */}
+      {practiceSummary?.enabled ? (
+        <section
+          className="space-y-3.5"
+          aria-labelledby="lp-practice-section-heading"
+        >
+          <div>
+            <h2
+              id="lp-practice-section-heading"
+              className="text-lg font-semibold tracking-tight text-foreground"
+            >
+              Engineering Practice
+            </h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Strengthen your engineering skills through interactive, randomized
+              practice problems.
+            </p>
+          </div>
+
+          <div className="flex flex-col justify-between gap-4 rounded-xl border border-border/80 bg-card p-5 sm:flex-row sm:items-center sm:px-6">
+            <div className="flex min-w-0 items-start gap-3.5">
+              <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/75 bg-muted/35 text-primary">
+                <Calculator className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <div className="min-w-0 space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-[16px] font-semibold tracking-tight text-foreground">
+                    Practice Problem Library
+                  </h3>
+                  {practiceSummary.totalProblems > 0 ? (
+                    <span className="rounded-full border border-border/70 bg-muted/35 px-2 py-0.5 text-[11px] font-medium tabular-nums text-muted-foreground">
+                      {practiceSummary.totalProblems} problems
+                    </span>
+                  ) : null}
+                </div>
+                <p className="text-[13.5px] leading-relaxed text-muted-foreground">
+                  Browse problems by subject and chapter, apply engineering
+                  concepts, and check your solutions.
+                </p>
+              </div>
+            </div>
+
+            <div className="shrink-0 sm:pl-4">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="w-full rounded-lg shadow-none sm:w-auto"
+              >
+                <Link href="/practice">
+                  Browse Problems
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* Signed-in Bookmarks & Recent Activity */}
+      {showPersonalLists ? (
+        <div
+          className={cn(
+            "grid gap-6",
+            bothPersonalLists ? "lg:grid-cols-2" : "grid-cols-1"
+          )}
+        >
+          {savedLessons.length > 0 ? (
+            <section
+              className="space-y-3"
+              aria-labelledby="lp-saved-heading"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <h2
+                  id="lp-saved-heading"
+                  className="text-sm font-semibold tracking-tight text-foreground"
+                >
+                  Saved bookmarks
+                </h2>
+                <Link
+                  href="/saved-lessons"
+                  className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  View all
+                </Link>
+              </div>
+              <ul className="divide-y divide-border/70 overflow-hidden rounded-xl border border-border/80 bg-card">
+                {savedLessons.map((item) => (
+                  <li key={item.key}>
+                    <Link
+                      href={item.href}
+                      className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-muted/30"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {item.title}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {item.subtitle}
+                        </p>
+                      </div>
+                      <Bookmark
+                        className="h-3.5 w-3.5 shrink-0 text-primary"
+                        aria-hidden="true"
+                      />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {recentActivity.length > 0 ? (
+            <section
+              className="space-y-3"
+              aria-labelledby="lp-recent-heading"
+            >
+              <h2
+                id="lp-recent-heading"
+                className="text-sm font-semibold tracking-tight text-foreground"
+              >
+                Recent activity
+              </h2>
+              <ul className="divide-y divide-border/70 overflow-hidden rounded-xl border border-border/80 bg-card">
+                {recentActivity.map((item) => (
+                  <li key={item.key}>
+                    <Link
+                      href={item.href}
+                      className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-muted/30"
+                    >
+                      <div className="flex min-w-0 items-start gap-2.5">
+                        {item.completed ? (
+                          <CheckCircle2
+                            className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <Clock
+                            className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
+                            aria-hidden="true"
+                          />
+                        )}
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-foreground">
+                            {item.title}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {item.breadcrumb}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                        {item.timeLabel}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* Single subtle Sign-in bar when signed out */}
+      {resolvedUser && !user ? (
+        <section aria-label="Account progress">
+          <div className="flex flex-col justify-between gap-3 rounded-xl border border-border/75 bg-muted/20 px-5 py-3.5 sm:flex-row sm:items-center">
+            <p className="text-[13px] leading-relaxed text-muted-foreground">
+              <span className="font-medium text-foreground">
+                Track your coursework.
+              </span>{" "}
+              Sign in to save bookmarked lessons and keep your progress synced
+              across sessions.
+            </p>
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="w-full shrink-0 rounded-lg bg-background shadow-none sm:w-auto"
+            >
+              <LoginLink>
+                Sign in
+                <ArrowRight className="h-3.5 w-3.5" />
+              </LoginLink>
+            </Button>
+          </div>
+        </section>
+      ) : null}
+    </div>
   );
 }

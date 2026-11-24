@@ -224,17 +224,17 @@ export function QuizFormatsDemoClient() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="rounded-2xl border border-border/60 bg-card/80 p-4 shadow-sm shadow-black/5">
+        <aside className="border-y border-border/60 bg-muted/10 py-4">
           <div className="mb-3 text-sm font-semibold text-foreground">Formats</div>
           <div className="grid gap-2">
             {loading ? (
-              <div className="rounded-xl border border-dashed border-border/60 px-4 py-6 text-sm text-muted-foreground">
+              <div className="border-y border-dashed border-border/60 py-6 text-sm text-muted-foreground">
                 Loading demo quizzes…
               </div>
             ) : null}
 
             {!loading && error ? (
-              <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-6 text-sm text-destructive">
+              <div className="border-y border-destructive/20 bg-destructive/5 py-6 text-sm text-destructive">
                 {error}
               </div>
             ) : null}
@@ -248,10 +248,10 @@ export function QuizFormatsDemoClient() {
                       type="button"
                       onClick={() => setActiveId(format.id)}
                       className={[
-                        "rounded-xl border px-4 py-3 text-left transition-colors",
+                        "border-y px-1 py-3 text-left transition-colors",
                         isActive
                           ? "border-primary/30 bg-primary/5"
-                          : "border-border/60 bg-background hover:bg-accent/30",
+                          : "border-border/60 bg-transparent hover:bg-accent/20",
                       ].join(" ")}
                     >
                       <div className="text-sm font-semibold text-foreground">{format.label}</div>
@@ -265,9 +265,9 @@ export function QuizFormatsDemoClient() {
           </div>
         </aside>
 
-        <section className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm shadow-black/5">
+        <section className="border-y border-border/60 bg-background/50 py-6">
           {!activeFormat || !activeQuestion || !normalizedQuestion ? (
-            <div className="rounded-xl border border-dashed border-border/60 px-4 py-8 text-sm text-muted-foreground">
+            <div className="border-y border-dashed border-border/60 py-8 text-sm text-muted-foreground">
               Select a demo quiz format to preview it.
             </div>
           ) : (
@@ -292,7 +292,7 @@ export function QuizFormatsDemoClient() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-border/60 bg-background/80 px-4 py-3 text-sm">
+                <div className="border-y border-border/60 bg-background/80 py-3 text-sm">
                   <div className="font-semibold text-foreground">Correct answer</div>
                   <div className="mt-1 text-muted-foreground">
                     {formatAnswerSummary(activeQuestion)}
@@ -300,7 +300,7 @@ export function QuizFormatsDemoClient() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-border/60 bg-background/70 p-5">
+              <div className="border-y border-border/60 bg-background/40 py-5">
                 <div className="space-y-3">
                   {activeQuestion.title ? (
                     <h3 className="text-lg font-semibold text-foreground">
@@ -319,7 +319,7 @@ export function QuizFormatsDemoClient() {
                       return (
                         <label
                           key={option.id}
-                          className="flex cursor-pointer items-start gap-3 rounded-xl border border-border/60 bg-card/90 px-4 py-3 text-sm shadow-sm shadow-black/5"
+                          className="flex cursor-pointer items-start gap-3 border-y border-border/60 bg-background/60 px-4 py-3 text-sm"
                         >
                           <input
                             type={normalizedQuestion.questionType === "multi-select" ? "checkbox" : "radio"}
@@ -378,7 +378,7 @@ export function QuizFormatsDemoClient() {
                 {evaluation ? (
                   <div
                     className={[
-                      "mt-5 rounded-xl border px-4 py-3 text-sm",
+                      "mt-5 border-l-[3px] px-4 py-3 text-sm",
                       evaluation.isCorrect
                         ? "border-emerald-200 bg-emerald-50 text-emerald-900"
                         : "border-amber-200 bg-amber-50 text-amber-900",

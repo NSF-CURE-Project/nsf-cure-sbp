@@ -355,7 +355,7 @@ export function QuizBlock({ block, lessonId }: Props) {
   const quizContent = (
     <section
       className={cn(
-        "mx-auto w-full rounded-2xl border border-primary/15 bg-primary/5 p-6 shadow-sm space-y-6",
+        "mx-auto w-full border-y border-primary/20 bg-primary/[0.03] py-6 space-y-6",
         focusMode ? "max-w-4xl" : "max-w-2xl"
       )}
     >
@@ -391,7 +391,7 @@ export function QuizBlock({ block, lessonId }: Props) {
       ) : null}
 
       {!started ? (
-        <div className="rounded-xl border border-border/60 bg-background/60 p-6">
+        <div className="border-y border-border/60 bg-background/45 py-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-sm font-semibold">Quiz Overview</p>
@@ -425,7 +425,7 @@ export function QuizBlock({ block, lessonId }: Props) {
         </div>
       ) : (
         <div className={questionsContainerClass}>
-          <div className="sticky top-0 z-20 rounded-xl border border-primary/20 bg-background/95 px-4 py-3 backdrop-blur space-y-2">
+          <div className="sticky top-0 z-20 border-y border-primary/20 bg-background/95 px-4 py-3 backdrop-blur space-y-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Completion</p>
@@ -451,7 +451,7 @@ export function QuizBlock({ block, lessonId }: Props) {
               />
             </div>
           </div>
-          <div className="sticky top-[5.5rem] z-10 rounded-lg border border-border/60 bg-background/90 px-4 py-2 text-xs text-muted-foreground backdrop-blur">
+          <div className="sticky top-[5.5rem] z-10 border-b border-border/60 bg-background/90 px-4 py-2 text-xs text-muted-foreground backdrop-blur">
             {totalQuestions > 0
               ? `Questions ${pageStart + 1}–${Math.min(pageStart + pageQuestions.length, totalQuestions)} of ${totalQuestions}`
               : "No questions yet"}
@@ -480,7 +480,7 @@ export function QuizBlock({ block, lessonId }: Props) {
             return (
               <fieldset
                 key={question.id}
-                className="rounded-xl border border-border/60 bg-card/50 p-5 space-y-4"
+                className="border-y border-border/60 bg-transparent py-5 space-y-4"
               >
                 <legend className="flex items-center gap-2 text-base font-semibold text-foreground">
                   <span>{`${questionNumber}.`}</span>
@@ -525,7 +525,7 @@ export function QuizBlock({ block, lessonId }: Props) {
                       return (
                         <div
                           key={`${question.id}-media-${attachmentIndex}`}
-                          className="relative aspect-video w-full overflow-hidden rounded-lg border border-border/60"
+                          className="relative aspect-video w-full overflow-hidden rounded-md border border-border/60"
                         >
                           <Image src={url} alt="Question attachment" fill className="object-cover" />
                         </div>
@@ -548,7 +548,7 @@ export function QuizBlock({ block, lessonId }: Props) {
                         <label
                           key={option.id}
                           className={cn(
-                            "flex items-start gap-3 rounded-lg border border-border/50 px-4 py-3 text-sm transition",
+                            "flex items-start gap-3 border-y border-border/50 px-4 py-3 text-sm transition",
                             isSelected ? "border-primary/60 bg-primary/10" : "bg-background/60",
                             showResult && "border-emerald-500/70 bg-emerald-500/10",
                             isIncorrectSelected && "border-red-400/70 bg-red-500/10"
@@ -651,7 +651,7 @@ export function QuizBlock({ block, lessonId }: Props) {
                 ) : null}
 
                 {showExplanation ? (
-                  <div className="rounded-lg border border-border/60 bg-muted/40 p-4">
+                  <div className="border-l-[3px] border-border/60 bg-muted/30 px-4 py-3">
                     <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
                       Explanation
                     </div>
