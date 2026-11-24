@@ -1503,7 +1503,7 @@ export interface QuizAttempt {
  */
 export interface PracticeAttempt {
   id: number;
-  lesson: number | Lesson;
+  lesson?: (number | null) | Lesson;
   learner: number | Account;
   assignmentKey: string;
   problemId: string;

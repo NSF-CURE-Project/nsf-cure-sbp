@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useId } from "react";
+import { useActionState, useEffect, useId } from "react";
 import { Button } from "@/components/ui/button";
+import { writeLocalPracticeProgress } from "@/lib/practice/localProgress";
 import type { PracticeResult } from "./actions";
 import { splitPracticePrompt } from "./splitPracticePrompt";
 
@@ -24,6 +25,16 @@ export function PracticeForm({
   const { diagramHtml, statementHtml, fields } = splitPracticePrompt(pieces);
   const correctCount = result?.parts.filter((part) => part.correct).length;
   const multiColumn = fields.length > 1;
+
+  useEffect(() => {
+    if (!result?.localProgress) return;
+    writeLocalPracticeProgress(result.localProgress.problemId, {
+      status: result.localProgress.status,
+      seed: result.localProgress.seed,
+      score: result.localProgress.score,
+      maxScore: result.localProgress.maxScore,
+    });
+  }, [result]);
 
   return (
     <form action={submit} className="min-w-0">

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import loaders from "@/lib/practice/simulations/loaders.generated.mjs";
 import type { PracticeAssignment } from "@/lib/practice/assignment";
+import { writeLocalPracticeProgress } from "@/lib/practice/localProgress";
 import { SimulationFrame } from "./SimulationFrame";
 import { beamWorkspaceStyles } from "./beamWorkspaceStyles";
 import {
@@ -126,16 +127,21 @@ export function NativeSimulation({
             window.history.replaceState(null, "", url);
           },
           onAttempt(currentSeed, responses) {
-            if (!assignment || saving) return;
+            if (saving) return;
             saving = true;
             const signature = JSON.stringify([currentSeed, responses]);
             if (!pending || pending.signature !== signature) pending = { id: crypto.randomUUID(), signature };
             setTracking("Saving attempt…");
+            const body = assignment
+              ? { ...assignment, action: "submit", seed: currentSeed, responses,
+                  submissionId: pending.id, version: content.version }
+              : { problemId: id, action: "submit", seed: currentSeed, responses,
+                  submissionId: pending.id, version: content.version };
             void fetch("/api/practice-attempts/record", {
               method: "POST",
+              credentials: "include",
               headers: { "content-type": "application/json" },
-              body: JSON.stringify({ ...assignment, action: "submit", seed: currentSeed, responses,
-                submissionId: pending.id, version: content.version }),
+              body: JSON.stringify(body),
             }).then(async (response) => {
               const result = await response.json().catch(() => null);
               if (response.status < 500) pending = null;
@@ -148,13 +154,28 @@ export function NativeSimulation({
                 );
                 return;
               }
-              if (result?.completed) {
-                setCompleted(true);
-                setTracking("Practice completed. Your attempt was saved.");
-              } else {
-                setCompleted(false);
-                setTracking("Attempt saved.");
+              const completed = Boolean(result?.completed);
+              const persisted = result?.persisted !== false;
+              writeLocalPracticeProgress(id, {
+                status: completed ? "completed" : "in-progress",
+                seed: currentSeed,
+                score: typeof result?.score === "number" ? result.score : null,
+                maxScore: typeof result?.maxScore === "number" ? result.maxScore : null,
+              });
+              setCompleted(completed);
+              if (!persisted) {
+                setTracking(
+                  completed
+                    ? "Completed on this device. Sign in to sync progress across devices."
+                    : "Attempt recorded on this device. Sign in to sync progress across devices."
+                );
+                return;
               }
+              setTracking(
+                completed
+                  ? "Practice completed. Your attempt was saved."
+                  : "Attempt saved."
+              );
             }).catch(() => {
               if (!disposed) {
                 setCompleted(false);

@@ -47,6 +47,7 @@ import * as migration_20260624_064500_repair_lesson_learning_version_tables from
 import * as migration_20260624_081500_add_auth_settings from './20260624_081500_add_auth_settings'
 import * as migration_20260624_230000_add_site_announcement_banner from './20260624_230000_add_site_announcement_banner'
 import * as migration_20261123_193000_add_resource_item_link_label from './20261123_193000_add_resource_item_link_label'
+import * as migration_20261124_173000_practice_library_attempts from './20261124_173000_practice_library_attempts'
 
 export const migrations = [
   {
@@ -293,5 +294,10 @@ export const migrations = [
     up: migration_20261123_193000_add_resource_item_link_label.up,
     down: migration_20261123_193000_add_resource_item_link_label.down,
     name: '20261123_193000_add_resource_item_link_label',
+  },
+  {
+    up: migration_20261124_173000_practice_library_attempts.up,
+    down: migration_20261124_173000_practice_library_attempts.down,
+    name: '20261124_173000_practice_library_attempts',
   },
 ]
