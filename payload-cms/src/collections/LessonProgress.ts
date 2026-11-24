@@ -60,13 +60,21 @@ export const LessonProgress: CollectionConfig = {
               const required = lesson.layout?.flatMap((block) => block.blockType === 'practiceProblem' &&
                 block.requiredPractice ? [block] : []) ?? []
               if (required.length) {
+                const problemIds = required.map((block) => block.problemId).filter(Boolean)
                 const { docs } = await req.payload.find({
                   collection: 'practice-attempts', depth: 0, pagination: false, overrideAccess: true,
-                  where: { and: [{ lesson: { equals: lesson.id } }, { learner: { equals: req.user.id } },
-                    { completed: { equals: true } }, { assignmentKey: { in: required.map((block) => block.assignmentKey) } }] },
+                  where: {
+                    and: [
+                      { learner: { equals: req.user.id } },
+                      { completed: { equals: true } },
+                      { problemId: { in: problemIds } },
+                    ],
+                  },
                 })
-                const completed = new Set(docs.map((attempt) => `${attempt.assignmentKey}:${attempt.problemId}`))
-                if (required.some((block) => !completed.has(`${block.assignmentKey}:${block.problemId}`))) {
+                // Lesson completion checks canonical problem IDs so library
+                // completions satisfy the same required practice as lesson embeds.
+                const completed = new Set(docs.map((attempt) => attempt.problemId))
+                if (required.some((block) => !completed.has(block.problemId))) {
                   throw new APIError('Complete the required practice problems before marking this lesson complete.', 400)
                 }
               }

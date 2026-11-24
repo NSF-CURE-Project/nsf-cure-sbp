@@ -60,9 +60,7 @@ export async function gradePractice(id: string, seed: string, assignment: Practi
   } else if (saved?.ok) {
     tracking = result?.completed
       ? "Practice completed. Your attempt was saved."
-      : assignment
-        ? "Attempt saved. Answer every part to complete this activity."
-        : "Attempt saved. Correct every part to mark this problem complete.";
+      : "Attempt saved. Correct every part to mark this problem complete.";
   } else if (saved) {
     tracking = result?.error ?? "Your attempt could not be saved. Check the connection and try again.";
   }

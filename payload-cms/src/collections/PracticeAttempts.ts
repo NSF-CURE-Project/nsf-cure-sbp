@@ -1,4 +1,4 @@
-import type { CollectionConfig, PayloadHandler } from 'payload'
+import type { CollectionConfig, PayloadHandler, Where } from 'payload'
 import catalog from '../practice/numeric.generated.json'
 import { generateNumeric, matchesSignificantFigures, parseResponse } from '../practice/engine.generated.mjs'
 import simulationCatalog from '../practice/simulations/metadata.generated.json'
@@ -161,7 +161,8 @@ const recordAttempt: PayloadHandler = async (req) => {
       seed,
       version,
       responses,
-      requireAllCorrect: !hasLessonContext,
+      // Shared problem completion is always based on verified correct answers.
+      requireAllCorrect: true,
     })
     if (graded.error) return graded.error
     return Response.json({
@@ -237,7 +238,8 @@ const recordAttempt: PayloadHandler = async (req) => {
       seed,
       version,
       responses,
-      requireAllCorrect: !hasLessonContext,
+      // Shared problem completion is always based on verified correct answers.
+      requireAllCorrect: true,
     })
     if (graded.error) return graded.error
     data = { ...data, ...graded.data, submitted: true }
@@ -281,22 +283,78 @@ const recordAttempt: PayloadHandler = async (req) => {
   })
 }
 
+const attemptRank = (attempt: { completed?: boolean | null; submitted?: boolean | null }) =>
+  attempt.completed ? 3 : attempt.submitted ? 2 : 1
+
 const readStatus: PayloadHandler = async (req) => {
   const lessonId = Number(req.query.lesson)
   if (req.user?.collection !== 'accounts' || !Number.isSafeInteger(lessonId) || lessonId < 1) {
     return Response.json({ statuses: {} }, { headers: { 'Cache-Control': 'private, no-store' } })
   }
+
+  const lesson = await req.payload.findByID({
+    collection: 'lessons',
+    id: lessonId,
+    depth: 0,
+    overrideAccess: false,
+    req,
+    draft: false,
+  }).catch(() => null)
+
+  const blocks = (lesson?.layout as Array<Record<string, unknown>> | undefined)?.filter(
+    (block) => block.blockType === 'practiceProblem' && typeof block.problemId === 'string',
+  ) ?? []
+  const problemIds = [...new Set(blocks.map((block) => block.problemId as string))]
+
+  // Shared progress: any attempt for these canonical problem IDs counts,
+  // whether the student opened them from this lesson or the practice library.
+  const where: Where = problemIds.length
+    ? {
+        and: [
+          { learner: { equals: req.user.id } },
+          {
+            or: [
+              { lesson: { equals: lessonId } },
+              { problemId: { in: problemIds } },
+            ],
+          },
+        ],
+      }
+    : {
+        and: [
+          { learner: { equals: req.user.id } },
+          { lesson: { equals: lessonId } },
+        ],
+      }
+
   const { docs } = await req.payload.find({
-    collection: 'practice-attempts', depth: 0, pagination: false, overrideAccess: true,
-    where: { and: [{ learner: { equals: req.user.id } }, { lesson: { equals: lessonId } }] },
+    collection: 'practice-attempts',
+    depth: 0,
+    pagination: false,
+    overrideAccess: true,
+    where,
   })
-  const statuses = new Map<string, number>()
+
+  const byProblem = new Map<string, number>()
   for (const attempt of docs) {
-    const key = `${attempt.assignmentKey}:${attempt.problemId}`
-    const status = attempt.completed ? 3 : attempt.submitted ? 2 : 1
-    statuses.set(key, Math.max(status, statuses.get(key) ?? 0))
+    if (typeof attempt.problemId !== 'string' || !attempt.problemId) continue
+    byProblem.set(
+      attempt.problemId,
+      Math.max(byProblem.get(attempt.problemId) ?? 0, attemptRank(attempt)),
+    )
   }
-  return Response.json({ statuses: Object.fromEntries(statuses) }, { headers: { 'Cache-Control': 'private, no-store' } })
+
+  const statuses: Record<string, number> = {}
+  for (const block of blocks) {
+    const problemId = block.problemId as string
+    const assignmentKey = typeof block.assignmentKey === 'string' ? block.assignmentKey : ''
+    const rank = byProblem.get(problemId) ?? 0
+    if (rank > 0 && assignmentKey) {
+      statuses[`${assignmentKey}:${problemId}`] = rank
+    }
+  }
+
+  return Response.json({ statuses }, { headers: { 'Cache-Control': 'private, no-store' } })
 }
 
 const readLibraryStatus: PayloadHandler = async (req) => {
@@ -307,6 +365,7 @@ const readLibraryStatus: PayloadHandler = async (req) => {
     )
   }
 
+  // Aggregate across lesson-embedded and library attempts by canonical problemId.
   const { docs } = await req.payload.find({
     collection: 'practice-attempts',
     depth: 0,
@@ -316,7 +375,6 @@ const readLibraryStatus: PayloadHandler = async (req) => {
     where: {
       and: [
         { learner: { equals: req.user.id } },
-        { assignmentKey: { equals: LIBRARY_ASSIGNMENT } },
         { submitted: { equals: true } },
       ],
     },
@@ -351,6 +409,7 @@ const readLibraryStatus: PayloadHandler = async (req) => {
     if (existing.status !== 'completed' && nextStatus === 'completed') {
       existing.status = 'completed'
     }
+    // Prefer the most recent seed (docs are sorted -updatedAt).
     if (!existing.seed && seed) existing.seed = seed
     if (typeof attempt.score === 'number') existing.score = attempt.score
     if (typeof attempt.maxScore === 'number') existing.maxScore = attempt.maxScore
