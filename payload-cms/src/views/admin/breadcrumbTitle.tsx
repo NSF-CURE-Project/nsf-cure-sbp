@@ -29,7 +29,6 @@ export const BreadcrumbProvider = ({
 
 // Backward-compatible alias for the older single-context provider name. Some
 // callers (CourseWorkspace via StaffProvider) still import the older name.
-export const BreadcrumbTitleProvider = BreadcrumbProvider
 
 export const useBreadcrumbTitle = (title: string | null | undefined) => {
   const setter = useContext(BreadcrumbContext)
