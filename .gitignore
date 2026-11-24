@@ -36,4 +36,12 @@ openai-codex*
 /scripts/lib/local-workflow.mjs
 /scripts/scan-repo.mjs
 /scripts/tests/local-workflow.test.mjs
+# Python scratch
+__pycache__/
+*.py[cod]
+
+# Local preview / temp artifacts
+/output/
+/tmp/
+
 node_modules

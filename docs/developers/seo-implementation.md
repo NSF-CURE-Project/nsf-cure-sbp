@@ -64,8 +64,8 @@ Each static route exports `metadata = buildMetadata(...)`:
 - **Data Transparency:** `web/src/app/(public)/data-transparency/page.tsx`
 - **Analytics (public view):** `web/src/app/(public)/analytics/page.tsx`
 - **Classrooms (public listing):** `web/src/app/(public)/classrooms/page.tsx`
-- **Quiz Demo:** `web/src/app/(public)/quiz-demo/page.tsx`
 - **Questions / Saved lessons / Problem attempts:** `web/src/app/(public)/{questions,saved-lessons,problem-attempts}/page.tsx`
+- **Quiz Demo (dev only):** `web/src/app/(public)/quiz-demo/page.tsx` returns `404` in production.
 
 ## 5) No-Index for Private/Non-Public Pages
 
@@ -100,7 +100,7 @@ Includes:
 - Payload pages (excluding `home` to avoid duplicate `/`), pulled via `getPages()`.
 - Class, chapter, lesson URLs from `getClassesTree()`.
 
-Routes intentionally **not** in the sitemap include `/data-transparency`, `/analytics`, `/classrooms`, `/quiz-demo`, `/questions`, `/saved-lessons`, `/problem-attempts`. They are still publicly reachable; add them to `staticRoutes` if/when they should be indexed.
+Routes intentionally **not** in the sitemap include `/data-transparency`, `/analytics`, `/classrooms`, `/questions`, `/saved-lessons`, `/problem-attempts`. They are still publicly reachable; add them to `staticRoutes` if/when they should be indexed. `/quiz-demo` is development-only and returns `404` in production.
 
 ## 8) Canonical URLs
 
