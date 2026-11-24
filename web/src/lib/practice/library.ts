@@ -2,13 +2,24 @@ import DOMPurify from "isomorphic-dompurify";
 import katex from "katex";
 import catalog from "./catalog.generated.json";
 import { generateNumeric } from "./engine.generated.mjs";
+import { resolvePracticeId } from "./slugs";
 export { matchesSignificantFigures, parseResponse } from "./engine.generated.mjs";
+export {
+  getPracticeSlug,
+  isPracticeHashId,
+  practicePath,
+  resolvePracticeId,
+} from "./slugs";
 
 export const practiceEnabled = () =>
   process.env.ENABLE_PRACTICE_LIBRARY === "true" || process.env.NODE_ENV === "development";
 
 export const problems = catalog.problems;
-export const getProblem = (id: string) => problems.find((problem) => problem.id === id);
+
+export const getProblem = (idOrSlug: string) => {
+  const id = resolvePracticeId(idOrSlug) ?? idOrSlug;
+  return problems.find((problem) => problem.id === id);
+};
 
 export function prepareSimulation(source: string) {
   const bridge = `<style>

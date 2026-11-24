@@ -3,7 +3,16 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Shuffle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getProblem, instantiate, practiceEnabled, prepareSimulation, renderPracticeHtml } from "@/lib/practice/library";
+import {
+  getPracticeSlug,
+  getProblem,
+  instantiate,
+  practiceEnabled,
+  practicePath,
+  prepareSimulation,
+  renderPracticeHtml,
+  resolvePracticeId,
+} from "@/lib/practice/library";
 import { hasNumericVariants } from "@/lib/practice/presentation";
 import { practiceUuid, type PracticeAssignment } from "@/lib/practice/assignment";
 import { gradePractice } from "./actions";
@@ -21,9 +30,23 @@ export default async function PracticeProblemPage({ params, searchParams }: {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ variant?: string; lesson?: string; assignment?: string; level?: string; from?: string }>;
 }) {
-  const [{ id }, { variant, lesson, assignment, level, from }] = await Promise.all([params, searchParams]);
-  const problem = getProblem(id);
+  const [{ id: param }, search] = await Promise.all([params, searchParams]);
+  const { variant, lesson, assignment, level, from } = search;
+  const resolvedId = resolvePracticeId(param);
+  const problem = resolvedId ? getProblem(resolvedId) : null;
   if (!practiceEnabled() || !problem) notFound();
+  const id = problem.id;
+  const slug = getPracticeSlug(id);
+
+  // Canonicalize hash IDs (and any non-canonical param) to the human-readable slug.
+  if (param !== slug) {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(search)) {
+      if (typeof value === "string" && value) query.set(key, value);
+    }
+    redirect(practicePath(id, query));
+  }
+
   const randomized = hasNumericVariants(problem);
   const simulation = process.env.DISABLE_NATIVE_PRACTICE_SIMULATIONS === "true" ? undefined :
     (simulations as Record<string, { html: string; css: string; version: string } | undefined>)[id];
@@ -37,14 +60,13 @@ export default async function PracticeProblemPage({ params, searchParams }: {
     : null;
   const lessonHref = context && typeof from === "string" && /^\/classes\/[a-z\d-]+\/lessons\/[a-z\d-]+$/i.test(from) ? from : null;
   function variantHref(seed: string) {
-    const query = new URLSearchParams({ variant: seed });
-    if (context) {
-      query.set("lesson", String(context.lessonId));
-      query.set("assignment", context.assignmentKey);
-    }
-    if (lessonHref) query.set("from", lessonHref);
-    if (level === "medium" || level === "hard") query.set("level", level);
-    return `/practice/${id}?${query}`;
+    return practicePath(id, {
+      variant: seed,
+      lesson: context ? String(context.lessonId) : undefined,
+      assignment: context?.assignmentKey,
+      from: lessonHref ?? undefined,
+      level: level === "medium" || level === "hard" ? level : undefined,
+    });
   }
   if ((!problem.simulation || simulation) && (typeof variant !== "string" || !practiceUuid.test(variant))) {
     redirect(variantHref(randomUUID()));

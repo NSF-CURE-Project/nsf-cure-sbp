@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { practiceEnabled, problems } from "@/lib/practice/library";
+import { practiceEnabled, practicePath, problems } from "@/lib/practice/library";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Engineering Practice" };
@@ -26,7 +26,7 @@ export default function PracticePage() {
                 <ul className="mt-3 space-y-2 pl-4">
                   {items.filter((problem) => problem.chapter === chapter).map((problem) => (
                     <li key={problem.id}>
-                      <Link href={`/practice/${problem.id}`} prefetch={false} className="text-primary underline underline-offset-4">
+                      <Link href={practicePath(problem.id)} prefetch={false} className="text-primary underline underline-offset-4">
                         {problem.title}
                       </Link>
                     </li>

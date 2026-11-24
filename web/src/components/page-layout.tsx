@@ -20,6 +20,7 @@ import type { PageLayoutBlock } from "@/lib/payloadSdk/types";
 import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 import { extractLessonSections } from "@/lib/lessons/toc";
 import practiceTitles from "@/lib/practice/titles.generated.json";
+import { practicePath } from "@/lib/practice/slugs";
 import {
   CalloutBlockView,
   CheckpointBlockView,
@@ -604,7 +605,7 @@ export function PageLayout({
                 {status ? <p className="text-sm text-muted-foreground">{status === 3 ? "Completed" : status === 2 ? "Attempted" : "Opened"}</p> : null}
               </div>
               <Button asChild variant="outline">
-                <a href={`/practice/${encodeURIComponent(block.problemId)}?${query}`}>Open problem</a>
+                <a href={practicePath(block.problemId, query)}>Open problem</a>
               </Button>
             </section>
           );

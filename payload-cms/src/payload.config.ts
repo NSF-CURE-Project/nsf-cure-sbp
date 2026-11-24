@@ -154,6 +154,8 @@ const formatAddressList = (value: unknown): string[] => {
 const resendApiKey = stripEnvQuotes(process.env.RESEND_API_KEY)
 const resendApiBaseUrl = stripEnvQuotes(process.env.RESEND_API_BASE_URL) ?? 'https://api.resend.com'
 const resendFrom = stripEnvQuotes(process.env.RESEND_FROM)
+const resendReplyTo =
+  stripEnvQuotes(process.env.RESEND_REPLY_TO) ?? 'nsfcuresbp@gmail.com'
 const resendStarterBaseUrl = stripEnvQuotes(process.env.RESEND_STARTER_URL)
 const resendStarterSendUrl =
   stripEnvQuotes(process.env.RESEND_STARTER_SEND_URL) ??
@@ -218,6 +220,7 @@ const buildResendAdapter = () => ({
     const cc = formatAddressList(message.cc)
     const bcc = formatAddressList(message.bcc)
     const replyTo = formatAddressList(message.replyTo ?? message.reply_to)
+    const resolvedReplyTo = replyTo.length ? replyTo : formatAddressList(resendReplyTo)
     const subject =
       typeof message.subject === 'string' && message.subject.trim()
         ? message.subject.trim()
@@ -239,7 +242,7 @@ const buildResendAdapter = () => ({
         ...(text ? { text } : {}),
         ...(cc.length ? { cc } : {}),
         ...(bcc.length ? { bcc } : {}),
-        ...(replyTo.length ? { reply_to: replyTo } : {}),
+        ...(resolvedReplyTo.length ? { reply_to: resolvedReplyTo } : {}),
       }),
     })
 
@@ -266,6 +269,7 @@ const buildResendStarterAdapter = () => ({
     const cc = formatAddressList(message.cc)
     const bcc = formatAddressList(message.bcc)
     const replyTo = formatAddressList(message.replyTo ?? message.reply_to)
+    const resolvedReplyTo = replyTo.length ? replyTo : formatAddressList(resendReplyTo)
     const subject =
       typeof message.subject === 'string' && message.subject.trim()
         ? message.subject.trim()
@@ -294,7 +298,9 @@ const buildResendStarterAdapter = () => ({
             ...(text ? { text } : {}),
             ...(cc.length ? { cc } : {}),
             ...(bcc.length ? { bcc } : {}),
-            ...(replyTo.length ? { replyTo, reply_to: replyTo } : {}),
+            ...(resolvedReplyTo.length
+              ? { replyTo: resolvedReplyTo, reply_to: resolvedReplyTo }
+              : {}),
           }),
         })
       } finally {
