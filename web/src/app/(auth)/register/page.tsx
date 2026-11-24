@@ -1,5 +1,6 @@
 import { RegisterForm } from "./RegisterForm";
 import { AuthDisabledNotice } from "@/components/auth/AuthDisabledNotice";
+import { AuthSplitShell } from "@/components/auth/AuthSplitShell";
 import { buildMetadata } from "@/lib/seo";
 import { LoginLink } from "@/components/auth/LoginLink";
 import { getAuthSettings } from "@/lib/payloadSdk/authSettings";
@@ -15,42 +16,35 @@ export default async function RegisterPage() {
   const authSettings = await getAuthSettings({ cache: "no-store" });
 
   return (
-    <main className="min-h-[70vh] px-6 py-16">
-      <div className="mx-auto w-full max-w-xl border-y border-border/60 bg-background/50 py-10">
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
-            Student Access
-          </p>
-          <h1 className="text-3xl font-bold text-foreground">
+    <AuthSplitShell>
+      <div className="space-y-7">
+        <div className="space-y-1.5">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
             Create your account
-          </h1>
-          <p className="text-muted-foreground">
+          </h2>
+          <p className="text-sm leading-relaxed text-muted-foreground">
             Register to access program content and lessons.
           </p>
         </div>
 
-        <div className="mt-8">
-          {authSettings.studentLoginEnabled ? (
-            <RegisterForm />
-          ) : (
-            <AuthDisabledNotice
-              message={authSettings.studentLoginDisabledMessage}
-              title="Student registration is temporarily unavailable"
-            />
-          )}
-        </div>
+        {authSettings.studentLoginEnabled ? (
+          <RegisterForm />
+        ) : (
+          <AuthDisabledNotice
+            message={authSettings.studentLoginDisabledMessage}
+            title="Student registration is temporarily unavailable"
+          />
+        )}
 
         {authSettings.studentLoginEnabled ? (
-          <p className="mt-6 text-sm text-muted-foreground">
+          <p className="pt-1 text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <LoginLink
-              className="font-semibold text-primary underline underline-offset-4"
-            >
+            <LoginLink className="font-medium text-primary transition-colors duration-150 hover:text-primary/80">
               Sign in
             </LoginLink>
           </p>
         ) : null}
       </div>
-    </main>
+    </AuthSplitShell>
   );
 }

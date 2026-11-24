@@ -256,15 +256,12 @@ export default function SidebarClient({ classes }: Props) {
   }, [classes]);
 
   const STORAGE_CLASSES = "sidebar:open-classes";
-  const STORAGE_CHAPTERS = "sidebar:open-chapters";
 
   const [openClasses, setOpenClasses] = useState<Record<string, boolean>>({});
-  const [openChapters, setOpenChapters] = useState<Record<string, boolean>>({});
 
-  // Initial open state + auto-open current class/chapter
+  // Initial open state + auto-open current class
   useEffect(() => {
     let cMap: Record<string, boolean> = {};
-    let hMap: Record<string, boolean> = {};
     try {
       cMap = JSON.parse(localStorage.getItem(STORAGE_CLASSES) || "{}") || {};
     } catch {}
@@ -283,22 +280,10 @@ export default function SidebarClient({ classes }: Props) {
       fallbackClassFromChapter ||
       firstClassSlug;
 
-    const defaultChapter = ownerFromLesson
-      ? `${ownerFromLesson.classSlug}/${ownerFromLesson.chapterSlug}`
-      : currentClassSlug && currentChapterSlug
-        ? `${currentClassSlug}/${currentChapterSlug}`
-        : null;
-
     if (defaultClass && cMap[defaultClass] !== true) cMap[defaultClass] = true;
-    if (defaultChapter) {
-      hMap = { [defaultChapter]: true };
-    } else {
-      hMap = {};
-    }
     if (!Object.keys(cMap).length && defaultClass) cMap[defaultClass] = true;
 
     setOpenClasses(cMap);
-    setOpenChapters(hMap);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, JSON.stringify(lessonOwner), classes?.length]);
 
@@ -306,9 +291,8 @@ export default function SidebarClient({ classes }: Props) {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_CLASSES, JSON.stringify(openClasses));
-      localStorage.setItem(STORAGE_CHAPTERS, JSON.stringify(openChapters));
     } catch {}
-  }, [openClasses, openChapters]);
+  }, [openClasses]);
 
   const toggleClass = (slug: string) =>
     setOpenClasses((m) => {
@@ -321,17 +305,6 @@ export default function SidebarClient({ classes }: Props) {
       next[slug] = true;
       return next;
     });
-
-  const toggleChapter = (classSlug: string, chapterSlug: string) => {
-    const key = `${classSlug}/${chapterSlug}`;
-    setOpenChapters((m) => {
-      const isOpen = !!m[key];
-      if (isOpen) {
-        return { ...m, [key]: false };
-      }
-      return { [key]: true };
-    });
-  };
 
   return (
     <nav className="text-sidebar-foreground" aria-label="Study topics">
@@ -440,140 +413,74 @@ export default function SidebarClient({ classes }: Props) {
                     {chapters.map((ch) => {
                       const chSlug = getChapterSlug(ch);
                       if (!chSlug) return null;
-                      const chKey = `${cSlug}/${chSlug}`;
-                      const chOpen = !!openChapters[chKey];
-
                       const lessons = getLessons(ch);
-                      const hasLessons = lessons.length > 0;
                       const chapterCompleted = lessons.filter((ls) =>
                         completedLessons.has(getLessonId(ls))
                       ).length;
-
-                      const chapterOverviewActive =
-                        currentClassSlug === cSlug &&
-                        currentChapterSlug === chSlug;
-
-                      const chapterSelfActive = chapterOverviewActive;
-
-                      const chapterPercent = lessons.length
-                        ? Math.round((chapterCompleted / lessons.length) * 100)
-                        : 0;
-                      const chapterIsComplete =
-                        lessons.length > 0 &&
-                        chapterCompleted === lessons.length;
+                      const chapterNumber = getChapterNumber(ch);
+                      const chapterOwnsActiveLesson = !!(
+                        currentLessonSlug &&
+                        lessonOwner[currentLessonSlug]?.classSlug === cSlug &&
+                        lessonOwner[currentLessonSlug]?.chapterSlug === chSlug
+                      );
+                      const chapterSelfActive =
+                        (currentClassSlug === cSlug &&
+                          currentChapterSlug === chSlug) ||
+                        chapterOwnsActiveLesson;
+                      const showLessonRail = chapterOwnsActiveLesson;
 
                       return (
                         <li key={chSlug}>
                           <div className="relative">
-                            <div
+                            <Link
+                              href={`/classes/${cSlug}#chapter-${chSlug}`}
                               className={cn(
-                                "border-l-[3px] py-0 pl-4 pr-0 text-left transition-[background-color,border-color,color] duration-150",
+                                "flex min-h-8 items-start gap-2 border-l-[3px] py-1.5 pl-4 pr-3 text-left transition-[background-color,border-color,color] duration-150",
+                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
                                 chapterSelfActive
                                   ? "border-sidebar-primary bg-sidebar-primary/10 text-sidebar-foreground"
                                   : "border-transparent text-sidebar-foreground hover:bg-sidebar-accent"
                               )}
+                              aria-current={
+                                chapterSelfActive && !currentLessonSlug
+                                  ? "page"
+                                  : undefined
+                              }
                             >
-                              <div className="grid min-h-8 grid-cols-[minmax(0,1fr)_auto_1.75rem] items-center gap-x-1">
-                                <Link
-                                  href={`/classes/${cSlug}/chapters/${chSlug}`}
-                                  className={cn(
-                                    "min-w-0 py-1 text-left text-[14px] font-medium leading-[18px] text-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
-                                    chapterSelfActive && "font-semibold"
-                                  )}
-                                  aria-current={
-                                    chapterSelfActive ? "page" : undefined
-                                  }
-                                >
-                                  <span className="flex min-w-0 items-start gap-2">
-                                    {getChapterNumber(ch) != null ? (
-                                      <span className="mt-px shrink-0 text-[12px] font-medium tabular-nums text-sidebar-foreground/65">
-                                        {getChapterNumber(ch)}
-                                      </span>
-                                    ) : null}
-                                    <span className="min-w-0 break-words">
-                                      {cleanTitle(
-                                        getChapterTitle(ch),
-                                        "Untitled chapter"
-                                      )}
-                                    </span>
-                                  </span>
-                                </Link>
-                                <span className="whitespace-nowrap text-right text-[12px] font-medium leading-4 tabular-nums text-sidebar-foreground/65">
-                                  {chapterCompleted} of {lessons.length || 0}
+                              {chapterNumber != null ? (
+                                <span className="mt-px shrink-0 text-[12px] font-medium tabular-nums text-sidebar-foreground/65">
+                                  {String(chapterNumber).padStart(2, "0")}
                                 </span>
-                                {hasLessons ? (
-                                  <button
-                                    type="button"
-                                    aria-expanded={chOpen}
-                                    aria-controls={`panel-ch-${chKey}`}
-                                    onClick={() => toggleChapter(cSlug, chSlug)}
-                                    className={cn(
-                                      "flex h-8 w-7 items-center justify-center rounded-sm transition-colors",
-                                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55",
-                                      chapterSelfActive
-                                        ? "text-sidebar-foreground hover:bg-sidebar-primary/15"
-                                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                                    )}
-                                    aria-label={
-                                      chOpen
-                                        ? "Collapse lessons"
-                                        : "Expand lessons"
-                                    }
-                                  >
-                                    <ChevronRight
-                                      className={cn(
-                                        "h-4 w-4 shrink-0 transition-transform",
-                                        chOpen && "rotate-90"
-                                      )}
-                                      aria-hidden="true"
-                                    />
-                                  </button>
-                                ) : (
-                                  <span
-                                    aria-hidden="true"
-                                    className="h-8 w-7"
-                                  />
-                                )}
-                              </div>
-                              {lessons.length > 0 ? (
-                                <div
-                                  className="mr-[4rem] h-[3px] overflow-hidden bg-sidebar-border"
-                                  aria-hidden="true"
-                                >
-                                  <div
-                                    className={cn(
-                                      "h-full transition-[width] duration-500 ease-out",
-                                      chapterIsComplete
-                                        ? "bg-sidebar-primary"
-                                        : chapterCompleted > 0
-                                          ? "bg-sidebar-primary/75"
-                                          : "bg-transparent"
-                                    )}
-                                    style={{
-                                      width: `${chapterPercent}%`,
-                                    }}
-                                  />
-                                </div>
                               ) : null}
-                            </div>
+                              <span
+                                className={cn(
+                                  "min-w-0 flex-1 break-words text-[14px] leading-[18px]",
+                                  chapterSelfActive
+                                    ? "font-semibold"
+                                    : "font-medium"
+                                )}
+                              >
+                                {cleanTitle(
+                                  getChapterTitle(ch),
+                                  "Untitled chapter"
+                                )}
+                              </span>
+                              {chapterCompleted > 0 ? (
+                                <span className="shrink-0 text-[11px] tabular-nums text-sidebar-foreground/55">
+                                  {chapterCompleted}/{lessons.length || 0}
+                                </span>
+                              ) : null}
+                            </Link>
 
-                            {/* Lessons */}
-                            <div
-                              id={`panel-ch-${chKey}`}
-                              className={[
-                                "ml-4 grid transition-[grid-template-rows,opacity] duration-200 ease-out",
-                                chOpen
-                                  ? "grid-rows-[1fr] opacity-100"
-                                  : "grid-rows-[0fr] opacity-70",
-                              ].join(" ")}
-                            >
-                              <ul className="min-h-0 space-y-0.5 overflow-hidden pt-1">
+                            {showLessonRail && lessons.length > 0 ? (
+                              <ul className="ml-4 min-h-0 space-y-0.5 overflow-hidden pt-1">
                                 {lessons.map((ls) => {
                                   const lsSlug = getLessonSlug(ls);
                                   const lsId = getLessonId(ls);
                                   if (!lsSlug) return null;
                                   const active = lsSlug === currentLessonSlug;
-                                  const completed = completedLessons.has(lsId);
+                                  const completed =
+                                    completedLessons.has(lsId);
                                   return (
                                     <li key={lsSlug}>
                                       <Link
@@ -614,13 +521,8 @@ export default function SidebarClient({ classes }: Props) {
                                     </li>
                                   );
                                 })}
-                                {lessons.length === 0 && (
-                                  <li className="px-3 py-2 text-[13px] leading-5 text-sidebar-foreground/55">
-                                    No lessons yet.
-                                  </li>
-                                )}
                               </ul>
-                            </div>
+                            ) : null}
                           </div>
                         </li>
                       );
