@@ -7,6 +7,7 @@ import { getPayloadBaseUrl } from "@/lib/payloadSdk/payloadUrl";
 import { practiceUuid, type PracticeAssignment } from "@/lib/practice/assignment";
 import { getProblem, instantiate, matchesSignificantFigures, parseResponse, practiceEnabled, renderPracticeHtml } from "@/lib/practice/library";
 
+
 export type PracticeResult = {
   parts: { response: string; correct: boolean; expected: string; invalid: boolean }[];
   solution: string;
@@ -20,6 +21,21 @@ export type PracticeResult = {
     maxScore: number;
   };
 };
+
+async function isSignedInAccount(cookie: string): Promise<boolean> {
+  if (!cookie.trim()) return false;
+  const response = await fetch(
+    `${getPayloadBaseUrl()}/api/practice-attempts/library-status`,
+    {
+      method: "GET",
+      cache: "no-store",
+      headers: { cookie },
+    },
+  ).catch(() => null);
+  if (!response?.ok) return false;
+  const data = (await response.json().catch(() => null)) as { signedIn?: boolean } | null;
+  return Boolean(data?.signedIn);
+}
 
 export async function gradePractice(id: string, seed: string, assignment: PracticeAssignment | null,
   _previous: PracticeResult | null, form: FormData): Promise<PracticeResult> {
@@ -39,8 +55,31 @@ export async function gradePractice(id: string, seed: string, assignment: Practi
       };
     });
   const submissionId = form.get("submissionId");
-  let tracking: string | undefined;
+  const allCorrect = parts.every((part) => part.correct);
   const cookie = (await headers()).get("cookie") ?? "";
+  let tracking: string | undefined;
+
+  // Signed-out numeric practice: grade locally and never ship answers to Payload.
+  const signedIn = await isSignedInAccount(cookie);
+  if (!signedIn) {
+    tracking = allCorrect
+      ? "Completed on this device. Sign in to sync progress across devices."
+      : "Attempt checked on this device. Sign in to sync progress across devices.";
+    return {
+      parts,
+      tracking,
+      nextSubmissionId: randomUUID(),
+      solution: renderPracticeHtml(problem.solution, data),
+      localProgress: {
+        problemId: id,
+        status: allCorrect ? "completed" as const : "in-progress" as const,
+        seed,
+        score: parts.filter((part) => part.correct).length,
+        maxScore: parts.length,
+      },
+    };
+  }
+
   const payload = assignment
     ? { ...assignment, action: "submit", seed, submissionId,
         version: problem.version, responses: parts.map((part) => part.response) }
@@ -53,11 +92,7 @@ export async function gradePractice(id: string, seed: string, assignment: Practi
     body: JSON.stringify(payload),
   }).catch(() => null);
   const result = await saved?.json().catch(() => null);
-  if (saved?.ok && result?.persisted === false) {
-    tracking = result?.completed
-      ? "Completed on this device. Sign in to sync progress across devices."
-      : "Attempt checked on this device. Sign in to sync progress across devices.";
-  } else if (saved?.ok) {
+  if (saved?.ok) {
     tracking = result?.completed
       ? "Practice completed. Your attempt was saved."
       : "Attempt saved. Correct every part to mark this problem complete.";
@@ -75,7 +110,7 @@ export async function gradePractice(id: string, seed: string, assignment: Practi
     solution: renderPracticeHtml(problem.solution, data),
     localProgress: {
       problemId: id,
-      status: parts.every((part) => part.correct) ? "completed" as const : "in-progress" as const,
+      status: allCorrect ? "completed" as const : "in-progress" as const,
       seed,
       score: parts.filter((part) => part.correct).length,
       maxScore: parts.length,

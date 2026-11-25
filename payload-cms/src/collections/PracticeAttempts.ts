@@ -147,7 +147,9 @@ const recordAttempt: PayloadHandler = async (req) => {
     typeof assignmentKey === 'string' &&
     idPattern.test(assignmentKey)
 
-  // Signed-out visitors: grade submits for local progress, but never persist.
+  // Signed-out visitors: grade without persisting. Numeric web practice skips
+  // this path entirely (grades in the Next server action). Simulations still
+  // POST here so unsigned visitors can get a grade + local progress.
   if (!account) {
     if (opening) {
       return Response.json({ completed: false, score: null, maxScore: null, persisted: false })
