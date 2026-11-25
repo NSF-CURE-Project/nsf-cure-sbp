@@ -7,12 +7,14 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
   Bell,
+  Bookmark,
   ChevronDown,
   LogOut,
   Menu,
   Search,
-  Settings,
-  User as UserIcon,
+  Settings2,
+  ShieldCheck,
+  UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/theme/ThemeToggle";
@@ -20,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -336,8 +339,6 @@ export default function Navbar({
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase())
       .join("") || "SB";
-  const themeSummary = mode === "dark" ? "Dark mode active" : "Light mode active";
-
   const unreadCount = useMemo(
     () => notifications.filter((notification) => !notification.read).length,
     [notifications]
@@ -500,139 +501,109 @@ export default function Navbar({
             <span className="h-4 w-4 rounded bg-muted/50" />
           </div>
         ) : user ? (
-          <DropdownMenu open={profileMenuOpen} onOpenChange={setProfileMenuOpen}>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="hidden md:inline-flex items-center gap-2.5 rounded-md border border-border/60 bg-background/70 px-2 py-1.5 text-sm font-medium text-foreground transition hover:border-border hover:bg-muted/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              >
-                <Avatar className="h-8 w-8 border border-border/60">
-                  <AvatarImage src="" alt={displayName} />
-                  <AvatarFallback className="bg-muted/60 text-xs font-semibold">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                <span
-                  className={`max-w-[140px] truncate text-sm transition-opacity duration-150 ${
-                    profileMenuOpen ? "opacity-0" : "opacity-100"
-                  }`}
+          <>
+            <ThemeToggle
+              variant="icon"
+              className="hidden md:inline-flex h-8 w-8 rounded-md hover:bg-muted/60"
+            />
+            <DropdownMenu open={profileMenuOpen} onOpenChange={setProfileMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="hidden md:inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/70 py-1 pl-1 pr-2 text-sm font-medium text-foreground transition hover:border-border hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  aria-label="Open account menu"
                 >
-                  {displayName}
-                </span>
-                <ChevronDown
-                  className={`h-4 w-4 text-muted-foreground transition-transform duration-150 ${
-                    profileMenuOpen ? "rotate-180" : "rotate-0"
-                  }`}
-                />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              side="bottom"
-              align="center"
-              sideOffset={8}
-              alignOffset={0}
-              className="z-[9999] w-72 rounded-b-lg rounded-t-none border-x border-b border-t-0 border-border/70 bg-background/95 p-2 data-[side=bottom]:slide-in-from-top-0 backdrop-blur supports-[backdrop-filter]:bg-background/90"
-            >
-              <DropdownMenuLabel className="p-0 font-normal">
-                <div className="border-y border-border/60 bg-muted/10 px-3 py-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 border border-border/60">
+                  <Avatar className="h-7 w-7">
+                    <AvatarImage src="" alt={displayName} />
+                    <AvatarFallback className="bg-muted/60 text-[11px] font-semibold">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="max-w-[120px] truncate text-[13px]">
+                    {displayName}
+                  </span>
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-150 ${
+                      profileMenuOpen ? "rotate-180" : "rotate-0"
+                    }`}
+                  />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="bottom"
+                align="end"
+                sideOffset={8}
+                className="z-[9999] w-[300px] overflow-hidden rounded-[12px] border border-border/70 bg-background p-1.5 shadow-[0_8px_28px_rgba(16,24,40,0.12)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 duration-150"
+              >
+                <DropdownMenuLabel className="px-2.5 py-2 font-normal">
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <Avatar className="h-8 w-8 shrink-0">
                       <AvatarImage src="" alt={displayName} />
-                      <AvatarFallback className="bg-background text-xs font-semibold">
+                      <AvatarFallback className="bg-muted text-[11px] font-semibold">
                         {initials}
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                        Signed in
-                      </p>
-                      <p className="truncate text-sm font-semibold text-foreground">
+                      <p className="truncate text-[13px] font-semibold leading-tight text-foreground">
                         {displayName}
                       </p>
-                      <p className="truncate text-xs text-muted-foreground">
+                      <p className="truncate text-[12px] leading-tight text-muted-foreground">
                         {user.email}
                       </p>
                     </div>
                   </div>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="my-2" />
-              <DropdownMenuItem
-                asChild
-                className="cursor-pointer rounded-lg px-2 py-2.5 focus:bg-muted/70"
-              >
-                <Link href="/profile" className="flex w-full items-center gap-3">
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-muted/40">
-                    <UserIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                  </span>
-                  <span className="text-sm font-medium">Profile</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                asChild
-                className="cursor-pointer rounded-lg px-2 py-2.5 focus:bg-muted/70"
-              >
-                <Link href="/settings" className="flex w-full items-center gap-3">
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-muted/40">
-                    <Settings className="h-3.5 w-3.5 text-muted-foreground" />
-                  </span>
-                  <span className="text-sm font-medium">Settings</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                asChild
-                className="cursor-pointer rounded-lg px-2 py-2.5 focus:bg-muted/70"
-              >
-                <Link href="/saved-lessons" className="flex w-full items-center gap-3">
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-muted/40">
-                    <Settings className="h-3.5 w-3.5 text-muted-foreground" />
-                  </span>
-                  <span className="text-sm font-medium">Saved lessons</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                asChild
-                className="cursor-pointer rounded-lg px-2 py-2.5 focus:bg-muted/70"
-              >
-                <Link href="/data-transparency" className="flex w-full items-center gap-3">
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-muted/40">
-                    <Settings className="h-3.5 w-3.5 text-muted-foreground" />
-                  </span>
-                  <span className="text-sm font-medium">Data transparency</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="my-2" />
-              <DropdownMenuItem
-                className="cursor-pointer rounded-lg px-2 py-2.5 text-red-400 focus:bg-red-500/10 focus:text-red-300"
-                onClick={handleSignOut}
-                disabled={authBusy}
-              >
-                <span className="mr-3 inline-flex h-7 w-7 items-center justify-center rounded-md border border-red-500/30 bg-red-500/10">
-                  <LogOut className="h-3.5 w-3.5" />
-                </span>
-                <span className="text-sm font-medium">
-                  {authBusy ? "Signing out..." : "Logout"}
-                </span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="my-2" />
-              <div className="border-y border-border/60 bg-muted/10 px-3 py-2.5">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                      Theme
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {themeSummary}
-                    </p>
-                  </div>
-                  <ThemeToggle
-                    variant="icon"
-                    className="h-8 w-8 rounded-md hover:bg-muted/70"
-                  />
-                </div>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="my-1" />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem
+                    asChild
+                    className="h-10 cursor-pointer gap-2.5 rounded-md px-2.5 text-[13px] font-medium focus:bg-muted/70"
+                  >
+                    <Link href="/profile">
+                      <UserRound className="size-4 text-muted-foreground" aria-hidden />
+                      My profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    asChild
+                    className="h-10 cursor-pointer gap-2.5 rounded-md px-2.5 text-[13px] font-medium focus:bg-muted/70"
+                  >
+                    <Link href="/saved-lessons">
+                      <Bookmark className="size-4 text-muted-foreground" aria-hidden />
+                      Saved lessons
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    asChild
+                    className="h-10 cursor-pointer gap-2.5 rounded-md px-2.5 text-[13px] font-medium focus:bg-muted/70"
+                  >
+                    <Link href="/settings">
+                      <Settings2 className="size-4 text-muted-foreground" aria-hidden />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    asChild
+                    className="h-10 cursor-pointer gap-2.5 rounded-md px-2.5 text-[13px] font-medium focus:bg-muted/70"
+                  >
+                    <Link href="/data-transparency">
+                      <ShieldCheck className="size-4 text-muted-foreground" aria-hidden />
+                      Privacy & data
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator className="my-1" />
+                <DropdownMenuItem
+                  className="h-10 cursor-pointer gap-2.5 rounded-md px-2.5 text-[13px] font-medium text-foreground focus:bg-red-500/10 focus:text-red-700 dark:focus:text-red-300"
+                  onClick={handleSignOut}
+                  disabled={authBusy}
+                >
+                  <LogOut className="size-4 text-muted-foreground" aria-hidden />
+                  {authBusy ? "Signing out…" : "Sign out"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
         ) : (
           <>
             <ThemeToggle
@@ -818,13 +789,7 @@ export default function Navbar({
                       href="/profile"
                       className="rounded-md px-3 py-2 transition hover:bg-muted"
                     >
-                      Profile
-                    </Link>
-                    <Link
-                      href="/settings"
-                      className="rounded-md px-3 py-2 transition hover:bg-muted"
-                    >
-                      Settings
+                      My profile
                     </Link>
                     <Link
                       href="/saved-lessons"
@@ -833,27 +798,31 @@ export default function Navbar({
                       Saved lessons
                     </Link>
                     <Link
+                      href="/settings"
+                      className="rounded-md px-3 py-2 transition hover:bg-muted"
+                    >
+                      Settings
+                    </Link>
+                    <Link
                       href="/data-transparency"
                       className="rounded-md px-3 py-2 transition hover:bg-muted"
                     >
-                      Data transparency
+                      Privacy & data
                     </Link>
-                    <div className="rounded-md px-3 py-2">
-                      <div className="flex items-center justify-between text-xs uppercase tracking-wide text-muted-foreground">
-                        Theme
-                        <ThemeToggle
-                          variant="icon"
-                          className="hover:bg-muted/60"
-                        />
-                      </div>
+                    <div className="flex items-center justify-between rounded-md px-3 py-2">
+                      <span className="text-sm text-muted-foreground">Appearance</span>
+                      <ThemeToggle
+                        variant="icon"
+                        className="hover:bg-muted/60"
+                      />
                     </div>
                     <button
                       type="button"
                       onClick={handleSignOut}
                       disabled={authBusy}
-                      className="rounded-md px-3 py-2 text-left transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-md px-3 py-2 text-left text-foreground transition hover:bg-red-500/10 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:text-red-300"
                     >
-                      {authBusy ? "Signing out..." : "Logout"}
+                      {authBusy ? "Signing out…" : "Sign out"}
                     </button>
                   </>
                 ) : (

@@ -102,7 +102,7 @@ const iconPaths: Record<DashboardIconName, ReactNode> = {
   ),
 }
 
-const DashboardIcon = ({ name, size = 20 }: { name: DashboardIconName; size?: number }) => (
+const DashboardIcon = ({ name, size = 18 }: { name: DashboardIconName; size?: number }) => (
   <svg
     aria-hidden="true"
     className={styles.icon}
@@ -191,14 +191,14 @@ const formatRelativeTime = (iso: string) => {
   const timestamp = new Date(iso).getTime()
   if (!Number.isFinite(timestamp)) return null
   const days = Math.max(0, Math.floor((Date.now() - timestamp) / 86_400_000))
-  if (days === 0) return 'Captured today'
-  if (days === 1) return 'Captured yesterday'
-  if (days < 7) return `Captured ${days} days ago`
-  if (days < 30) return `Captured ${Math.floor(days / 7)} weeks ago`
-  return `Captured ${Math.floor(days / 30)} months ago`
+  if (days === 0) return 'Today'
+  if (days === 1) return 'Yesterday'
+  if (days < 7) return `${days} days ago`
+  if (days < 30) return `${Math.floor(days / 7)} weeks ago`
+  return `${Math.floor(days / 30)} months ago`
 }
 
-const Arrow = () => <DashboardIcon name="arrow" size={16} />
+const Arrow = () => <DashboardIcon name="arrow" size={14} />
 
 type AttentionItem = {
   count: number | null
@@ -206,77 +206,136 @@ type AttentionItem = {
   href: string
   icon: DashboardIconName
   label: string
+  shortLabel: string
 }
 
-const AttentionPanel = ({ items }: { items: AttentionItem[] }) => {
+const AttentionPanel = ({
+  drafts,
+  items,
+}: {
+  drafts: AttentionItem
+  items: AttentionItem[]
+}) => {
   const total = items.reduce((sum, item) => sum + (item.count ?? 0), 0)
   const hasUnavailable = items.some((item) => item.count == null)
   const allClear = !hasUnavailable && total === 0
+  const urgentItems = items.filter((item) => (item.count ?? 0) > 0 || item.count == null)
 
   return (
     <section
       aria-labelledby="attention-heading"
-      className={`${styles.panel} ${styles.attentionPanel}`}
+      className={`${styles.panel} ${styles.attentionPanel} ${allClear ? styles.attentionClear : styles.attentionActive}`}
     >
-      <div className={styles.attentionSummary}>
-        <h2 className={styles.panelTitle} id="attention-heading">
-          Needs attention
-        </h2>
-        <div className={`${styles.attentionState} ${allClear ? styles.isClear : styles.hasItems}`}>
-          <span className={styles.attentionStateIcon}>
-            <DashboardIcon name={allClear ? 'check' : 'feedback'} size={34} />
-          </span>
-          <div>
-            <p className={styles.attentionStateTitle}>
-              {allClear
-                ? 'You’re all caught up'
-                : hasUnavailable
-                  ? total > 0
-                    ? `${formatCount(total, 'known item')} ${total === 1 ? 'needs' : 'need'} attention`
-                    : 'Some data is unavailable'
-                  : `${formatCount(total, 'item')} ${total === 1 ? 'needs' : 'need'} attention`}
-            </p>
-            <p className={styles.attentionStateCopy}>
-              {allClear
-                ? 'No student questions or feedback need a response.'
-                : hasUnavailable
-                  ? 'Some queues could not be loaded. Refresh before treating this list as complete.'
-                  : 'Review open student support and publishing tasks.'}
-            </p>
+      {allClear ? (
+        <div className={styles.attentionCompact}>
+          <div className={styles.attentionCompactLead}>
+            <span className={styles.attentionCompactIcon}>
+              <DashboardIcon name="check" size={16} />
+            </span>
+            <div>
+              <h2 className={styles.panelTitle} id="attention-heading">
+                All caught up
+              </h2>
+              <p className={styles.attentionCompactCopy}>
+                No student questions or feedback need a response.
+              </p>
+            </div>
+          </div>
+          <div aria-label="Support queues" className={styles.attentionPills}>
+            {items.map((item) => (
+              <Link
+                aria-label={`${item.label}: 0`}
+                className={styles.attentionPill}
+                href={item.href}
+                key={item.label}
+              >
+                <strong>0</strong>
+                <span>{item.shortLabel}</span>
+              </Link>
+            ))}
+            <Link
+              aria-label={`${drafts.label}: ${drafts.count == null ? 'unavailable' : drafts.count}`}
+              className={styles.attentionPill}
+              href={drafts.href}
+            >
+              <strong>{drafts.count ?? '—'}</strong>
+              <span>{drafts.shortLabel}</span>
+            </Link>
           </div>
         </div>
-      </div>
-      <div aria-label="Support and publishing queues" className={styles.attentionList}>
-        {items.map((item) => (
-          <Link
-            aria-label={`${item.label}: ${item.count == null ? 'unavailable' : item.count}. ${item.description}`}
-            className={`${styles.attentionRow} ${item.count != null && item.count > 0 ? styles.needsResponse : ''} ${item.count == null ? styles.isUnavailable : ''}`}
-            href={item.href}
-            key={item.label}
-          >
-            <span className={styles.rowIcon}>
-              <DashboardIcon name={item.icon} size={20} />
-            </span>
-            <span className={styles.rowLabel}>{item.label}</span>
-            <span className={styles.rowStatus}>
-              <strong>{item.count ?? '—'}</strong>
-              {item.count == null ? (
-                <span>Unavailable</span>
-              ) : item.count > 0 ? (
-                <span>Needs response</span>
-              ) : null}
-            </span>
-            <DashboardIcon name="chevron" size={18} />
-          </Link>
-        ))}
-      </div>
+      ) : (
+        <>
+          <div className={styles.attentionSummary}>
+            <h2 className={styles.panelTitle} id="attention-heading">
+              Needs attention
+            </h2>
+            <p className={styles.attentionStateTitle}>
+              {hasUnavailable
+                ? total > 0
+                  ? `${formatCount(total, 'known item')} ${total === 1 ? 'needs' : 'need'} a response`
+                  : 'Some queue data is unavailable'
+                : `${formatCount(total, 'item')} ${total === 1 ? 'needs' : 'need'} a response`}
+            </p>
+            <p className={styles.attentionStateCopy}>
+              {hasUnavailable
+                ? 'Refresh before treating this list as complete.'
+                : 'Review open student support first. Draft lessons are listed separately.'}
+            </p>
+          </div>
+          <div aria-label="Support and publishing queues" className={styles.attentionList}>
+            {urgentItems.map((item) => (
+              <Link
+                aria-label={`${item.label}: ${item.count == null ? 'unavailable' : item.count}. ${item.description}`}
+                className={`${styles.attentionRow} ${item.count != null && item.count > 0 ? styles.needsResponse : ''} ${item.count == null ? styles.isUnavailable : ''}`}
+                href={item.href}
+                key={item.label}
+              >
+                <span className={styles.rowIcon}>
+                  <DashboardIcon name={item.icon} size={16} />
+                </span>
+                <span className={styles.rowCopy}>
+                  <span className={styles.rowLabel}>{item.label}</span>
+                  <span className={styles.rowHint}>{item.description}</span>
+                </span>
+                <span className={styles.rowStatus}>
+                  <strong>{item.count ?? '—'}</strong>
+                  {item.count == null ? (
+                    <span>Unavailable</span>
+                  ) : item.count > 0 ? (
+                    <span>Needs response</span>
+                  ) : null}
+                </span>
+                <DashboardIcon name="chevron" size={16} />
+              </Link>
+            ))}
+            <Link
+              aria-label={`${drafts.label}: ${drafts.count == null ? 'unavailable' : drafts.count}. ${drafts.description}`}
+              className={`${styles.attentionRow} ${styles.attentionDraftRow} ${drafts.count == null ? styles.isUnavailable : ''}`}
+              href={drafts.href}
+            >
+              <span className={styles.rowIcon}>
+                <DashboardIcon name={drafts.icon} size={16} />
+              </span>
+              <span className={styles.rowCopy}>
+                <span className={styles.rowLabel}>{drafts.label}</span>
+                <span className={styles.rowHint}>{drafts.description}</span>
+              </span>
+              <span className={styles.rowStatus}>
+                <strong>{drafts.count ?? '—'}</strong>
+              </span>
+              <DashboardIcon name="chevron" size={16} />
+            </Link>
+          </div>
+        </>
+      )}
     </section>
   )
 }
 
 type SnapshotItem = {
+  actionHref?: string
+  actionLabel?: string
   description: string
-  icon: DashboardIconName
   label: string
   value: number | null
   suffix?: string
@@ -284,53 +343,46 @@ type SnapshotItem = {
 
 const SnapshotCard = ({ item }: { item: SnapshotItem }) => (
   <div className={styles.snapshotCard}>
-    <span className={styles.snapshotIcon}>
-      <DashboardIcon name={item.icon} size={25} />
-    </span>
-    <div className={styles.snapshotContent}>
-      <span className={styles.snapshotLabel}>{item.label}</span>
-      <strong className={styles.snapshotValue}>
-        {item.value == null ? '—' : <AnimatedNumber suffix={item.suffix} value={item.value} />}
-      </strong>
-      <span className={styles.snapshotDescription}>{item.description}</span>
-    </div>
+    <span className={styles.snapshotLabel}>{item.label}</span>
+    <strong className={styles.snapshotValue}>
+      {item.value == null ? '—' : <AnimatedNumber suffix={item.suffix} value={item.value} />}
+    </strong>
+    <span className={styles.snapshotDescription}>{item.description}</span>
+    {item.actionHref && item.actionLabel ? (
+      <Link className={styles.snapshotAction} href={item.actionHref}>
+        {item.actionLabel}
+        <Arrow />
+      </Link>
+    ) : null}
   </div>
 )
 
 type WorkspaceItem = {
-  action: string
   description: string
   href: string
   icon: DashboardIconName
-  meta?: string
   secondary?: { href: string; label: string }
   title: string
 }
 
 const WorkspaceCard = ({ item }: { item: WorkspaceItem }) => (
   <article className={styles.workspaceCard}>
-    <div className={styles.workspaceHead}>
+    <Link className={styles.workspacePrimary} href={item.href}>
       <span className={styles.workspaceIcon}>
-        <DashboardIcon name={item.icon} size={24} />
+        <DashboardIcon name={item.icon} size={16} />
       </span>
-      <div>
-        <h3 className={styles.workspaceTitle}>{item.title}</h3>
-        <p className={styles.workspaceDescription}>{item.description}</p>
-      </div>
-    </div>
-    {item.meta ? <p className={styles.workspaceMeta}>{item.meta}</p> : null}
-    <div className={styles.workspaceActions}>
-      <Link className={styles.workspaceAction} href={item.href}>
-        {item.action}
+      <span className={styles.workspaceBody}>
+        <span className={styles.workspaceTitle}>{item.title}</span>
+        <span className={styles.workspaceDescription}>{item.description}</span>
+      </span>
+      <DashboardIcon name="chevron" size={16} />
+    </Link>
+    {item.secondary ? (
+      <Link className={styles.workspaceSecondary} href={item.secondary.href}>
+        {item.secondary.label}
         <Arrow />
       </Link>
-      {item.secondary ? (
-        <Link className={styles.workspaceSecondary} href={item.secondary.href}>
-          {item.secondary.label}
-          <Arrow />
-        </Link>
-      ) : null}
-    </div>
+    ) : null}
   </article>
 )
 
@@ -339,12 +391,14 @@ type HealthItem = { href: string; id: string | number; metric: string; title: st
 const HealthSignal = ({
   available,
   description,
+  emptyAction,
   icon,
   items,
   title,
 }: {
   available: boolean
   description: string
+  emptyAction?: { href: string; label: string }
   icon: DashboardIconName
   items: HealthItem[]
   title: string
@@ -352,7 +406,7 @@ const HealthSignal = ({
   <div className={styles.healthSignal}>
     <div className={styles.healthSummary}>
       <span className={styles.healthIcon}>
-        <DashboardIcon name={icon} size={20} />
+        <DashboardIcon name={icon} size={16} />
       </span>
       <div>
         <h3 className={styles.healthTitle}>{title}</h3>
@@ -373,32 +427,40 @@ const HealthSignal = ({
             <Link className={styles.healthItemLink} href={item.href}>
               <span>{item.title}</span>
               <span>{item.metric}</span>
-              <DashboardIcon name="chevron" size={16} />
+              <DashboardIcon name="chevron" size={14} />
             </Link>
           </li>
         ))}
       </ul>
+    ) : available && emptyAction ? (
+      <div className={styles.healthEmptyAction}>
+        <Link href={emptyAction.href}>
+          {emptyAction.label}
+          <Arrow />
+        </Link>
+      </div>
     ) : null}
   </div>
 )
 
+type ActivityItem = {
+  href: string
+  label: string
+  time: string
+}
+
 export default function StaffDashboardRedesign({
-  user,
   stats,
   managementCounts,
   contentHealth,
   reportingGateway,
 }: StaffDashboardRedesignProps) {
-  const firstName =
-    (user as { firstName?: string | null } | null | undefined)?.firstName ||
-    user?.email ||
-    'team member'
   const draftLessons =
     managementCounts?.lessonsTotal == null || managementCounts.publishedLessonsCount == null
       ? null
       : Math.max(0, managementCounts.lessonsTotal - managementCounts.publishedLessonsCount)
 
-  const attentionItems: AttentionItem[] = [
+  const responseItems: AttentionItem[] = [
     {
       count: stats.unanswered,
       description:
@@ -410,6 +472,7 @@ export default function StaffDashboardRedesign({
       href: '/admin/collections/questions?where[status][equals]=open',
       icon: 'help',
       label: 'Unanswered questions',
+      shortLabel: 'Questions',
     },
     {
       count: stats.awaitingLessonFeedback,
@@ -422,6 +485,7 @@ export default function StaffDashboardRedesign({
       href: '/admin/collections/lesson-feedback',
       icon: 'book',
       label: 'Lesson replies',
+      shortLabel: 'Replies',
     },
     {
       count: stats.unreadFeedback,
@@ -434,95 +498,112 @@ export default function StaffDashboardRedesign({
       href: '/admin/feedback',
       icon: 'feedback',
       label: 'Unread site feedback',
-    },
-    {
-      count: draftLessons,
-      description:
-        draftLessons == null
-          ? 'Draft lesson count unavailable'
-          : draftLessons > 0
-            ? 'Lessons not yet visible to students'
-            : 'Every lesson is published',
-      href: '/admin/courses/drafts',
-      icon: 'pencil',
-      label: 'Draft lessons',
+      shortLabel: 'Feedback',
     },
   ]
 
+  const draftItem: AttentionItem = {
+    count: draftLessons,
+    description:
+      draftLessons == null
+        ? 'Draft lesson count unavailable'
+        : draftLessons > 0
+          ? 'Lessons not yet visible to students'
+          : 'Every lesson is published',
+    href: '/admin/courses/drafts',
+    icon: 'pencil',
+    label: 'Draft lessons',
+    shortLabel: 'Drafts',
+  }
+
   const snapshotItems: SnapshotItem[] = [
     {
+      actionHref:
+        stats.activeStudents === 0 ? '/admin/classrooms' : undefined,
+      actionLabel: stats.activeStudents === 0 ? 'View enrollments' : undefined,
       description:
         stats.activeStudents == null
           ? 'Activity data unavailable'
           : stats.activeStudents === 0
-            ? 'No students active this week'
-            : 'Unique students active',
-      icon: 'people',
+            ? 'No students active in the last 7 days'
+            : 'Unique students active · Last 7 days',
       label: 'Active learners',
       value: stats.activeStudents,
     },
     {
-      description: 'Enrollment records (all time)',
-      icon: 'person',
-      label: 'Classroom enrollments',
+      description: 'Enrollment records · All time',
+      label: 'Enrollments',
       value: managementCounts?.classroomEnrollmentsTotal ?? null,
+      actionHref:
+        (managementCounts?.classroomEnrollmentsTotal ?? 0) === 0
+          ? '/admin/classrooms'
+          : undefined,
+      actionLabel:
+        (managementCounts?.classroomEnrollmentsTotal ?? 0) === 0
+          ? 'Open classrooms'
+          : undefined,
     },
     {
       description: !contentHealth.available
         ? 'Completion data unavailable'
         : stats.avgCompletion == null
-          ? 'Not enough activity yet'
+          ? 'Insufficient data — appears once lessons are started'
           : 'All-time completion of started lessons',
-      icon: 'check',
       label: 'Completion rate',
       suffix: stats.avgCompletion == null ? undefined : '%',
       value:
         contentHealth.available && stats.avgCompletion != null
           ? Math.round(stats.avgCompletion * 100)
           : null,
+      actionHref:
+        contentHealth.available && stats.avgCompletion == null
+          ? '/admin/student-performance'
+          : undefined,
+      actionLabel:
+        contentHealth.available && stats.avgCompletion == null
+          ? 'Review student performance'
+          : undefined,
     },
     {
       description:
-        stats.publishedLessons == null ? 'Lesson count unavailable' : 'Across all courses',
-      icon: 'book',
+        stats.publishedLessons == null
+          ? 'Lesson count unavailable'
+          : 'Available to students',
       label: 'Published lessons',
       value: stats.publishedLessons,
+      actionHref: '/admin/courses',
+      actionLabel: stats.publishedLessons === 0 ? 'Publish a lesson' : undefined,
     },
   ]
 
   const workspaceItems: WorkspaceItem[] = [
     {
-      action: 'Manage courses',
-      description: `${formatAvailableCount(managementCounts?.coursesTotal, 'course')} · ${formatAvailableCount(managementCounts?.chaptersTotal, 'chapter')} · ${formatAvailableCount(managementCounts?.lessonsTotal, 'lesson')}`,
+      description: `${formatAvailableCount(managementCounts?.coursesTotal, 'course')} · ${formatAvailableCount(managementCounts?.lessonsTotal, 'lesson')}`,
       href: '/admin/courses',
       icon: 'graduation',
-      title: 'Course workspace',
+      title: 'Courses',
     },
     {
-      action: 'Manage classrooms',
       description: `${formatAvailableCount(managementCounts?.classroomsTotal, 'classroom')} · ${formatAvailableCount(managementCounts?.classroomEnrollmentsTotal, 'enrollment')}`,
       href: '/admin/classrooms',
       icon: 'people',
       title: 'Classrooms',
     },
     {
-      action: 'Open quiz bank',
       description: `${formatAvailableCount(managementCounts?.quizzesTotal, 'quiz', 'quizzes')} · ${formatAvailableCount(managementCounts?.quizQuestionsTotal, 'question')}`,
       href: '/admin/quiz-bank',
       icon: 'clipboard',
       secondary: { href: '/admin/question-bank', label: 'Question bank' },
-      title: 'Quiz bank',
+      title: 'Quizzes & Questions',
     },
     {
-      action: 'Open site settings',
-      description: 'Navigation, pages, users & roles',
+      description:
+        managementCounts?.pagesTotal == null
+          ? 'Pages · users · permissions'
+          : `${formatCount(managementCounts.pagesTotal, 'page')} · users · permissions`,
       href: '/admin/site-management',
       icon: 'gear',
-      meta:
-        managementCounts?.pagesTotal == null
-          ? 'Page count unavailable'
-          : formatCount(managementCounts.pagesTotal, 'page'),
-      title: 'Site management',
+      title: 'Site Administration',
     },
   ]
 
@@ -549,15 +630,39 @@ export default function StaffDashboardRedesign({
   const latestSnapshot = reportingGateway.latestSnapshot
   const latestActiveLearners = stats.activeStudents
 
+  const activityItems: ActivityItem[] = []
+  if (managementCounts?.lastLessonUpdatedAt) {
+    const time = formatRelativeTime(managementCounts.lastLessonUpdatedAt)
+    if (time) {
+      activityItems.push({
+        href: '/admin/courses',
+        label: 'Lesson content was updated',
+        time,
+      })
+    }
+  }
+  if (reportingGateway.available && latestSnapshot?.createdAt) {
+    const time = formatRelativeTime(latestSnapshot.createdAt)
+    if (time) {
+      activityItems.push({
+        href: '/admin/collections/reporting-snapshots',
+        label: `Reporting snapshot ${latestSnapshot.versionLabel || latestSnapshot.label || 'captured'}`,
+        time,
+      })
+    }
+  }
+
   return (
     <Gutter>
       <main className={styles.dashboard}>
         <header className={styles.pageHeader}>
           <div>
-            <h1 className={styles.pageTitle}>NSF CURE Summer Bridge Program</h1>
+            <p className={styles.pageEyebrow}>
+              NSF CURE SBP <span aria-hidden="true">/</span> Administration
+            </p>
+            <h1 className={styles.pageTitle}>Overview</h1>
             <p className={styles.pageIntro}>
-              <strong>Welcome, {firstName}.</strong> Here’s what needs your attention across the
-              program.
+              Monitor program activity, manage learning content, and review student engagement.
             </p>
           </div>
           <div className={styles.headerActions}>
@@ -566,13 +671,13 @@ export default function StaffDashboardRedesign({
               <Arrow />
             </Link>
             <Link className={styles.textAction} href="/admin/student-performance">
-              View student performance
+              Student performance
               <Arrow />
             </Link>
           </div>
         </header>
 
-        <AttentionPanel items={attentionItems} />
+        <AttentionPanel drafts={draftItem} items={responseItems} />
 
         <section
           aria-labelledby="snapshot-heading"
@@ -580,7 +685,7 @@ export default function StaffDashboardRedesign({
         >
           <div className={styles.sectionHeading}>
             <h2 className={styles.panelTitle} id="snapshot-heading">
-              Program snapshot
+              Program overview
             </h2>
             <p>Last 7 days unless noted</p>
           </div>
@@ -599,7 +704,7 @@ export default function StaffDashboardRedesign({
             <h2 className={styles.panelTitle} id="workspaces-heading">
               Workspaces
             </h2>
-            <p>Manage the program by task</p>
+            <p>Manage program operations</p>
           </div>
           <div className={styles.workspaceGrid}>
             {workspaceItems.map((item) => (
@@ -607,6 +712,31 @@ export default function StaffDashboardRedesign({
             ))}
           </div>
         </section>
+
+        {activityItems.length > 0 ? (
+          <section
+            aria-labelledby="activity-heading"
+            className={`${styles.panel} ${styles.activityPanel}`}
+          >
+            <div className={styles.sectionHeading}>
+              <h2 className={styles.panelTitle} id="activity-heading">
+                Recent activity
+              </h2>
+              <p>Verified events from this program</p>
+            </div>
+            <ul className={styles.activityList}>
+              {activityItems.map((item) => (
+                <li key={`${item.href}-${item.label}`}>
+                  <Link className={styles.activityRow} href={item.href}>
+                    <span className={styles.activityLabel}>{item.label}</span>
+                    <time className={styles.activityTime}>{item.time}</time>
+                    <DashboardIcon name="chevron" size={14} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <div className={styles.bottomGrid}>
           <section
@@ -617,26 +747,32 @@ export default function StaffDashboardRedesign({
               <h2 className={styles.panelTitle} id="health-heading">
                 Content health
               </h2>
-              <p>Monitor content that may need attention</p>
+              <p>Lessons that may need a closer look</p>
             </div>
             <div className={styles.healthList}>
               <HealthSignal
                 available={contentHealth.available}
-                description="Lessons with the lowest completion rates"
+                description="Lowest completion among started lessons"
+                emptyAction={{ href: '/admin/student-performance', label: 'Open student performance' }}
                 icon="check"
                 items={lowCompletionItems}
                 title="Low completion"
               />
               <HealthSignal
                 available={contentHealth.available}
-                description="Lessons with the most student questions"
+                description="Highest student question volume"
+                emptyAction={{
+                  href: '/admin/collections/questions?where[status][equals]=open',
+                  label: 'Review open questions',
+                }}
                 icon="feedback"
                 items={highQuestionItems}
                 title="High question volume"
               />
               <HealthSignal
                 available={contentHealth.available}
-                description="Lessons with the lowest helpfulness ratings"
+                description="Lowest helpfulness ratings"
+                emptyAction={{ href: '/admin/courses', label: 'Review published lessons' }}
                 icon="thumb"
                 items={lowHelpfulnessItems}
                 title="Low helpfulness"
@@ -669,6 +805,12 @@ export default function StaffDashboardRedesign({
                       'Dates not set')
                     : 'Choose a reporting period to scope exports and snapshots.'}
               </p>
+              {reportingGateway.available && !activePeriod ? (
+                <Link className={styles.reportingEmptyAction} href="/admin/collections/reporting-periods">
+                  Configure reporting periods
+                  <Arrow />
+                </Link>
+              ) : null}
             </div>
             <div className={styles.reportingStats}>
               <div>

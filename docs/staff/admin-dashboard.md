@@ -9,30 +9,29 @@ For the complete staff manual, see [`docs/staff/payload-admin-handbook.md`](../s
 
 ## Dashboard at a glance
 
-`/admin` is rendered by `StaffDashboardView` (`payload-cms/src/views/StaffDashboardView.tsx`). It surfaces:
+`/admin` is rendered by `StaffDashboardView` → `StaffDashboardRedesign`
+(`payload-cms/src/views/dashboard/StaffDashboardRedesign.tsx`). It surfaces three priority levels:
 
-- **Needs attention:** one prioritized task list for open questions, pending lesson replies,
-  unread site feedback, and draft lessons. When every queue is empty, the dashboard shows one
-  compact "You're all caught up" state instead of repeating zero-value alerts.
-- **Program snapshot:** active learners, classroom enrollments, completion context, and published content.
-  Values share a clear timeframe, and unavailable metrics explain why data is missing.
-- **Workspaces:** direct entry points for courses, classrooms, quizzes, and site management.
-- **Content health:** lesson-level completion, question-volume, and helpfulness signals.
-- **NSF reporting:** the active reporting period, RPPR drafts, latest snapshot, and reporting-suite
-  shortcuts.
-
-Each card primary action is one click; secondary actions appear underneath.
+1. **Attention & activity** — open questions, lesson replies, and unread site feedback. When those
+   queues are empty, the panel collapses to a compact “All caught up” status with pill counts.
+   Draft lessons are listed separately (content status, not urgent). A **Recent activity** section
+   appears only when verified events exist (e.g. lesson updates, reporting snapshots).
+2. **Program health** — active learners (last 7 days), enrollment records (all time), completion
+   rate (shows “—” until there is enough data), and published lessons. Empty metrics include a next
+   action when useful.
+3. **Administration** — compact workspace links for Courses, Classrooms, Quizzes & Questions, and
+   Site Administration, plus Content health and NSF reporting.
 
 ## Custom workspaces
 
 | Card | Primary action | Secondary action |
 | --- | --- | --- |
-| Courses | `/admin/courses` (Manage Courses) | |
-| Quizzes | `/admin/quiz-bank` (Open Quiz Bank) | `/admin/question-bank` (Question Bank) |
-| Classrooms | `/admin/classrooms` (Manage Classrooms) | `/admin/feedback` (Feedback inbox) |
-| Site | `/admin/site-management` (Open Site Settings) | |
+| Courses | `/admin/courses` | |
+| Classrooms | `/admin/classrooms` | |
+| Quizzes & Questions | `/admin/quiz-bank` | `/admin/question-bank` |
+| Site Administration | `/admin/site-management` | |
 | Reporting | `/admin/reporting` | `/admin/collections/reporting-periods`, `/admin/collections/rppr-reports`, `/admin/collections/reporting-snapshots` |
-| Student support | `/admin/student-performance` | `/admin/collections/questions?where[status][equals]=open`, `/admin/collections/feedback?where[read][equals]=false`, `/admin/collections/lesson-feedback` |
+| Student support | `/admin/student-performance` | `/admin/collections/questions?where[status][equals]=open`, `/admin/feedback`, `/admin/collections/lesson-feedback` |
 | Analytics | `/admin/user-analytics` | per-quiz `/admin/quiz-stats/[id]`, per-question `/admin/question-stats/[id]` |
 
 The handbook lists the full set of custom pages including `/admin/concepts`, `/admin/pre-post`, `/admin/help`, and `/admin/settings`.
