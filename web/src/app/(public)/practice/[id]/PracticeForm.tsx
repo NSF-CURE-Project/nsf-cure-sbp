@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useId } from "react";
+import { useActionState, useEffect, useId, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { writeLocalPracticeProgress } from "@/lib/practice/localProgress";
 import type { PracticeResult } from "./actions";
@@ -11,6 +11,21 @@ type Piece = { html: string } | { index: number; label: string; digits: number }
 const proseClass =
   "break-words leading-relaxed text-[15px] text-foreground [&_.katex-display]:overflow-x-auto [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6";
 
+/** Failed checks before a soft hint; expected values stay hidden until later. */
+const HINT_AFTER_FAILED = 3;
+/** Failed checks before revealing the expected numeric answer. */
+const REVEAL_AFTER_FAILED = 4;
+
+function incorrectMessage(expected: string, failedChecks: number) {
+  if (failedChecks >= REVEAL_AFTER_FAILED) {
+    return `Incorrect. Expected ${expected}.`;
+  }
+  if (failedChecks >= HINT_AFTER_FAILED) {
+    return "Incorrect. Hint: recheck your setup and significant figures, or open Show solution if you are stuck.";
+  }
+  return "Incorrect. Try again.";
+}
+
 export function PracticeForm({
   action,
   pieces,
@@ -20,11 +35,22 @@ export function PracticeForm({
   pieces: Piece[];
   initialSubmissionId: string;
 }) {
-  const [result, submit, pending] = useActionState(action, null);
+  const failedChecksRef = useRef(0);
+  const wrappedAction = async (
+    previous: PracticeResult | null,
+    form: FormData,
+  ): Promise<PracticeResult & { failedChecks: number }> => {
+    const next = await action(previous, form);
+    const allCorrect = next.parts.every((part) => part.correct);
+    if (!allCorrect) failedChecksRef.current += 1;
+    return { ...next, failedChecks: failedChecksRef.current };
+  };
+  const [result, submit, pending] = useActionState(wrappedAction, null);
   const formId = useId();
   const { diagramHtml, statementHtml, fields } = splitPracticePrompt(pieces);
   const correctCount = result?.parts.filter((part) => part.correct).length;
   const multiColumn = fields.length > 1;
+  const failedChecks = result?.failedChecks ?? 0;
 
   useEffect(() => {
     if (!result?.localProgress) return;
@@ -142,7 +168,9 @@ export function PracticeForm({
                     {feedback
                       ? feedback.correct
                         ? "Correct."
-                        : `${feedback.invalid ? "Enter a valid number." : "Incorrect."} Expected ${feedback.expected}.`
+                        : feedback.invalid
+                          ? "Enter a valid number."
+                          : incorrectMessage(feedback.expected, failedChecks)
                       : `Use ${field.digits} significant figures.`}
                   </p>
                 </div>
