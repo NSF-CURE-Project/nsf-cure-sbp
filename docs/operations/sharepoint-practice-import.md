@@ -67,3 +67,12 @@ Each numeric problem counts once, regardless of its number of answer fields or g
 The first implementation was a one-time cost. For another similarly sized archive with the same structure, budget **15–30 minutes** for downloading, extracting, running the importer, reconciling counts, and spot-checking the local site. This estimate assumes dependencies are installed and the packages pass validation. Reviewing every activity, fixing source defects, and waiting for production deployment are separate from that estimate.
 
 Automated checks covered 10,950 generated instances and per-field grading for all 73 numeric problems. The local catalog returned HTTP 200 and displayed both courses. The interactive simulations still need a browser interaction check before rollout.
+
+## Fidelity lock (do not skip after redesigns)
+
+The SharePoint ZIP is archived at [`fixtures/practice/NSF_CURE_Website_Problems.zip`](../../fixtures/practice/NSF_CURE_Website_Problems.zip). After any import or engine change:
+
+1. `node scripts/verify-practice-fidelity.cjs write-manifest`
+2. Confirm CI workflow **Practice Fidelity** is green
+
+See [`practice-fidelity.md`](./practice-fidelity.md) for shell vs engine rules and version bump discipline.

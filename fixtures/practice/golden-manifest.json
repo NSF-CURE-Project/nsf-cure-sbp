@@ -1,0 +1,611 @@
+{
+  "generatedAt": "2026-11-25T15:41:59.731Z",
+  "sourceArchive": "fixtures/practice/NSF_CURE_Website_Problems.zip",
+  "problemCount": 82,
+  "problems": [
+    {
+      "id": "9687c0fd83eccfba9bfb",
+      "version": "8864e09381934eacfed5",
+      "title": "Average Normal and Shear Stress",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "7bf6645a9f985e6f87ee",
+      "version": "86228eaa81e54b4179eb",
+      "title": "Normal Strain",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "55fef2413e4108607a24",
+      "version": "d23a7e0e680f33481b47",
+      "title": "Torque",
+      "kind": "numeric",
+      "partCount": 4
+    },
+    {
+      "id": "a24ac0d92fb02297b227",
+      "version": "7ffc6f3cca81201c255c",
+      "title": "Torque",
+      "kind": "numeric",
+      "partCount": 3
+    },
+    {
+      "id": "433640ede153dbd77af0",
+      "version": "496f7e6d84f93ffd9cba",
+      "title": "Torque",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "3d27bcfd898b810e1bcc",
+      "version": "41c981c784ec74f3e6b3",
+      "title": "Torque",
+      "kind": "numeric",
+      "partCount": 3
+    },
+    {
+      "id": "e323e1d338bb38b73686",
+      "version": "ec30a07484dd735018e1",
+      "title": "Poisson's Ratio",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "23dc66b6e923c3f63b56",
+      "version": "b26d48e1d91325711883",
+      "title": "Shear Strain",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "71e861d34c261efa6e0b",
+      "version": "38a847349a15b39bea13",
+      "title": "Axial Displacement",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "9055316a337da8013d1b",
+      "version": "d915198149aacc93172e",
+      "title": "Displacement",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "255fbd62c1ec5d7ff81a",
+      "version": "b312587de081b0b51449",
+      "title": "Displacement",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "7c6fa3f26767fa1b50e5",
+      "version": "d0bc1aaa144b38019e81",
+      "title": "Thermal Stress",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "c772c1b336f04fa501ee",
+      "version": "2e24054ca48416214cb2",
+      "title": "Angle of Twist",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "b2fd295ad9964bdec2ea",
+      "version": "f8c0a1ef2d6f433eb9c9",
+      "title": "Shear Stress",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "ab323a55cc2bdeab8020",
+      "version": "5dc2e21d7db5e20b5454",
+      "title": "Torque",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "e529001fa96caf5ada67",
+      "version": "ebce3b40f801e7a57861",
+      "title": "Torque",
+      "kind": "numeric",
+      "partCount": 3
+    },
+    {
+      "id": "5bdcfb0f2b26542b7cb8",
+      "version": "234ffbb9ac8a49c126d5",
+      "title": "Torque",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "d4e8c7b3c661f3cd4bb1",
+      "version": "1ac03e0e228e09fef8d5",
+      "title": "Torque",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "a2a2240fa3e5b0771dc5",
+      "version": "a0561eb601933068eb3e",
+      "title": "Bending",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "f08f59819fd0a728140d",
+      "version": "a4d28738db7d40aede6b",
+      "title": "Bending",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "28b22a4d64c061b9be4c",
+      "version": "0f2bbd11cec0d37e24b4",
+      "title": "Bending",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "3410b475964298f77abe",
+      "version": "454c6722bf515fc025d6",
+      "title": "Composite Beam",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "28a023dda288558d6c39",
+      "version": "6033053d728cd9e7f1b0",
+      "title": "Torque",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "a95b467a5691a37605dd",
+      "version": "6ed55b6219ce04910062",
+      "title": "Torque",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "b2dba5751b2ba5366dfc",
+      "version": "7849322fa4b10f703656",
+      "title": "Torque",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "778410c40496b78e2a65",
+      "version": "6dfd841bff634b2ee8dd",
+      "title": "Torque",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "84c0d013249184fd8018",
+      "version": "6044ca2504c3ab80822a",
+      "title": "Torque",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "e3694b3addeb735a1cc5",
+      "version": "edcb69e6f6c1973d32d6",
+      "title": "Torque",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "7058c414463091e948d5",
+      "version": "d38639961782d88096cd",
+      "title": "Combined Loading",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "b29cd838cc5718d0418b",
+      "version": "5f809cad6ef977355fb5",
+      "title": "Torque",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "bc1555faecfa05cc5d4b",
+      "version": "0233ad1ecf1e575411e1",
+      "title": "Plane Stress Transformation",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "58ed4ed6b92ddb6d0229",
+      "version": "8aa73b9f9a57b14d5941",
+      "title": "Plane Stress Transformation",
+      "kind": "numeric",
+      "partCount": 3
+    },
+    {
+      "id": "971a21646736725f0067",
+      "version": "e751db09bb48654c7661",
+      "title": "Plane Stress Transformation",
+      "kind": "numeric",
+      "partCount": 8
+    },
+    {
+      "id": "218b129b5eb73b0175e1",
+      "version": "5607c5a1ee5b064f2fac",
+      "title": "Plane Stress Transformation",
+      "kind": "numeric",
+      "partCount": 3
+    },
+    {
+      "id": "89c0a30731b11150f106",
+      "version": "1a563ea4c6d334751c2c",
+      "title": "Force Vectors",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "479a0bfdcae55701df78",
+      "version": "3c793fe3894b98082d00",
+      "title": "Force Vectors",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "be11f48ff3d95e7ffd45",
+      "version": "496426f1def62c7fde9e",
+      "title": "Force Components",
+      "kind": "numeric",
+      "partCount": 4
+    },
+    {
+      "id": "fe74ce162dc8ea13d432",
+      "version": "54a9de9ff2a7e16b6298",
+      "title": "Components Forces",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "7b4f86843f4706a6d076",
+      "version": "fc0a6d8acfa36c114c94",
+      "title": "Equilibrium of A Particle",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "ee1e0e70de60693296cf",
+      "version": "454c1314e9c45b39a4f9",
+      "title": "Coplanar Force Systems",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "5cb977d5065bbc005fa1",
+      "version": "a7938173a26e8bc543f4",
+      "title": "Equilibrium_Angle_and_Pin_Reactions",
+      "kind": "numeric",
+      "partCount": 3
+    },
+    {
+      "id": "7216723c02d0fa914f14",
+      "version": "a69dc50b13d1c4f8bcea",
+      "title": "Moment of A Couple",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "0dcc3a93ed92fb46ff15",
+      "version": "4c7620ebf2f3749d1150",
+      "title": "Equlibrium",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "4e8b8db082b32bb6a410",
+      "version": "04432fd9cd1dcc7254ad",
+      "title": "3D_Bearing_Reaction_Forces",
+      "kind": "numeric",
+      "partCount": 9
+    },
+    {
+      "id": "905b62b7c3f1e7d3d59c",
+      "version": "a8fc831ca135a5f6402f",
+      "title": "3D_moments_1",
+      "kind": "numeric",
+      "partCount": 3
+    },
+    {
+      "id": "633de88616ac013b2478",
+      "version": "4dfa3336afe9b565c1d9",
+      "title": "Beam_weights_2",
+      "kind": "numeric",
+      "partCount": 4
+    },
+    {
+      "id": "6bdc2c00ca64c6c6c804",
+      "version": "82acda222e0f415b519f",
+      "title": "Method of Sections",
+      "kind": "numeric",
+      "partCount": 3
+    },
+    {
+      "id": "2dce689d99161c62ae1e",
+      "version": "70f9e24f4d356b6d9f86",
+      "title": "Method of joints",
+      "kind": "numeric",
+      "partCount": 21
+    },
+    {
+      "id": "ec183411383e4d7e2ba3",
+      "version": "4edd0f77aa18da85e63a",
+      "title": "Method of joints",
+      "kind": "numeric",
+      "partCount": 11
+    },
+    {
+      "id": "c7e68688ec23e61f4f47",
+      "version": "89f42e40cffcd0458998",
+      "title": "Method_of_sections_1",
+      "kind": "numeric",
+      "partCount": 8
+    },
+    {
+      "id": "45206ba973d67862d4f9",
+      "version": "3d77cba6f9319b756e81",
+      "title": "Practice Problem 5: Cantilever Beam, Point Load at the Free End",
+      "kind": "simulation",
+      "partCount": 0
+    },
+    {
+      "id": "93ea300617e378ccd77a",
+      "version": "88febd9ce3ce137c379d",
+      "title": "Practice Problem 6: Cantilever Beam, Point Load at Any Point",
+      "kind": "simulation",
+      "partCount": 0
+    },
+    {
+      "id": "9ce536f917aeddd5b90f",
+      "version": "2aa875d9144972baa215",
+      "title": "Practice Problem 4: Cantilever Beam, Uniform Load",
+      "kind": "simulation",
+      "partCount": 0
+    },
+    {
+      "id": "e51a15f4858a558412fb",
+      "version": "633c5ef8a32ee2eec9c9",
+      "title": "Practice Problem 1: Simply Supported Beam, Point Load",
+      "kind": "simulation",
+      "partCount": 0
+    },
+    {
+      "id": "724f068d8751f2759b93",
+      "version": "2be716a115d9582a92c9",
+      "title": "Practice Problem 3: Simply Supported Beam, Two Equal Point Loads",
+      "kind": "simulation",
+      "partCount": 0
+    },
+    {
+      "id": "9881bac7ff1a176d2eee",
+      "version": "2518d5bd68a96b697c44",
+      "title": "Practice Problem 2: Simply Supported Beam, Uniform Load",
+      "kind": "simulation",
+      "partCount": 0
+    },
+    {
+      "id": "b8084d4657bc3469613f",
+      "version": "9387ec652ca7ffc1e52a",
+      "title": "Internal Forces",
+      "kind": "numeric",
+      "partCount": 6
+    },
+    {
+      "id": "d82c5bc022c3ccc6c609",
+      "version": "f06ed86c4dbc979b6a99",
+      "title": "Section Cut Method",
+      "kind": "numeric",
+      "partCount": 4
+    },
+    {
+      "id": "ae49a348663292206dfd",
+      "version": "dcdce92b52395df38bea",
+      "title": "Section Cut Method",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "cba0a7cb7153a3f83277",
+      "version": "81d81afc1a5138a8d237",
+      "title": "Section Cut Method",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "dde2c06b9ce66321bb96",
+      "version": "b51abbfdd28ef74fe9ef",
+      "title": "Section Cut Method",
+      "kind": "numeric",
+      "partCount": 4
+    },
+    {
+      "id": "7d0dfb8ad4279abac45a",
+      "version": "7add856bd9eb8f07f654",
+      "title": "Centroid",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "86bbdc857dd44114254a",
+      "version": "c0473792c588a10b25ba",
+      "title": "Centroid",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "d77b51fee450ce5a2626",
+      "version": "7890c1b0d444f95a01dc",
+      "title": "Centroid",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "17e71872091c06923f80",
+      "version": "23d5b4b09932a646f201",
+      "title": "Centroid",
+      "kind": "numeric",
+      "partCount": 4
+    },
+    {
+      "id": "48e242ddd5795134fb77",
+      "version": "c825f1ae334a6230bd3b",
+      "title": "Moment of Inertia",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "2cc62442bd317cad8f69",
+      "version": "646ef48ce37e72578a16",
+      "title": "Moment of Inertia",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "86661cc08474df33487f",
+      "version": "fc9f5d565fd6b701a908",
+      "title": "Moment of Inertia",
+      "kind": "numeric",
+      "partCount": 8
+    },
+    {
+      "id": "83df854184592cc65455",
+      "version": "05361d4c7fc64d46057a",
+      "title": "Moment of Inertia",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "11c4b8910ca90eb1b65f",
+      "version": "3f8a7b94db257b6d035c",
+      "title": "Moment of Inertia",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "68a20853f8b466d8c066",
+      "version": "9600761f45ace415a16b",
+      "title": "Moment of Inertia",
+      "kind": "numeric",
+      "partCount": 1
+    },
+    {
+      "id": "e9ec8c282fd1e1deb8c6",
+      "version": "ee268831ea18d91e7da9",
+      "title": "Ball on an Incline",
+      "kind": "simulation",
+      "partCount": 0
+    },
+    {
+      "id": "d4b360a30a97dd5c13b4",
+      "version": "47380bda4711d251868b",
+      "title": "Weight Hanging from Cables",
+      "kind": "simulation",
+      "partCount": 0
+    },
+    {
+      "id": "e344d1d649dddd4fd7c3",
+      "version": "37295fe1f74059b689f5",
+      "title": "Weight on a Pulley",
+      "kind": "simulation",
+      "partCount": 0
+    },
+    {
+      "id": "220cf3055703234dc998",
+      "version": "4ba8f20b03f5408d4a69",
+      "title": "Force Components",
+      "kind": "numeric",
+      "partCount": 4
+    },
+    {
+      "id": "06085d07fa90e77a1de1",
+      "version": "0c151792b3f7b280d51a",
+      "title": "Force Components",
+      "kind": "numeric",
+      "partCount": 6
+    },
+    {
+      "id": "9a25e8c1e15f6bcc9f19",
+      "version": "3bd0658fefc3caa038cd",
+      "title": "Force Components",
+      "kind": "numeric",
+      "partCount": 8
+    },
+    {
+      "id": "91444a05c089e72f572b",
+      "version": "0e695caebae798dcb427",
+      "title": "Force Components",
+      "kind": "numeric",
+      "partCount": 4
+    },
+    {
+      "id": "f6641d6592c65d1e55e8",
+      "version": "b6539e9d8d9c9f3d7894",
+      "title": "Force Components",
+      "kind": "numeric",
+      "partCount": 4
+    },
+    {
+      "id": "685231c340cfe87126a9",
+      "version": "e1d5c4ce0e8e06fbd88a",
+      "title": "Force Components",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "8278b0f87231cb07bd5d",
+      "version": "b040177b595cc6ce0107",
+      "title": "Force Components",
+      "kind": "numeric",
+      "partCount": 2
+    },
+    {
+      "id": "0e08c0466f9c13b365e7",
+      "version": "401eb445dd96fbf94925",
+      "title": "Force Components",
+      "kind": "numeric",
+      "partCount": 4
+    }
+  ],
+  "files": {
+    "payload-cms/src/practice/engine.generated.mjs": "410b4b9b26de5f774b69bce65e825cd3d118315b65eca0cd4b1c320cc57f5e22",
+    "payload-cms/src/practice/generators.generated.mjs": "64f7841dfc558b2eb6f42a5d98992d5ac442ca4ebd0177e94504209d99be3f2b",
+    "payload-cms/src/practice/numeric.generated.json": "a313b43395df3238cb49a1bb5d034855ca3fe9c3a26a20a261ba8087105f99a6",
+    "payload-cms/src/practice/simulations/45206ba973d67862d4f9.generated.mjs": "a21c974da64f1ccc9dab28266627f36313680a9c204b3ad94c08953c3171aed5",
+    "payload-cms/src/practice/simulations/724f068d8751f2759b93.generated.mjs": "670b74da0699f1c238b6042e8feb0a78589b5bfcdb81d302a98e330b374c4dc0",
+    "payload-cms/src/practice/simulations/93ea300617e378ccd77a.generated.mjs": "c6623af2407a90844a796e236545b833202902c8f8a0d31ff39398c89f308c06",
+    "payload-cms/src/practice/simulations/9881bac7ff1a176d2eee.generated.mjs": "968b1c780c87d743f2ca58380d11468c835b3b0324ea1c108537374a77b49a37",
+    "payload-cms/src/practice/simulations/9ce536f917aeddd5b90f.generated.mjs": "08fb72e65544f9711eb98db53e78d76ebe4d7a1f5fbc2099d57ab922dff2b9a7",
+    "payload-cms/src/practice/simulations/d4b360a30a97dd5c13b4.generated.mjs": "ed5f9f577d8e4eb6ea4555792b3bba4bb7dd816789f85495a21cab8e32dbae94",
+    "payload-cms/src/practice/simulations/e344d1d649dddd4fd7c3.generated.mjs": "5461ef9ca0cc77e7c23d756950d51adbf167b7941c1f922857f990ceb26700ab",
+    "payload-cms/src/practice/simulations/e51a15f4858a558412fb.generated.mjs": "219edabe4d640b0ff525014a10b04b0dfb5b10c312dca05cc3efe37dd4e07b63",
+    "payload-cms/src/practice/simulations/e9ec8c282fd1e1deb8c6.generated.mjs": "debe6db1e6fd4455e59a3e9e0260070b70ce05f2ecdfbb2a6d6f858f76d86fbb",
+    "payload-cms/src/practice/simulations/loaders.generated.mjs": "21726c17a364c4e26edc5b8d3dbadc612c5532a9c4ef5f51b0947426eb8d2299",
+    "payload-cms/src/practice/simulations/metadata.generated.json": "5fde6a6db75037a359d6c0f1f0ad47626e2fb26dd261799bc61536604822c33e",
+    "web/src/lib/practice/catalog.generated.json": "636be4d10c3b01412f3d0f0aebc402be5532fff4fe6fb2d7f8f2899f4b625149",
+    "web/src/lib/practice/engine.generated.mjs": "410b4b9b26de5f774b69bce65e825cd3d118315b65eca0cd4b1c320cc57f5e22",
+    "web/src/lib/practice/generators.generated.mjs": "64f7841dfc558b2eb6f42a5d98992d5ac442ca4ebd0177e94504209d99be3f2b",
+    "web/src/lib/practice/simulations/45206ba973d67862d4f9.generated.mjs": "a21c974da64f1ccc9dab28266627f36313680a9c204b3ad94c08953c3171aed5",
+    "web/src/lib/practice/simulations/724f068d8751f2759b93.generated.mjs": "670b74da0699f1c238b6042e8feb0a78589b5bfcdb81d302a98e330b374c4dc0",
+    "web/src/lib/practice/simulations/93ea300617e378ccd77a.generated.mjs": "c6623af2407a90844a796e236545b833202902c8f8a0d31ff39398c89f308c06",
+    "web/src/lib/practice/simulations/9881bac7ff1a176d2eee.generated.mjs": "968b1c780c87d743f2ca58380d11468c835b3b0324ea1c108537374a77b49a37",
+    "web/src/lib/practice/simulations/9ce536f917aeddd5b90f.generated.mjs": "08fb72e65544f9711eb98db53e78d76ebe4d7a1f5fbc2099d57ab922dff2b9a7",
+    "web/src/lib/practice/simulations/d4b360a30a97dd5c13b4.generated.mjs": "ed5f9f577d8e4eb6ea4555792b3bba4bb7dd816789f85495a21cab8e32dbae94",
+    "web/src/lib/practice/simulations/e344d1d649dddd4fd7c3.generated.mjs": "5461ef9ca0cc77e7c23d756950d51adbf167b7941c1f922857f990ceb26700ab",
+    "web/src/lib/practice/simulations/e51a15f4858a558412fb.generated.mjs": "219edabe4d640b0ff525014a10b04b0dfb5b10c312dca05cc3efe37dd4e07b63",
+    "web/src/lib/practice/simulations/e9ec8c282fd1e1deb8c6.generated.mjs": "debe6db1e6fd4455e59a3e9e0260070b70ce05f2ecdfbb2a6d6f858f76d86fbb",
+    "web/src/lib/practice/simulations/loaders.generated.mjs": "21726c17a364c4e26edc5b8d3dbadc612c5532a9c4ef5f51b0947426eb8d2299",
+    "web/src/lib/practice/simulations/metadata.generated.json": "54830e52acbd275a053aad88e1e5c6b05f784e5e7fdcf05246c7c0b6392cac6e"
+  }
+}

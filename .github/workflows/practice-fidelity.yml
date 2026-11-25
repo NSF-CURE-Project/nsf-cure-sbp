@@ -1,0 +1,105 @@
+name: Practice Fidelity
+
+on:
+  pull_request:
+    paths:
+      - 'web/src/lib/practice/**'
+      - 'web/src/app/(public)/practice/**'
+      - 'web/tests/practice-sim-smoke.spec.ts'
+      - 'web/playwright.config.ts'
+      - 'payload-cms/src/practice/**'
+      - 'payload-cms/tests/unit-node/practice-*.mjs'
+      - 'scripts/import-practice-problems.cjs'
+      - 'scripts/compile-practice-simulation.cjs'
+      - 'scripts/practice-engine.mjs'
+      - 'scripts/verify-practice-fidelity.cjs'
+      - 'fixtures/practice/**'
+      - 'docs/operations/practice-fidelity.md'
+      - '.github/workflows/practice-fidelity.yml'
+  push:
+    branches:
+      - main
+      - prod
+      - production
+    paths:
+      - 'web/src/lib/practice/**'
+      - 'web/src/app/(public)/practice/**'
+      - 'payload-cms/src/practice/**'
+      - 'scripts/**practice**'
+      - 'fixtures/practice/**'
+      - '.github/workflows/practice-fidelity.yml'
+
+concurrency:
+  group: practice-fidelity-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  engine-lock:
+    name: Engine lock + goldens
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: payload-cms/pnpm-lock.yaml
+
+      - name: Install payload-cms deps (importer + unit tests)
+        working-directory: payload-cms
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify shell/engine boundary + golden manifest
+        run: node scripts/verify-practice-fidelity.cjs verify
+
+      - name: Re-import archived SharePoint ZIP and detect drift
+        run: node scripts/verify-practice-fidelity.cjs import-drift
+
+      - name: Numeric + simulation golden unit tests
+        working-directory: payload-cms
+        run: node --experimental-strip-types --test tests/unit-node/practice-*.test.mjs
+
+  simulation-browser-smoke:
+    name: Simulation browser smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: web
+    env:
+      ENABLE_PRACTICE_LIBRARY: 'true'
+      NEXT_PUBLIC_CMS_URL: https://example.invalid
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3011
+      PAYLOAD_PROXY_TARGET: https://example.invalid
+      NEXT_TELEMETRY_DISABLED: '1'
+      NODE_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install web deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build web with practice library enabled
+        run: pnpm build
+
+      - name: Smoke the nine interactive simulations
+        run: pnpm exec playwright test

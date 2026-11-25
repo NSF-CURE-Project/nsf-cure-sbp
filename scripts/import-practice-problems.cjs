@@ -104,8 +104,15 @@ function* files(dir) {
   }
 }
 
-const output = path.join(web, 'src/lib/practice')
-const mediaDir = path.join(web, 'public/practice-diagrams')
+const output = process.env.PRACTICE_WEB_OUTPUT
+  ? path.resolve(process.env.PRACTICE_WEB_OUTPUT)
+  : path.join(web, 'src/lib/practice')
+const mediaDir = process.env.PRACTICE_MEDIA_DIR
+  ? path.resolve(process.env.PRACTICE_MEDIA_DIR)
+  : path.join(web, 'public/practice-diagrams')
+const cmsOutputOverride = process.env.PRACTICE_CMS_OUTPUT
+  ? path.resolve(process.env.PRACTICE_CMS_OUTPUT)
+  : null
 const media = new Map()
 const problems = []
 const generators = []
@@ -228,7 +235,7 @@ fs.writeFileSync(path.join(output, 'catalog.generated.json'), JSON.stringify({ p
 fs.writeFileSync(path.join(output, 'titles.generated.json'), JSON.stringify(Object.fromEntries(
   problems.map(({ id, title }) => [id, title]),
 ), null, 2) + '\n')
-const cmsOutput = path.resolve(__dirname, '../payload-cms/src/practice')
+const cmsOutput = cmsOutputOverride ?? path.resolve(__dirname, '../payload-cms/src/practice')
 fs.mkdirSync(cmsOutput, { recursive: true })
 fs.writeFileSync(path.join(cmsOutput, 'catalog.generated.json'), JSON.stringify(problems.map(({ id, title, subject, chapter, parts }) => ({
   id, title, subject, chapter, kind: parts ? 'numeric' : 'simulation',
