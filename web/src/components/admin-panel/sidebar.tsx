@@ -48,7 +48,7 @@ export default function AppSidebar({ classes, className }: AppSidebarProps) {
         )}
       >
         {isOpen ? (
-          <div className="text-[12px] font-semibold uppercase tracking-[0.08em] text-sidebar-foreground/70">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.06em] text-sidebar-foreground/65">
             Study Topics
           </div>
         ) : (

@@ -87,58 +87,76 @@ const cleanTitle = (value: string, fallback: string) => {
   return t;
 };
 
+/** Title-case nav labels; softens ALL-CAPS CMS titles like "MECHANICS OF MATERIALS". */
+const toNavLabel = (value: string) => {
+  const cleaned = cleanTitle(value, value).trim();
+  const letters = cleaned.replace(/[^A-Za-z]/g, "");
+  const mostlyUpper =
+    letters.length > 0 &&
+    letters === letters.toUpperCase() &&
+    /[A-Z]/.test(letters);
+  if (!mostlyUpper) return cleaned;
+  return cleaned
+    .toLowerCase()
+    .replace(/\b([a-z])/g, (m) => m.toUpperCase())
+    .replace(/\b(Of|And|The|For|To|In|On)\b/g, (m) => m.toLowerCase());
+};
+
+/**
+ * Custom engineering subject icons (24×24 stroke).
+ * Lucide covers general UI; these give the curriculum its own identity.
+ */
 function StudyTopicIcon({ title }: { title: string }) {
   const normalized = title.toLowerCase();
   const common = {
     "aria-hidden": true as const,
-    className: "size-5",
-    viewBox: "0 0 20 20",
+    className: "size-6 shrink-0",
+    viewBox: "0 0 24 24",
     fill: "none" as const,
+  };
+  const stroke = {
+    stroke: "currentColor" as const,
+    strokeWidth: 1.85,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
   };
 
   if (normalized.includes("statics")) {
+    // Simply supported beam with a central applied force
     return (
       <svg {...common}>
-        <path
-          d="M3 15h14M5.5 15v-2.5L10 6l4.5 6.5V15M7.2 10h5.6"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M4 17h3M13 17h3"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
+        <path d="M4 11h16" {...stroke} />
+        <path d="M12 4v6" {...stroke} />
+        <path d="M9.75 8.5 12 11l2.25-2.5" {...stroke} />
+        <path d="M6.5 11 5 14.5h3L6.5 11Z" {...stroke} />
+        <path d="M17.5 11 16 14.5h3L17.5 11Z" {...stroke} />
       </svg>
     );
   }
 
   if (normalized.includes("mechanics")) {
+    // Refined I-beam cross-section with light stress markers
     return (
       <svg {...common}>
         <path
-          d="M4.5 4.5h11v11h-11zM2.5 7h2M2.5 13h2M15.5 7h2M15.5 13h2M7 2.5v2M13 2.5v2M7 15.5v2M13 15.5v2M7 8h6M7 11h6"
-          stroke="currentColor"
-          strokeWidth="1.45"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          d="M5.5 4.25h13v2.75h-4.75v9.5H18.5v2.75h-13v-2.75h4.75v-9.5H5.5z"
+          {...stroke}
         />
+        <path d="M8.25 12h2.5M13.25 12h2.5" {...stroke} />
       </svg>
     );
   }
 
+  // Review: clipboard with checklist
   return (
     <svg {...common}>
       <path
-        d="M4 3.5h12v13H4zM7 7h6M7 10h6M7 13h4"
-        stroke="currentColor"
-        strokeWidth="1.55"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        d="M8.25 4.5h7.5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-7.5a2 2 0 0 1-2-2v-12a2 2 0 0 1 2-2Z"
+        {...stroke}
       />
+      <path d="M9.5 4.5h5V6a1.25 1.25 0 0 1-1.25 1.25h-2.5A1.25 1.25 0 0 1 9.5 6z" {...stroke} />
+      <path d="M9.5 11.25h5M9.5 14.75h5" {...stroke} />
+      <path d="M9.5 17.75 10.85 19l3.15-3.25" {...stroke} />
     </svg>
   );
 }
@@ -329,6 +347,7 @@ export default function SidebarClient({ classes }: Props) {
           const hasChapters = chapters.length > 0;
           const classOpen = !!openClasses[cSlug];
           const classTitle = getClassTitle(cls);
+          const classLabel = toNavLabel(classTitle);
           const classHasActiveLesson = !!(
             currentLessonSlug &&
             lessonOwner[currentLessonSlug]?.classSlug === cSlug
@@ -347,38 +366,41 @@ export default function SidebarClient({ classes }: Props) {
                 <Link
                   href={`/classes/${cSlug}`}
                   className={cn(
-                    "flex min-h-12 items-center gap-3 border-l-[3px] py-2 pl-3 pr-3 text-[12px] font-semibold uppercase leading-4 tracking-[0.075em]",
+                    "flex min-h-11 items-center gap-2.5 border-l-[3px] py-2 pl-3 pr-3 text-[13px] font-semibold leading-5 tracking-[-0.01em]",
                     "transition-[background-color,border-color,color] duration-150",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                     classSelfActive
                       ? "border-sidebar-primary bg-sidebar-primary/10 text-sidebar-foreground"
-                      : "border-transparent text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      : "border-transparent text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   )}
                   aria-current={classSelfActive ? "page" : undefined}
                 >
                   <span className="inline-flex size-7 shrink-0 items-center justify-center text-primary">
                     <StudyTopicIcon title={classTitle} />
                   </span>
-                  <span className="min-w-0 break-words">{classTitle}</span>
+                  <span className="min-w-0 break-words">{classLabel}</span>
                 </Link>
               ) : (
                 <div
                   className={cn(
-                    "grid min-h-8 w-full grid-cols-[minmax(0,1fr)_2rem] items-center border-l-[3px] py-0 pl-3 pr-0 text-[12px] font-semibold uppercase leading-4 tracking-[0.08em]",
+                    "grid min-h-9 w-full grid-cols-[1.75rem_minmax(0,1fr)_2rem] items-center gap-2 border-l-[3px] py-0 pl-3 pr-0 text-[13px] font-semibold leading-5 tracking-[-0.01em]",
                     "transition-[background-color,border-color,color] duration-150",
                     classSelfActive
                       ? "border-sidebar-primary bg-sidebar-primary/10 text-sidebar-foreground"
                       : classIsActive
                         ? "border-transparent text-sidebar-foreground hover:bg-sidebar-accent"
-                        : "border-transparent text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        : "border-transparent text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   )}
                 >
+                  <span className="inline-flex size-7 shrink-0 items-center justify-center text-primary">
+                    <StudyTopicIcon title={classTitle} />
+                  </span>
                   <Link
                     href={`/classes/${cSlug}`}
-                    className="min-w-0 py-1 text-left text-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55"
+                    className="min-w-0 py-1.5 text-left text-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55"
                     aria-current={classSelfActive ? "page" : undefined}
                   >
-                    <span className="block break-words">{classTitle}</span>
+                    <span className="block break-words">{classLabel}</span>
                   </Link>
                   {hasChapters ? (
                     <button
